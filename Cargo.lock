@@ -544,6 +544,8 @@ dependencies = [
  "canape-core",
  "canape-hw",
  "canape-ipc",
+ "serde",
+ "serde_json",
  "slint",
  "slint-build",
  "windows-sys 0.61.2",

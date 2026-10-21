@@ -1,0 +1,353 @@
+# French translation of the Canapé shell.
+# Source strings: the @tr(...) calls in crates/canape-shell/ui/*.slint.
+msgid ""
+msgstr ""
+"Project-Id-Version: canape-shell\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Home"
+msgstr "Accueil"
+
+msgid "Performance"
+msgstr "Performance"
+
+msgid "Profiles"
+msgstr "Profils"
+
+msgid "Bench"
+msgstr "Banc d'essai"
+
+msgid "Settings"
+msgstr "Réglages"
+
+msgid "Select"
+msgstr "Valider"
+
+msgid "Back"
+msgstr "Retour"
+
+msgid "Change page"
+msgstr "Changer de page"
+
+msgid "Service not connected: start canape-service."
+msgstr "Service non connecté : démarrez canape-service."
+
+msgid "Service unreachable"
+msgstr "Service injoignable"
+
+msgid "Service error: {}"
+msgstr "Erreur du service : {}"
+
+msgid "Profile saved"
+msgstr "Profil enregistré"
+
+msgid "Also driving the hardware: {}. Close it to avoid conflicts."
+msgstr "Pilote aussi le matériel : {}. Fermez-le pour éviter les conflits."
+
+msgid "Power limit"
+msgstr "Limite de puissance"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Service not connected"
+msgstr "Service non connecté"
+
+msgid "Auto TDP, target {} FPS"
+msgstr "Auto TDP, objectif {} FPS"
+
+msgid "Set by the firmware: {} mode"
+msgstr "Fixée par le firmware : mode {}"
+
+msgid "Manual TDP"
+msgstr "TDP manuel"
+
+msgid "Auto TDP"
+msgstr "Auto TDP"
+
+msgid "Thermal limit reached"
+msgstr "Limite thermique atteinte"
+
+msgid "Bench running"
+msgstr "Banc d'essai en cours"
+
+msgid "Frame rate"
+msgstr "Images par seconde"
+
+msgid "GPU"
+msgstr "GPU"
+
+msgid "CPU temperature"
+msgstr "Température CPU"
+
+msgid "Battery"
+msgstr "Batterie"
+
+msgid "On battery"
+msgstr "Sur batterie"
+
+msgid "Plugged in"
+msgstr "Sur secteur"
+
+msgid "Now playing"
+msgstr "En jeu"
+
+msgid "No game detected"
+msgstr "Aucun jeu détecté"
+
+msgid "Profile in use: {}"
+msgstr "Profil utilisé : {}"
+
+msgid "No profile for this game: the global settings apply."
+msgstr "Pas de profil pour ce jeu : les réglages généraux s'appliquent."
+
+msgid "Start a game: its profile applies by itself."
+msgstr "Lancez un jeu : son profil s'applique tout seul."
+
+msgid "Profile active"
+msgstr "Profil actif"
+
+msgid "On"
+msgstr "Activé"
+
+msgid "Off"
+msgstr "Désactivé"
+
+msgid "Firmware mode"
+msgstr "Mode firmware"
+
+msgid "Power mode"
+msgstr "Mode de puissance"
+
+msgid "Quiet, cool"
+msgstr "Discret et frais"
+
+msgid "Balanced"
+msgstr "Équilibré"
+
+msgid "Maximum power"
+msgstr "Puissance maximale"
+
+msgid "Your own limit"
+msgstr "Votre limite"
+
+msgid "Choose Manual to set the power yourself."
+msgstr "Choisissez Manuel pour régler la puissance vous-même."
+
+msgid "Changing it turns auto TDP off."
+msgstr "Le modifier désactive l'auto TDP."
+
+msgid "Keeps the frame rate on target with as little power as possible."
+msgstr "Tient l'objectif d'images par seconde avec le moins de puissance possible."
+
+msgid "Target frame rate"
+msgstr "Objectif d'images par seconde"
+
+msgid "Minimum power"
+msgstr "Puissance minimale"
+
+msgid "Maximum on battery"
+msgstr "Maximum sur batterie"
+
+msgid "None"
+msgstr "Aucune"
+
+msgid "Temperature limit: above it, power only goes down"
+msgstr "Limite de température : au-delà, la puissance ne fait que baisser"
+
+msgid "Auto TDP off"
+msgstr "Auto TDP désactivé"
+
+msgid "learned: {}"
+msgstr "appris : {}"
+
+msgid "In use"
+msgstr "Utilisé"
+
+msgid "Confirm"
+msgstr "Confirmer"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Current game"
+msgstr "Jeu en cours"
+
+msgid "A profile is in use for this game."
+msgstr "Un profil est utilisé pour ce jeu."
+
+msgid "This game has no profile yet."
+msgstr "Ce jeu n'a pas encore de profil."
+
+msgid "Settings saved with the profile"
+msgstr "Réglages enregistrés dans le profil"
+
+msgid "Target"
+msgstr "Objectif"
+
+msgid "Power"
+msgstr "Puissance"
+
+msgid "Temperature limit"
+msgstr "Limite de température"
+
+msgid "Update the profile"
+msgstr "Mettre à jour le profil"
+
+msgid "Save as profile"
+msgstr "Enregistrer comme profil"
+
+msgid "Start a game first"
+msgstr "Lancez d'abord un jeu"
+
+msgid "A profile applies by itself when its game comes to the front."
+msgstr "Un profil s'applique tout seul quand son jeu passe au premier plan."
+
+msgid "No profiles yet. Save one while a game is running, or from a bench result."
+msgstr "Aucun profil pour l'instant. Enregistrez-en un pendant une partie, ou depuis un résultat du banc d'essai."
+
+msgid "Set as TDP"
+msgstr "Régler le TDP"
+
+msgid "Save for the game"
+msgstr "Profil du jeu"
+
+msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
+msgstr "Fait tourner le jeu au premier plan à plusieurs limites de puissance et mesure chacune. Laissez tourner une scène exigeante."
+
+msgid "Step"
+msgstr "Pas"
+
+msgid "Per step"
+msgstr "Par palier"
+
+msgid "{} s"
+msgstr "{} s"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Start"
+msgstr "Démarrer"
+
+msgid "{} left"
+msgstr "encore {}"
+
+msgid "about {}"
+msgstr "environ {}"
+
+msgid "Running"
+msgstr "En cours"
+
+msgid "Step {} of {}: {}"
+msgstr "Palier {} sur {} : {}"
+
+msgid "{} left. Keep the game in front; the power limit changes on its own."
+msgstr "Encore {}. Gardez le jeu au premier plan ; la limite de puissance change toute seule."
+
+msgid "No results yet. Start a game, then start the bench."
+msgstr "Pas encore de résultats. Lancez un jeu, puis le banc d'essai."
+
+msgid "Results for {}"
+msgstr "Résultats pour {}"
+
+msgid "Results"
+msgstr "Résultats"
+
+msgid "incomplete run"
+msgstr "essai incomplet"
+
+msgid "Average FPS"
+msgstr "FPS moyens"
+
+msgid "Lowest FPS"
+msgstr "FPS minimum"
+
+msgid "FPS per watt"
+msgstr "FPS par watt"
+
+msgid "Max temperature"
+msgstr "Température max."
+
+msgid "Sweet spot"
+msgstr "Meilleur compromis"
+
+msgid "Near the best frame rate: {} FPS"
+msgstr "Proche du meilleur résultat : {} FPS"
+
+msgid "For {} FPS"
+msgstr "Pour {} FPS"
+
+msgid "Lowest power holding the target: {} FPS"
+msgstr "Puissance minimale qui tient l'objectif : {} FPS"
+
+msgid "Target not reached in this run"
+msgstr "Objectif non atteint pendant cet essai"
+
+msgid "Most efficient"
+msgstr "Le plus efficace"
+
+msgid "Most frames per watt: {} FPS"
+msgstr "Le plus d'images par watt : {} FPS"
+
+msgid "Automatic"
+msgstr "Automatique"
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "Automatic follows the Windows display language."
+msgstr "Automatique suit la langue d'affichage de Windows."
+
+msgid "Windows language"
+msgstr "Langue de Windows"
+
+msgid "About"
+msgstr "À propos"
+
+msgid "Version {}"
+msgstr "Version {}"
+
+msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
+msgstr "Un accueil léger, façon console, pour la ROG Ally. Le matériel est piloté par le service Canapé."
+
+msgid "Service connected"
+msgstr "Service connecté"
+
+msgid "Gamepad"
+msgstr "Manette"
+
+msgid "Back to Home"
+msgstr "Retour à l'accueil"
+
+msgid "Move (D-pad or left stick)"
+msgstr "Se déplacer (croix ou stick gauche)"
+
+msgid "{} W"
+msgstr "{} W"
+
+msgid "{} FPS"
+msgstr "{} FPS"
+
+msgid "{} °C"
+msgstr "{} °C"
+
+msgid "{} %"
+msgstr "{} %"
+
+msgctxt "decimal separator"
+msgid "."
+msgstr ","
+
+msgid "Silent"
+msgstr "Silencieux"
+
+msgid "Turbo"
+msgstr "Turbo"
+
+msgid "Manual"
+msgstr "Manuel"

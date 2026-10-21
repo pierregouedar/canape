@@ -1,5 +1,8 @@
 //! Gamepad state → navigation keys, with auto-repeat while a direction is
 //! held. Pure logic; the XInput polling lives in `gamepad.rs`.
+//!
+//! D-pad / stick → Tab / Shift+Tab, A → Return, B → Escape, and the bumpers
+//! LB / RB → PageUp / PageDown, which the window turns into page changes.
 
 use std::time::{Duration, Instant};
 
@@ -15,6 +18,10 @@ pub struct Pad {
     pub backward: bool,
     pub confirm: bool,
     pub back: bool,
+    /// LB: previous page.
+    pub page_prev: bool,
+    /// RB: next page.
+    pub page_next: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -43,6 +50,12 @@ impl Navigator {
         }
         if pad.back && !self.previous.back {
             keys.push(Key::Escape);
+        }
+        if pad.page_prev && !self.previous.page_prev {
+            keys.push(Key::PageUp);
+        }
+        if pad.page_next && !self.previous.page_next {
+            keys.push(Key::PageDown);
         }
 
         let direction = match (pad.forward, pad.backward) {
@@ -87,6 +100,8 @@ mod tests {
         backward: false,
         confirm: false,
         back: false,
+        page_prev: false,
+        page_next: false,
     };
 
     #[test]
@@ -101,6 +116,30 @@ mod tests {
         assert!(nav.update(pressed, t + REPEAT_DELAY * 2).is_empty());
         assert!(nav.update(Pad::default(), t).is_empty());
         assert_eq!(nav.update(pressed, t), vec![Key::Return]);
+    }
+
+    #[test]
+    fn bumpers_turn_pages_once_per_press() {
+        let mut nav = Navigator::default();
+        let t = Instant::now();
+        let rb = Pad {
+            page_next: true,
+            ..Pad::default()
+        };
+        assert_eq!(nav.update(rb, t), vec![Key::PageDown]);
+        assert!(nav.update(rb, t + REPEAT_DELAY * 2).is_empty());
+        let both = Pad {
+            page_prev: true,
+            ..rb
+        };
+        assert_eq!(nav.update(both, t), vec![Key::PageUp]);
+        nav.update(Pad::default(), t);
+        let b_and_lb = Pad {
+            back: true,
+            page_prev: true,
+            ..Pad::default()
+        };
+        assert_eq!(nav.update(b_and_lb, t), vec![Key::Escape, Key::PageUp]);
     }
 
     #[test]

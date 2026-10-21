@@ -1,0 +1,1143 @@
+// The five pages, switched with LB / RB. Each page focuses its first control
+// when it opens, so the gamepad always has something to act on.
+
+import { Theme } from "theme.slint";
+import { App, ProfileView, BenchRow, RecView } from "state.slint";
+import { Badge, BatteryIcon, Bolt, Caption, Card, Chip, DpadGlyph, PadGlyph, Pressable, Stepper, Tile } from "widgets.slint";
+
+component Title inherits Text {
+    color: Theme.text;
+    font-size: 30px;
+    font-weight: 700;
+    overflow: elide;
+}
+
+component Dim inherits Text {
+    color: Theme.dim;
+    font-size: Theme.font-body;
+    wrap: word-wrap;
+}
+
+component Warning inherits Rectangle {
+    in property <string> text;
+    height: 48px;
+    border-radius: Theme.radius-small;
+    background: Theme.warn-soft;
+    border-width: 1px;
+    border-color: Theme.warn.with-alpha(0.45);
+
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 16px;
+        spacing: 12px;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 24px;
+                height: 24px;
+                border-radius: 12px;
+                background: Theme.warn;
+                Text {
+                    text: "!";
+                    color: #1a1300;
+                    font-size: 16px;
+                    font-weight: 800;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        Text {
+            text: root.text;
+            color: Theme.warn;
+            font-size: Theme.font-body;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+}
+
+component Stat inherits Rectangle {
+    horizontal-stretch: 1;
+    // Same preferred width for all: the stretch alone shares the row.
+    preferred-width: 10px;
+    in property <string> label;
+    in property <string> value;
+    in property <color> value-color: Theme.text;
+    background: Theme.surface;
+    border-radius: Theme.radius;
+    border-width: 1px;
+    border-color: Theme.stroke;
+
+    VerticalLayout {
+        padding: 18px;
+        padding-left: 22px;
+        spacing: 2px;
+        alignment: center;
+        Caption {
+            text: root.label;
+        }
+
+        HorizontalLayout {
+            spacing: 12px;
+            Text {
+                text: root.value;
+                color: root.value-color;
+                font-size: 40px;
+                font-weight: 700;
+                vertical-alignment: center;
+            }
+
+            @children
+        }
+    }
+}
+
+// Where a wattage sits between two bounds: the auto TDP range, or the
+// manual range.
+component Gauge inherits VerticalLayout {
+    in property <int> value;
+    in property <int> low;
+    in property <int> high;
+    property <float> ratio: max(0, min(1, (root.value - root.low) / max(1, root.high - root.low)));
+    spacing: 6px;
+    Rectangle {
+        height: 8px;
+        border-radius: 4px;
+        background: Theme.surface-high;
+        Rectangle {
+            x: 0;
+            width: max(parent.height, parent.width * root.ratio);
+            border-radius: 4px;
+            background: @linear-gradient(90deg, Theme.accent.with-alpha(0.5) 0%, Theme.accent 100%);
+            animate width { duration: 300ms; }
+        }
+    }
+
+    HorizontalLayout {
+        Text {
+            text: App.watts(root.low);
+            color: Theme.faint;
+            font-size: Theme.font-small;
+        }
+
+        Rectangle { }
+
+        Text {
+            text: App.watts(root.high);
+            color: Theme.faint;
+            font-size: Theme.font-small;
+        }
+    }
+}
+
+export component HomePage inherits VerticalLayout {
+    spacing: Theme.gap;
+    init => {
+        first.focus();
+    }
+
+    if App.status.conflicts != "": Warning {
+        text: @tr("Also driving the hardware: {}. Close it to avoid conflicts.", App.status.conflicts);
+    }
+
+    HorizontalLayout {
+        spacing: Theme.gap;
+        min-height: 232px;
+        vertical-stretch: 1;
+
+        Rectangle {
+            horizontal-stretch: 5;
+            border-radius: Theme.radius;
+            background: @linear-gradient(135deg, #2a1420 0%, #161b28 60%);
+            border-width: 1px;
+            border-color: Theme.accent.with-alpha(0.35);
+
+            VerticalLayout {
+                padding: 24px;
+                spacing: 4px;
+                Caption {
+                    text: @tr("Power limit");
+                }
+
+                Text {
+                    text: !App.status.connected ? "—" : App.status.tdp >= 0 ? App.watts(App.status.tdp) : App.firmware-mode() ? @tr("Auto") : "—";
+                    color: App.status.connected ? Theme.text : Theme.faint;
+                    font-size: 86px;
+                    font-weight: 800;
+                }
+
+                Text {
+                    text: !App.status.connected ? @tr("Service not connected") : App.status.auto-tdp ? @tr("Auto TDP, target {} FPS", App.status.target-fps) : App.firmware-mode() ? @tr("Set by the firmware: {} mode", App.mode-name(App.status.mode)) : @tr("Manual TDP");
+                    color: Theme.dim;
+                    font-size: Theme.font-body;
+                    overflow: elide;
+                }
+
+                Rectangle { }
+
+                if App.status.connected && App.status.tdp >= 0: Gauge {
+                    value: App.status.tdp;
+                    low: App.status.auto-tdp ? App.status.min-watts : 5;
+                    high: App.status.auto-tdp ? App.status.max-watts : 35;
+                }
+
+                Rectangle {
+                    height: 6px;
+                }
+
+                HorizontalLayout {
+                    spacing: 10px;
+                    alignment: start;
+                    if App.status.connected && App.status.mode != "": Badge {
+                        text: App.status.auto-tdp ? @tr("Auto TDP") : App.mode-name(App.status.mode);
+                        tint: Theme.accent;
+                    }
+                    if App.status.thermal-limited: Badge {
+                        text: @tr("Thermal limit reached");
+                        tint: Theme.warn;
+                    }
+                    if App.status.bench-running: Badge {
+                        text: @tr("Bench running");
+                        tint: Theme.good;
+                    }
+                }
+            }
+        }
+
+        VerticalLayout {
+            horizontal-stretch: 6;
+            spacing: Theme.gap;
+            HorizontalLayout {
+                spacing: Theme.gap;
+                Stat {
+                    label: @tr("Frame rate");
+                    value: App.known(App.status.fps, App.fps-value(App.status.fps));
+                }
+
+                Stat {
+                    label: @tr("GPU");
+                    value: App.known(App.status.gpu, App.percent(App.status.gpu));
+                }
+            }
+
+            HorizontalLayout {
+                spacing: Theme.gap;
+                Stat {
+                    label: @tr("CPU temperature");
+                    value: App.known(App.status.temp, App.celsius(App.status.temp));
+                    value-color: App.status.temp >= 90 ? Theme.bad : App.status.temp >= 80 ? Theme.warn : Theme.text;
+                }
+
+                Stat {
+                    label: !App.status.connected || !App.status.power-known ? @tr("Battery") : App.status.on-battery ? @tr("On battery") : @tr("Plugged in");
+                    value: App.known(App.status.battery, App.percent(App.status.battery));
+                    if App.status.connected && App.status.battery >= 0: VerticalLayout {
+                        alignment: center;
+                        HorizontalLayout {
+                            spacing: 6px;
+                            BatteryIcon {
+                                percent: App.status.battery;
+                                charging: App.status.power-known && !App.status.on-battery;
+                            }
+
+                            if App.status.power-known && !App.status.on-battery: Bolt { }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Card {
+        title: @tr("Now playing");
+        inner-spacing: 6px;
+        HorizontalLayout {
+            spacing: Theme.gap;
+            VerticalLayout {
+                spacing: 6px;
+                Title {
+                    text: App.status.foreground != "" ? App.status.foreground : @tr("No game detected");
+                    color: App.status.foreground != "" ? Theme.text : Theme.dim;
+                }
+
+                Text {
+                    text: App.status.active-profile != "" ? @tr("Profile in use: {}", App.status.active-profile) : App.status.foreground != "" ? @tr("No profile for this game: the global settings apply.") : @tr("Start a game: its profile applies by itself.");
+                    color: Theme.dim;
+                    font-size: Theme.font-body;
+                    overflow: elide;
+                }
+            }
+
+            if App.status.active-profile != "": HorizontalLayout {
+                alignment: end;
+                VerticalLayout {
+                    alignment: center;
+                    Badge {
+                        text: @tr("Profile active");
+                        tint: Theme.good;
+                    }
+                }
+            }
+        }
+    }
+
+    HorizontalLayout {
+        spacing: Theme.gap;
+        height: 84px;
+        first := Tile {
+            label: @tr("Auto TDP");
+            sub: App.status.auto-tdp ? @tr("On") : @tr("Off");
+            selected: App.status.auto-tdp;
+            enabled: App.status.connected;
+            clicked => {
+                App.toggle-auto-tdp();
+            }
+        }
+
+        for mode in ["silent", "performance", "turbo"]: Tile {
+            label: App.mode-name(mode);
+            sub: @tr("Firmware mode");
+            selected: App.status.mode == mode;
+            enabled: App.status.connected;
+            clicked => {
+                App.set-mode(mode);
+            }
+        }
+    }
+}
+
+export component PerformancePage inherits VerticalLayout {
+    spacing: Theme.gap;
+    init => {
+        first.focus();
+    }
+
+    HorizontalLayout {
+        spacing: Theme.gap;
+        Card {
+            title: @tr("Power mode");
+            horizontal-stretch: 3;
+            HorizontalLayout {
+                spacing: 12px;
+                first := Tile {
+                    label: App.mode-name("silent");
+                    sub: @tr("Quiet, cool");
+                    selected: App.status.mode == "silent";
+                    enabled: App.status.connected;
+                    clicked => {
+                        App.set-mode("silent");
+                    }
+                }
+
+                Tile {
+                    label: App.mode-name("performance");
+                    sub: @tr("Balanced");
+                    selected: App.status.mode == "performance";
+                    enabled: App.status.connected;
+                    clicked => {
+                        App.set-mode("performance");
+                    }
+                }
+
+                Tile {
+                    label: App.mode-name("turbo");
+                    sub: @tr("Maximum power");
+                    selected: App.status.mode == "turbo";
+                    enabled: App.status.connected;
+                    clicked => {
+                        App.set-mode("turbo");
+                    }
+                }
+
+                Tile {
+                    label: App.mode-name("manual");
+                    sub: @tr("Your own limit");
+                    selected: App.status.mode == "manual";
+                    enabled: App.status.connected;
+                    clicked => {
+                        App.set-mode("manual");
+                    }
+                }
+            }
+        }
+
+        Card {
+            title: @tr("Manual TDP");
+            horizontal-stretch: 2;
+            Stepper {
+                value: App.status.connected && App.status.tdp >= 0 ? App.watts(App.status.tdp) : "—";
+                enabled: App.status.connected && App.status.tdp >= 0 && !App.firmware-mode();
+                step(delta) => {
+                    App.change-tdp(delta);
+                }
+            }
+
+            Text {
+                text: App.firmware-mode() ? @tr("Choose Manual to set the power yourself.") : @tr("Changing it turns auto TDP off.");
+                color: Theme.faint;
+                font-size: Theme.font-small;
+                wrap: word-wrap;
+            }
+        }
+    }
+
+    Card {
+        title: @tr("Auto TDP");
+        inner-spacing: 14px;
+        vertical-stretch: 1;
+
+        Text {
+            text: @tr("Keeps the frame rate on target with as little power as possible.");
+            color: Theme.dim;
+            font-size: Theme.font-body;
+            overflow: elide;
+        }
+
+        HorizontalLayout {
+            spacing: 24px;
+            alignment: start;
+            Tile {
+                width: 170px;
+                height: 72px;
+                label: App.status.auto-tdp ? @tr("On") : @tr("Off");
+                sub: @tr("Auto TDP");
+                selected: App.status.auto-tdp;
+                enabled: App.status.connected;
+                clicked => {
+                    App.toggle-auto-tdp();
+                }
+            }
+
+            VerticalLayout {
+                spacing: 8px;
+                Caption {
+                    text: @tr("Target frame rate");
+                }
+
+                HorizontalLayout {
+                    spacing: 10px;
+                    for fps in [30, 40, 45, 60, 90, 120]: Chip {
+                        label: fps;
+                        selected: App.status.auto-tdp && App.status.target-fps == fps;
+                        enabled: App.status.connected;
+                        clicked => {
+                            App.set-target-fps(fps);
+                        }
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 40px;
+            alignment: start;
+            VerticalLayout {
+                spacing: 8px;
+                Caption {
+                    text: @tr("Minimum power");
+                }
+
+                Stepper {
+                    value: App.status.connected ? App.watts(App.status.min-watts) : "—";
+                    enabled: App.status.connected;
+                    step(delta) => {
+                        App.change-min-watts(delta);
+                    }
+                }
+            }
+
+            VerticalLayout {
+                spacing: 8px;
+                Caption {
+                    text: @tr("Maximum power");
+                }
+
+                Stepper {
+                    value: App.status.connected ? App.watts(App.status.max-watts) : "—";
+                    enabled: App.status.connected;
+                    step(delta) => {
+                        App.change-max-watts(delta);
+                    }
+                }
+            }
+
+            VerticalLayout {
+                spacing: 8px;
+                Caption {
+                    text: @tr("Maximum on battery");
+                }
+
+                HorizontalLayout {
+                    spacing: 10px;
+                    for watts in [0, 10, 15, 20]: Chip {
+                        label: watts == 0 ? @tr("None") : App.watts(watts);
+                        selected: App.status.connected && App.status.battery-cap == watts;
+                        enabled: App.status.connected;
+                        clicked => {
+                            App.set-battery-cap(watts);
+                        }
+                    }
+                }
+            }
+        }
+
+        VerticalLayout {
+            spacing: 8px;
+            Caption {
+                text: @tr("Temperature limit: above it, power only goes down");
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+                alignment: start;
+                for celsius in [0, 80, 85, 90]: Chip {
+                    label: celsius == 0 ? @tr("None") : App.celsius(celsius);
+                    selected: App.status.connected && App.status.temp-limit == celsius;
+                    enabled: App.status.connected;
+                    clicked => {
+                        App.set-temp-limit(celsius);
+                    }
+                }
+            }
+        }
+    }
+}
+
+component Setting inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+    horizontal-stretch: 1;
+    preferred-width: 10px;
+    border-radius: Theme.radius-small;
+    background: Theme.surface-high;
+    VerticalLayout {
+        padding: 12px;
+        padding-left: 16px;
+        spacing: 2px;
+        Text {
+            text: root.label;
+            color: Theme.dim;
+            font-size: Theme.font-small;
+            overflow: elide;
+        }
+
+        Text {
+            text: App.status.connected ? root.value : "—";
+            color: Theme.text;
+            font-size: 22px;
+            font-weight: 700;
+            overflow: elide;
+        }
+    }
+}
+
+component ProfileRow inherits Rectangle {
+    in property <ProfileView> profile;
+    in property <bool> active;
+    property <bool> armed;
+    callback focus-gained();
+    height: 76px;
+    border-radius: Theme.radius-small;
+    background: root.active ? Theme.accent-soft : Theme.surface-high;
+
+    HorizontalLayout {
+        padding-left: 18px;
+        padding-right: 12px;
+        spacing: 12px;
+        VerticalLayout {
+            alignment: center;
+            spacing: 2px;
+            horizontal-stretch: 1;
+            Text {
+                text: root.profile.exe;
+                color: Theme.text;
+                font-size: 20px;
+                font-weight: 600;
+                overflow: elide;
+            }
+
+            Text {
+                text: (root.profile.auto-tdp ? App.fps-value(root.profile.target-fps) + "  ·  " + App.watts(root.profile.min-watts) + " – " + App.watts(root.profile.max-watts) : @tr("Auto TDP off")) + (root.profile.learned-watts >= 0 ? "  ·  " + @tr("learned: {}", App.watts(root.profile.learned-watts)) : "");
+                color: Theme.dim;
+                font-size: Theme.font-small;
+                overflow: elide;
+            }
+        }
+
+        if root.active: VerticalLayout {
+            alignment: center;
+            Badge {
+                text: @tr("In use");
+                tint: Theme.good;
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            delete := Chip {
+                min-width: 132px;
+                label: root.armed ? @tr("Confirm") : @tr("Delete");
+                selected: root.armed;
+                clicked => {
+                    if root.armed {
+                        root.armed = false;
+                        App.delete-profile(root.profile.exe);
+                    } else {
+                        root.armed = true;
+                    }
+                }
+                focus-gained => {
+                    root.focus-gained();
+                }
+                changed focused => {
+                    if !self.focused {
+                        root.armed = false;
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component ProfilesPage inherits HorizontalLayout {
+    spacing: Theme.gap;
+    property <length> row-height: 76px;
+    property <length> row-gap: 10px;
+    init => {
+        App.refresh();
+        first.focus();
+    }
+
+    Card {
+        title: @tr("Current game");
+        horizontal-stretch: 1;
+        preferred-width: 100px;
+        inner-spacing: 12px;
+
+        Title {
+            text: App.status.foreground != "" ? App.status.foreground : @tr("No game detected");
+            color: App.status.foreground != "" ? Theme.text : Theme.dim;
+        }
+
+        Dim {
+            text: App.status.active-profile != "" ? @tr("A profile is in use for this game.") : @tr("This game has no profile yet.");
+        }
+
+        Caption {
+            text: @tr("Settings saved with the profile");
+        }
+
+        HorizontalLayout {
+            spacing: 10px;
+            Setting {
+                label: @tr("Target");
+                value: App.fps-value(App.status.target-fps);
+            }
+
+            Setting {
+                label: @tr("Power");
+                value: App.watts(App.status.min-watts) + " – " + App.watts(App.status.max-watts);
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 10px;
+            Setting {
+                label: @tr("Maximum on battery");
+                value: App.status.battery-cap > 0 ? App.watts(App.status.battery-cap) : @tr("None");
+            }
+
+            Setting {
+                label: @tr("Temperature limit");
+                value: App.status.temp-limit > 0 ? App.celsius(App.status.temp-limit) : @tr("None");
+            }
+        }
+
+        first := Tile {
+            height: 72px;
+            label: App.status.active-profile != "" ? @tr("Update the profile") : @tr("Save as profile");
+            sub: App.status.foreground != "" ? App.status.foreground : @tr("Start a game first");
+            enabled: App.status.connected && App.status.foreground != "";
+            clicked => {
+                App.save-profile();
+            }
+        }
+
+        Rectangle { }
+
+        Text {
+            text: @tr("A profile applies by itself when its game comes to the front.");
+            color: Theme.faint;
+            font-size: Theme.font-small;
+            wrap: word-wrap;
+        }
+    }
+
+    Card {
+        title: @tr("Profiles");
+        horizontal-stretch: 1;
+        preferred-width: 100px;
+
+        if App.profiles.length == 0: Dim {
+            text: App.status.connected ? @tr("No profiles yet. Save one while a game is running, or from a bench result.") : @tr("Service not connected");
+            vertical-stretch: 1;
+            vertical-alignment: top;
+        }
+
+        if App.profiles.length > 0: list := Flickable {
+            vertical-stretch: 1;
+            content-height: App.profiles.length * (root.row-height + root.row-gap);
+            for profile[i] in App.profiles: ProfileRow {
+                x: 0;
+                y: i * (root.row-height + root.row-gap);
+                width: list.width;
+                height: root.row-height;
+                profile: profile;
+                active: profile.exe.to-lowercase() == App.status.active-profile.to-lowercase();
+                // Keep the focused row in view: the gamepad cannot scroll.
+                focus-gained => {
+                    if self.y + list.content-y < 0 {
+                        list.content-y = -self.y;
+                    }
+                    if self.y + self.height + list.content-y > list.height {
+                        list.content-y = list.height - self.y - self.height;
+                    }
+                }
+            }
+        }
+    }
+}
+
+component Cell inherits Text {
+    height: 30px;
+    font-size: Theme.font-body;
+    horizontal-alignment: center;
+    vertical-alignment: center;
+    color: Theme.text;
+}
+
+component Recommendation inherits Card {
+    in property <RecView> rec;
+    in property <string> explanation;
+    in property <string> missing;
+    in property <bool> can-save;
+    pad: 18px;
+    inner-spacing: 8px;
+    horizontal-stretch: 1;
+
+    Text {
+        text: root.rec.available ? App.watts(root.rec.watts) : "—";
+        color: root.rec.available ? Theme.text : Theme.faint;
+        font-size: 36px;
+        font-weight: 800;
+    }
+
+    Text {
+        text: root.rec.available ? root.explanation : root.missing;
+        color: Theme.dim;
+        font-size: Theme.font-small;
+        overflow: elide;
+    }
+
+    HorizontalLayout {
+        spacing: 10px;
+        Chip {
+            horizontal-stretch: 1;
+            font-size: Theme.font-small;
+            label: @tr("Set as TDP");
+            enabled: App.status.connected && root.rec.available;
+            clicked => {
+                App.apply-tdp(root.rec.watts);
+            }
+        }
+
+        Chip {
+            horizontal-stretch: 1;
+            font-size: Theme.font-small;
+            label: @tr("Save for the game");
+            enabled: App.status.connected && root.rec.available && root.can-save;
+            clicked => {
+                App.apply-profile(root.rec.watts);
+            }
+        }
+    }
+}
+
+export component BenchPage inherits VerticalLayout {
+    spacing: Theme.gap;
+    property <int> step-watts: 3;
+    property <int> measure-secs: 15;
+    property <bool> has-game: App.bench.exe != "" || App.status.foreground != "";
+    init => {
+        App.refresh();
+        start.focus();
+    }
+
+    Card {
+        pad: 18px;
+        HorizontalLayout {
+            spacing: 24px;
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 4px;
+                alignment: center;
+                Text {
+                    text: @tr("Bench");
+                    color: Theme.text;
+                    font-size: Theme.font-title;
+                    font-weight: 700;
+                }
+
+                Dim {
+                    text: @tr("Plays the game in front at several power limits and measures each one. Leave a demanding scene running.");
+                    font-size: Theme.font-small;
+                }
+            }
+
+            VerticalLayout {
+                spacing: 6px;
+                alignment: center;
+                Caption {
+                    text: @tr("Step");
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    for w in [2, 3, 5]: Chip {
+                        label: App.watts(w);
+                        selected: root.step-watts == w;
+                        enabled: !App.status.bench-running;
+                        clicked => {
+                            root.step-watts = w;
+                        }
+                    }
+                }
+            }
+
+            VerticalLayout {
+                spacing: 6px;
+                alignment: center;
+                Caption {
+                    text: @tr("Per step");
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    for s in [10, 15, 30]: Chip {
+                        label: @tr("{} s", s);
+                        selected: root.measure-secs == s;
+                        enabled: !App.status.bench-running;
+                        clicked => {
+                            root.measure-secs = s;
+                        }
+                    }
+                }
+            }
+
+            start := Tile {
+                width: 190px;
+                label: App.status.bench-running ? @tr("Cancel") : @tr("Start");
+                sub: App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("about {}", App.duration(App.bench-duration(root.step-watts, root.measure-secs)));
+                selected: !App.status.bench-running && App.status.connected && App.status.foreground != "";
+                enabled: App.status.connected;
+                clicked => {
+                    if App.status.bench-running {
+                        App.cancel-bench();
+                    } else {
+                        App.start-bench(root.step-watts, root.measure-secs);
+                    }
+                }
+            }
+        }
+    }
+
+    if App.status.bench-running: Card {
+        title: @tr("Running");
+        vertical-stretch: 1;
+        Text {
+            text: @tr("Step {} of {}: {}", App.status.bench-step, App.status.bench-steps, App.watts(App.status.bench-watts));
+            color: Theme.text;
+            font-size: 34px;
+            font-weight: 700;
+        }
+
+        Rectangle {
+            height: 12px;
+            border-radius: 6px;
+            background: Theme.surface-high;
+            Rectangle {
+                x: 0;
+                height: parent.height;
+                width: parent.width * max(0, App.status.bench-step - 1) / max(1, App.status.bench-steps);
+                border-radius: 6px;
+                background: Theme.accent;
+                animate width { duration: 400ms; }
+            }
+        }
+
+        Dim {
+            text: @tr("{} left. Keep the game in front; the power limit changes on its own.", App.duration(App.status.bench-seconds-left));
+        }
+
+        Rectangle { }
+    }
+
+    if !App.status.bench-running && !App.bench.available: Card {
+        vertical-stretch: 1;
+        Dim {
+            text: App.status.connected ? @tr("No results yet. Start a game, then start the bench.") : @tr("Service not connected");
+            vertical-stretch: 1;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+    }
+
+    if !App.status.bench-running && App.bench.available: Card {
+        title: (App.bench.exe != "" ? @tr("Results for {}", App.bench.exe) : @tr("Results")) + (App.bench.completed ? "" : "  ·  " + @tr("incomplete run"));
+        pad: 18px;
+        inner-spacing: 8px;
+        HorizontalLayout {
+            spacing: 4px;
+            VerticalLayout {
+                width: 200px;
+                for label in [@tr("Power"), @tr("Average FPS"), @tr("Lowest FPS"), @tr("FPS per watt"), @tr("Max temperature")]: Text {
+                    height: 30px;
+                    text: label;
+                    color: Theme.dim;
+                    font-size: Theme.font-small;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+            }
+
+            for row in App.bench-rows: Rectangle {
+                border-radius: 10px;
+                background: row.watts == App.bench.sweet-spot.watts ? Theme.accent-soft : transparent;
+                VerticalLayout {
+                    Cell {
+                        text: App.watts(row.watts);
+                        font-weight: 700;
+                    }
+
+                    Rectangle {
+                        height: 30px;
+                        Rectangle {
+                            x: 6px;
+                            y: 4px;
+                            height: parent.height - 8px;
+                            width: (parent.width - 12px) * row.share;
+                            border-radius: 4px;
+                            background: Theme.accent.with-alpha(0.25);
+                        }
+
+                        Cell {
+                            text: row.fps-avg;
+                        }
+                    }
+
+                    Cell {
+                        text: row.fps-low;
+                        color: Theme.dim;
+                    }
+
+                    Cell {
+                        text: App.tenths(row.fps-per-watt-tenths);
+                    }
+
+                    Cell {
+                        text: row.temp >= 0 ? App.celsius(row.temp) : "—";
+                        color: Theme.dim;
+                    }
+                }
+            }
+        }
+    }
+
+    if !App.status.bench-running && App.bench.available: HorizontalLayout {
+        spacing: Theme.gap;
+        Recommendation {
+            title: @tr("Sweet spot");
+            rec: App.bench.sweet-spot;
+            explanation: @tr("Near the best frame rate: {} FPS", App.bench.sweet-spot.fps);
+            can-save: root.has-game;
+        }
+
+        Recommendation {
+            title: @tr("For {} FPS", App.bench.target-fps);
+            rec: App.bench.for-target;
+            explanation: @tr("Lowest power holding the target: {} FPS", App.bench.for-target.fps);
+            missing: @tr("Target not reached in this run");
+            can-save: root.has-game;
+        }
+
+        Recommendation {
+            title: @tr("Most efficient");
+            rec: App.bench.most-efficient;
+            explanation: @tr("Most frames per watt: {} FPS", App.bench.most-efficient.fps);
+            can-save: root.has-game;
+        }
+    }
+}
+
+component Control inherits HorizontalLayout {
+    in property <string> glyph;
+    in property <bool> round: true;
+    in property <string> text;
+    spacing: 12px;
+    HorizontalLayout {
+        width: 64px;
+        alignment: start;
+        VerticalLayout {
+            alignment: center;
+            if root.glyph != "+": PadGlyph {
+                text: root.glyph;
+                round: root.round;
+            }
+            if root.glyph == "+": DpadGlyph { }
+        }
+    }
+
+    Text {
+        text: root.text;
+        color: Theme.dim;
+        font-size: Theme.font-body;
+        vertical-alignment: center;
+        overflow: elide;
+    }
+}
+
+struct Language {
+    code: string,
+    name: string,
+}
+
+export component SettingsPage inherits HorizontalLayout {
+    spacing: Theme.gap;
+    property <[[Language]]> rows: [
+        [
+            { code: "auto", name: @tr("Automatic") },
+            { code: "en", name: "English" },
+            { code: "fr", name: "Français" },
+            { code: "es", name: "Español" },
+        ],
+        [
+            { code: "de", name: "Deutsch" },
+            { code: "it", name: "Italiano" },
+            { code: "pt", name: "Português" },
+            { code: "nl", name: "Nederlands" },
+        ],
+        [
+            { code: "pl", name: "Polski" },
+            { code: "ru", name: "Русский" },
+            { code: "tr", name: "Türkçe" },
+            { code: "ja", name: "日本語" },
+        ],
+        [
+            { code: "ko", name: "한국어" },
+            { code: "zh_CN", name: "简体中文" },
+            // Empty cells keep the grid aligned.
+            { code: "", name: "" },
+            { code: "", name: "" },
+        ],
+    ];
+
+    Card {
+        title: @tr("Language");
+        width: 760px;
+        inner-spacing: 14px;
+
+        Dim {
+            text: @tr("Automatic follows the Windows display language.");
+        }
+
+        for row[r] in root.rows: HorizontalLayout {
+            spacing: 12px;
+            for language[c] in row: Rectangle {
+                height: 62px;
+                horizontal-stretch: 1;
+                if language.code != "": Tile {
+                    width: parent.width;
+                    height: parent.height;
+                    label: language.name;
+                    sub: language.code == "auto" ? @tr("Windows language") : "";
+                    selected: App.language == language.code;
+                    clicked => {
+                        App.set-language(language.code);
+                    }
+                    // Focus the current choice; "auto" first, as a fallback.
+                    init => {
+                        if (r == 0 && c == 0) || App.language == language.code {
+                            self.focus();
+                        }
+                    }
+                }
+            }
+        }
+
+        Rectangle { }
+    }
+
+    Card {
+        title: @tr("About");
+        horizontal-stretch: 2;
+        inner-spacing: 10px;
+
+        Text {
+            text: "Canapé";
+            color: Theme.text;
+            font-size: 34px;
+            font-weight: 800;
+        }
+
+        Text {
+            text: @tr("Version {}", App.version);
+            color: Theme.dim;
+            font-size: Theme.font-body;
+        }
+
+        Dim {
+            text: @tr("A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service.");
+        }
+
+        HorizontalLayout {
+            alignment: start;
+            Badge {
+                text: App.status.connected ? @tr("Service connected") : @tr("Service not connected");
+                tint: App.status.connected ? Theme.good : Theme.warn;
+            }
+        }
+
+        Rectangle {
+            height: 8px;
+        }
+
+        Caption {
+            text: @tr("Gamepad");
+        }
+
+        Control {
+            glyph: "LB RB";
+            round: false;
+            text: @tr("Change page");
+        }
+
+        Control {
+            glyph: "A";
+            text: @tr("Select");
+        }
+
+        Control {
+            glyph: "B";
+            text: @tr("Back to Home");
+        }
+
+        Control {
+            glyph: "+";
+            text: @tr("Move (D-pad or left stick)");
+        }
+
+        Rectangle { }
+    }
+}

@@ -1,0 +1,353 @@
+# Dutch translation of the Canapé shell.
+# Source strings: the @tr(...) calls in crates/canape-shell/ui/*.slint.
+msgid ""
+msgstr ""
+"Project-Id-Version: canape-shell\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Home"
+msgstr "Start"
+
+msgid "Performance"
+msgstr "Prestaties"
+
+msgid "Profiles"
+msgstr "Profielen"
+
+msgid "Bench"
+msgstr "Benchmark"
+
+msgid "Settings"
+msgstr "Instellingen"
+
+msgid "Select"
+msgstr "Selecteren"
+
+msgid "Back"
+msgstr "Terug"
+
+msgid "Change page"
+msgstr "Andere pagina"
+
+msgid "Service not connected: start canape-service."
+msgstr "Service niet verbonden: start canape-service."
+
+msgid "Service unreachable"
+msgstr "Service onbereikbaar"
+
+msgid "Service error: {}"
+msgstr "Servicefout: {}"
+
+msgid "Profile saved"
+msgstr "Profiel opgeslagen"
+
+msgid "Also driving the hardware: {}. Close it to avoid conflicts."
+msgstr "Stuurt ook de hardware aan: {}. Sluit het om conflicten te voorkomen."
+
+msgid "Power limit"
+msgstr "Vermogenslimiet"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Service not connected"
+msgstr "Service niet verbonden"
+
+msgid "Auto TDP, target {} FPS"
+msgstr "Auto-TDP, doel {} FPS"
+
+msgid "Set by the firmware: {} mode"
+msgstr "Ingesteld door de firmware: modus {}"
+
+msgid "Manual TDP"
+msgstr "Handmatige TDP"
+
+msgid "Auto TDP"
+msgstr "Auto-TDP"
+
+msgid "Thermal limit reached"
+msgstr "Temperatuurlimiet bereikt"
+
+msgid "Bench running"
+msgstr "Benchmark bezig"
+
+msgid "Frame rate"
+msgstr "Framerate"
+
+msgid "GPU"
+msgstr "GPU"
+
+msgid "CPU temperature"
+msgstr "CPU-temperatuur"
+
+msgid "Battery"
+msgstr "Batterij"
+
+msgid "On battery"
+msgstr "Op batterij"
+
+msgid "Plugged in"
+msgstr "Aan de lader"
+
+msgid "Now playing"
+msgstr "Nu aan het spelen"
+
+msgid "No game detected"
+msgstr "Geen game gevonden"
+
+msgid "Profile in use: {}"
+msgstr "Actief profiel: {}"
+
+msgid "No profile for this game: the global settings apply."
+msgstr "Geen profiel voor deze game: de algemene instellingen gelden."
+
+msgid "Start a game: its profile applies by itself."
+msgstr "Start een game: het profiel wordt vanzelf toegepast."
+
+msgid "Profile active"
+msgstr "Profiel actief"
+
+msgid "On"
+msgstr "Aan"
+
+msgid "Off"
+msgstr "Uit"
+
+msgid "Firmware mode"
+msgstr "Firmwaremodus"
+
+msgid "Power mode"
+msgstr "Vermogensmodus"
+
+msgid "Quiet, cool"
+msgstr "Stil en koel"
+
+msgid "Balanced"
+msgstr "Gebalanceerd"
+
+msgid "Maximum power"
+msgstr "Maximaal vermogen"
+
+msgid "Your own limit"
+msgstr "Eigen limiet"
+
+msgid "Choose Manual to set the power yourself."
+msgstr "Kies Handmatig om het vermogen zelf in te stellen."
+
+msgid "Changing it turns auto TDP off."
+msgstr "Wijzigen zet auto-TDP uit."
+
+msgid "Keeps the frame rate on target with as little power as possible."
+msgstr "Houdt de framerate op het doel met zo min mogelijk vermogen."
+
+msgid "Target frame rate"
+msgstr "Doel-framerate"
+
+msgid "Minimum power"
+msgstr "Minimaal vermogen"
+
+msgid "Maximum on battery"
+msgstr "Maximum op batterij"
+
+msgid "None"
+msgstr "Geen"
+
+msgid "Temperature limit: above it, power only goes down"
+msgstr "Temperatuurlimiet: daarboven gaat het vermogen alleen omlaag"
+
+msgid "Auto TDP off"
+msgstr "Auto-TDP uit"
+
+msgid "learned: {}"
+msgstr "geleerd: {}"
+
+msgid "In use"
+msgstr "In gebruik"
+
+msgid "Confirm"
+msgstr "Bevestigen"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Current game"
+msgstr "Huidige game"
+
+msgid "A profile is in use for this game."
+msgstr "Voor deze game is een profiel actief."
+
+msgid "This game has no profile yet."
+msgstr "Deze game heeft nog geen profiel."
+
+msgid "Settings saved with the profile"
+msgstr "Instellingen die in het profiel komen"
+
+msgid "Target"
+msgstr "Doel"
+
+msgid "Power"
+msgstr "Vermogen"
+
+msgid "Temperature limit"
+msgstr "Temperatuurlimiet"
+
+msgid "Update the profile"
+msgstr "Profiel bijwerken"
+
+msgid "Save as profile"
+msgstr "Opslaan als profiel"
+
+msgid "Start a game first"
+msgstr "Start eerst een game"
+
+msgid "A profile applies by itself when its game comes to the front."
+msgstr "Een profiel wordt vanzelf toegepast zodra de game op de voorgrond komt."
+
+msgid "No profiles yet. Save one while a game is running, or from a bench result."
+msgstr "Nog geen profielen. Sla er een op terwijl een game draait, of vanuit een benchmarkresultaat."
+
+msgid "Set as TDP"
+msgstr "Als TDP instellen"
+
+msgid "Save for the game"
+msgstr "Opslaan voor de game"
+
+msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
+msgstr "Laat de game op de voorgrond op verschillende vermogenslimieten draaien en meet elke limiet. Laat een zware scène lopen."
+
+msgid "Step"
+msgstr "Stap"
+
+msgid "Per step"
+msgstr "Per stap"
+
+msgid "{} s"
+msgstr "{} s"
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "Start"
+msgstr "Starten"
+
+msgid "{} left"
+msgstr "nog {}"
+
+msgid "about {}"
+msgstr "ongeveer {}"
+
+msgid "Running"
+msgstr "Bezig"
+
+msgid "Step {} of {}: {}"
+msgstr "Stap {} van {}: {}"
+
+msgid "{} left. Keep the game in front; the power limit changes on its own."
+msgstr "Nog {}. Houd de game op de voorgrond; de vermogenslimiet verandert vanzelf."
+
+msgid "No results yet. Start a game, then start the bench."
+msgstr "Nog geen resultaten. Start een game en daarna de benchmark."
+
+msgid "Results for {}"
+msgstr "Resultaten voor {}"
+
+msgid "Results"
+msgstr "Resultaten"
+
+msgid "incomplete run"
+msgstr "onvolledige run"
+
+msgid "Average FPS"
+msgstr "Gemiddelde FPS"
+
+msgid "Lowest FPS"
+msgstr "Laagste FPS"
+
+msgid "FPS per watt"
+msgstr "FPS per watt"
+
+msgid "Max temperature"
+msgstr "Max. temperatuur"
+
+msgid "Sweet spot"
+msgstr "Beste balans"
+
+msgid "Near the best frame rate: {} FPS"
+msgstr "Dicht bij de beste framerate: {} FPS"
+
+msgid "For {} FPS"
+msgstr "Voor {} FPS"
+
+msgid "Lowest power holding the target: {} FPS"
+msgstr "Laagste vermogen dat het doel haalt: {} FPS"
+
+msgid "Target not reached in this run"
+msgstr "Doel niet gehaald in deze run"
+
+msgid "Most efficient"
+msgstr "Meest efficiënt"
+
+msgid "Most frames per watt: {} FPS"
+msgstr "Meeste frames per watt: {} FPS"
+
+msgid "Automatic"
+msgstr "Automatisch"
+
+msgid "Language"
+msgstr "Taal"
+
+msgid "Automatic follows the Windows display language."
+msgstr "Automatisch volgt de weergavetaal van Windows."
+
+msgid "Windows language"
+msgstr "Windows-taal"
+
+msgid "About"
+msgstr "Over"
+
+msgid "Version {}"
+msgstr "Versie {}"
+
+msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
+msgstr "Een licht startscherm in consolestijl voor de ROG Ally. De hardware wordt aangestuurd door de Canapé-service."
+
+msgid "Service connected"
+msgstr "Service verbonden"
+
+msgid "Gamepad"
+msgstr "Controller"
+
+msgid "Back to Home"
+msgstr "Terug naar start"
+
+msgid "Move (D-pad or left stick)"
+msgstr "Bewegen (D-pad of linkerstick)"
+
+msgid "{} W"
+msgstr "{} W"
+
+msgid "{} FPS"
+msgstr "{} FPS"
+
+msgid "{} °C"
+msgstr "{} °C"
+
+msgid "{} %"
+msgstr "{}%"
+
+msgctxt "decimal separator"
+msgid "."
+msgstr ","
+
+msgid "Silent"
+msgstr "Stil"
+
+msgid "Turbo"
+msgstr "Turbo"
+
+msgid "Manual"
+msgstr "Handmatig"

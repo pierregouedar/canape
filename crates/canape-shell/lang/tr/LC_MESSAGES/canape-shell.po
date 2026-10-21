@@ -1,0 +1,353 @@
+# Turkish translation of the Canapé shell.
+# Source strings: the @tr(...) calls in crates/canape-shell/ui/*.slint.
+msgid ""
+msgstr ""
+"Project-Id-Version: canape-shell\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Home"
+msgstr "Ana sayfa"
+
+msgid "Performance"
+msgstr "Performans"
+
+msgid "Profiles"
+msgstr "Profiller"
+
+msgid "Bench"
+msgstr "Test"
+
+msgid "Settings"
+msgstr "Ayarlar"
+
+msgid "Select"
+msgstr "Seç"
+
+msgid "Back"
+msgstr "Geri"
+
+msgid "Change page"
+msgstr "Sayfa değiştir"
+
+msgid "Service not connected: start canape-service."
+msgstr "Hizmet bağlı değil: canape-service'i başlatın."
+
+msgid "Service unreachable"
+msgstr "Hizmete ulaşılamıyor"
+
+msgid "Service error: {}"
+msgstr "Hizmet hatası: {}"
+
+msgid "Profile saved"
+msgstr "Profil kaydedildi"
+
+msgid "Also driving the hardware: {}. Close it to avoid conflicts."
+msgstr "Donanımı yöneten başka program: {}. Çakışmaları önlemek için kapatın."
+
+msgid "Power limit"
+msgstr "Güç sınırı"
+
+msgid "Auto"
+msgstr "Otomatik"
+
+msgid "Service not connected"
+msgstr "Hizmet bağlı değil"
+
+msgid "Auto TDP, target {} FPS"
+msgstr "Otomatik TDP, hedef {} FPS"
+
+msgid "Set by the firmware: {} mode"
+msgstr "Firmware belirliyor: {} modu"
+
+msgid "Manual TDP"
+msgstr "Manuel TDP"
+
+msgid "Auto TDP"
+msgstr "Otomatik TDP"
+
+msgid "Thermal limit reached"
+msgstr "Sıcaklık sınırına ulaşıldı"
+
+msgid "Bench running"
+msgstr "Test sürüyor"
+
+msgid "Frame rate"
+msgstr "Kare hızı"
+
+msgid "GPU"
+msgstr "GPU"
+
+msgid "CPU temperature"
+msgstr "CPU sıcaklığı"
+
+msgid "Battery"
+msgstr "Pil"
+
+msgid "On battery"
+msgstr "Pilde"
+
+msgid "Plugged in"
+msgstr "Prize takılı"
+
+msgid "Now playing"
+msgstr "Şu an oynanan"
+
+msgid "No game detected"
+msgstr "Oyun algılanmadı"
+
+msgid "Profile in use: {}"
+msgstr "Kullanılan profil: {}"
+
+msgid "No profile for this game: the global settings apply."
+msgstr "Bu oyunun profili yok: genel ayarlar geçerli."
+
+msgid "Start a game: its profile applies by itself."
+msgstr "Bir oyun başlatın: profili kendiliğinden uygulanır."
+
+msgid "Profile active"
+msgstr "Profil etkin"
+
+msgid "On"
+msgstr "Açık"
+
+msgid "Off"
+msgstr "Kapalı"
+
+msgid "Firmware mode"
+msgstr "Firmware modu"
+
+msgid "Power mode"
+msgstr "Güç modu"
+
+msgid "Quiet, cool"
+msgstr "Sessiz ve serin"
+
+msgid "Balanced"
+msgstr "Dengeli"
+
+msgid "Maximum power"
+msgstr "Azami güç"
+
+msgid "Your own limit"
+msgstr "Kendi sınırınız"
+
+msgid "Choose Manual to set the power yourself."
+msgstr "Gücü kendiniz ayarlamak için Manuel'i seçin."
+
+msgid "Changing it turns auto TDP off."
+msgstr "Değiştirmek otomatik TDP'yi kapatır."
+
+msgid "Keeps the frame rate on target with as little power as possible."
+msgstr "Kare hızını olabildiğince az güçle hedefte tutar."
+
+msgid "Target frame rate"
+msgstr "Hedef kare hızı"
+
+msgid "Minimum power"
+msgstr "Asgari güç"
+
+msgid "Maximum on battery"
+msgstr "Pilde azami"
+
+msgid "None"
+msgstr "Yok"
+
+msgid "Temperature limit: above it, power only goes down"
+msgstr "Sıcaklık sınırı: üzerinde güç yalnızca düşer"
+
+msgid "Auto TDP off"
+msgstr "Otomatik TDP kapalı"
+
+msgid "learned: {}"
+msgstr "öğrenilen: {}"
+
+msgid "In use"
+msgstr "Kullanımda"
+
+msgid "Confirm"
+msgstr "Onayla"
+
+msgid "Delete"
+msgstr "Sil"
+
+msgid "Current game"
+msgstr "Geçerli oyun"
+
+msgid "A profile is in use for this game."
+msgstr "Bu oyun için bir profil kullanılıyor."
+
+msgid "This game has no profile yet."
+msgstr "Bu oyunun henüz profili yok."
+
+msgid "Settings saved with the profile"
+msgstr "Profile kaydedilen ayarlar"
+
+msgid "Target"
+msgstr "Hedef"
+
+msgid "Power"
+msgstr "Güç"
+
+msgid "Temperature limit"
+msgstr "Sıcaklık sınırı"
+
+msgid "Update the profile"
+msgstr "Profili güncelle"
+
+msgid "Save as profile"
+msgstr "Profil olarak kaydet"
+
+msgid "Start a game first"
+msgstr "Önce bir oyun başlatın"
+
+msgid "A profile applies by itself when its game comes to the front."
+msgstr "Oyunu öne geldiğinde profil kendiliğinden uygulanır."
+
+msgid "No profiles yet. Save one while a game is running, or from a bench result."
+msgstr "Henüz profil yok. Oyun açıkken ya da bir test sonucundan kaydedin."
+
+msgid "Set as TDP"
+msgstr "TDP olarak ayarla"
+
+msgid "Save for the game"
+msgstr "Oyun için kaydet"
+
+msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
+msgstr "Öndeki oyunu birkaç güç sınırında çalıştırır ve her birini ölçer. Zorlu bir sahneyi açık bırakın."
+
+msgid "Step"
+msgstr "Adım"
+
+msgid "Per step"
+msgstr "Adım başına"
+
+msgid "{} s"
+msgstr "{} sn"
+
+msgid "Cancel"
+msgstr "İptal"
+
+msgid "Start"
+msgstr "Başlat"
+
+msgid "{} left"
+msgstr "{} kaldı"
+
+msgid "about {}"
+msgstr "yaklaşık {}"
+
+msgid "Running"
+msgstr "Sürüyor"
+
+msgid "Step {} of {}: {}"
+msgstr "Adım {}/{}: {}"
+
+msgid "{} left. Keep the game in front; the power limit changes on its own."
+msgstr "{} kaldı. Oyunu önde tutun; güç sınırı kendiliğinden değişir."
+
+msgid "No results yet. Start a game, then start the bench."
+msgstr "Henüz sonuç yok. Bir oyun başlatın, ardından testi başlatın."
+
+msgid "Results for {}"
+msgstr "{} sonuçları"
+
+msgid "Results"
+msgstr "Sonuçlar"
+
+msgid "incomplete run"
+msgstr "eksik test"
+
+msgid "Average FPS"
+msgstr "Ortalama FPS"
+
+msgid "Lowest FPS"
+msgstr "En düşük FPS"
+
+msgid "FPS per watt"
+msgstr "Watt başına FPS"
+
+msgid "Max temperature"
+msgstr "Azami sıcaklık"
+
+msgid "Sweet spot"
+msgstr "En iyi denge"
+
+msgid "Near the best frame rate: {} FPS"
+msgstr "En iyi kare hızına yakın: {} FPS"
+
+msgid "For {} FPS"
+msgstr "{} FPS için"
+
+msgid "Lowest power holding the target: {} FPS"
+msgstr "Hedefi tutan en düşük güç: {} FPS"
+
+msgid "Target not reached in this run"
+msgstr "Bu testte hedefe ulaşılamadı"
+
+msgid "Most efficient"
+msgstr "En verimli"
+
+msgid "Most frames per watt: {} FPS"
+msgstr "Watt başına en çok kare: {} FPS"
+
+msgid "Automatic"
+msgstr "Otomatik"
+
+msgid "Language"
+msgstr "Dil"
+
+msgid "Automatic follows the Windows display language."
+msgstr "Otomatik, Windows görüntüleme dilini izler."
+
+msgid "Windows language"
+msgstr "Windows dili"
+
+msgid "About"
+msgstr "Hakkında"
+
+msgid "Version {}"
+msgstr "Sürüm {}"
+
+msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
+msgstr "ROG Ally için hafif, konsol tarzı bir ana ekran. Donanımı Canapé hizmeti yönetir."
+
+msgid "Service connected"
+msgstr "Hizmet bağlı"
+
+msgid "Gamepad"
+msgstr "Oyun kumandası"
+
+msgid "Back to Home"
+msgstr "Ana sayfaya dön"
+
+msgid "Move (D-pad or left stick)"
+msgstr "Hareket (yön tuşları veya sol çubuk)"
+
+msgid "{} W"
+msgstr "{} W"
+
+msgid "{} FPS"
+msgstr "{} FPS"
+
+msgid "{} °C"
+msgstr "{} °C"
+
+msgid "{} %"
+msgstr "%{}"
+
+msgctxt "decimal separator"
+msgid "."
+msgstr ","
+
+msgid "Silent"
+msgstr "Sessiz"
+
+msgid "Turbo"
+msgstr "Turbo"
+
+msgid "Manual"
+msgstr "Manuel"

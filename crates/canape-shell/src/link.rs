@@ -1,5 +1,6 @@
 //! Connection to the service: one subscription feeding the UI, and one
-//! connection for commands, both reconnecting on their own.
+//! connection for commands and their answers (profiles, bench report), both
+//! reconnecting on their own.
 
 use std::io;
 use std::sync::mpsc::{self, Sender};
@@ -7,52 +8,102 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use canape_core::{PerformanceMode, Request, Response, Status, protocol};
+use canape_core::{BenchReport, PerformanceMode, Profile, Request, Response, Status, protocol};
 use canape_ipc::Connection;
-use slint::Weak;
+use slint::{ComponentHandle, ModelRc, VecModel, Weak};
 
-use crate::{AppWindow, StatusView};
+use crate::report::{self, Recommendation};
+use crate::{App, AppWindow, BenchRow, BenchView, Notice, ProfileView, RecView, StatusView};
 
 const RETRY: Duration = Duration::from_secs(2);
+
+#[derive(Default)]
+struct Shared {
+    status: Mutex<Status>,
+    report: Mutex<Option<BenchReport>>,
+    /// Last foreground program seen by the shell, resent after a reconnection.
+    foreground: Mutex<Option<String>>,
+}
 
 #[derive(Clone)]
 pub struct Link {
     commands: Sender<Request>,
-    status: Arc<Mutex<Status>>,
+    shared: Arc<Shared>,
+}
+
+/// Requests sent by the shell on its own: their failures are logged, not
+/// shown to the user.
+fn is_background(request: &Request) -> bool {
+    matches!(
+        request,
+        Request::ForegroundApp { .. } | Request::ListProfiles | Request::GetBenchReport
+    )
 }
 
 impl Link {
     pub fn start(ui: Weak<AppWindow>) -> Self {
-        let status = Arc::new(Mutex::new(Status::default()));
+        let shared = Arc::new(Shared::default());
         let (commands, rx) = mpsc::channel::<Request>();
 
-        let (ui_status, last) = (ui.clone(), status.clone());
+        let (ui_status, state, again) = (ui.clone(), shared.clone(), commands.clone());
         thread::spawn(move || {
             loop {
-                if let Err(err) = follow(&ui_status, &last) {
+                if let Err(err) = follow(&ui_status, &state, &again) {
                     crate::log(&format!("service link: {err}"));
                 }
-                show(&ui_status, None);
+                show_status(&ui_status, None);
                 thread::sleep(RETRY);
             }
         });
 
+        let (state, again) = (shared.clone(), commands.clone());
         thread::spawn(move || {
             let mut conn: Option<Connection> = None;
             for request in rx {
-                let message = match send(&mut conn, &request) {
-                    Ok(Response::Error { message }) => message,
-                    Ok(_) => String::new(),
+                let background = is_background(&request);
+                let notice = match send(&mut conn, &request) {
+                    Ok(Response::Profiles { profiles }) => {
+                        show_profiles(&ui, &profiles);
+                        continue;
+                    }
+                    Ok(Response::Bench { report }) => {
+                        *state.report.lock().unwrap() = report;
+                        show_report(&ui, &state);
+                        continue;
+                    }
+                    Ok(Response::Error { message }) => {
+                        crate::log(&format!("{request:?}: {message}"));
+                        (Notice::ServiceError, message)
+                    }
+                    Ok(_) => {
+                        if matches!(
+                            request,
+                            Request::SaveProfile { .. } | Request::DeleteProfile { .. }
+                        ) {
+                            let _ = again.send(Request::ListProfiles);
+                        }
+                        let saved = matches!(request, Request::SaveProfile { .. });
+                        (
+                            if saved { Notice::Saved } else { Notice::Idle },
+                            String::new(),
+                        )
+                    }
                     Err(err) => {
                         conn = None;
-                        format!("Service injoignable : {err}")
+                        (Notice::Unreachable, err.to_string())
                     }
                 };
-                let _ = ui.upgrade_in_event_loop(move |ui| ui.set_message(message.into()));
+                if !background {
+                    let _ = ui.upgrade_in_event_loop(move |ui| {
+                        let app = ui.global::<App>();
+                        app.set_notice(notice.0);
+                        app.set_notice_detail(notice.1.into());
+                    });
+                }
             }
         });
 
-        Self { commands, status }
+        Self { commands, shared }
     }
 
     pub fn send(&self, request: Request) {
@@ -61,7 +112,20 @@ impl Link {
 
     /// Last status pushed by the service.
     pub fn status(&self) -> Status {
-        self.status.lock().unwrap().clone()
+        self.shared.status.lock().unwrap().clone()
+    }
+
+    /// Last bench report fetched from the service.
+    pub fn report(&self) -> Option<BenchReport> {
+        self.shared.report.lock().unwrap().clone()
+    }
+
+    /// Reports the foreground program to the service, now and after every
+    /// reconnection.
+    #[cfg_attr(not(windows), allow(dead_code))]
+    pub fn set_foreground(&self, exe: Option<String>) {
+        *self.shared.foreground.lock().unwrap() = exe.clone();
+        self.send(Request::ForegroundApp { exe });
     }
 }
 
@@ -87,67 +151,242 @@ fn send(conn: &mut Option<Connection>, request: &Request) -> io::Result<Response
 }
 
 /// Subscribes and forwards every status push until the connection drops.
-fn follow(ui: &Weak<AppWindow>, last: &Mutex<Status>) -> io::Result<()> {
+fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> io::Result<()> {
     let mut conn = open()?;
     conn.send(&Request::Subscribe)?;
+    // A (re)started service knows nothing of the user session.
+    let foreground = shared.foreground.lock().unwrap().clone();
+    if foreground.is_some() {
+        let _ = commands.send(Request::ForegroundApp { exe: foreground });
+    }
+    let _ = commands.send(Request::ListProfiles);
+    let _ = commands.send(Request::GetBenchReport);
+
+    let mut first = true;
     while let Some(response) = conn.recv::<Response>()? {
         if let Response::Status(status) = response {
-            *last.lock().unwrap() = status.clone();
-            show(ui, Some(status));
+            let previous = std::mem::replace(&mut *shared.status.lock().unwrap(), status.clone());
+            if !first && previous.bench.is_some() && status.bench.is_none() {
+                // A run just ended: fetch its results.
+                let _ = commands.send(Request::GetBenchReport);
+            }
+            if previous.auto_tdp.target_fps != status.auto_tdp.target_fps {
+                show_report(ui, shared);
+            }
+            if previous.active_profile != status.active_profile {
+                let _ = commands.send(Request::ListProfiles);
+            }
+            first = false;
+            show_status(ui, Some(status));
         }
     }
     Ok(())
 }
 
-fn show(ui: &Weak<AppWindow>, status: Option<Status>) {
-    let view = view(status.as_ref());
-    let _ = ui.upgrade_in_event_loop(move |ui| ui.set_status(view));
+fn show_status(ui: &Weak<AppWindow>, status: Option<Status>) {
+    let view = status_view(status.as_ref());
+    let _ = ui.upgrade_in_event_loop(move |ui| ui.global::<App>().set_status(view));
 }
 
-fn view(status: Option<&Status>) -> StatusView {
-    let dash = || "—".into();
+fn show_profiles(ui: &Weak<AppWindow>, profiles: &[Profile]) {
+    let mut rows: Vec<ProfileView> = profiles.iter().map(profile_view).collect();
+    rows.sort_by_key(|p| p.exe.to_lowercase());
+    let _ = ui.upgrade_in_event_loop(move |ui| {
+        ui.global::<App>()
+            .set_profiles(ModelRc::new(VecModel::from(rows)));
+    });
+}
+
+fn show_report(ui: &Weak<AppWindow>, shared: &Shared) {
+    let target = shared.status.lock().unwrap().auto_tdp.target_fps;
+    let report = shared.report.lock().unwrap().clone();
+    let (view, rows) = bench_view(report.as_ref(), target);
+    let _ = ui.upgrade_in_event_loop(move |ui| {
+        let app = ui.global::<App>();
+        app.set_bench(view);
+        app.set_bench_rows(ModelRc::new(VecModel::from(rows)));
+    });
+}
+
+fn mode_name(mode: Option<PerformanceMode>) -> &'static str {
+    match mode {
+        Some(PerformanceMode::Silent) => "silent",
+        Some(PerformanceMode::Performance) => "performance",
+        Some(PerformanceMode::Turbo) => "turbo",
+        Some(PerformanceMode::Manual) => "manual",
+        None => "",
+    }
+}
+
+/// Status as the UI shows it. Numbers stay numbers: Slint formats and
+/// translates them. -1 means unknown.
+pub fn status_view(status: Option<&Status>) -> StatusView {
     let Some(s) = status else {
         return StatusView {
-            connected: false,
-            tdp: dash(),
-            mode: "".into(),
-            fps: dash(),
-            temp: dash(),
-            battery: dash(),
-            auto_tdp: false,
-            target_fps: 0,
-            conflicts: "".into(),
+            tdp: -1,
+            fps: -1,
+            gpu: -1,
+            temp: -1,
+            battery: -1,
+            ..StatusView::default()
         };
     };
-    // In a firmware mode the firmware picks the limits and cannot report them.
-    let firmware_mode = matches!(
-        s.performance_mode,
-        Some(PerformanceMode::Silent | PerformanceMode::Performance | PerformanceMode::Turbo)
-    );
+    let known = |v: Option<f32>| v.map_or(-1, |v| v.round() as i32);
+    let bench = s.bench;
     StatusView {
         connected: true,
-        tdp: match s.tdp_watts {
-            Some(w) => format!("{w} W").into(),
-            None if firmware_mode => "Auto".into(),
-            None => dash(),
-        },
-        mode: match s.performance_mode {
-            Some(PerformanceMode::Silent) => "silent",
-            Some(PerformanceMode::Performance) => "performance",
-            Some(PerformanceMode::Turbo) => "turbo",
-            Some(PerformanceMode::Manual) => "manual",
-            None => "",
-        }
-        .into(),
-        fps: s.fps.map_or_else(dash, |f| format!("{f:.0}").into()),
-        temp: s
-            .cpu_temp_c
-            .map_or_else(dash, |t| format!("{t:.0} °C").into()),
-        battery: s
-            .battery_percent
-            .map_or_else(dash, |b| format!("{b} %").into()),
+        tdp: s.tdp_watts.map_or(-1, |w| w as i32),
+        mode: mode_name(s.performance_mode).into(),
+        fps: known(s.fps),
+        gpu: known(s.gpu_util.map(|g| g * 100.0)),
+        temp: known(s.cpu_temp_c),
+        battery: s.battery_percent.map_or(-1, i32::from),
+        power_known: s.on_battery.is_some(),
+        on_battery: s.on_battery.unwrap_or(false),
         auto_tdp: s.auto_tdp.enabled,
         target_fps: s.auto_tdp.target_fps as i32,
+        min_watts: s.auto_tdp.min_watts as i32,
+        max_watts: s.auto_tdp.max_watts as i32,
+        battery_cap: s.auto_tdp.battery_max_watts.map_or(0, |w| w as i32),
+        temp_limit: s.auto_tdp.max_temp_c.map_or(0, |t| t as i32),
+        thermal_limited: s.thermal_limited,
+        foreground: s.foreground.clone().unwrap_or_default().into(),
+        active_profile: s.active_profile.clone().unwrap_or_default().into(),
         conflicts: s.conflicts.join(", ").into(),
+        bench_running: bench.is_some(),
+        bench_step: bench.map_or(0, |b| b.step as i32),
+        bench_steps: bench.map_or(0, |b| b.steps as i32),
+        bench_watts: bench.map_or(0, |b| b.watts as i32),
+        bench_seconds_left: bench.map_or(0, |b| b.seconds_left as i32),
+    }
+}
+
+fn profile_view(profile: &Profile) -> ProfileView {
+    let a = profile.auto_tdp;
+    ProfileView {
+        exe: profile.exe.as_str().into(),
+        auto_tdp: a.enabled,
+        target_fps: a.target_fps as i32,
+        min_watts: a.min_watts as i32,
+        max_watts: a.max_watts as i32,
+        learned_watts: profile.learned_watts.map_or(-1, |w| w as i32),
+    }
+}
+
+fn rec_view(rec: Option<Recommendation>) -> RecView {
+    rec.map_or(RecView::default(), |r| RecView {
+        available: true,
+        watts: r.watts as i32,
+        fps: r.fps.round() as i32,
+    })
+}
+
+/// Bench page content for `report`, recommendations computed for `target_fps`.
+pub fn bench_view(report: Option<&BenchReport>, target_fps: u32) -> (BenchView, Vec<BenchRow>) {
+    let Some(report) = report.filter(|r| !r.points.is_empty()) else {
+        return (BenchView::default(), Vec::new());
+    };
+    let recs = report::recommendations(report, target_fps);
+    let best = report.points.iter().map(|p| p.fps_avg).fold(1.0, f32::max);
+    let rows = report
+        .points
+        .iter()
+        .map(|p| BenchRow {
+            watts: p.watts as i32,
+            fps_avg: p.fps_avg.round() as i32,
+            fps_low: p.fps_low.round() as i32,
+            // One decimal is all a frames-per-watt figure needs.
+            fps_per_watt_tenths: (p.fps_per_watt() * 10.0).round() as i32,
+            temp: p.temp_max.map_or(-1, |t| t.round() as i32),
+            share: p.fps_avg / best,
+        })
+        .collect();
+    let view = BenchView {
+        available: true,
+        completed: report.completed,
+        exe: report.exe.clone().unwrap_or_default().into(),
+        target_fps: target_fps as i32,
+        sweet_spot: rec_view(recs.sweet_spot),
+        for_target: rec_view(recs.for_target),
+        most_efficient: rec_view(recs.most_efficient),
+    };
+    (view, rows)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use canape_core::{AutoTdpSettings, BenchPlan, BenchPoint, BenchProgress};
+
+    #[test]
+    fn disconnected_status_is_all_unknown() {
+        let view = status_view(None);
+        assert!(!view.connected);
+        assert_eq!((view.tdp, view.fps, view.battery), (-1, -1, -1));
+    }
+
+    #[test]
+    fn status_numbers_are_rounded_and_options_flattened() {
+        let status = Status {
+            tdp_watts: None,
+            performance_mode: Some(PerformanceMode::Turbo),
+            fps: Some(59.6),
+            gpu_util: Some(0.874),
+            battery_percent: Some(81),
+            on_battery: Some(true),
+            auto_tdp: AutoTdpSettings {
+                battery_max_watts: Some(15),
+                ..AutoTdpSettings::default()
+            },
+            foreground: Some("game.exe".into()),
+            bench: Some(BenchProgress {
+                step: 2,
+                steps: 7,
+                watts: 22,
+                seconds_left: 110,
+            }),
+            ..Status::default()
+        };
+        let view = status_view(Some(&status));
+        assert_eq!(view.tdp, -1);
+        assert_eq!(view.mode, "turbo");
+        assert_eq!((view.fps, view.gpu, view.temp), (60, 87, -1));
+        assert!(view.power_known && view.on_battery);
+        assert_eq!((view.battery_cap, view.temp_limit), (15, 0));
+        assert_eq!(view.foreground, "game.exe");
+        assert!(view.bench_running);
+        assert_eq!((view.bench_step, view.bench_steps), (2, 7));
+    }
+
+    #[test]
+    fn bench_view_formats_rows_and_recommendations() {
+        let point = |watts, fps_avg| BenchPoint {
+            watts,
+            fps_avg,
+            fps_low: fps_avg - 5.0,
+            gpu_avg: None,
+            temp_max: Some(71.4),
+            samples: 15,
+        };
+        let report = BenchReport {
+            exe: Some("game.exe".into()),
+            started_unix: 0,
+            plan: BenchPlan::default(),
+            points: vec![point(10, 44.0), point(16, 61.0), point(22, 64.0)],
+            completed: true,
+        };
+        let (view, rows) = bench_view(Some(&report), 60);
+        assert!(view.available && view.completed);
+        assert_eq!(view.sweet_spot.watts, 16);
+        assert_eq!((view.for_target.watts, view.for_target.fps), (16, 61));
+        assert_eq!(view.most_efficient.watts, 10);
+        assert_eq!(rows.len(), 3);
+        assert_eq!(rows[0].fps_per_watt_tenths, 44);
+        assert_eq!(rows[0].temp, 71);
+        assert_eq!(rows[2].share, 1.0);
+
+        let (view, _) = bench_view(Some(&report), 90);
+        assert!(!view.for_target.available);
+        assert!(!bench_view(None, 60).0.available);
     }
 }

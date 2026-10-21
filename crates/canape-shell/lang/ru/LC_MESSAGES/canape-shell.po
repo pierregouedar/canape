@@ -1,0 +1,353 @@
+# Russian translation of the Canapé shell.
+# Source strings: the @tr(...) calls in crates/canape-shell/ui/*.slint.
+msgid ""
+msgstr ""
+"Project-Id-Version: canape-shell\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "Home"
+msgstr "Главная"
+
+msgid "Performance"
+msgstr "Производительность"
+
+msgid "Profiles"
+msgstr "Профили"
+
+msgid "Bench"
+msgstr "Тест"
+
+msgid "Settings"
+msgstr "Настройки"
+
+msgid "Select"
+msgstr "Выбрать"
+
+msgid "Back"
+msgstr "Назад"
+
+msgid "Change page"
+msgstr "Сменить страницу"
+
+msgid "Service not connected: start canape-service."
+msgstr "Служба не подключена: запустите canape-service."
+
+msgid "Service unreachable"
+msgstr "Служба недоступна"
+
+msgid "Service error: {}"
+msgstr "Ошибка службы: {}"
+
+msgid "Profile saved"
+msgstr "Профиль сохранён"
+
+msgid "Also driving the hardware: {}. Close it to avoid conflicts."
+msgstr "Оборудованием также управляет: {}. Закройте его, чтобы избежать конфликтов."
+
+msgid "Power limit"
+msgstr "Предел мощности"
+
+msgid "Auto"
+msgstr "Авто"
+
+msgid "Service not connected"
+msgstr "Служба не подключена"
+
+msgid "Auto TDP, target {} FPS"
+msgstr "Авто TDP, цель {} FPS"
+
+msgid "Set by the firmware: {} mode"
+msgstr "Задано прошивкой: режим «{}»"
+
+msgid "Manual TDP"
+msgstr "Ручной TDP"
+
+msgid "Auto TDP"
+msgstr "Авто TDP"
+
+msgid "Thermal limit reached"
+msgstr "Достигнут предел температуры"
+
+msgid "Bench running"
+msgstr "Идёт тест"
+
+msgid "Frame rate"
+msgstr "Частота кадров"
+
+msgid "GPU"
+msgstr "GPU"
+
+msgid "CPU temperature"
+msgstr "Температура CPU"
+
+msgid "Battery"
+msgstr "Батарея"
+
+msgid "On battery"
+msgstr "От батареи"
+
+msgid "Plugged in"
+msgstr "От сети"
+
+msgid "Now playing"
+msgstr "Сейчас в игре"
+
+msgid "No game detected"
+msgstr "Игра не обнаружена"
+
+msgid "Profile in use: {}"
+msgstr "Используется профиль: {}"
+
+msgid "No profile for this game: the global settings apply."
+msgstr "Для этой игры нет профиля: действуют общие настройки."
+
+msgid "Start a game: its profile applies by itself."
+msgstr "Запустите игру: её профиль применится сам."
+
+msgid "Profile active"
+msgstr "Профиль активен"
+
+msgid "On"
+msgstr "Вкл."
+
+msgid "Off"
+msgstr "Выкл."
+
+msgid "Firmware mode"
+msgstr "Режим прошивки"
+
+msgid "Power mode"
+msgstr "Режим питания"
+
+msgid "Quiet, cool"
+msgstr "Тихо и прохладно"
+
+msgid "Balanced"
+msgstr "Сбалансированный"
+
+msgid "Maximum power"
+msgstr "Максимальная мощность"
+
+msgid "Your own limit"
+msgstr "Свой предел"
+
+msgid "Choose Manual to set the power yourself."
+msgstr "Выберите «Ручной», чтобы задать мощность самостоятельно."
+
+msgid "Changing it turns auto TDP off."
+msgstr "Изменение отключает авто TDP."
+
+msgid "Keeps the frame rate on target with as little power as possible."
+msgstr "Держит целевую частоту кадров при минимально возможной мощности."
+
+msgid "Target frame rate"
+msgstr "Целевая частота кадров"
+
+msgid "Minimum power"
+msgstr "Минимальная мощность"
+
+msgid "Maximum on battery"
+msgstr "Максимум от батареи"
+
+msgid "None"
+msgstr "Нет"
+
+msgid "Temperature limit: above it, power only goes down"
+msgstr "Предел температуры: выше него мощность только снижается"
+
+msgid "Auto TDP off"
+msgstr "Авто TDP выключен"
+
+msgid "learned: {}"
+msgstr "изучено: {}"
+
+msgid "In use"
+msgstr "Используется"
+
+msgid "Confirm"
+msgstr "Подтвердить"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Current game"
+msgstr "Текущая игра"
+
+msgid "A profile is in use for this game."
+msgstr "Для этой игры используется профиль."
+
+msgid "This game has no profile yet."
+msgstr "У этой игры пока нет профиля."
+
+msgid "Settings saved with the profile"
+msgstr "Настройки, сохраняемые в профиле"
+
+msgid "Target"
+msgstr "Цель"
+
+msgid "Power"
+msgstr "Мощность"
+
+msgid "Temperature limit"
+msgstr "Предел температуры"
+
+msgid "Update the profile"
+msgstr "Обновить профиль"
+
+msgid "Save as profile"
+msgstr "Сохранить как профиль"
+
+msgid "Start a game first"
+msgstr "Сначала запустите игру"
+
+msgid "A profile applies by itself when its game comes to the front."
+msgstr "Профиль применяется сам, когда его игра выходит на передний план."
+
+msgid "No profiles yet. Save one while a game is running, or from a bench result."
+msgstr "Профилей пока нет. Сохраните профиль во время игры или из результата теста."
+
+msgid "Set as TDP"
+msgstr "Задать TDP"
+
+msgid "Save for the game"
+msgstr "В профиль игры"
+
+msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
+msgstr "Запускает активную игру с несколькими пределами мощности и измеряет каждый. Оставьте на экране требовательную сцену."
+
+msgid "Step"
+msgstr "Шаг"
+
+msgid "Per step"
+msgstr "На шаг"
+
+msgid "{} s"
+msgstr "{} с"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Start"
+msgstr "Начать"
+
+msgid "{} left"
+msgstr "осталось {}"
+
+msgid "about {}"
+msgstr "около {}"
+
+msgid "Running"
+msgstr "Выполняется"
+
+msgid "Step {} of {}: {}"
+msgstr "Шаг {} из {}: {}"
+
+msgid "{} left. Keep the game in front; the power limit changes on its own."
+msgstr "Осталось {}. Держите игру на переднем плане; предел мощности меняется сам."
+
+msgid "No results yet. Start a game, then start the bench."
+msgstr "Результатов пока нет. Запустите игру, затем тест."
+
+msgid "Results for {}"
+msgstr "Результаты для {}"
+
+msgid "Results"
+msgstr "Результаты"
+
+msgid "incomplete run"
+msgstr "неполный тест"
+
+msgid "Average FPS"
+msgstr "Средний FPS"
+
+msgid "Lowest FPS"
+msgstr "Минимальный FPS"
+
+msgid "FPS per watt"
+msgstr "FPS на ватт"
+
+msgid "Max temperature"
+msgstr "Макс. температура"
+
+msgid "Sweet spot"
+msgstr "Оптимум"
+
+msgid "Near the best frame rate: {} FPS"
+msgstr "Почти лучший результат: {} FPS"
+
+msgid "For {} FPS"
+msgstr "Для {} FPS"
+
+msgid "Lowest power holding the target: {} FPS"
+msgstr "Наименьшая мощность для цели: {} FPS"
+
+msgid "Target not reached in this run"
+msgstr "Цель не достигнута в этом тесте"
+
+msgid "Most efficient"
+msgstr "Самый экономичный"
+
+msgid "Most frames per watt: {} FPS"
+msgstr "Больше всего кадров на ватт: {} FPS"
+
+msgid "Automatic"
+msgstr "Автоматически"
+
+msgid "Language"
+msgstr "Язык"
+
+msgid "Automatic follows the Windows display language."
+msgstr "«Автоматически» — язык интерфейса Windows."
+
+msgid "Windows language"
+msgstr "Язык Windows"
+
+msgid "About"
+msgstr "О программе"
+
+msgid "Version {}"
+msgstr "Версия {}"
+
+msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
+msgstr "Лёгкий главный экран в стиле консоли для ROG Ally. Оборудованием управляет служба Canapé."
+
+msgid "Service connected"
+msgstr "Служба подключена"
+
+msgid "Gamepad"
+msgstr "Геймпад"
+
+msgid "Back to Home"
+msgstr "На главную"
+
+msgid "Move (D-pad or left stick)"
+msgstr "Перемещение (крестовина или левый стик)"
+
+msgid "{} W"
+msgstr "{} Вт"
+
+msgid "{} FPS"
+msgstr "{} FPS"
+
+msgid "{} °C"
+msgstr "{} °C"
+
+msgid "{} %"
+msgstr "{} %"
+
+msgctxt "decimal separator"
+msgid "."
+msgstr ","
+
+msgid "Silent"
+msgstr "Тихий"
+
+msgid "Turbo"
+msgstr "Турбо"
+
+msgid "Manual"
+msgstr "Ручной"

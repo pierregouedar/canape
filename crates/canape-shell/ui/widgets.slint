@@ -1,0 +1,341 @@
+// Building blocks. Every control is a focusable Pressable so the gamepad
+// (Tab / Shift+Tab / Return, see nav.rs) can reach it; the focus shows as a
+// white ring.
+
+import { Theme } from "theme.slint";
+
+export component Pressable inherits Rectangle {
+    in property <bool> enabled: true;
+    in property <bool> selected;
+    out property <bool> focused: fs.has-focus;
+    // Text colour that reads on the current background.
+    out property <color> fg: !root.enabled ? Theme.faint : root.selected ? Theme.accent-text : Theme.text;
+    out property <color> fg-dim: !root.enabled ? Theme.faint : root.selected ? #ffffffcc : Theme.dim;
+    callback clicked();
+    callback focus-gained();
+
+    forward-focus: fs;
+    border-radius: Theme.radius-small;
+    background: root.selected ? (root.enabled ? Theme.accent : Theme.accent-soft) : fs.has-focus ? Theme.surface-focus : ta.has-hover && root.enabled ? Theme.surface-focus : Theme.surface-high;
+    border-width: fs.has-focus ? 3px : 1px;
+    border-color: fs.has-focus ? Theme.focus : root.selected ? Theme.accent : Theme.stroke;
+    animate background, border-color { duration: 120ms; }
+
+    ta := TouchArea {
+        clicked => {
+            fs.focus();
+            if root.enabled {
+                root.clicked();
+            }
+        }
+    }
+
+    fs := FocusScope {
+        key-pressed(event) => {
+            if event.text == Key.Return || event.text == " " {
+                if root.enabled {
+                    root.clicked();
+                }
+                return accept;
+            }
+            return reject;
+        }
+        focus-gained(reason) => {
+            root.focus-gained();
+        }
+    }
+
+    @children
+}
+
+// Large button: a label and an optional second line.
+export component Tile inherits Pressable {
+    in property <string> label;
+    in property <string> sub;
+    in property <length> font-size: 20px;
+    min-height: 64px;
+    min-width: 110px;
+
+    VerticalLayout {
+        alignment: center;
+        padding-left: 16px;
+        padding-right: 16px;
+        spacing: 2px;
+        Text {
+            text: root.label;
+            color: root.fg;
+            font-size: root.font-size;
+            font-weight: 600;
+            horizontal-alignment: center;
+            overflow: elide;
+        }
+        if root.sub != "": Text {
+            text: root.sub;
+            color: root.fg-dim;
+            font-size: Theme.font-small;
+            horizontal-alignment: center;
+            overflow: elide;
+        }
+    }
+}
+
+// Small selectable pill.
+export component Chip inherits Pressable {
+    in property <string> label;
+    in property <length> font-size: Theme.font-body;
+    height: 46px;
+    min-width: 64px;
+    border-radius: 23px;
+
+    HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        Text {
+            text: root.label;
+            color: root.fg;
+            font-size: root.font-size;
+            font-weight: root.selected ? 700 : 500;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+}
+
+// Square "−" / "+" button.
+export component IconButton inherits Pressable {
+    in property <string> icon;
+    width: 50px;
+    height: 46px;
+    border-radius: 23px;
+
+    Text {
+        text: root.icon;
+        color: root.fg;
+        font-size: 26px;
+        font-weight: 600;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
+// − value +
+export component Stepper inherits HorizontalLayout {
+    in property <string> value;
+    in property <bool> enabled: true;
+    callback step(int);
+    spacing: 8px;
+    alignment: start;
+
+    IconButton {
+        icon: "−";
+        enabled: root.enabled;
+        clicked => {
+            root.step(-1);
+        }
+    }
+
+    Text {
+        text: root.value;
+        min-width: 76px;
+        color: root.enabled ? Theme.text : Theme.faint;
+        font-size: 22px;
+        font-weight: 700;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    IconButton {
+        icon: "+";
+        enabled: root.enabled;
+        clicked => {
+            root.step(1);
+        }
+    }
+}
+
+export component Caption inherits Text {
+    color: Theme.dim;
+    font-size: Theme.font-small;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    overflow: elide;
+}
+
+// Rounded panel with an optional caption.
+export component Card inherits Rectangle {
+    in property <string> title;
+    in property <length> pad: 20px;
+    in property <length> inner-spacing: 12px;
+    background: Theme.surface;
+    border-radius: Theme.radius;
+    border-width: 1px;
+    border-color: Theme.stroke;
+
+    VerticalLayout {
+        padding: root.pad;
+        spacing: root.inner-spacing;
+        if root.title != "": Caption {
+            text: root.title;
+        }
+        @children
+    }
+}
+
+// Coloured pill: a dot and a short text.
+export component Badge inherits Rectangle {
+    in property <string> text;
+    in property <color> tint: Theme.dim;
+    horizontal-stretch: 0;
+    height: 32px;
+    border-radius: 16px;
+    background: root.tint.with-alpha(0.14);
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 14px;
+        spacing: 8px;
+        alignment: start;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 8px;
+                height: 8px;
+                border-radius: 4px;
+                background: root.tint;
+            }
+        }
+        Text {
+            text: root.text;
+            color: root.tint;
+            font-size: Theme.font-small;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+    }
+}
+
+// Lightning bolt, drawn so it does not depend on the font.
+export component Bolt inherits Path {
+    width: 12px;
+    height: 18px;
+    viewbox-width: 12;
+    viewbox-height: 18;
+    commands: "M 7 0 L 0 10.5 L 5 10.5 L 4 18 L 12 7 L 7 7 L 8 0 Z";
+    fill: Theme.warn;
+}
+
+export component BatteryIcon inherits Rectangle {
+    in property <int> percent;
+    in property <bool> charging;
+    in property <color> tint: Theme.text;
+    width: 40px;
+    height: 20px;
+
+    Rectangle {
+        x: 0;
+        y: 0;
+        width: parent.width - 4px;
+        height: parent.height;
+        border-width: 2px;
+        border-color: root.tint;
+        border-radius: 5px;
+        Rectangle {
+            x: 4px;
+            y: 4px;
+            height: parent.height - 8px;
+            width: (parent.width - 8px) * max(0, min(100, root.percent)) / 100;
+            border-radius: 2px;
+            background: root.percent <= 20 && !root.charging ? Theme.bad : root.charging ? Theme.good : root.tint;
+        }
+    }
+
+    Rectangle {
+        x: parent.width - 3px;
+        y: (parent.height - self.height) / 2;
+        width: 3px;
+        height: 8px;
+        border-radius: 1px;
+        background: root.tint;
+    }
+}
+
+// A gamepad button, as drawn in the hints: round for A / B, a pill for LB / RB.
+export component PadGlyph inherits Rectangle {
+    in property <string> text;
+    in property <bool> round: true;
+    height: 26px;
+    min-width: 26px;
+    border-radius: root.round ? 13px : 8px;
+    background: Theme.surface-high;
+    border-width: 1px;
+    border-color: #3a4560;
+
+    HorizontalLayout {
+        padding-left: root.round ? 0 : 8px;
+        padding-right: root.round ? 0 : 8px;
+        Text {
+            text: root.text;
+            color: Theme.text;
+            font-size: 13px;
+            font-weight: 700;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+}
+
+export component Hint inherits HorizontalLayout {
+    in property <string> glyph;
+    in property <bool> round: true;
+    in property <string> text;
+    spacing: 8px;
+    VerticalLayout {
+        alignment: center;
+        PadGlyph {
+            text: root.glyph;
+            round: root.round;
+        }
+    }
+
+    Text {
+        text: root.text;
+        color: Theme.dim;
+        font-size: Theme.font-small;
+        vertical-alignment: center;
+    }
+}
+
+// The D-pad, drawn as a cross.
+export component DpadGlyph inherits Rectangle {
+    width: 26px;
+    height: 26px;
+    Rectangle {
+        x: 9px;
+        y: 1px;
+        width: 8px;
+        height: 24px;
+        border-radius: 2px;
+        background: Theme.surface-high;
+        border-width: 1px;
+        border-color: #3a4560;
+    }
+
+    Rectangle {
+        x: 1px;
+        y: 9px;
+        width: 24px;
+        height: 8px;
+        border-radius: 2px;
+        background: Theme.surface-high;
+        border-width: 1px;
+        border-color: #3a4560;
+    }
+
+    Rectangle {
+        x: 9px;
+        y: 9px;
+        width: 8px;
+        height: 8px;
+        background: Theme.surface-high;
+    }
+}

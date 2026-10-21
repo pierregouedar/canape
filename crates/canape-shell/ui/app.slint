@@ -1,272 +1,232 @@
-// Canapé home screen. Every control is a focusable Tile so the gamepad
-// (mapped to Tab / Shift+Tab / Return in gamepad.rs) can reach it.
+// Canapé home screen: a tab bar, the current page, and the gamepad hints.
+// LB / RB arrive as PageUp / PageDown (see nav.rs) and switch pages; B
+// (Escape) goes back to Home. Every user-visible string goes through @tr:
+// catalogs in lang/<code>/LC_MESSAGES/canape-shell.po.
 
-export struct StatusView {
-    connected: bool,
-    tdp: string,
-    mode: string,
-    fps: string,
-    temp: string,
-    battery: string,
-    auto-tdp: bool,
-    target-fps: int,
-    // Other programs driving the hardware, comma separated.
-    conflicts: string,
-}
+import { Theme } from "theme.slint";
+import { App, Notice } from "state.slint";
+import { BatteryIcon, Bolt, Hint, PadGlyph } from "widgets.slint";
+import { BenchPage, HomePage, PerformancePage, ProfilesPage, SettingsPage } from "pages.slint";
 
-component Tile inherits Rectangle {
+export { App, Notice, StatusView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
+
+component Tab inherits Rectangle {
     in property <string> label;
-    in property <string> sub;
     in property <bool> selected;
-    in property <bool> enabled: true;
     callback clicked();
+    height: 44px;
+    border-radius: 22px;
+    background: root.selected ? Theme.surface-high : transparent;
+    animate background { duration: 120ms; }
 
-    min-height: 84px;
-    min-width: 120px;
-    border-radius: 16px;
-    background: root.selected ? #2563eb : #1e293b;
-    border-width: fs.has-focus ? 4px : 0px;
-    border-color: #f8fafc;
-    opacity: root.enabled ? 1 : 0.4;
-
-    fs := FocusScope {
-        key-pressed(event) => {
-            if (event.text == Key.Return || event.text == " ") {
-                if (root.enabled) {
-                    root.clicked();
-                }
-                return accept;
-            }
-            return reject;
+    HorizontalLayout {
+        padding-left: 18px;
+        padding-right: 18px;
+        Text {
+            text: root.label;
+            color: root.selected ? Theme.text : Theme.dim;
+            font-size: Theme.font-body;
+            font-weight: root.selected ? 700 : 500;
+            vertical-alignment: center;
+            horizontal-alignment: center;
         }
+    }
+
+    if root.selected: Rectangle {
+        x: (parent.width - self.width) / 2;
+        y: parent.height - 4px;
+        width: 22px;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.accent;
     }
 
     TouchArea {
         clicked => {
-            fs.focus();
-            if (root.enabled) {
-                root.clicked();
-            }
+            root.clicked();
         }
     }
-
-    VerticalLayout {
-        alignment: center;
-        padding: 12px;
-        spacing: 4px;
-        Text {
-            text: root.label;
-            color: white;
-            font-size: 28px;
-            font-weight: 600;
-            horizontal-alignment: center;
-        }
-        if root.sub != "": Text {
-            text: root.sub;
-            color: #cbd5e1;
-            font-size: 18px;
-            horizontal-alignment: center;
-        }
-    }
-
-    public function focus-tile() {
-        fs.focus();
-    }
-}
-
-component Stat inherits Rectangle {
-    in property <string> label;
-    in property <string> value;
-
-    min-width: 200px;
-    border-radius: 16px;
-    background: #111827;
-    VerticalLayout {
-        padding: 16px;
-        spacing: 4px;
-        Text {
-            text: root.label;
-            color: #94a3b8;
-            font-size: 20px;
-        }
-        Text {
-            text: root.value;
-            color: white;
-            font-size: 34px;
-            font-weight: 700;
-        }
-    }
-}
-
-component Section inherits Text {
-    color: #e2e8f0;
-    font-size: 26px;
-    font-weight: 600;
 }
 
 export component AppWindow inherits Window {
     title: "Canapé";
-    background: #0b1120;
+    background: Theme.background;
     // The Ally's 1080p panel at 150 % scaling: 1280x720 logical pixels.
     preferred-width: 1280px;
     preferred-height: 720px;
 
-    in property <StatusView> status;
-    in property <string> message;
+    // 0 Home, 1 Performance, 2 Profiles, 3 Bench, 4 Settings.
+    in-out property <int> page: 0;
+    property <int> pages: 5;
 
-    callback set-mode(string);
-    callback change-tdp(int);
-    callback toggle-auto-tdp();
-    callback set-target-fps(int);
-
-    init => {
-        silent.focus-tile();
-    }
-
-    VerticalLayout {
-        padding: 36px;
-        spacing: 18px;
-
-        HorizontalLayout {
-            Text {
-                text: "Canapé";
-                color: white;
-                font-size: 40px;
-                font-weight: 800;
+    FocusScope {
+        // Only sees the keys the focused control did not take.
+        focus-on-click: false;
+        focus-on-tab-navigation: false;
+        key-pressed(event) => {
+            if event.text == Key.PageUp {
+                root.page = Math.mod(root.page + root.pages - 1, root.pages);
+                return accept;
             }
-            Rectangle { }
-            if root.status.conflicts != "": Text {
-                vertical-alignment: center;
-                text: "⚠ Pilote aussi le matériel : " + root.status.conflicts + "    ";
-                color: #facc15;
-                font-size: 20px;
+            if event.text == Key.PageDown {
+                root.page = Math.mod(root.page + 1, root.pages);
+                return accept;
             }
-            Text {
-                vertical-alignment: center;
-                text: root.status.connected ? "● Service connecté" : "● Service non connecté";
-                color: root.status.connected ? #22c55e : #f97316;
-                font-size: 22px;
+            if event.text == Key.Escape && root.page != 0 {
+                root.page = 0;
+                return accept;
             }
+            return reject;
         }
 
-        HorizontalLayout {
-            spacing: 24px;
-            Stat {
-                label: "TDP";
-                value: root.status.tdp;
-            }
-            Stat {
-                label: "FPS";
-                value: root.status.fps;
-            }
-            Stat {
-                label: "Température";
-                value: root.status.temp;
-            }
-            Stat {
-                label: "Batterie";
-                value: root.status.battery;
-            }
-        }
+        VerticalLayout {
+            padding-left: 40px;
+            padding-right: 40px;
+            padding-top: 16px;
+            padding-bottom: 10px;
+            spacing: 16px;
 
-        Section {
-            text: "Mode";
-        }
-        HorizontalLayout {
-            spacing: 24px;
-            silent := Tile {
-                label: "Silencieux";
-                selected: root.status.mode == "silent";
-                enabled: root.status.connected;
-                clicked => {
-                    root.set-mode("silent");
-                }
-            }
-            Tile {
-                label: "Performance";
-                selected: root.status.mode == "performance";
-                enabled: root.status.connected;
-                clicked => {
-                    root.set-mode("performance");
-                }
-            }
-            Tile {
-                label: "Turbo";
-                selected: root.status.mode == "turbo";
-                enabled: root.status.connected;
-                clicked => {
-                    root.set-mode("turbo");
-                }
-            }
-        }
+            HorizontalLayout {
+                height: 52px;
+                spacing: 14px;
 
-        HorizontalLayout {
-            spacing: 24px;
-            VerticalLayout {
-                spacing: 18px;
-                Section {
-                    text: "Puissance (TDP manuel)";
-                }
+                // Both sides share what the tabs leave, so the tabs stay centred.
                 HorizontalLayout {
-                    spacing: 24px;
-                    Tile {
-                        label: "− 1 W";
-                        enabled: root.status.connected;
-                        clicked => {
-                            root.change-tdp(-1);
+                    spacing: 10px;
+                    min-width: 0;
+                    preferred-width: 200px;
+                    horizontal-stretch: 1;
+                    VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 14px;
+                            height: 14px;
+                            border-radius: 7px;
+                            background: Theme.accent;
                         }
                     }
-                    Tile {
-                        label: "+ 1 W";
-                        enabled: root.status.connected;
-                        clicked => {
-                            root.change-tdp(1);
+
+                    Text {
+                        text: "Canapé";
+                        color: Theme.text;
+                        font-size: 26px;
+                        font-weight: 800;
+                        vertical-alignment: center;
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    PadGlyph {
+                        text: "LB";
+                        round: false;
+                    }
+                }
+
+                Rectangle {
+                    border-radius: 26px;
+                    background: Theme.surface;
+                    border-width: 1px;
+                    border-color: Theme.stroke;
+                    HorizontalLayout {
+                        padding: 4px;
+                        spacing: 2px;
+                        for label[i] in [@tr("Home"), @tr("Performance"), @tr("Profiles"), @tr("Bench"), @tr("Settings")]: Tab {
+                            label: label;
+                            selected: root.page == i;
+                            clicked => {
+                                root.page = i;
+                            }
                         }
                     }
                 }
-            }
-            VerticalLayout {
-                spacing: 18px;
-                horizontal-stretch: 2;
-                Section {
-                    text: "Auto TDP";
+
+                VerticalLayout {
+                    alignment: center;
+                    PadGlyph {
+                        text: "RB";
+                        round: false;
+                    }
                 }
+
                 HorizontalLayout {
-                    spacing: 24px;
-                    Tile {
-                        label: root.status.auto-tdp ? "Activé" : "Désactivé";
-                        selected: root.status.auto-tdp;
-                        enabled: root.status.connected;
-                        clicked => {
-                            root.toggle-auto-tdp();
+                    min-width: 0;
+                    preferred-width: 200px;
+                    horizontal-stretch: 1;
+                    spacing: 10px;
+                    alignment: end;
+                    if App.status.connected && App.status.battery >= 0: HorizontalLayout {
+                        spacing: 8px;
+                        if App.status.power-known && !App.status.on-battery: VerticalLayout {
+                            alignment: center;
+                            Bolt { }
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            BatteryIcon {
+                                percent: App.status.battery;
+                                charging: App.status.power-known && !App.status.on-battery;
+                            }
+                        }
+
+                        Text {
+                            text: App.percent(App.status.battery);
+                            color: Theme.text;
+                            font-size: Theme.font-body;
+                            font-weight: 600;
+                            vertical-alignment: center;
                         }
                     }
-                    for fps in [30, 40, 60]: Tile {
-                        label: fps + " FPS";
-                        sub: "objectif";
-                        selected: root.status.auto-tdp && root.status.target-fps == fps;
-                        enabled: root.status.connected;
-                        clicked => {
-                            root.set-target-fps(fps);
+                    VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 10px;
+                            height: 10px;
+                            border-radius: 5px;
+                            background: App.status.connected ? Theme.good : Theme.warn;
                         }
                     }
                 }
             }
-        }
 
-        Rectangle { }
-
-        HorizontalLayout {
-            Text {
-                text: "Ⓐ Valider    ✚ Naviguer";
-                color: #64748b;
-                font-size: 20px;
+            Rectangle {
+                vertical-stretch: 1;
+                if root.page == 0: HomePage { }
+                if root.page == 1: PerformancePage { }
+                if root.page == 2: ProfilesPage { }
+                if root.page == 3: BenchPage { }
+                if root.page == 4: SettingsPage { }
             }
-            Rectangle { }
-            Text {
-                text: root.message;
-                color: #fca5a5;
-                font-size: 20px;
+
+            HorizontalLayout {
+                height: 34px;
+                spacing: 26px;
+                Hint {
+                    glyph: "A";
+                    text: @tr("Select");
+                }
+
+                Hint {
+                    glyph: "B";
+                    text: @tr("Back");
+                }
+
+                Hint {
+                    glyph: "LB RB";
+                    round: false;
+                    text: @tr("Change page");
+                }
+
+                Rectangle { }
+
+                Text {
+                    vertical-alignment: center;
+                    horizontal-alignment: right;
+                    overflow: elide;
+                    font-size: Theme.font-small;
+                    text: !App.status.connected ? @tr("Service not connected: start canape-service.") : App.notice == Notice.unreachable ? @tr("Service unreachable") : App.notice == Notice.service-error ? @tr("Service error: {}", App.notice-detail) : App.notice == Notice.saved ? @tr("Profile saved") : "";
+                    color: !App.status.connected || App.notice == Notice.unreachable || App.notice == Notice.service-error ? Theme.warn : Theme.good;
+                }
             }
         }
     }

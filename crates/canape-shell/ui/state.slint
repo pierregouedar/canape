@@ -1,0 +1,158 @@
+// Data shared between Rust and the pages. Numbers stay numbers so that Slint
+// formats and translates them; -1 means "unknown".
+
+export struct StatusView {
+    connected: bool,
+    // Watts, -1 while a firmware mode picks the limits.
+    tdp: int,
+    // "silent", "performance", "turbo", "manual" or "".
+    mode: string,
+    fps: int,
+    // GPU activity, percent.
+    gpu: int,
+    // CPU temperature, °C.
+    temp: int,
+    battery: int,
+    power-known: bool,
+    on-battery: bool,
+    auto-tdp: bool,
+    target-fps: int,
+    min-watts: int,
+    max-watts: int,
+    // Watts while on battery, 0 = no cap.
+    battery-cap: int,
+    // °C, 0 = no limit.
+    temp-limit: int,
+    thermal-limited: bool,
+    // Executable names, "" when none.
+    foreground: string,
+    active-profile: string,
+    // Other programs driving the hardware, comma separated.
+    conflicts: string,
+    bench-running: bool,
+    bench-step: int,
+    bench-steps: int,
+    bench-watts: int,
+    bench-seconds-left: int,
+}
+
+export struct ProfileView {
+    exe: string,
+    auto-tdp: bool,
+    target-fps: int,
+    min-watts: int,
+    max-watts: int,
+    learned-watts: int,
+}
+
+export struct BenchRow {
+    watts: int,
+    fps-avg: int,
+    fps-low: int,
+    // Frames per watt, in tenths.
+    fps-per-watt-tenths: int,
+    temp: int,
+    // Average frame rate relative to the best one, for the bars.
+    share: float,
+}
+
+export struct RecView {
+    available: bool,
+    watts: int,
+    fps: int,
+}
+
+export struct BenchView {
+    available: bool,
+    completed: bool,
+    exe: string,
+    target-fps: int,
+    sweet-spot: RecView,
+    for-target: RecView,
+    most-efficient: RecView,
+}
+
+// Outcome of the last command, shown in the bottom bar.
+export enum Notice {
+    idle,
+    unreachable,
+    service-error,
+    saved,
+}
+
+export global App {
+    in property <StatusView> status;
+    in property <[ProfileView]> profiles;
+    in property <BenchView> bench;
+    in property <[BenchRow]> bench-rows;
+    in property <Notice> notice;
+    // Message from the service, untranslated.
+    in property <string> notice-detail;
+    // "auto" or a language code.
+    in property <string> language: "auto";
+    in property <string> version;
+
+    callback set-mode(string);
+    callback change-tdp(int);
+    callback apply-tdp(int);
+    callback toggle-auto-tdp();
+    callback set-target-fps(int);
+    callback change-min-watts(int);
+    callback change-max-watts(int);
+    callback set-battery-cap(int);
+    callback set-temp-limit(int);
+    callback save-profile();
+    callback delete-profile(string);
+    callback refresh();
+    callback start-bench(int, int);
+    callback cancel-bench();
+    // Total seconds of a run with this step (W) and measuring time (s).
+    pure callback bench-duration(int, int) -> int;
+    // Saves a game profile from the bench result at this wattage.
+    callback apply-profile(int);
+    callback set-language(string);
+
+    // Shared formatting, translated.
+    public pure function watts(w: int) -> string {
+        @tr("{} W", w)
+    }
+    public pure function fps-value(f: int) -> string {
+        @tr("{} FPS", f)
+    }
+    public pure function celsius(c: int) -> string {
+        @tr("{} °C", c)
+    }
+    public pure function percent(p: int) -> string {
+        @tr("{} %", p)
+    }
+    // A number given in tenths, with one decimal: 26 -> "2.6" (or "2,6").
+    public pure function tenths(value: int) -> string {
+        Math.floor(value / 10) + @tr("decimal separator" => ".") + Math.mod(value, 10)
+    }
+    public pure function duration(seconds: int) -> string {
+        Math.floor(seconds / 60) + ":" + (Math.mod(seconds, 60) < 10 ? "0" : "") + Math.mod(seconds, 60)
+    }
+    public pure function mode-name(mode: string) -> string {
+        if mode == "silent" {
+            return @tr("Silent");
+        }
+        if mode == "performance" {
+            return @tr("Performance");
+        }
+        if mode == "turbo" {
+            return @tr("Turbo");
+        }
+        if mode == "manual" {
+            return @tr("Manual");
+        }
+        ""
+    }
+    // `text` when `value` is known, else a dash.
+    public pure function known(value: int, text: string) -> string {
+        status.connected && value >= 0 ? text : "—"
+    }
+    // Firmware modes pick the power limits themselves and do not report them.
+    public pure function firmware-mode() -> bool {
+        status.mode == "silent" || status.mode == "performance" || status.mode == "turbo"
+    }
+}
