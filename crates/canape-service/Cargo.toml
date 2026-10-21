@@ -1,0 +1,12 @@
+[package]
+name = "canape-service"
+description = "Privileged background service: hardware, auto TDP, IPC server"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+canape-core.workspace = true
+canape-hw.workspace = true
+canape-autotdp.workspace = true

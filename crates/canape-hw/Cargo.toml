@@ -1,0 +1,11 @@
+[package]
+name = "canape-hw"
+description = "Hardware abstraction for the ROG Ally"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+canape-core.workspace = true
+thiserror.workspace = true

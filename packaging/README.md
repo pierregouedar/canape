@@ -1,0 +1,29 @@
+# Packaging
+
+`identity/` contient le paquet MSIX « sparse » qui donne une identité d'app à `canape-shell.exe`, pour que l'expérience plein écran (FSE) puisse l'utiliser comme app d'accueil. Le pourquoi est expliqué dans [`../docs/architecture.md`](../docs/architecture.md).
+
+| Fichier | Rôle |
+|---|---|
+| `identity/AppxManifest.xml` | Identité `Canape`, extension `windows.gamingApp`, capacité `gamingHome` |
+| `identity/CustomCapability.SCCD` | Débloque la capacité `gamingHome` (catalogue de test : mode développeur requis) |
+| `identity/Assets/` | Logos provisoires |
+| `../crates/canape-shell/canape-shell.exe.manifest` | Lie l'exe au paquet (`msix`) et le garde `asInvoker` ; intégré à la compilation |
+| `install-dev.ps1` | Compile, installe, signe et enregistre le tout sur la machine de dev |
+
+## M1 : démarrer Canapé en FSE sur l'Ally
+
+Prérequis : mode développeur activé, Rust et Build Tools installés (le Windows SDK fournit `makeappx` et `signtool`).
+
+1. Dans un **Terminal administrateur**, à la racine du dépôt :
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File packaging\install-dev.ps1
+   ```
+
+2. Test hors FSE : lance la commande `explorer.exe shell:AppsFolder\...` affichée à la fin. Une boîte « Canapé a démarré. » doit apparaître, et une ligne s'ajoute à `%LOCALAPPDATA%\Canape\shell.log`.
+3. Choisis Canapé comme app d'accueil : Paramètres → Jeux → Expérience plein écran. S'il n'apparaît pas dans la liste, relance le script avec `-SetAsHomeApp`.
+4. Active « démarrer dans l'expérience plein écran », redémarre l'Ally : la boîte doit s'afficher au démarrage.
+
+Pour revenir à Winhanced ou à l'app Xbox, choisis-les à nouveau dans les mêmes Paramètres.
+
+Le certificat de développement est créé dans `$HOME\dev\canape-cert` et ajouté à `LocalMachine\TrustedPeople`. Ne le commite jamais.

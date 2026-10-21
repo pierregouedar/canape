@@ -1,0 +1,10 @@
+[package]
+name = "canape-autotdp"
+description = "Auto TDP controller: pure logic, no OS dependency"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true

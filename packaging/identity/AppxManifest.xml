@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Canape identity package (sparse MSIX, "package with external location").
+  It ships no executable: it gives canape-shell.exe, installed in
+  C:\Program Files\Canape, a package identity so the Windows full-screen
+  experience (FSE) can use it as its home app. See docs/architecture.md.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:uap4="http://schemas.microsoft.com/appx/manifest/uap/windows10/4"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 uap4 uap10 rescap">
+
+  <!-- Publisher must match the signing certificate and the msix element of
+       crates/canape-shell/canape-shell.exe.manifest. -->
+  <Identity Name="Canape" Publisher="CN=Canape Dev" Version="0.1.0.0" ProcessorArchitecture="neutral" />
+
+  <Properties>
+    <DisplayName>Canapé</DisplayName>
+    <PublisherDisplayName>Canapé</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <uap10:AllowExternalContent>true</uap10:AllowExternalContent>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.26100.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="fr-FR" />
+  </Resources>
+
+  <Applications>
+    <!-- The FSE activates its home app at medium integrity: canape-shell.exe
+         must stay asInvoker. -->
+    <Application Id="App" Executable="canape-shell.exe" uap10:TrustLevel="mediumIL" uap10:RuntimeBehavior="win32App">
+      <uap:VisualElements
+        DisplayName="Canapé"
+        Description="Interface plein écran pour la ROG Ally"
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png" />
+      <Extensions>
+        <!-- Makes the app a candidate home app for the FSE. -->
+        <uap3:Extension Category="windows.appExtension">
+          <uap3:AppExtension Name="windows.gamingApp" Id="Canape" DisplayName="Canapé" PublicFolder="Public" />
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="unvirtualizedResources" />
+    <!-- Unlocked by CustomCapability.SCCD (test catalog: Developer Mode required). -->
+    <uap4:CustomCapability Name="Microsoft.appCategory.gamingHome_8wekyb3d8bbwe" />
+  </Capabilities>
+</Package>
