@@ -110,7 +110,7 @@ flowchart BT
 | `canape-hw` | bibliothèque | Trait `Device` ; backend Ally (Windows) au-dessus d'ATKACPI et d'ADL ; `MockDevice` pour le reste | `lib.rs`, `atk.rs`, `windows.rs`, `adl.rs`, `mock.rs` |
 | `canape-ipc` | bibliothèque | Une `Connection` qui envoie et reçoit des lignes JSON ; named pipe sous Windows, socket Unix ailleurs | `lib.rs`, `windows.rs`, `unix.rs` |
 | `canape-service` | binaire | Service Windows : état, auto TDP, profils, banc d'essai, détection des conflits, serveur IPC, persistance | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
-| `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : 5 pages, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `ui/*.slint`, `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs` |
+| `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : 5 pages, graphes de puissance et de GPU en direct, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `ui/*.slint`, `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
 | `canape-ctl` | binaire | Envoie une requête JSON, ou `watch` pour suivre le statut | `main.rs` |
 
 Le shell dépend de `canape-hw` sous Windows uniquement pour `arm_frame_metrics()` (démarrer le comptage des images du pilote AMD depuis la session utilisateur) ; il n'écrit jamais dans le firmware.
@@ -201,6 +201,7 @@ sequenceDiagram
 | `start_bench` | `plan: BenchPlan` | `ok` / `error` | Lance un banc d'essai (il faut au moins 5 FPS). Le plan est borné à la plage du modèle ; pas et durées au moins à 1. |
 | `cancel_bench` | — | `ok` / `error` | Arrête le banc d'essai en gardant un rapport partiel. |
 | `get_bench_report` | — | `bench` | Le dernier rapport terminé ou annulé (pendant un banc d'essai, le précédent). |
+| `set_accent` | `color: string` (`#rrggbb`) | `ok` / `error` | Couleur d'accent de l'interface, partagée par le shell et le widget. Validée (`#` et six chiffres hexadécimaux, sinon une erreur), stockée en minuscules, enregistrée dans `state.json` et poussée dans `status.accent`. |
 
 Exemples :
 
@@ -213,6 +214,7 @@ Exemples :
 {"type":"save_profile","profile":{"exe":"eldenring.exe","auto_tdp":{"enabled":true,"target_fps":60,"min_watts":7,"max_watts":19,"battery_max_watts":null,"max_temp_c":null},"learned_watts":16}}
 {"type":"delete_profile","exe":"eldenring.exe"}
 {"type":"start_bench","plan":{"from_watts":25,"to_watts":7,"step_watts":3,"settle_secs":5,"measure_secs":15}}
+{"type":"set_accent","color":"#14b8a6"}
 ```
 
 ### Réponses
@@ -236,6 +238,7 @@ Exemples :
   "auto_tdp": {"enabled": true, "target_fps": 60, "min_watts": 7, "max_watts": 25, "battery_max_watts": 15, "max_temp_c": 85},
   "fps": 61.2,
   "gpu_util": 0.93,
+  "power_watts": 14.6,
   "cpu_temp_c": 78.0,
   "battery_percent": 64,
   "conflicts": [],
@@ -243,7 +246,8 @@ Exemples :
   "active_profile": "eldenring.exe",
   "on_battery": true,
   "thermal_limited": false,
-  "bench": null
+  "bench": null,
+  "accent": "#ff3d5e"
 }
 ```
 
@@ -254,6 +258,7 @@ Exemples :
 | `auto_tdp` | `AutoTdpSettings` | Réglages en vigueur : globaux, ou ceux du profil actif. Valeurs telles que réglées (non bornées au modèle). |
 | `fps` | `f32 \| null` | FPS du dernier tick (pilote AMD). |
 | `gpu_util` | `f32 \| null` | Activité GPU entre 0 et 1. |
+| `power_watts` | `f32 \| null` | Ce que l'APU consomme réellement, en watts (`tdp_watts` n'en est que la limite). Tracé face à la limite dans les graphes du shell et du widget. Facultatif en entrée. |
 | `cpu_temp_c` | `f32 \| null` | Température CPU en °C. |
 | `battery_percent` | `u8 \| null` | Charge de la batterie. |
 | `foreground` | `string \| null` | Programme au premier plan signalé par le shell. |
@@ -261,6 +266,7 @@ Exemples :
 | `on_battery` | `bool \| null` | `true` sur batterie, `false` sur secteur. |
 | `thermal_limited` | `bool` | L'auto TDP retient la puissance à cause de la limite de température. |
 | `bench` | `BenchProgress \| null` | Progression du banc d'essai en cours. |
+| `accent` | `string \| null` | Couleur d'accent `#rrggbb`, dès qu'un client en a choisi une (`set_accent`). Le shell l'adopte quand elle change ailleurs et donne la sienne à un service qui n'en a pas ; le widget la suit. Facultatif en entrée. |
 
 ### Types imbriqués
 
@@ -308,6 +314,7 @@ Exemples :
 | `a profile needs an executable name` | `save_profile` avec un `exe` vide |
 | `no bench is running` | `cancel_bench` sans banc d'essai |
 | `no frame rate: start a game before the bench` | `start_bench` sous 5 FPS |
+| `not a #RRGGBB colour: …` | `set_accent` avec autre chose que `#` et six chiffres hexadécimaux |
 | `value out of range: …` | Watts hors de la plage du modèle, limite de charge hors de 40 à 100 % |
 | `firmware refused: DEVS 0x… = … returned …` | Le firmware n'a pas renvoyé 1 |
 | `device I/O failed: …` | `DeviceIoControl` a échoué |
@@ -329,7 +336,7 @@ La session cloud n'a pas de matériel : tout se teste avec le simulateur (`MockD
 sudo apt-get install -y libxkbcommon-dev libfontconfig1-dev
 ```
 
-Pour afficher le shell, il faut un serveur X (le backend Slint est winit + X11, rendu logiciel).
+Pour afficher le shell, il faut un serveur X (le backend Slint est winit + X11, rendu logiciel). Le shell active la feature Slint `software-renderer-path` à côté de `renderer-software` : sans elle, le rendu logiciel ne dessine pas les éléments `Path` et les graphes restent vides.
 
 **Vérifications avant de pousser** (règle du projet) :
 
@@ -386,16 +393,21 @@ Hors Windows, les journaux et l'état vont dans `<tmp>/Canape/` (`service.log`, 
 Les captures de `docs/images/` sont faites ainsi (recette vérifiée) :
 
 ```sh
+export TMPDIR=$(mktemp -d) CANAPE_SOCKET=/tmp/doc.sock   # state.json et shell.json vierges
 Xvfb :99 -screen 0 1280x720x24 &
-CANAPE_MOCK_FPS=60 cargo run -p canape-service -- --console &
-DISPLAY=:99 CANAPE_WINDOWED=1 CANAPE_PAGE=1 LANGUAGE=fr cargo run -p canape-shell &
-sleep 5
-DISPLAY=:99 import -window root docs/images/performance-fr.png   # ImageMagick
+CANAPE_MOCK_FPS=60 ./target/debug/canape-service --console &
+./target/debug/canape-ctl '{"type":"foreground_app","exe":"eldenring.exe"}'   # plus profils, accent, banc d'essai court…
+DISPLAY=:99 CANAPE_WINDOWED=1 CANAPE_PAGE=1 LANG=fr_FR.UTF-8 ./target/debug/canape-shell &
+for w in 15 18 22 17 12 9 13 19 …; do ./target/debug/canape-ctl "{\"type\":\"set_tdp\",\"watts\":$w}"; sleep 2.5; done
+DISPLAY=:99 import -window root docs/images/fr/performance.png   # ImageMagick
 ```
 
 - 1280×720 correspond à l'écran 1080p de l'Ally à 150 %.
-- `LANGUAGE=<code>` choisit la langue (le mode Automatique la suit) ; sinon, enregistrez un choix dans `<tmp>/Canape/shell.json` (`{"language":"ja"}`).
-- Préparez l'état avec `canape-ctl` (profils, premier plan, banc d'essai) avant de lancer le shell.
+- `LANG=<locale>` (ou `LANGUAGE=<code>`) choisit la langue (le mode Automatique la suit) ; sinon, enregistrez un choix dans `<tmp>/Canape/shell.json` (`{"language":"ja"}`).
+- Préparez l'état avec `canape-ctl` (profils, premier plan, accent, banc d'essai) avant de lancer le shell. Un banc d'essai court (`settle_secs` 1, `measure_secs` 2) remplit la page de résultats en 20 s environ.
+- Les graphes gardent la dernière minute **dans le shell** : laissez-le tourner au moins 60 s pendant que le TDP change (le simulateur consomme 90 % de la limite, avec un GPU fixe à 70 %), sinon les courbes sont plates ou courtes.
+- Le shell n'est à instance unique que sous Windows : sous Linux, un écran Xvfb par shell permet de capturer plusieurs pages à la fois.
+- Fichiers : `docs/images/<langue>/<page>.png` (`home`, `performance`, `profiles`, `bench-results`, `bench-running`, `settings`), `docs/images/accent-<couleur>.png` pour les variantes d'accent. Optimisez avec `pngquant` puis `optipng`.
 - Un `shell.json` ou un `state.json` resté dans `<tmp>/Canape/` change ce qui s'affiche : utilisez un `TMPDIR` dédié pour des captures reproductibles.
 
 ## Compiler et tester sous Windows
@@ -481,6 +493,7 @@ Le widget ne se compile que sur Windows avec les outils UWP : il n'est vérifié
 - Toute chaîne visible passe par `@tr("…")` dans `crates/canape-shell/ui/*.slint`. Les nombres restent des nombres jusqu'à l'affichage : les formats (`"{} W"`, `"{} %"`, `"{} °C"`, le séparateur décimal) sont eux-mêmes traduits.
 - Catalogues : `crates/canape-shell/lang/<code>/LC_MESSAGES/canape-shell.po`, intégrés à l'exe par `build.rs` (`with_bundled_translations("lang")`, sans contexte par défaut : une chaîne est traduite une seule fois). Seule exception : `msgctxt "decimal separator"` pour `"."`.
 - L'anglais est la langue source : pas de catalogue.
+- `shell.json` (`%LOCALAPPDATA%\Canape\`, `<tmp>/Canape/` hors Windows) contient `language` et `accent`. `accent` est désormais une couleur hexadécimale `#rrggbb` ; les codes des versions précédentes (`red`, `blue`, `violet`, `green`, `orange`, `cyan`) sont convertis au chargement, toute autre valeur donne `#ff3d5e`. Un choix est enregistré et envoyé par `set_accent` après 600 ms sans changement.
 - `i18n.rs` choisit le catalogue : choix enregistré dans `shell.json` s'il est fourni, sinon la première langue préférée de Windows (`GetUserPreferredUILanguages`) ou de l'environnement POSIX qui est fournie, sinon l'anglais. Correspondance par code de base (`pt-BR` → `pt`, `zh-*` → `zh_CN`).
 
 **Ajouter une langue au shell**

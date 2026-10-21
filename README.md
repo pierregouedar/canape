@@ -7,7 +7,7 @@
 
 [🇫🇷 Français](#français) · [🇬🇧 English](#english) · [📚 Documentation](docs/README.md)
 
-<img src="docs/images/home-fr.png" alt="Écran d'accueil de Canapé" width="720">
+<img src="docs/images/fr/home.png" alt="Écran d'accueil de Canapé" width="720">
 
 </div>
 
@@ -33,14 +33,22 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 | 🎯 **Profils par jeu** | Le profil du jeu au premier plan s'applique tout seul, puis rend la main aux réglages généraux. Canapé retient les watts où l'auto TDP se stabilise. |
 | 📊 **Banc d'essai** | Balaye plusieurs limites de puissance sur le jeu en cours et propose trois recommandations : meilleur compromis, puissance pour l'objectif, le plus efficace. |
 | 🪟 **Widget Xbox Game Bar** | Réglages rapides en jeu : mode, ±1 W, auto TDP et objectif, FPS, température, batterie, progression du banc d'essai. |
+| 📈 **Graphes en direct** | Consommation réelle de l'APU face à la limite de puissance, et activité GPU, sur la dernière minute. |
+| 🎨 **Couleur d'accent** | Sélecteur teinte / saturation / luminosité et préréglages ; le widget de la Game Bar suit la couleur d'accent. |
 | 🌍 **13 langues** | English, Français, Español, Deutsch, Italiano, Português, Nederlands, Polski, Русский, Türkçe, 日本語, 한국어, 简体中文. Langue de Windows par défaut, ou choix manuel. |
 | 💾 **Réglages persistants** | Le service réapplique au démarrage le dernier état (le firmware ne sait pas le relire). |
 
 ### Captures
 
-| Accueil | Banc d'essai en cours |
+| Accueil : consommation et limite, GPU | Performance : auto TDP et graphe |
 |---|---|
-| <img src="docs/images/home-fr.png" alt="Accueil" width="400"> | <img src="docs/images/bench-running-fr.png" alt="Banc d'essai en cours" width="400"> |
+| <img src="docs/images/fr/home.png" alt="Accueil" width="400"> | <img src="docs/images/fr/performance.png" alt="Performance" width="400"> |
+| **Profils par jeu** | **Banc d'essai : résultats et recommandations** |
+| <img src="docs/images/fr/profiles.png" alt="Profils" width="400"> | <img src="docs/images/fr/bench-results.png" alt="Résultats du banc d'essai" width="400"> |
+| **Réglages : langue et couleur d'accent** | **Banc d'essai en cours** |
+| <img src="docs/images/fr/settings.png" alt="Réglages" width="400"> | <img src="docs/images/fr/bench-running.png" alt="Banc d'essai en cours" width="400"> |
+| **Accent sarcelle** | **Accent ambre** |
+| <img src="docs/images/accent-teal.png" alt="Accueil avec l'accent sarcelle" width="400"> | <img src="docs/images/accent-amber.png" alt="Accueil avec l'accent ambre" width="400"> |
 
 <sub>Captures du shell rendues sous Linux avec le simulateur matériel (valeurs fictives). D'autres captures dans le [guide d'utilisation](docs/user-guide.fr.md).</sub>
 
@@ -114,16 +122,22 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 | 🎯 **Per-game profiles** | The profile of the game in front applies by itself, then hands back to the global settings. Canapé remembers the wattage auto TDP settles on. |
 | 📊 **Bench** | Sweeps several power limits on the running game and gives three recommendations: sweet spot, power for the target, most efficient. |
 | 🪟 **Xbox Game Bar widget** | Quick in-game settings: mode, ±1 W, auto TDP and target, FPS, temperature, battery, bench progress. |
+| 📈 **Live graphs** | Actual APU power draw against the power limit, and GPU activity, over the last minute. |
+| 🎨 **Accent colour** | Hue / saturation / brightness picker and presets; the widget follows the accent colour. |
 | 🌍 **13 languages** | English, Français, Español, Deutsch, Italiano, Português, Nederlands, Polski, Русский, Türkçe, 日本語, 한국어, 简体中文. Windows language by default, or a manual choice. |
 | 💾 **Persistent settings** | The service re-applies the last state at startup (the firmware cannot report it back). |
 
 ### Screenshots
 
-| Home | Performance |
+| Home: power draw vs. limit, GPU | Performance: auto TDP and graph |
 |---|---|
-| <img src="docs/images/en-page0.png" alt="Home" width="400"> | <img src="docs/images/en-page1.png" alt="Performance" width="400"> |
-| **Profiles** | **Bench** |
-| <img src="docs/images/en-page2.png" alt="Profiles" width="400"> | <img src="docs/images/en-page3.png" alt="Bench" width="400"> |
+| <img src="docs/images/en/home.png" alt="Home" width="400"> | <img src="docs/images/en/performance.png" alt="Performance" width="400"> |
+| **Per-game profiles** | **Bench: results and recommendations** |
+| <img src="docs/images/en/profiles.png" alt="Profiles" width="400"> | <img src="docs/images/en/bench-results.png" alt="Bench results" width="400"> |
+| **Settings: language and accent colour** | **Bench running** |
+| <img src="docs/images/en/settings.png" alt="Settings" width="400"> | <img src="docs/images/en/bench-running.png" alt="Bench running" width="400"> |
+| **Teal accent** | **Amber accent** |
+| <img src="docs/images/accent-teal.png" alt="Home with a teal accent" width="400"> | <img src="docs/images/accent-amber.png" alt="Home with an amber accent" width="400"> |
 
 <sub>Shell screenshots rendered on Linux with the hardware simulator (made-up values). More in the [user guide](docs/user-guide.en.md).</sub>
 

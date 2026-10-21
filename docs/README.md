@@ -41,12 +41,20 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 
 | Fichier · File | Page | Langue · Language |
 |---|---|---|
-| [`home-fr.png`](images/home-fr.png) | Accueil | Français |
-| [`bench-running-fr.png`](images/bench-running-fr.png) | Banc d'essai en cours | Français |
-| [`en-page0.png`](images/en-page0.png) | Home | English |
-| [`en-page1.png`](images/en-page1.png) | Performance | English |
-| [`en-page2.png`](images/en-page2.png) | Profiles | English |
-| [`en-page3.png`](images/en-page3.png) | Bench (results) | English |
-| [`en-page4.png`](images/en-page4.png) | Settings | English |
-| [`home-ja.png`](images/home-ja.png) | ホーム | 日本語 |
-| [`performance-ru.png`](images/performance-ru.png) | Производительность | Русский |
+| [`fr/home.png`](images/fr/home.png) | Accueil | Français |
+| [`fr/performance.png`](images/fr/performance.png) | Performance | Français |
+| [`fr/profiles.png`](images/fr/profiles.png) | Profils | Français |
+| [`fr/bench-results.png`](images/fr/bench-results.png) | Banc d'essai (résultats) | Français |
+| [`fr/bench-running.png`](images/fr/bench-running.png) | Banc d'essai en cours | Français |
+| [`fr/settings.png`](images/fr/settings.png) | Réglages (couleur d'accent) | Français |
+| [`en/home.png`](images/en/home.png) | Home | English |
+| [`en/performance.png`](images/en/performance.png) | Performance | English |
+| [`en/profiles.png`](images/en/profiles.png) | Profiles | English |
+| [`en/bench-results.png`](images/en/bench-results.png) | Bench (results) | English |
+| [`en/bench-running.png`](images/en/bench-running.png) | Bench running | English |
+| [`en/settings.png`](images/en/settings.png) | Settings (accent colour) | English |
+| [`ja/home.png`](images/ja/home.png) | ホーム | 日本語 |
+| [`ru/performance.png`](images/ru/performance.png) | Производительность | Русский |
+| [`de/settings.png`](images/de/settings.png) | Einstellungen | Deutsch |
+| [`accent-teal.png`](images/accent-teal.png) | Home, accent sarcelle · teal accent | English |
+| [`accent-amber.png`](images/accent-amber.png) | Home, accent ambre · amber accent | English |

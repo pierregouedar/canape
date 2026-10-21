@@ -149,28 +149,30 @@ La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé dep
 
 ### Éléments communs
 
-- **En haut** : les onglets, la batterie (avec un éclair sur secteur) et un point de connexion au service, vert si le service répond, jaune sinon.
+- **En haut** : les onglets (l'onglet courant est souligné de la couleur d'accent), la batterie (avec un éclair sur secteur) et la mention « Hors ligne » quand le service ne répond pas.
 - **En bas** : les aides de la manette et, à droite, le résultat de la dernière commande (« Profil enregistré », « Service injoignable », « Erreur du service : … »). Les messages d'erreur du service restent en anglais.
 - Une valeur inconnue s'affiche « — » (par exemple les FPS quand aucun jeu ne tourne).
 
 ### Accueil
 
-<img src="images/home-fr.png" alt="Page d'accueil" width="720">
+<img src="images/fr/home.png" alt="Page d'accueil" width="720">
 
 | Zone | Contenu |
 |---|---|
-| **Limite de puissance** | Les watts appliqués, « Auto » quand un mode firmware choisit lui-même ses limites, ou « — ». En dessous : « Auto TDP, objectif 60 FPS », « Fixée par le firmware : mode Turbo » ou « TDP manuel ». La jauge montre la position entre le minimum et le maximum de l'auto TDP (ou entre 5 et 35 W en manuel). |
-| **Badges** | Mode en cours ou « Auto TDP », « Limite thermique atteinte » (jaune) quand la limite de température retient la puissance, « Banc d'essai en cours ». |
-| **Tuiles** | Images par seconde, activité GPU, température CPU (jaune dès 80 °C, rouge dès 90 °C), batterie (« Sur batterie » ou « Sur secteur »). |
+| **Consommation et limite de puissance** | À gauche, ce que l'APU consomme réellement ; à droite, la limite appliquée (« Auto » quand un mode firmware choisit lui-même ses limites, ou « — »). En dessous : « Auto TDP, objectif 60 FPS », « Fixée par le firmware : mode Turbo » ou « TDP manuel ». |
+| **Graphe de puissance** | La dernière minute, un point par seconde : la consommation (courbe pleine, couleur d'accent) sous la limite (ligne claire en escalier). L'échelle s'adapte par pas de 5 W. Un trou dans la courbe signale une coupure avec le service. |
+| **États** | « Limite thermique atteinte » (jaune) quand la limite de température retient la puissance, « Banc d'essai en cours ». |
+| **GPU et images par seconde** | L'activité GPU avec son graphe de la dernière minute (0 à 100 %), et les FPS du jeu. |
+| **Tuiles** | Température CPU (jaune dès 80 °C, rouge dès 90 °C), batterie (« Sur batterie » ou « Sur secteur »). |
 | **En jeu** | Le programme au premier plan détecté par Canapé et le profil utilisé, s'il y en a un. |
 | **Raccourcis** | Auto TDP (activé / désactivé), Silencieux, Performance, Turbo. |
 | **Avertissement jaune** | Apparaît en haut si un autre programme pilote aussi le matériel. |
 
 ### Performance
 
-<img src="images/en-page1.png" alt="Page Performance (en anglais)" width="720">
+<img src="images/fr/performance.png" alt="Page Performance" width="720">
 
-<sub>Capture en anglais ; la même page en russe : [performance-ru.png](images/performance-ru.png).</sub>
+<sub>La même page en russe : [ru/performance.png](images/ru/performance.png).</sub>
 
 **Mode de puissance**
 
@@ -195,6 +197,8 @@ Choisir un mode firmware désactive l'auto TDP.
 | Maximum sur batterie | Aucune, 10, 15 ou 20 W : plafond appliqué seulement sur batterie. |
 | Limite de température | Aucune, 80, 85 ou 90 °C : au-delà, la puissance ne fait que baisser. |
 
+À droite, le même graphe que sur l'Accueil montre en direct la consommation face à la limite : on y voit l'auto TDP descendre ou remonter la puissance.
+
 Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md).
 
 > [!TIP]
@@ -202,7 +206,7 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 
 ### Profils
 
-<img src="images/en-page2.png" alt="Page Profils (en anglais)" width="720">
+<img src="images/fr/profiles.png" alt="Page Profils" width="720">
 
 Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages d'auto TDP. Quand ce programme passe au premier plan, le service applique le profil ; quand il le quitte, les réglages généraux reviennent.
 
@@ -217,7 +221,7 @@ Les profils et les watts appris sont détaillés dans [Auto TDP et banc d'essai]
 
 ### Banc d'essai
 
-<img src="images/en-page3.png" alt="Page Banc d'essai avec résultats (en anglais)" width="720">
+<img src="images/fr/bench-results.png" alt="Page Banc d'essai avec résultats" width="720">
 
 Le banc d'essai fait tourner le jeu au premier plan à plusieurs limites de puissance, de 25 W à 7 W, mesure chacune et propose la bonne valeur.
 
@@ -226,7 +230,7 @@ Le banc d'essai fait tourner le jeu au premier plan à plusieurs limites de puis
 3. Choisissez le **pas** (2, 3 ou 5 W) et la durée de mesure **par palier** (10, 15 ou 30 s). La durée totale s'affiche sous **Démarrer** (environ 2:20 avec 3 W et 15 s).
 4. **Démarrer**, puis revenez au jeu. La limite change toute seule ; chaque palier attend 5 s avant de mesurer.
 
-<img src="images/bench-running-fr.png" alt="Banc d'essai en cours" width="720">
+<img src="images/fr/bench-running.png" alt="Banc d'essai en cours" width="720">
 
 Pendant le banc d'essai, le mode, le TDP et l'auto TDP sont verrouillés (« a bench is running: cancel it first ») ; **Annuler** arrête le banc d'essai en gardant les paliers déjà mesurés. À la fin, ou à l'annulation, le service remet l'état d'avant.
 
@@ -245,10 +249,17 @@ Chaque carte propose **Régler le TDP** (limite manuelle à cette valeur, auto T
 
 ### Réglages
 
-<img src="images/en-page4.png" alt="Page Réglages (en anglais)" width="720">
+<img src="images/fr/settings.png" alt="Page Réglages" width="720">
 
 - **Langue** : « Automatique » (langue de Windows) ou l'une des 13 langues. Le changement est immédiat et mémorisé. Voir [Langues](#langues).
-- **À propos** : version, état de la connexion au service, rappel des commandes de la manette.
+- **Couleur d'accent** : trois curseurs **Teinte**, **Saturation** et **Luminosité**, un aperçu avec le code `#RRGGBB` et 8 **préréglages**. À la manette, A sur un curseur le saisit, la croix ou le stick le déplace, A à nouveau le relâche. Toute l'interface suit en direct ; la couleur est enregistrée dans `shell.json` et envoyée au service une fois le réglage terminé, et **le widget de la Game Bar suit la couleur d'accent**.
+- **Canapé** : version, état de la connexion au service, rappel des commandes de la manette.
+
+| Accent sarcelle | Accent ambre |
+|---|---|
+| <img src="images/accent-teal.png" alt="Accueil avec l'accent sarcelle" width="400"> | <img src="images/accent-amber.png" alt="Accueil avec l'accent ambre" width="400"> |
+
+<sub>Captures en anglais. Les mêmes réglages en allemand : [de/settings.png](images/de/settings.png).</sub>
 
 ## Le widget Xbox Game Bar
 
@@ -273,14 +284,14 @@ Le widget donne les réglages rapides sans quitter le jeu. Toute la logique rest
 
 | Zone | Détail |
 |---|---|
-| En-tête | Point de connexion au service, jeu au premier plan (sans `.exe`), pastille « Profil » quand un profil est appliqué. |
+| En-tête | État de la connexion en texte (« Connexion… », « Service non connecté »), jeu au premier plan (sans `.exe`), « Profil » en couleur d'accent quand un profil est appliqué. |
 | Tuiles | TDP, FPS, température (légende « Bridé » en jaune quand la limite de température retient la puissance), batterie (légende « Secteur » en vert sur le chargeur). |
 | Banc d'essai | Palier, puissance et temps restant pendant un banc d'essai (lancé depuis le shell). |
 | Modes | Silencieux, Performance, Turbo. |
 | ±1 W | Actif seulement quand le TDP est connu ; grisé en mode firmware (« Fixé par le mode du firmware »). |
 | Auto TDP | Activé / désactivé et objectif 30, 40 ou 60 FPS. Les autres réglages (minimum, maximum, batterie, température) sont conservés tels quels. |
 
-Le widget n'a ni mode Manuel, ni bouton de banc d'essai, ni gestion des profils : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar.
+Le widget n'a ni mode Manuel, ni bouton de banc d'essai, ni gestion des profils : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar, et le widget suit la couleur d'accent choisie dans le shell.
 
 > [!NOTE]
 > La **première version** du widget a été validée sur l'Ally (M3) via Win+G sur le bureau. La **version actuelle** (13 langues, nouveau style, ±1 W désactivé en mode firmware) n'a pas encore été compilée. L'ouverture depuis le bouton Xbox dans le FSE, avec Canapé comme accueil, n'a pas encore été testée.
@@ -305,7 +316,7 @@ Canapé est traduit en 13 langues :
 | 한국어 | `ko` | `ko-KR` |
 | 简体中文 | `zh_CN` | `zh-Hans` |
 
-<img src="images/home-ja.png" alt="Accueil en japonais" width="480">
+<img src="images/ja/home.png" alt="Accueil en japonais" width="480">
 
 - **Shell, mode Automatique** (par défaut) : la première langue de la liste des langues préférées de Windows qui est fournie, sinon l'anglais. Toute variante du chinois affiche le chinois simplifié.
 - **Shell, choix manuel** : page **Réglages → Langue**. Le choix est enregistré dans `%LOCALAPPDATA%\Canape\shell.json` et appliqué tout de suite.
@@ -376,7 +387,7 @@ Le code de sortie vaut 0 si le service a répondu sans erreur, 1 sinon. La liste
 
 | Symptôme | Cause probable et solution |
 |---|---|
-| « Service non connecté » en bas du shell, point jaune | Le service ne tourne pas : `Get-Service CanapeService`, puis `Start-Service CanapeService` (administrateur). Regardez `service.log`. |
+| « Service non connecté » en bas du shell, « Hors ligne » en haut | Le service ne tourne pas : `Get-Service CanapeService`, puis `Start-Service CanapeService` (administrateur). Regardez `service.log`. |
 | Le widget affiche « Service non connecté » et « Le service Canapé n'est pas lancé. » | Même cause : le pipe `\\.\pipe\canape` n'existe pas. |
 | Les FPS restent à « — » en jeu | Le pilote AMD ne compte les images qu'une fois activé depuis la session utilisateur : c'est le shell qui le fait à son démarrage (ligne `adl: frame metrics started` dans `shell.log`). Lancez Canapé au moins une fois après le démarrage. |
 | Le TDP affiche « Auto » et −/+ sont grisés | Un mode firmware (Silencieux, Performance, Turbo) est actif : le firmware ne communique pas ses limites. Choisissez **Manuel**. |

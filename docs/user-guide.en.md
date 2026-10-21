@@ -149,28 +149,30 @@ The gamepad is only read while Canapé is in the foreground: a game launched fro
 
 ### Shared elements
 
-- **Top**: the tabs, the battery (with a bolt when plugged in) and a dot for the service connection, green when the service answers, yellow otherwise.
+- **Top**: the tabs (the current one is underlined in the accent colour), the battery (with a bolt when plugged in) and the word "Offline" when the service does not answer.
 - **Bottom**: gamepad hints and, on the right, the outcome of the last command ("Profile saved", "Service unreachable", "Service error: …"). Error messages from the service stay in English.
 - An unknown value shows as "—" (for example the frame rate when no game is running).
 
 ### Home
 
-<img src="images/en-page0.png" alt="Home page" width="720">
+<img src="images/en/home.png" alt="Home page" width="720">
 
 | Area | Contents |
 |---|---|
-| **Power limit** | The watts applied, "Auto" when a firmware mode picks its own limits, or "—". Below: "Auto TDP, target 60 FPS", "Set by the firmware: Turbo mode" or "Manual TDP". The gauge shows where the value sits between the auto TDP minimum and maximum (or between 5 and 35 W in manual). |
-| **Badges** | Current mode or "Auto TDP", "Thermal limit reached" (yellow) when the temperature limit is holding power down, "Bench running". |
-| **Tiles** | Frame rate, GPU activity, CPU temperature (yellow from 80 °C, red from 90 °C), battery ("On battery" or "Plugged in"). |
+| **Power draw and power limit** | On the left, what the APU actually draws; on the right, the limit applied ("Auto" when a firmware mode picks its own limits, or "—"). Below: "Auto TDP, target 60 FPS", "Set by the firmware: Turbo mode" or "Manual TDP". |
+| **Power graph** | The last minute, one point per second: the power draw (filled curve, in the accent colour) under the limit (light stepped line). The scale adapts in 5 W steps. A gap in the curve marks a lost connection to the service. |
+| **States** | "Thermal limit reached" (yellow) when the temperature limit is holding power down, "Bench running". |
+| **GPU and frame rate** | GPU activity with its graph of the last minute (0 to 100 %), and the game's frame rate. |
+| **Tiles** | CPU temperature (yellow from 80 °C, red from 90 °C), battery ("On battery" or "Plugged in"). |
 | **Now playing** | The foreground program Canapé detected, and the profile in use, if any. |
 | **Shortcuts** | Auto TDP (on / off), Silent, Performance, Turbo. |
 | **Yellow warning** | Shows at the top when another program also drives the hardware. |
 
 ### Performance
 
-<img src="images/en-page1.png" alt="Performance page" width="720">
+<img src="images/en/performance.png" alt="Performance page" width="720">
 
-<sub>The same page in Russian: [performance-ru.png](images/performance-ru.png).</sub>
+<sub>The same page in Russian: [ru/performance.png](images/ru/performance.png).</sub>
 
 **Power mode**
 
@@ -195,6 +197,8 @@ Picking a firmware mode turns auto TDP off.
 | Maximum on battery | None, 10, 15 or 20 W: a ceiling applied only on battery. |
 | Temperature limit | None, 80, 85 or 90 °C: above it, power only goes down. |
 
+On the right, the same graph as on Home shows the power draw against the limit live: you can watch auto TDP bring the power down or up.
+
 How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
 > [!TIP]
@@ -202,7 +206,7 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
 ### Profiles
 
-<img src="images/en-page2.png" alt="Profiles page" width="720">
+<img src="images/en/profiles.png" alt="Profiles page" width="720">
 
 A profile ties an executable (for example `eldenring.exe`) to auto TDP settings. When that program comes to the foreground, the service applies the profile; when it leaves, the global settings come back.
 
@@ -217,7 +221,7 @@ Profiles and learned watts are covered in [Auto TDP and bench](auto-tdp.en.md#pe
 
 ### Bench
 
-<img src="images/en-page3.png" alt="Bench page with results" width="720">
+<img src="images/en/bench-results.png" alt="Bench page with results" width="720">
 
 The bench plays the foreground game at several power limits, from 25 W down to 7 W, measures each one and suggests the right value.
 
@@ -226,7 +230,7 @@ The bench plays the foreground game at several power limits, from 25 W down to 7
 3. Pick the **step** (2, 3 or 5 W) and the measuring time **per step** (10, 15 or 30 s). The total time shows under **Start** (about 2:20 with 3 W and 15 s).
 4. **Start**, then go back to the game. The limit changes on its own; each step waits 5 s before measuring.
 
-<img src="images/bench-running-fr.png" alt="Bench running (French UI)" width="720">
+<img src="images/en/bench-running.png" alt="Bench running" width="720">
 
 During a bench, the mode, the TDP and auto TDP are locked ("a bench is running: cancel it first"); **Cancel** stops the bench and keeps the steps already measured. At the end, or on cancel, the service restores the previous state.
 
@@ -245,10 +249,17 @@ Each card offers **Set as TDP** (manual limit at that value, auto TDP off) and *
 
 ### Settings
 
-<img src="images/en-page4.png" alt="Settings page" width="720">
+<img src="images/en/settings.png" alt="Settings page" width="720">
 
 - **Language**: "Automatic" (the Windows language) or one of the 13 languages. The change is immediate and remembered. See [Languages](#languages).
-- **About**: version, service connection state, gamepad controls reminder.
+- **Accent colour**: three sliders, **Hue**, **Saturation** and **Brightness**, a preview with the `#RRGGBB` code and 8 **presets**. With the gamepad, A on a slider grabs it, the D-pad or the stick moves it, A again lets go. The whole UI follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the widget follows the accent colour**.
+- **Canapé**: version, service connection state, gamepad controls reminder.
+
+| Teal accent | Amber accent |
+|---|---|
+| <img src="images/accent-teal.png" alt="Home with a teal accent" width="400"> | <img src="images/accent-amber.png" alt="Home with an amber accent" width="400"> |
+
+<sub>The same settings in German: [de/settings.png](images/de/settings.png).</sub>
 
 ## The Xbox Game Bar widget
 
@@ -273,14 +284,14 @@ The widget gives you the quick settings without leaving the game. All the logic 
 
 | Area | Details |
 |---|---|
-| Header | Service connection dot, foreground game (without `.exe`), "Profile" chip when a profile is applied. |
+| Header | Connection state as text ("Connecting…", "Service not connected"), foreground game (without `.exe`), "Profile" in the accent colour when a profile is applied. |
 | Tiles | TDP, FPS, temperature (caption "Throttled" in yellow when the temperature limit is holding power down), battery (caption "Plugged in" in green on the charger). |
 | Bench | Step, power and time left while a bench runs (started from the shell). |
 | Modes | Silent, Performance, Turbo. |
 | ±1 W | Only active when the TDP is known; disabled in a firmware mode ("Set by the firmware mode"). |
 | Auto TDP | On / off and target 30, 40 or 60 FPS. The other settings (minimum, maximum, battery, temperature) are kept as they are. |
 
-The widget has no Manual mode, no bench button and no profile management: those stay in the shell. Its panel follows Game Bar's transparency setting.
+The widget has no Manual mode, no bench button and no profile management: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell.
 
 > [!NOTE]
 > The **first version** of the widget was validated on the Ally (M3) through Win+G on the desktop. The **current version** (13 languages, new look, ±1 W disabled in firmware modes) has not been built yet. Opening it from the Xbox button in the FSE, with Canapé as the home app, has not been tested yet.
@@ -305,7 +316,7 @@ Canapé is translated into 13 languages:
 | 한국어 | `ko` | `ko-KR` |
 | 简体中文 | `zh_CN` | `zh-Hans` |
 
-<img src="images/home-ja.png" alt="Home in Japanese" width="480">
+<img src="images/ja/home.png" alt="Home in Japanese" width="480">
 
 - **Shell, Automatic mode** (default): the first language in Windows' preferred languages list that is bundled, otherwise English. Any Chinese variant shows Simplified Chinese.
 - **Shell, manual choice**: **Settings → Language** page. The choice is saved in `%LOCALAPPDATA%\Canape\shell.json` and applied at once.
@@ -376,7 +387,7 @@ The exit code is 0 when the service answered without an error, 1 otherwise. The 
 
 | Symptom | Likely cause and fix |
 |---|---|
-| "Service not connected" at the bottom of the shell, yellow dot | The service is not running: `Get-Service CanapeService`, then `Start-Service CanapeService` (elevated). Check `service.log`. |
+| "Service not connected" at the bottom of the shell, "Offline" at the top | The service is not running: `Get-Service CanapeService`, then `Start-Service CanapeService` (elevated). Check `service.log`. |
 | The widget shows "Service not connected" and "The Canapé service isn't running." | Same cause: the `\\.\pipe\canape` pipe does not exist. |
 | FPS stay at "—" in game | The AMD driver only counts frames once armed from the user session: the shell does it at startup (line `adl: frame metrics started` in `shell.log`). Launch Canapé at least once after boot. |
 | The TDP shows "Auto" and −/+ are disabled | A firmware mode (Silent, Performance, Turbo) is active: the firmware does not report its limits. Pick **Manual**. |
