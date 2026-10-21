@@ -6,10 +6,14 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
-  IgnorableNamespaces="uap uap3">
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  IgnorableNamespaces="uap uap3 mp">
 
   <!-- Same publisher as the identity package: one dev certificate signs both. -->
   <Identity Name="Canape.Widget" Publisher="CN=Canape Dev" Version="0.1.0.0" />
+
+  <!-- Required by the UWP packaging targets (APPX1673), even off phones. -->
+  <mp:PhoneIdentity PhoneProductId="3f7c9e2a-5b41-4d8e-9a6c-2e1f0b7d4c58" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
   <Properties>
     <DisplayName>Canapé (widget)</DisplayName>

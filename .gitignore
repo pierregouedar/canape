@@ -1,4 +1,7 @@
 /target
+# UWP widget build output
+/widget/CanapeWidget/bin/
+/widget/CanapeWidget/obj/
 *.msix
 *.pfx
 *.cer

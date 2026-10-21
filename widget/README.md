@@ -16,7 +16,7 @@ Réglages rapides en jeu : TDP, mode, auto TDP, FPS, température, batterie. Tou
    ```powershell
    $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath
    & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe" modify --installPath $vs `
-       --add Microsoft.VisualStudio.Workload.UniversalBuildTools --includeRecommended --quiet --wait
+       --add Microsoft.VisualStudio.Workload.UniversalBuildTools --includeRecommended --quiet --norestart
    ```
 
 2. `powershell -ExecutionPolicy Bypass -File packaging\build-widget.ps1` (le certificat de `install-dev.ps1` signe le paquet).

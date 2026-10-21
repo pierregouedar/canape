@@ -43,8 +43,24 @@ if ($LASTEXITCODE -ne 0) { throw "msbuild failed" }
 
 $package = Get-ChildItem $out -Recurse -Include *.msix, *.appx |
     Where-Object { $_.FullName -notmatch "\\Dependencies\\" } | Select-Object -First 1
+# Only the frameworks that are missing or older: reinstalling one that Game Bar,
+# the Xbox app or other widgets are using fails with 0x80073D02.
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+function Get-PackageIdentity([string]$path) {
+    $zip = [IO.Compression.ZipFile]::OpenRead($path)
+    try {
+        $reader = New-Object IO.StreamReader($zip.GetEntry("AppxManifest.xml").Open())
+        ([xml]$reader.ReadToEnd()).Package.Identity
+    } finally { $zip.Dispose() }
+}
 $dependencies = @(Get-ChildItem $out -Recurse -Include *.appx, *.msix |
-    Where-Object { $_.FullName -match "\\Dependencies\\x64\\" } | ForEach-Object FullName)
+    Where-Object { $_.FullName -match "\\Dependencies\\x64\\" } |
+    Where-Object {
+        $identity = Get-PackageIdentity $_.FullName
+        $installed = Get-AppxPackage -Name $identity.Name | Where-Object Architecture -eq "X64" |
+            Where-Object { [version]$_.Version -ge [version]$identity.Version }
+        -not $installed
+    } | ForEach-Object FullName)
 Write-Host "Installing $($package.FullName)"
 if ($dependencies.Count -gt 0) {
     Add-AppxPackage -Path $package.FullName -DependencyPath $dependencies -ForceUpdateFromAnyVersion
