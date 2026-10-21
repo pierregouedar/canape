@@ -8,3 +8,20 @@ license.workspace = true
 
 [dependencies]
 canape-core.workspace = true
+canape-ipc.workspace = true
+slint = { version = "1.18", default-features = false, features = ["std", "compat-1-2", "backend-winit", "renderer-femtovg"] }
+
+[target.'cfg(windows)'.dependencies]
+gilrs = { version = "0.11", default-features = false, features = ["xinput"] }
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_Threading",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+slint = { version = "1.18", default-features = false, features = ["backend-winit-x11"] }
+
+[build-dependencies]
+slint-build = "1.18"

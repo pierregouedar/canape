@@ -38,7 +38,16 @@ impl Handler {
             Request::GetStatus | Request::Subscribe => Response::Status(self.status()),
             Request::SetPerformanceMode { mode } => {
                 self.disable_auto_tdp();
-                self.apply(|d| d.set_performance_mode(mode), |s| s.mode = Some(mode))
+                self.apply(
+                    |d| d.set_performance_mode(mode),
+                    |s| {
+                        s.mode = Some(mode);
+                        // The firmware applies the mode's own power limits.
+                        if mode != PerformanceMode::Manual {
+                            s.tdp_watts = None;
+                        }
+                    },
+                )
             }
             Request::SetTdp { watts } => {
                 self.disable_auto_tdp();
@@ -58,10 +67,6 @@ impl Handler {
     }
 
     /// One auto TDP tick, fed with the foreground game's frame rate.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "driven by the ETW telemetry loop in M4")
-    )]
     pub fn tick(&mut self, fps: Option<f32>) {
         let (Some(controller), Some(fps)) = (self.controller.as_mut(), fps) else {
             return;

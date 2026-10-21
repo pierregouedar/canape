@@ -1,8 +1,9 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-  Builds canape-shell, packs and signs the sparse identity package, and
-  registers it so the FSE can use Canape as its home app (milestone M1).
+  Builds Canape, installs the service (CanapeService, LocalSystem), packs and
+  signs the sparse identity package, and registers it so the FSE can use
+  Canape as its home app.
 
 .DESCRIPTION
   Developer setup only: Developer Mode must be on (the SCCD uses the test
@@ -31,16 +32,29 @@ if ($devMode.AllowDevelopmentWithoutDevLicense -ne 1) {
     throw "Developer Mode is off: Settings > System > Advanced > For developers."
 }
 
-Write-Host "1/5 Building canape-shell (release)"
-cargo build --release -p canape-shell --manifest-path "$repo\Cargo.toml"
+Write-Host "1/6 Building (release)"
+cargo build --release -p canape-shell -p canape-service -p canape-ctl --manifest-path "$repo\Cargo.toml"
 if ($LASTEXITCODE -ne 0) { throw "cargo build failed" }
 
-Write-Host "2/5 Installing files to $InstallDir"
+Write-Host "2/6 Installing files to $InstallDir"
+$service = Join-Path $InstallDir "canape-service.exe"
+if (Test-Path $service) {
+    # The running service locks its executable. Uninstalling a service that is
+    # not registered writes to stderr, which PowerShell 5.1 turns into an error.
+    try { & $service uninstall 2>&1 | Out-Null } catch { }
+}
+Get-Process canape-shell -ErrorAction SilentlyContinue | Stop-Process -Force
 New-Item -ItemType Directory -Force $InstallDir | Out-Null
-Copy-Item "$repo\target\release\canape-shell.exe" $InstallDir -Force
+foreach ($exe in "canape-shell.exe", "canape-service.exe", "canape-ctl.exe") {
+    Copy-Item "$repo\target\release\$exe" $InstallDir -Force
+}
 Copy-Item "$repo\packaging\identity\CustomCapability.SCCD" $InstallDir -Force
 
-Write-Host "3/5 Development certificate"
+Write-Host "3/6 Installing the service"
+& $service install
+if ($LASTEXITCODE -ne 0) { throw "service install failed (see $env:ProgramData\Canape\service.log)" }
+
+Write-Host "4/6 Development certificate"
 New-Item -ItemType Directory -Force $CertDir | Out-Null
 $pfx = Join-Path $CertDir "canape-dev.pfx"
 $pfxPassword = "canape-dev"
@@ -55,14 +69,14 @@ if (-not (Test-Path $pfx)) {
     Import-Certificate -FilePath $cer -CertStoreLocation "Cert:\LocalMachine\TrustedPeople" | Out-Null
 }
 
-Write-Host "4/5 Packing and signing the identity package"
+Write-Host "5/6 Packing and signing the identity package"
 $msix = "$repo\target\Canape.Identity.msix"
 & (Find-SdkTool "makeappx.exe") pack /d "$repo\packaging\identity" /p $msix /nv /o
 if ($LASTEXITCODE -ne 0) { throw "makeappx failed" }
 & (Find-SdkTool "signtool.exe") sign /fd SHA256 /f $pfx /p $pfxPassword $msix
 if ($LASTEXITCODE -ne 0) { throw "signtool failed" }
 
-Write-Host "5/5 Registering the package"
+Write-Host "6/6 Registering the package"
 Get-AppxPackage -Name Canape | Remove-AppxPackage
 Add-AppxPackage -Path $msix -ExternalLocation $InstallDir
 $package = Get-AppxPackage -Name Canape
@@ -72,12 +86,14 @@ Write-Host "Registered $aumid"
 if ($SetAsHomeApp) {
     # Elevated PowerShell runs as the same user, so HKCU is the right hive.
     $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration"
-    New-Item -Force $key | Out-Null
+    # New-Item -Force would wipe the key's other values (StartupToGamingHome).
+    if (-not (Test-Path $key)) { New-Item $key | Out-Null }
     Set-ItemProperty $key -Name GamingHomeApp -Value $aumid
     Write-Host "GamingHomeApp = $aumid"
 }
 
 Write-Host ""
 Write-Host "Test launch:  explorer.exe shell:AppsFolder\$aumid"
-Write-Host "Log file:     $env:LOCALAPPDATA\Canape\shell.log"
+Write-Host "Service:      & '$InstallDir\canape-ctl.exe' watch"
+Write-Host "Logs:         $env:LOCALAPPDATA\Canape\shell.log, $env:ProgramData\Canape\service.log"
 Write-Host "Home app:     Settings > Gaming > Full screen experience (or rerun with -SetAsHomeApp)"

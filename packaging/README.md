@@ -8,7 +8,7 @@
 | `identity/CustomCapability.SCCD` | Débloque la capacité `gamingHome` (catalogue de test : mode développeur requis) |
 | `identity/Assets/` | Logos provisoires |
 | `../crates/canape-shell/canape-shell.exe.manifest` | Lie l'exe au paquet (`msix`) et le garde `asInvoker` ; intégré à la compilation |
-| `install-dev.ps1` | Compile, installe, signe et enregistre le tout sur la machine de dev |
+| `install-dev.ps1` | Compile, installe le service `CanapeService`, signe et enregistre le paquet sur la machine de dev |
 
 ## M1 : démarrer Canapé en FSE sur l'Ally
 

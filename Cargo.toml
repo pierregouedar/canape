@@ -13,9 +13,12 @@ repository = "https://github.com/pierregouedar/canape"
 canape-core = { path = "crates/canape-core" }
 canape-hw = { path = "crates/canape-hw" }
 canape-autotdp = { path = "crates/canape-autotdp" }
+canape-ipc = { path = "crates/canape-ipc" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
+windows-sys = "0.61"
+windows-service = "0.8"
 
 [profile.release]
 opt-level = "s"

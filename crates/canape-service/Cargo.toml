@@ -10,3 +10,7 @@ license.workspace = true
 canape-core.workspace = true
 canape-hw.workspace = true
 canape-autotdp.workspace = true
+canape-ipc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-service.workspace = true

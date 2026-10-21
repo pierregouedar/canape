@@ -1,9 +1,10 @@
 //! Hardware abstraction. The service only talks to [`Device`]; the Ally
-//! backend lives in `windows` and a [`mock::MockDevice`] serves development
-//! and tests on any OS.
+//! backend lives in `windows` (on top of [`atk`]) and a [`mock::MockDevice`]
+//! serves development and tests on any OS.
 
 use canape_core::PerformanceMode;
 
+pub mod atk;
 pub mod mock;
 #[cfg(windows)]
 pub mod windows;
@@ -14,6 +15,8 @@ pub enum HwError {
     Unsupported(&'static str),
     #[error("value out of range: {0}")]
     OutOfRange(String),
+    #[error("firmware refused: {0}")]
+    Firmware(String),
     #[error("device I/O failed: {0}")]
     Io(#[from] std::io::Error),
 }

@@ -34,6 +34,8 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 | `canape-core` | Rust | Protocole IPC, types partagés, configuration | Bibliothèque |
 | `canape-hw` | Rust | Abstraction du matériel, backend Ally sous Windows | Bibliothèque |
 | `canape-autotdp` | Rust | Algorithme d'auto TDP, sans dépendance au système | Bibliothèque |
+| `canape-ipc` | Rust | Transport : named pipe sous Windows, socket Unix ailleurs (dev) | Bibliothèque |
+| `canape-ctl` | Rust | Client en ligne de commande, pour tester le service | Outil |
 
 ### Pourquoi un vrai service plutôt que des tâches planifiées
 
@@ -62,19 +64,21 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 ## Matériel (`canape-hw`)
 
 
-| Fonction | Interface |
-|---|---|
-| Mode de performance, ventilateurs, limites de puissance (SPL/SPPT/FPPT), charge de la batterie | Firmware ASUS via le périphérique ACPI `ATKACPI` (méthodes DEVS/DSTS) |
-| Limites de puissance en secours | SMU du Ryzen (approche ryzenadj) |
-| Fréquence et luminosité de l'écran | API d'affichage Windows |
-| Boutons spéciaux (Armoury Crate, Command Center), gyroscope | HID de la manette intégrée |
+| Fonction | Interface | État |
+|---|---|---|
+| Mode de performance, limites de puissance (sPPT, SPL, fPPT), limite de charge, température CPU | Firmware ASUS via `\\.\ATKACPI` (IOCTL `0x0022240C`, méthodes DEVS/DSTS) | M2 |
+| Batterie (pourcentage) | `GetSystemPowerStatus` | M2 |
+| Courbes de ventilateurs | ATKACPI `0x00110024`/`0x00110025` (8 températures + 8 % de PWM) | M5 |
+| Fréquence de l'écran | `ChangeDisplaySettingsEx` sur l'écran interne | M5 |
+| Mode de la manette, boutons spéciaux | HID ASUS (VID `0x0B05`, rapport `0x5A`) | M5 |
+
+
 
 
 ## Auto TDP (`canape-autotdp`)
 
 Boucle d'environ une seconde dans le service :
 
-1. **Mesure** : FPS du jeu au premier plan via ETW (même principe que PresentMon, sans injection, donc sans risque avec l'anti-triche), charge CPU/GPU, températures.
 2. **Décision** : objectif = FPS cible (par exemple 60) avec le moins de watts possible.
    - FPS sous la cible (au-delà d'une marge) → on monte le TDP ;
    - FPS au-dessus de la cible avec de la marge → on baisse le TDP par petits pas ;
@@ -91,15 +95,15 @@ L'algorithme est une fonction pure, testée sans matériel. Les paramètres (cib
 | `canape-shell` | < 80 Mo | ≈ 0 % hors animation |
 | Widget | ce qu'impose la Game Bar | ≈ 0 % |
 
-Interface du shell : un moteur d'interface natif en Rust, sans navigateur embarqué. Candidat principal : **Slint** (déclaratif, faible empreinte, navigation au clavier facile à brancher sur la manette via `gilrs`). À valider par un prototype mesuré sur l'Ally avant de s'engager.
+Interface du shell : **Slint** (rendu OpenGL via femtovg), sans navigateur embarqué. La manette (XInput, via `gilrs`) est traduite en touches Tab / Maj+Tab / Entrée, uniquement quand le shell est au premier plan. L'écran est pensé pour 1280×720 points logiques (1080p à 150 %). Empreinte mémoire à mesurer sur l'Ally en M2.
 
 ## Feuille de route
 
 | Étape | Résultat attendu |
 |---|---|
-| M0 | Squelette du dépôt, protocole, algorithme d'auto TDP testé (ce commit) |
-| M1 | `canape-shell.exe` « hello world » qui **démarre en FSE** sur l'Ally (paquet sparse + SCCD). C'est le plus gros risque : on le lève en premier. |
-| M2 | Service Windows + pipe : lecture du statut et TDP manuel depuis le shell |
+| M0 ✅ | Squelette du dépôt, protocole, algorithme d'auto TDP testé |
+| M1 ✅ | `canape-shell.exe` **démarre en FSE** sur l'Ally (voir `m1-report.md`) |
+| M2 🚧 | Service Windows + pipe, backend ATKACPI, interface Slint à la manette, instance unique |
 | M3 | Widget Game Bar relié au service |
 | M4 | Auto TDP en conditions réelles (télémétrie ETW) |
 | M5 | Interface complète : bibliothèque de jeux, profils, ventilateurs, écran, batterie |

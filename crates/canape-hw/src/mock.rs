@@ -47,9 +47,9 @@ impl Device for MockDevice {
     }
 
     fn set_battery_charge_limit(&mut self, percent: u8) -> Result<()> {
-        if !(20..=100).contains(&percent) {
+        if !(40..=100).contains(&percent) {
             return Err(HwError::OutOfRange(format!(
-                "{percent} % not in 20..=100 %"
+                "{percent} % not in 40..=100 %"
             )));
         }
         self.charge_limit = percent;

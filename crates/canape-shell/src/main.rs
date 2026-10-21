@@ -1,82 +1,89 @@
 //! Canape FSE home app.
 //!
-//! M1 goal: this binary, wrapped by the sparse identity package in
-//! `packaging/identity`, is activated by the Windows full-screen experience at
-//! medium integrity. It must never require elevation: everything privileged
-//! goes through the service.
+//! Activated by the Windows full-screen experience at medium integrity, with
+//! `windows.gaming:///home` as its argument (see docs/m1-report.md). It must
+//! never require elevation: everything privileged goes through the service.
 //!
-//! Until the UI exists (Slint candidate, see docs/architecture.md), it only
-//! proves the activation: it appends a line to `%LOCALAPPDATA%\Canape\shell.log`
-//! and shows a message box.
+//! The FSE may activate the home app several times in a row at boot, so only
+//! one instance runs and the window goes full screen right away.
 
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
-use std::time::{SystemTime, UNIX_EPOCH};
+#[cfg(windows)]
+mod gamepad;
+mod instance;
+mod link;
 
-fn main() {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    let started = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or_default();
-    let line = format!(
-        "{started} canape-shell {} started, args={args:?}, service pipe {}\n",
-        env!("CARGO_PKG_VERSION"),
-        canape_core::protocol::PIPE_NAME
+use canape_core::{AutoTdpSettings, PerformanceMode, Request};
+
+slint::include_modules!();
+
+fn log(message: &str) {
+    canape_core::log::append(
+        &canape_core::log::dir("LOCALAPPDATA").join("shell.log"),
+        message,
     );
-    log(&line);
+}
+
+fn main() -> Result<(), slint::PlatformError> {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    log(&format!(
+        "canape-shell {} started, args={args:?}",
+        env!("CARGO_PKG_VERSION")
+    ));
+
+    if !instance::acquire() {
+        log("already running: activation forwarded");
+        return Ok(());
+    }
+
+    let ui = AppWindow::new()?;
+    if std::env::var_os("CANAPE_WINDOWED").is_none() {
+        ui.window().set_fullscreen(true);
+    }
+
+    let link = link::Link::start(ui.as_weak());
+
+    ui.on_set_mode({
+        let link = link.clone();
+        move |mode| {
+            let mode = match mode.as_str() {
+                "silent" => PerformanceMode::Silent,
+                "turbo" => PerformanceMode::Turbo,
+                _ => PerformanceMode::Performance,
+            };
+            link.send(Request::SetPerformanceMode { mode });
+        }
+    });
+    ui.on_change_tdp({
+        let link = link.clone();
+        move |delta| {
+            let current = link.status().tdp_watts.unwrap_or(15);
+            let watts = current.saturating_add_signed(delta);
+            link.send(Request::SetTdp { watts });
+        }
+    });
+    ui.on_toggle_auto_tdp({
+        let link = link.clone();
+        move || {
+            let mut settings = link.status().auto_tdp;
+            settings.enabled = !settings.enabled;
+            link.send(Request::SetAutoTdp { settings });
+        }
+    });
+    ui.on_set_target_fps({
+        let link = link.clone();
+        move |fps| {
+            let settings = AutoTdpSettings {
+                enabled: true,
+                target_fps: fps.max(1) as u32,
+                ..link.status().auto_tdp
+            };
+            link.send(Request::SetAutoTdp { settings });
+        }
+    });
 
     #[cfg(windows)]
-    win::message_box("Canapé", "Canapé a démarré.");
-    #[cfg(not(windows))]
-    print!("{line}");
-}
-
-fn log(line: &str) {
-    use std::io::Write;
-    let Some(dir) =
-        std::env::var_os("LOCALAPPDATA").map(|d| std::path::PathBuf::from(d).join("Canape"))
-    else {
-        return;
-    };
-    if std::fs::create_dir_all(&dir).is_err() {
-        return;
-    }
-    if let Ok(mut file) = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(dir.join("shell.log"))
-    {
-        let _ = file.write_all(line.as_bytes());
-    }
-}
-
-#[cfg(windows)]
-mod win {
-    #[link(name = "user32")]
-    unsafe extern "system" {
-        fn MessageBoxW(
-            hwnd: *mut core::ffi::c_void,
-            text: *const u16,
-            caption: *const u16,
-            kind: u32,
-        ) -> i32;
-    }
-
-    fn wide(s: &str) -> Vec<u16> {
-        s.encode_utf16().chain(Some(0)).collect()
-    }
-
-    pub fn message_box(caption: &str, text: &str) {
-        let (caption, text) = (wide(caption), wide(text));
-        // MB_OK | MB_SETFOREGROUND
-        unsafe {
-            MessageBoxW(
-                core::ptr::null_mut(),
-                text.as_ptr(),
-                caption.as_ptr(),
-                0x0001_0000,
-            )
-        };
-    }
+    gamepad::spawn(ui.as_weak());
+    ui.run()
 }

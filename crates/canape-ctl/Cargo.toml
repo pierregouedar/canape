@@ -1,0 +1,11 @@
+[package]
+name = "canape-ctl"
+description = "Command-line client for the Canape service, for tests and scripts"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+canape-core.workspace = true
+canape-ipc.workspace = true

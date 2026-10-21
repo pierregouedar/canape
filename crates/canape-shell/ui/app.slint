@@ -1,0 +1,265 @@
+// Canapé home screen. Every control is a focusable Tile so the gamepad
+// (mapped to Tab / Shift+Tab / Return in gamepad.rs) can reach it.
+
+export struct StatusView {
+    connected: bool,
+    tdp: string,
+    mode: string,
+    fps: string,
+    temp: string,
+    battery: string,
+    auto-tdp: bool,
+    target-fps: int,
+}
+
+component Tile inherits Rectangle {
+    in property <string> label;
+    in property <string> sub;
+    in property <bool> selected;
+    in property <bool> enabled: true;
+    callback clicked();
+
+    min-height: 84px;
+    min-width: 120px;
+    border-radius: 16px;
+    background: root.selected ? #2563eb : #1e293b;
+    border-width: fs.has-focus ? 4px : 0px;
+    border-color: #f8fafc;
+    opacity: root.enabled ? 1 : 0.4;
+
+    fs := FocusScope {
+        key-pressed(event) => {
+            if (event.text == Key.Return || event.text == " ") {
+                if (root.enabled) {
+                    root.clicked();
+                }
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    TouchArea {
+        clicked => {
+            fs.focus();
+            if (root.enabled) {
+                root.clicked();
+            }
+        }
+    }
+
+    VerticalLayout {
+        alignment: center;
+        padding: 12px;
+        spacing: 4px;
+        Text {
+            text: root.label;
+            color: white;
+            font-size: 28px;
+            font-weight: 600;
+            horizontal-alignment: center;
+        }
+        if root.sub != "": Text {
+            text: root.sub;
+            color: #cbd5e1;
+            font-size: 18px;
+            horizontal-alignment: center;
+        }
+    }
+
+    public function focus-tile() {
+        fs.focus();
+    }
+}
+
+component Stat inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+
+    min-width: 200px;
+    border-radius: 16px;
+    background: #111827;
+    VerticalLayout {
+        padding: 16px;
+        spacing: 4px;
+        Text {
+            text: root.label;
+            color: #94a3b8;
+            font-size: 20px;
+        }
+        Text {
+            text: root.value;
+            color: white;
+            font-size: 34px;
+            font-weight: 700;
+        }
+    }
+}
+
+component Section inherits Text {
+    color: #e2e8f0;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+export component AppWindow inherits Window {
+    title: "Canapé";
+    background: #0b1120;
+    // The Ally's 1080p panel at 150 % scaling: 1280x720 logical pixels.
+    preferred-width: 1280px;
+    preferred-height: 720px;
+
+    in property <StatusView> status;
+    in property <string> message;
+
+    callback set-mode(string);
+    callback change-tdp(int);
+    callback toggle-auto-tdp();
+    callback set-target-fps(int);
+
+    init => {
+        silent.focus-tile();
+    }
+
+    VerticalLayout {
+        padding: 36px;
+        spacing: 18px;
+
+        HorizontalLayout {
+            Text {
+                text: "Canapé";
+                color: white;
+                font-size: 40px;
+                font-weight: 800;
+            }
+            Rectangle { }
+            Text {
+                vertical-alignment: center;
+                text: root.status.connected ? "● Service connecté" : "● Service non connecté";
+                color: root.status.connected ? #22c55e : #f97316;
+                font-size: 22px;
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 24px;
+            Stat {
+                label: "TDP";
+                value: root.status.tdp;
+            }
+            Stat {
+                label: "FPS";
+                value: root.status.fps;
+            }
+            Stat {
+                label: "Température";
+                value: root.status.temp;
+            }
+            Stat {
+                label: "Batterie";
+                value: root.status.battery;
+            }
+        }
+
+        Section {
+            text: "Mode";
+        }
+        HorizontalLayout {
+            spacing: 24px;
+            silent := Tile {
+                label: "Silencieux";
+                selected: root.status.mode == "silent";
+                enabled: root.status.connected;
+                clicked => {
+                    root.set-mode("silent");
+                }
+            }
+            Tile {
+                label: "Performance";
+                selected: root.status.mode == "performance";
+                enabled: root.status.connected;
+                clicked => {
+                    root.set-mode("performance");
+                }
+            }
+            Tile {
+                label: "Turbo";
+                selected: root.status.mode == "turbo";
+                enabled: root.status.connected;
+                clicked => {
+                    root.set-mode("turbo");
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 24px;
+            VerticalLayout {
+                spacing: 18px;
+                Section {
+                    text: "Puissance (TDP manuel)";
+                }
+                HorizontalLayout {
+                    spacing: 24px;
+                    Tile {
+                        label: "− 1 W";
+                        enabled: root.status.connected;
+                        clicked => {
+                            root.change-tdp(-1);
+                        }
+                    }
+                    Tile {
+                        label: "+ 1 W";
+                        enabled: root.status.connected;
+                        clicked => {
+                            root.change-tdp(1);
+                        }
+                    }
+                }
+            }
+            VerticalLayout {
+                spacing: 18px;
+                horizontal-stretch: 2;
+                Section {
+                    text: "Auto TDP";
+                }
+                HorizontalLayout {
+                    spacing: 24px;
+                    Tile {
+                        label: root.status.auto-tdp ? "Activé" : "Désactivé";
+                        selected: root.status.auto-tdp;
+                        enabled: root.status.connected;
+                        clicked => {
+                            root.toggle-auto-tdp();
+                        }
+                    }
+                    for fps in [30, 40, 60]: Tile {
+                        label: fps + " FPS";
+                        sub: "objectif";
+                        selected: root.status.auto-tdp && root.status.target-fps == fps;
+                        enabled: root.status.connected;
+                        clicked => {
+                            root.set-target-fps(fps);
+                        }
+                    }
+                }
+            }
+        }
+
+        Rectangle { }
+
+        HorizontalLayout {
+            Text {
+                text: "Ⓐ Valider    ✚ Naviguer";
+                color: #64748b;
+                font-size: 20px;
+            }
+            Rectangle { }
+            Text {
+                text: root.message;
+                color: #fca5a5;
+                font-size: 20px;
+            }
+        }
+    }
+}
