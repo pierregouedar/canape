@@ -84,11 +84,15 @@ fn serve(mut conn: Connection, shared: &Shared) -> io::Result<()> {
             request,
             Request::Hello { .. } | Request::GetStatus | Request::Subscribe
         );
-        if request == Request::Subscribe {
-            shared.subscribers.lock().unwrap().push(conn.writer()?);
-        }
+        let subscribe = request == Request::Subscribe;
         let response = shared.handler.lock().unwrap().handle(request);
         conn.send(&response)?;
+        if subscribe {
+            // Windows serializes I/O on a synchronous pipe handle: a pending
+            // read here would block every push. Stop reading instead.
+            shared.subscribers.lock().unwrap().push(conn.writer()?);
+            return Ok(());
+        }
         if changes_state {
             shared.broadcast_status();
         }

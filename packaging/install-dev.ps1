@@ -13,6 +13,10 @@
 param(
     [string]$InstallDir = "C:\Program Files\Canape",
     [string]$CertDir = "$HOME\dev\canape-cert",
+    # Smart App Control can block fresh release build scripts; debug ones
+    # usually pass, so this allows testing with a debug build.
+    [ValidateSet("release", "debug")]
+    [string]$BuildProfile = "release",
     [switch]$SetAsHomeApp
 )
 
@@ -32,8 +36,9 @@ if ($devMode.AllowDevelopmentWithoutDevLicense -ne 1) {
     throw "Developer Mode is off: Settings > System > Advanced > For developers."
 }
 
-Write-Host "1/6 Building (release)"
-cargo build --release -p canape-shell -p canape-service -p canape-ctl --manifest-path "$repo\Cargo.toml"
+Write-Host "1/6 Building ($BuildProfile)"
+$cargoProfile = if ($BuildProfile -eq "release") { @("--release") } else { @() }
+cargo build @cargoProfile -p canape-shell -p canape-service -p canape-ctl --manifest-path "$repo\Cargo.toml"
 if ($LASTEXITCODE -ne 0) { throw "cargo build failed" }
 
 Write-Host "2/6 Installing files to $InstallDir"
@@ -46,7 +51,7 @@ if (Test-Path $service) {
 Get-Process canape-shell -ErrorAction SilentlyContinue | Stop-Process -Force
 New-Item -ItemType Directory -Force $InstallDir | Out-Null
 foreach ($exe in "canape-shell.exe", "canape-service.exe", "canape-ctl.exe") {
-    Copy-Item "$repo\target\release\$exe" $InstallDir -Force
+    Copy-Item "$repo\target\$BuildProfile\$exe" $InstallDir -Force
 }
 Copy-Item "$repo\packaging\identity\CustomCapability.SCCD" $InstallDir -Force
 

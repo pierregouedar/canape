@@ -27,3 +27,12 @@ Prérequis : mode développeur activé, Rust et Build Tools installés (le Windo
 Pour revenir à Winhanced ou à l'app Xbox, choisis-les à nouveau dans les mêmes Paramètres.
 
 Le certificat de développement est créé dans `$HOME\dev\canape-cert` et ajouté à `LocalMachine\TrustedPeople`. Ne le commite jamais.
+
+## Pièges sous Windows
+
+- **Smart App Control** (activé sur l'Ally) peut bloquer les build scripts d'une compilation release (`os error 4551`). Chaque nouveau binaire non signé est jugé séparément : relancer passe parfois, pas toujours. Pour tester quand même, `install-dev.ps1 -BuildProfile debug` installe les binaires debug.
+- **`canape-ctl` dans Windows PowerShell 5.1** : les guillemets doubles d'un argument passé à un exe sont perdus. Il faut les échapper :
+
+  ```powershell
+  & "C:\Program Files\Canape\canape-ctl.exe" '{\"type\":\"set_tdp\",\"watts\":12}'
+  ```

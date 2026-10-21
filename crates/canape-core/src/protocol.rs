@@ -18,6 +18,7 @@ pub enum Request {
     },
     GetStatus,
     /// Push a [`Response::Status`] about once per second until the client disconnects.
+    /// The connection is push-only afterwards: the service reads no more requests on it.
     Subscribe,
     SetPerformanceMode {
         mode: PerformanceMode,
