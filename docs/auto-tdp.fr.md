@@ -213,7 +213,7 @@ Si l'activité GPU est inconnue, cette libération n'a pas lieu.
 
 Sur batterie, si un **maximum sur batterie** est réglé, le plafond devient le plus petit de ce maximum et de la puissance maximale (mais jamais sous la puissance minimale).
 
-- Si la puissance est au-dessus, elle **descend tout de suite au plafond**, sans délai.
+- Si la puissance est au-dessus, elle **descend tout de suite au plafond**, sans délai, même si aucun jeu ne tourne (débranché sur le bureau).
 - Les montées s'arrêtent au plafond.
 - Sur secteur, le plafond disparaît et les montées peuvent reprendre.
 
@@ -225,7 +225,7 @@ Si une limite de température est réglée et que la température CPU l'atteint 
 - elle **baisse de 1 W toutes les 3 s**, jusqu'au minimum, en ignorant les planchers ;
 - le statut signale `thermal_limited` : badge « Limite thermique atteinte » dans le shell, légende « Bridé » dans le widget.
 
-Dès que la température repasse sous la limite, les règles normales reprennent.
+Les règles normales ne reprennent qu'une fois la température redescendue **3 °C sous la limite** (hystérésis), pour éviter que la puissance remonte dès le premier degré gagné.
 
 ### Garde « pas de jeu »
 
@@ -301,7 +301,7 @@ Durée totale = nombre de paliers × (stabilisation + mesure). Le service ramèn
 ### Déroulement
 
 1. **Démarrage** : il faut qu'un jeu tourne (dernière mesure ≥ 5 FPS), sinon `no frame rate: start a game before the bench`. Le service mémorise l'état actuel, coupe l'auto TDP et applique le premier palier.
-2. **Chaque palier** : les 5 premières secondes sont ignorées (le temps que les FPS se stabilisent), puis pendant la durée de mesure, chaque seconde, le service relève les FPS, l'activité GPU et la température.
+2. **Chaque palier** : les 5 premières secondes sont ignorées (le temps que les FPS se stabilisent), puis pendant la durée de mesure, chaque seconde, le service relève les FPS, l'activité GPU et la température. Les secondes sous 5 FPS (jeu en pause, alt-tab) ne sont pas comptées.
 3. **Fin du palier** : il enregistre un point, puis passe au palier suivant. Un palier sans aucune mesure de FPS est omis.
 4. **Pendant le banc d'essai** : changer de mode, de TDP ou d'auto TDP, ou lancer un autre banc d'essai, renvoie `a bench is running: cancel it first`. Les profils ne s'appliquent pas.
 5. **Fin ou annulation** : le rapport est conservé (marqué incomplet en cas d'annulation), l'état d'avant est réappliqué (mode, TDP, auto TDP), puis le profil du jeu au premier plan reprend la main s'il y en a un. Le rapport est enregistré dans `state.json`.

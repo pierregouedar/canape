@@ -3,6 +3,9 @@
 
 use canape_core::{BenchPlan, BenchPoint, BenchProgress, BenchReport};
 
+/// Seconds below this frame rate (game paused, alt-tabbed) are not counted.
+const MIN_FPS: f32 = 5.0;
+
 /// One second of measurements.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Reading {
@@ -56,7 +59,7 @@ impl BenchRun {
     pub fn tick(&mut self, reading: Reading) -> Option<Step> {
         self.tick_in_step += 1;
         if self.tick_in_step > self.plan.settle_secs {
-            if let Some(fps) = reading.fps {
+            if let Some(fps) = reading.fps.filter(|&fps| fps >= MIN_FPS) {
                 self.fps.push(fps);
             }
             if let Some(gpu) = reading.gpu_util {

@@ -20,9 +20,9 @@ Prérequis : mode développeur activé, Rust et Build Tools installés (le Windo
    powershell -ExecutionPolicy Bypass -File packaging\install-dev.ps1
    ```
 
-2. Test hors FSE : lance la commande `explorer.exe shell:AppsFolder\...` affichée à la fin. Une boîte « Canapé a démarré. » doit apparaître, et une ligne s'ajoute à `%LOCALAPPDATA%\Canape\shell.log`.
+2. Test hors FSE : lance la commande `explorer.exe shell:AppsFolder\...` affichée à la fin. L'interface de Canapé doit s'ouvrir en plein écran, et une ligne s'ajoute à `%LOCALAPPDATA%\Canape\shell.log`.
 3. Choisis Canapé comme app d'accueil : Paramètres → Jeux → Expérience plein écran. S'il n'apparaît pas dans la liste, relance le script avec `-SetAsHomeApp`.
-4. Active « démarrer dans l'expérience plein écran », redémarre l'Ally : la boîte doit s'afficher au démarrage.
+4. Active « démarrer dans l'expérience plein écran », redémarre l'Ally : Canapé doit s'afficher au démarrage.
 
 Pour revenir à Winhanced ou à l'app Xbox, choisis-les à nouveau dans les mêmes Paramètres.
 

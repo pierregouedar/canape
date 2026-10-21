@@ -56,6 +56,8 @@ impl Default for Config {
 
 /// Ticks without a change after which the wattage counts as settled.
 const SETTLED_TICKS: u32 = 30;
+/// Once over the temperature limit, power stays held until this far below it.
+const THERMAL_HYSTERESIS_C: f32 = 3.0;
 
 /// One measurement of the foreground game.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -126,6 +128,17 @@ impl Controller {
         (self.ticks_since_change >= SETTLED_TICKS).then_some(self.watts)
     }
 
+    /// Drops to the ceiling at once if above it, even when no game is
+    /// sampled (unplugged on the desktop). Returns the new wattage.
+    pub fn enforce_ceiling(&mut self) -> Option<u32> {
+        let ceiling = self.ceiling();
+        (self.watts > ceiling).then(|| {
+            self.watts = ceiling;
+            self.ticks_since_change = 0;
+            ceiling
+        })
+    }
+
     fn ceiling(&self) -> u32 {
         let max = self.config.max_watts;
         self.ceiling
@@ -169,10 +182,12 @@ impl Controller {
         } else {
             0
         };
-        self.thermal_limited = c
-            .max_temp_c
-            .zip(sample.cpu_temp)
-            .is_some_and(|(limit, temp)| temp >= limit);
+        self.thermal_limited = match (c.max_temp_c, sample.cpu_temp) {
+            (Some(limit), Some(temp)) => {
+                temp >= limit || (self.thermal_limited && temp > limit - THERMAL_HYSTERESIS_C)
+            }
+            _ => false,
+        };
         if fps > high && gpu_has_slack {
             // The load dropped (menu, lighter scene): old floors no longer apply.
             self.floor = None;
@@ -447,5 +462,34 @@ mod tests {
             ctl.update(steady);
         }
         assert_eq!(ctl.settled_watts(), Some(15));
+    }
+
+    #[test]
+    fn temperature_limit_has_hysteresis() {
+        let config = Config {
+            max_temp_c: Some(90.0),
+            ..Config::default()
+        };
+        let mut ctl = Controller::new(config, 20);
+        let at = |temp| Sample {
+            fps: 60.0,
+            gpu_util: Some(0.95),
+            cpu_temp: Some(temp),
+        };
+        ctl.update(at(91.0));
+        assert!(ctl.thermal_limited());
+        ctl.update(at(88.5));
+        assert!(ctl.thermal_limited(), "still within the hysteresis");
+        ctl.update(at(86.0));
+        assert!(!ctl.thermal_limited());
+    }
+
+    #[test]
+    fn ceiling_is_enforced_without_samples() {
+        let mut ctl = Controller::new(Config::default(), 22);
+        assert_eq!(ctl.enforce_ceiling(), None);
+        ctl.set_ceiling(Some(15));
+        assert_eq!(ctl.enforce_ceiling(), Some(15));
+        assert_eq!(ctl.watts(), 15);
     }
 }

@@ -18,7 +18,7 @@ Canapé est une interface « console » pour la ROG Ally : elle démarre à la p
                     │ canape-service.exe  (service Windows, LocalSystem, Rust)      │
                     │   ├─ canape-hw       : ASUS ACPI/WMI, puissance, écran, HID   │
                     │   ├─ canape-autotdp  : boucle d'auto TDP                      │
-                    │   └─ télémétrie      : FPS (ETW), charges, températures       │
+                    │   └─ télémétrie      : FPS (AMD ADL), charges, températures   │
                     └───────────────────────────────────────────────────────────────┘
 ```
 
@@ -30,7 +30,7 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 |---|---|---|---|
 | `canape-service` | Rust | Matériel, profils, auto TDP, serveur IPC | Service Windows automatique (au boot, avant la session) |
 | `canape-shell` | Rust | Interface plein écran à la manette : bibliothèque de jeux, réglages | Activé par le FSE comme app d'accueil |
-| Widget Game Bar | C# (UWP), le plus fin possible | Réglages rapides en jeu : TDP, mode, FPS cible, luminosité | Ouvert par l'utilisateur dans la Game Bar |
+| Widget Game Bar | C# (UWP), le plus fin possible | Réglages rapides en jeu : TDP, mode, auto TDP et FPS cible | Ouvert par l'utilisateur dans la Game Bar |
 | `canape-core` | Rust | Protocole IPC, types partagés, configuration | Bibliothèque |
 | `canape-hw` | Rust | Abstraction du matériel, backend Ally sous Windows | Bibliothèque |
 | `canape-autotdp` | Rust | Algorithme d'auto TDP, sans dépendance au système | Bibliothèque |
@@ -58,7 +58,7 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 
 - **Canal** : named pipe `\\.\pipe\canape`, ouvert par le service.
 - **Format** : JSON, un message par ligne, défini dans `canape-core::protocol`. Chaque client commence par `Hello { protocol_version }`.
-- **Sécurité** : la DACL du pipe autorise SYSTEM, les administrateurs, l'utilisateur interactif et le SID du paquet du widget (AppContainer). Personne d'autre ne peut piloter le matériel.
+- **Sécurité** : la DACL du pipe autorise SYSTEM, les administrateurs, l'utilisateur interactif et toutes les apps AppContainer (`ALL APPLICATION PACKAGES`, pour le widget), avec un label d'intégrité basse. À durcir : n'autoriser que le SID du paquet du widget.
 - **Notifications** : le service pousse un `Status` (TDP, FPS, températures, batterie) environ une fois par seconde aux clients abonnés.
 
 ## Matériel (`canape-hw`)
@@ -68,9 +68,9 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 |---|---|---|
 | Mode de performance, limites de puissance (sPPT, SPL, fPPT), limite de charge, température CPU | Firmware ASUS via `\\.\ATKACPI` (IOCTL `0x0022240C`, méthodes DEVS/DSTS) | M2 |
 | Batterie (pourcentage) | `GetSystemPowerStatus` | M2 |
-| Courbes de ventilateurs | ATKACPI `0x00110024`/`0x00110025` (8 températures + 8 % de PWM) | M5 |
-| Fréquence de l'écran | `ChangeDisplaySettingsEx` sur l'écran interne | M5 |
-| Mode de la manette, boutons spéciaux | HID ASUS (VID `0x0B05`, rapport `0x5A`) | M5 |
+| Courbes de ventilateurs | ATKACPI `0x00110024`/`0x00110025` (8 températures + 8 % de PWM) | M6 |
+| Fréquence de l'écran | `ChangeDisplaySettingsEx` sur l'écran interne | M6 |
+| Mode de la manette, boutons spéciaux | HID ASUS (VID `0x0B05`, rapport `0x5A`) | M6 |
 
 
 
@@ -106,10 +106,11 @@ Le service mémorise les derniers réglages appliqués (`%ProgramData%\Canape\st
 | M0 ✅ | Squelette du dépôt, protocole, algorithme d'auto TDP testé |
 | M1 ✅ | `canape-shell.exe` **démarre en FSE** sur l'Ally (voir `m1-report.md`) |
 | M2 ✅ | Service Windows + pipe, backend ATKACPI, interface Slint à la manette, instance unique (voir `m2-report.md`) |
-| M2.5 🚧 | État persistant et réappliqué au démarrage, journal des écritures, détection des programmes concurrents, rendu logiciel, manette en XInput direct, CI Windows |
-| M3 🚧 | Widget Game Bar (C# UWP) relié au service par le pipe, voir `widget/README.md` |
-| M4 🚧 | Auto TDP en conditions réelles : FPS et charge GPU via AMD ADL |
-| M5 | Interface complète : bibliothèque de jeux, profils, ventilateurs, écran, batterie |
+| M2.5 ✅ | État persistant et réappliqué au démarrage, journal des écritures, détection des programmes concurrents, rendu logiciel, manette en XInput direct, CI Windows |
+| M3 ✅ | Widget Game Bar (C# UWP) relié au service par le pipe (voir `m3-report.md`) |
+| M4 ✅ | Auto TDP en conditions réelles : FPS et charge GPU via AMD ADL (voir `m4-report.md`) |
+| M5 🚧 | Interface en 5 pages et 13 langues, profils par jeu, TDP appris, bench, plafond batterie, limite de température |
+| M6 | Bibliothèque de jeux, ventilateurs, fréquence de l'écran, manette (HID) |
 
 ## Questions ouvertes
 

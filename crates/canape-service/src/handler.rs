@@ -206,6 +206,14 @@ impl Handler {
             _ => None,
         };
         controller.set_ceiling(ceiling);
+        if let Some(watts) = controller.enforce_ceiling()
+            && self.device.set_tdp(watts).is_ok()
+        {
+            self.tdp_watts = Some(watts);
+        }
+        let Some(controller) = self.controller.as_mut() else {
+            return;
+        };
         let Some(fps) = self.fps.filter(|&fps| fps >= MIN_GAME_FPS) else {
             return;
         };
@@ -614,6 +622,16 @@ mod tests {
         h.tick();
         assert_eq!(h.status().tdp_watts, Some(15));
         assert_eq!(h.status().on_battery, Some(true));
+
+        // No game on screen: the ceiling still applies.
+        let mut idle = Handler::new(Box::new(MockDevice {
+            on_battery: true,
+            ..MockDevice::default()
+        }));
+        idle.handle(Request::SetAutoTdp { settings });
+        assert_eq!(idle.status().tdp_watts, Some(25));
+        idle.tick();
+        assert_eq!(idle.status().tdp_watts, Some(15));
     }
 
     #[test]

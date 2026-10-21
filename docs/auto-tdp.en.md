@@ -213,7 +213,7 @@ When GPU activity is unknown, this release does not happen.
 
 On battery, when a **maximum on battery** is set, the ceiling becomes the smaller of that maximum and the maximum power (but never below the minimum power).
 
-- If power is above it, it **drops to the ceiling at once**, with no cooldown.
+- If power is above it, it **drops to the ceiling at once**, with no cooldown, even when no game runs (unplugged on the desktop).
 - Raises stop at the ceiling.
 - On AC, the ceiling goes away and raises can resume.
 
@@ -225,7 +225,7 @@ When a temperature limit is set and the CPU temperature reaches or exceeds it:
 - it **goes down by 1 W every 3 s**, down to the minimum, ignoring floors;
 - the status reports `thermal_limited`: "Thermal limit reached" badge in the shell, "Throttled" caption in the widget.
 
-As soon as the temperature is back below the limit, the normal rules resume.
+The normal rules resume only once the temperature is **3 °C below the limit** (hysteresis), so power does not climb back at the first degree gained.
 
 ### The "no game" guard
 
@@ -301,7 +301,7 @@ Total time = number of steps × (settling + measuring). The service brings "from
 ### How a run goes
 
 1. **Start**: a game must be running (last sample ≥ 5 FPS), otherwise `no frame rate: start a game before the bench`. The service remembers the current state, turns auto TDP off and applies the first step.
-2. **Each step**: the first 5 seconds are ignored (time for the frame rate to settle), then for the measuring time, every second, the service records the frame rate, GPU activity and temperature.
+2. **Each step**: the first 5 seconds are ignored (time for the frame rate to settle), then for the measuring time, every second, the service records the frame rate, GPU activity and temperature. Seconds below 5 FPS (game paused, alt-tabbed) are not counted.
 3. **End of a step**: it records a point, then moves to the next step. A step without a single frame-rate sample is left out.
 4. **During a bench**: changing the mode, the TDP or auto TDP, or starting another bench, returns `a bench is running: cancel it first`. Profiles do not apply.
 5. **End or cancel**: the report is kept (marked incomplete on cancel), the previous state is re-applied (mode, TDP, auto TDP), then the foreground game's profile takes over again if there is one. The report is saved in `state.json`.
