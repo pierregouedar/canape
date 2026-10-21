@@ -15,7 +15,8 @@ use windows_sys::Win32::UI::Input::XboxController::{
 use crate::AppWindow;
 use crate::nav::{Navigator, Pad};
 
-const POLL: Duration = Duration::from_millis(16);
+// 30 Hz is plenty for menu navigation and halves the idle cost.
+const POLL: Duration = Duration::from_millis(33);
 const IDLE: Duration = Duration::from_millis(250);
 /// Stick deflection that counts as a direction.
 const STICK_THRESHOLD: i32 = 20_000;

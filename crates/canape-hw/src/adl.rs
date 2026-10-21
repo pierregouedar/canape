@@ -207,10 +207,10 @@ impl Adl {
         }
     }
 
+    /// Reads even when our own `FrameMetrics_Start` failed: once a process
+    /// in the user session has started frame metrics (the shell does at
+    /// startup), the driver reports them to every caller (docs/m4-report.md).
     pub fn fps(&self) -> Option<f32> {
-        if self.frame_metrics != ADL_OK {
-            return None;
-        }
         let mut fps = 0.0;
         let ok = unsafe { (self.api.frame_metrics_get)(self.context, self.adapter, 0, &mut fps) };
         (ok == ADL_OK && fps.is_finite() && fps >= 0.0).then_some(fps)

@@ -86,6 +86,9 @@ fn main() -> Result<(), slint::PlatformError> {
     });
 
     #[cfg(windows)]
-    gamepad::spawn(ui.as_weak());
+    {
+        gamepad::spawn(ui.as_weak());
+        std::thread::spawn(|| log(&canape_hw::arm_frame_metrics()));
+    }
     ui.run()
 }

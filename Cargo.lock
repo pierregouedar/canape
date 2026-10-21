@@ -542,6 +542,7 @@ name = "canape-shell"
 version = "0.1.0"
 dependencies = [
  "canape-core",
+ "canape-hw",
  "canape-ipc",
  "slint",
  "slint-build",

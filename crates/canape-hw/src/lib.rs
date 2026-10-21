@@ -51,6 +51,17 @@ pub trait Device: Send {
     }
 }
 
+/// Starts the AMD driver's frame metrics. Must run in the user session (the
+/// shell): from the service's session 0 the driver refuses, but once started
+/// here it reports FPS to the service too. Returns a line for the log.
+#[cfg(windows)]
+pub fn arm_frame_metrics() -> String {
+    match adl::Adl::open() {
+        Ok(adl) => adl.describe(),
+        Err(err) => format!("adl: {err}"),
+    }
+}
+
 /// Picks the backend for the machine we run on.
 pub fn detect() -> Box<dyn Device> {
     #[cfg(windows)]
