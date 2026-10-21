@@ -15,8 +15,9 @@
   <!-- Required by the UWP packaging targets (APPX1673), even off phones. -->
   <mp:PhoneIdentity PhoneProductId="3f7c9e2a-5b41-4d8e-9a6c-2e1f0b7d4c58" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
+  <!-- Display strings come from Strings\<lang>\Resources.resw. -->
   <Properties>
-    <DisplayName>Canapé (widget)</DisplayName>
+    <DisplayName>ms-resource:AppDisplayName</DisplayName>
     <PublisherDisplayName>Canapé</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -25,25 +26,27 @@
     <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
   </Dependencies>
 
+  <!-- Replaced at build time by every language found in the PRI resources
+       (Strings\<lang>), with DefaultLanguage (en-US) first. -->
   <Resources>
-    <Resource Language="fr-FR" />
+    <Resource Language="x-generate" />
   </Resources>
 
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="CanapeWidget.App">
       <uap:VisualElements
-        DisplayName="Canapé (widget)"
+        DisplayName="ms-resource:AppDisplayName"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="Réglages rapides de la ROG Ally"
+        Description="ms-resource:AppDescription"
         BackgroundColor="transparent"
         AppListEntry="none" />
       <Extensions>
         <uap3:Extension Category="windows.appExtension">
           <uap3:AppExtension Name="microsoft.gameBarUIExtension"
                              Id="CanapeWidget"
-                             DisplayName="Canapé"
-                             Description="TDP, mode et auto TDP"
+                             DisplayName="ms-resource:WidgetDisplayName"
+                             Description="ms-resource:WidgetDescription"
                              PublicFolder="GameBar">
             <uap3:Properties>
               <GameBarWidget Type="Standard">

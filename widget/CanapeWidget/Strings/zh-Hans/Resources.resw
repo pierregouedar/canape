@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Canapé widget strings (zh-Hans). en-US is the default language: every key
+     must exist there; see widget/README.md to add a language. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TdpCaption.Text" xml:space="preserve">
+    <value>TDP</value>
+  </data>
+  <data name="FpsCaption.Text" xml:space="preserve">
+    <value>FPS</value>
+  </data>
+  <data name="ModeHeader.Text" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="ModeSilent.Text" xml:space="preserve">
+    <value>静音</value>
+  </data>
+  <data name="ModePerformance.Text" xml:space="preserve">
+    <value>性能</value>
+  </data>
+  <data name="ModeTurbo.Text" xml:space="preserve">
+    <value>增强</value>
+  </data>
+  <data name="TdpHeader.Text" xml:space="preserve">
+    <value>手动 TDP</value>
+  </data>
+  <data name="TdpMinus.Content" xml:space="preserve">
+    <value>−1 W</value>
+  </data>
+  <data name="TdpPlus.Content" xml:space="preserve">
+    <value>+1 W</value>
+  </data>
+  <data name="AutoHeader.Text" xml:space="preserve">
+    <value>自动 TDP</value>
+  </data>
+  <data name="Connecting" xml:space="preserve">
+    <value>正在连接…</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>服务未连接</value>
+  </data>
+  <data name="NoGame" xml:space="preserve">
+    <value>前台没有游戏</value>
+  </data>
+  <data name="ProfileChip" xml:space="preserve">
+    <value>配置文件</value>
+  </data>
+  <data name="ProfileNamed" xml:space="preserve">
+    <value>配置文件：{0}</value>
+  </data>
+  <data name="CaptionTemp" xml:space="preserve">
+    <value>温度</value>
+  </data>
+  <data name="CaptionThrottled" xml:space="preserve">
+    <value>温度受限</value>
+  </data>
+  <data name="CaptionBattery" xml:space="preserve">
+    <value>电池</value>
+  </data>
+  <data name="CaptionPluggedIn" xml:space="preserve">
+    <value>已接电源</value>
+  </data>
+  <data name="FormatWatts" xml:space="preserve">
+    <value>{0} W</value>
+  </data>
+  <data name="FormatPercent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="FormatCelsius" xml:space="preserve">
+    <value>{0}°C</value>
+  </data>
+  <data name="BenchStep" xml:space="preserve">
+    <value>基准测试 · {0}/{1} · {2}</value>
+  </data>
+  <data name="BenchLeft" xml:space="preserve">
+    <value>剩余 {0}</value>
+  </data>
+  <data name="TdpHintFirmware" xml:space="preserve">
+    <value>由固件模式决定</value>
+  </data>
+  <data name="AutoOn" xml:space="preserve">
+    <value>开</value>
+  </data>
+  <data name="AutoOff" xml:space="preserve">
+    <value>关</value>
+  </data>
+  <data name="AutoRangeBattery" xml:space="preserve">
+    <value>电池供电时 {0}</value>
+  </data>
+  <data name="Conflicts" xml:space="preserve">
+    <value>⚠ 以下程序也在控制硬件：{0}</value>
+  </data>
+  <data name="ReasonNotRunning" xml:space="preserve">
+    <value>Canapé 服务未运行。</value>
+  </data>
+  <data name="ReasonUnreachable" xml:space="preserve">
+    <value>无法连接服务（错误 {0}）。</value>
+  </data>
+  <data name="ReasonStopped" xml:space="preserve">
+    <value>服务已关闭连接。</value>
+  </data>
+  <data name="ReasonRejected" xml:space="preserve">
+    <value>服务拒绝了请求：{0}</value>
+  </data>
+  <data name="ReasonOther" xml:space="preserve">
+    <value>连接错误：{0}</value>
+  </data>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>Canapé（小组件）</value>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>ROG Ally 快捷设置</value>
+  </data>
+  <data name="WidgetDisplayName" xml:space="preserve">
+    <value>Canapé</value>
+  </data>
+  <data name="WidgetDescription" xml:space="preserve">
+    <value>TDP、性能模式和自动 TDP</value>
+  </data>
+</root>

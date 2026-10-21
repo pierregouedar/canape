@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Canapé widget strings (en-US). en-US is the default language: every key
+     must exist there; see widget/README.md to add a language. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TdpCaption.Text" xml:space="preserve">
+    <value>TDP</value>
+    <comment>Tile caption: thermal design power</comment>
+  </data>
+  <data name="FpsCaption.Text" xml:space="preserve">
+    <value>FPS</value>
+    <comment>Tile caption: frames per second</comment>
+  </data>
+  <data name="ModeHeader.Text" xml:space="preserve">
+    <value>Mode</value>
+    <comment>Section header: ASUS performance modes</comment>
+  </data>
+  <data name="ModeSilent.Text" xml:space="preserve">
+    <value>Silent</value>
+    <comment>ASUS 'Silent' mode button</comment>
+  </data>
+  <data name="ModePerformance.Text" xml:space="preserve">
+    <value>Performance</value>
+    <comment>ASUS 'Performance' mode button (keep short, ~10 chars)</comment>
+  </data>
+  <data name="ModeTurbo.Text" xml:space="preserve">
+    <value>Turbo</value>
+    <comment>ASUS 'Turbo' mode button</comment>
+  </data>
+  <data name="TdpHeader.Text" xml:space="preserve">
+    <value>Manual TDP</value>
+    <comment>Section header: set the power limit by hand</comment>
+  </data>
+  <data name="TdpMinus.Content" xml:space="preserve">
+    <value>−1 W</value>
+    <comment>Button: lower the power limit by one watt</comment>
+  </data>
+  <data name="TdpPlus.Content" xml:space="preserve">
+    <value>+1 W</value>
+    <comment>Button: raise the power limit by one watt</comment>
+  </data>
+  <data name="AutoHeader.Text" xml:space="preserve">
+    <value>Auto TDP</value>
+    <comment>Section header: automatic power limit driven by a target frame rate</comment>
+  </data>
+  <data name="Connecting" xml:space="preserve">
+    <value>Connecting…</value>
+    <comment>Header while the first status is awaited</comment>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Service not connected</value>
+    <comment>Header when the service can't be reached</comment>
+  </data>
+  <data name="NoGame" xml:space="preserve">
+    <value>No game in the foreground</value>
+    <comment>Header when no game is in the foreground</comment>
+  </data>
+  <data name="ProfileChip" xml:space="preserve">
+    <value>Profile</value>
+    <comment>Chip: a per-game profile is applied to the foreground game</comment>
+  </data>
+  <data name="ProfileNamed" xml:space="preserve">
+    <value>Profile: {0}</value>
+    <comment>Chip: profile of another program is applied; {0} = program name</comment>
+  </data>
+  <data name="CaptionTemp" xml:space="preserve">
+    <value>Temp</value>
+    <comment>Tile caption: CPU temperature (short)</comment>
+  </data>
+  <data name="CaptionThrottled" xml:space="preserve">
+    <value>Throttled</value>
+    <comment>Tile caption replacing the temperature one when power is held down by the temperature limit (short)</comment>
+  </data>
+  <data name="CaptionBattery" xml:space="preserve">
+    <value>Battery</value>
+    <comment>Tile caption: battery level, running on battery</comment>
+  </data>
+  <data name="CaptionPluggedIn" xml:space="preserve">
+    <value>Plugged in</value>
+    <comment>Tile caption: battery level, charger connected (short)</comment>
+  </data>
+  <data name="FormatWatts" xml:space="preserve">
+    <value>{0} W</value>
+    <comment>{0} = watts (number or range)</comment>
+  </data>
+  <data name="FormatPercent" xml:space="preserve">
+    <value>{0}%</value>
+    <comment>{0} = percentage</comment>
+  </data>
+  <data name="FormatCelsius" xml:space="preserve">
+    <value>{0}°C</value>
+    <comment>{0} = degrees Celsius</comment>
+  </data>
+  <data name="BenchStep" xml:space="preserve">
+    <value>Benchmark · step {0}/{1} · {2}</value>
+    <comment>Bench card; {0} = current step, {1} = step count, {2} = wattage with unit</comment>
+  </data>
+  <data name="BenchLeft" xml:space="preserve">
+    <value>{0} left</value>
+    <comment>Bench card; {0} = remaining time as m:ss</comment>
+  </data>
+  <data name="TdpHintFirmware" xml:space="preserve">
+    <value>Set by the firmware mode</value>
+    <comment>Why the +/- buttons are disabled: the ASUS mode sets the power, the wattage is unknown</comment>
+  </data>
+  <data name="AutoOn" xml:space="preserve">
+    <value>On</value>
+    <comment>Auto TDP toggle, enabled (short)</comment>
+  </data>
+  <data name="AutoOff" xml:space="preserve">
+    <value>Off</value>
+    <comment>Auto TDP toggle, disabled (short)</comment>
+  </data>
+  <data name="AutoRangeBattery" xml:space="preserve">
+    <value>{0} on battery</value>
+    <comment>Auto TDP power range while on battery; {0} = range with unit</comment>
+  </data>
+  <data name="Conflicts" xml:space="preserve">
+    <value>⚠ Also controlling the hardware: {0}</value>
+    <comment>Warning; {0} = comma-separated program names</comment>
+  </data>
+  <data name="ReasonNotRunning" xml:space="preserve">
+    <value>The Canapé service isn't running.</value>
+    <comment>Error: the service process isn't running</comment>
+  </data>
+  <data name="ReasonUnreachable" xml:space="preserve">
+    <value>Can't reach the service (error {0}).</value>
+    <comment>Error: the pipe can't be opened; {0} = Win32 error code</comment>
+  </data>
+  <data name="ReasonStopped" xml:space="preserve">
+    <value>The service closed the connection.</value>
+    <comment>Error: the service hung up</comment>
+  </data>
+  <data name="ReasonRejected" xml:space="preserve">
+    <value>The service refused: {0}</value>
+    <comment>Error: the service refused the command; {0} = its message (English)</comment>
+  </data>
+  <data name="ReasonOther" xml:space="preserve">
+    <value>Connection error: {0}</value>
+    <comment>Error; {0} = system message</comment>
+  </data>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>Canapé (widget)</value>
+    <comment>Package name (Windows settings, app list)</comment>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>Quick settings for the ROG Ally</value>
+    <comment>Package description</comment>
+  </data>
+  <data name="WidgetDisplayName" xml:space="preserve">
+    <value>Canapé</value>
+    <comment>Name in the Game Bar widget menu</comment>
+  </data>
+  <data name="WidgetDescription" xml:space="preserve">
+    <value>TDP, performance mode and auto TDP</value>
+    <comment>Description in the Game Bar widget store/menu</comment>
+  </data>
+</root>

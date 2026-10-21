@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Canapé widget strings (ja-JP). en-US is the default language: every key
+     must exist there; see widget/README.md to add a language. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TdpCaption.Text" xml:space="preserve">
+    <value>TDP</value>
+  </data>
+  <data name="FpsCaption.Text" xml:space="preserve">
+    <value>FPS</value>
+  </data>
+  <data name="ModeHeader.Text" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="ModeSilent.Text" xml:space="preserve">
+    <value>サイレント</value>
+  </data>
+  <data name="ModePerformance.Text" xml:space="preserve">
+    <value>パフォーマンス</value>
+  </data>
+  <data name="ModeTurbo.Text" xml:space="preserve">
+    <value>ターボ</value>
+  </data>
+  <data name="TdpHeader.Text" xml:space="preserve">
+    <value>手動 TDP</value>
+  </data>
+  <data name="TdpMinus.Content" xml:space="preserve">
+    <value>−1 W</value>
+  </data>
+  <data name="TdpPlus.Content" xml:space="preserve">
+    <value>+1 W</value>
+  </data>
+  <data name="AutoHeader.Text" xml:space="preserve">
+    <value>自動 TDP</value>
+  </data>
+  <data name="Connecting" xml:space="preserve">
+    <value>接続中…</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>サービスに未接続</value>
+  </data>
+  <data name="NoGame" xml:space="preserve">
+    <value>前面にゲームがありません</value>
+  </data>
+  <data name="ProfileChip" xml:space="preserve">
+    <value>プロファイル</value>
+  </data>
+  <data name="ProfileNamed" xml:space="preserve">
+    <value>プロファイル: {0}</value>
+  </data>
+  <data name="CaptionTemp" xml:space="preserve">
+    <value>温度</value>
+  </data>
+  <data name="CaptionThrottled" xml:space="preserve">
+    <value>温度制限</value>
+  </data>
+  <data name="CaptionBattery" xml:space="preserve">
+    <value>バッテリー</value>
+  </data>
+  <data name="CaptionPluggedIn" xml:space="preserve">
+    <value>AC 電源</value>
+  </data>
+  <data name="FormatWatts" xml:space="preserve">
+    <value>{0} W</value>
+  </data>
+  <data name="FormatPercent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="FormatCelsius" xml:space="preserve">
+    <value>{0}°C</value>
+  </data>
+  <data name="BenchStep" xml:space="preserve">
+    <value>ベンチマーク · {0}/{1} · {2}</value>
+  </data>
+  <data name="BenchLeft" xml:space="preserve">
+    <value>残り {0}</value>
+  </data>
+  <data name="TdpHintFirmware" xml:space="preserve">
+    <value>ファームウェアのモードで固定</value>
+  </data>
+  <data name="AutoOn" xml:space="preserve">
+    <value>オン</value>
+  </data>
+  <data name="AutoOff" xml:space="preserve">
+    <value>オフ</value>
+  </data>
+  <data name="AutoRangeBattery" xml:space="preserve">
+    <value>バッテリー時 {0}</value>
+  </data>
+  <data name="Conflicts" xml:space="preserve">
+    <value>⚠ ほかにもハードウェアを制御中: {0}</value>
+  </data>
+  <data name="ReasonNotRunning" xml:space="preserve">
+    <value>Canapé サービスが実行されていません。</value>
+  </data>
+  <data name="ReasonUnreachable" xml:space="preserve">
+    <value>サービスに接続できません (エラー {0})。</value>
+  </data>
+  <data name="ReasonStopped" xml:space="preserve">
+    <value>サービスが接続を閉じました。</value>
+  </data>
+  <data name="ReasonRejected" xml:space="preserve">
+    <value>サービスが拒否しました: {0}</value>
+  </data>
+  <data name="ReasonOther" xml:space="preserve">
+    <value>接続エラー: {0}</value>
+  </data>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>Canapé (ウィジェット)</value>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>ROG Ally のクイック設定</value>
+  </data>
+  <data name="WidgetDisplayName" xml:space="preserve">
+    <value>Canapé</value>
+  </data>
+  <data name="WidgetDescription" xml:space="preserve">
+    <value>TDP、パフォーマンス モード、自動 TDP</value>
+  </data>
+</root>

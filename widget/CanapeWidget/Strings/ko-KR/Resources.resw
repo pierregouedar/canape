@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Canapé widget strings (ko-KR). en-US is the default language: every key
+     must exist there; see widget/README.md to add a language. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TdpCaption.Text" xml:space="preserve">
+    <value>TDP</value>
+  </data>
+  <data name="FpsCaption.Text" xml:space="preserve">
+    <value>FPS</value>
+  </data>
+  <data name="ModeHeader.Text" xml:space="preserve">
+    <value>모드</value>
+  </data>
+  <data name="ModeSilent.Text" xml:space="preserve">
+    <value>저소음</value>
+  </data>
+  <data name="ModePerformance.Text" xml:space="preserve">
+    <value>성능</value>
+  </data>
+  <data name="ModeTurbo.Text" xml:space="preserve">
+    <value>터보</value>
+  </data>
+  <data name="TdpHeader.Text" xml:space="preserve">
+    <value>수동 TDP</value>
+  </data>
+  <data name="TdpMinus.Content" xml:space="preserve">
+    <value>−1 W</value>
+  </data>
+  <data name="TdpPlus.Content" xml:space="preserve">
+    <value>+1 W</value>
+  </data>
+  <data name="AutoHeader.Text" xml:space="preserve">
+    <value>자동 TDP</value>
+  </data>
+  <data name="Connecting" xml:space="preserve">
+    <value>연결 중…</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>서비스에 연결되지 않음</value>
+  </data>
+  <data name="NoGame" xml:space="preserve">
+    <value>실행 중인 게임 없음</value>
+  </data>
+  <data name="ProfileChip" xml:space="preserve">
+    <value>프로필</value>
+  </data>
+  <data name="ProfileNamed" xml:space="preserve">
+    <value>프로필: {0}</value>
+  </data>
+  <data name="CaptionTemp" xml:space="preserve">
+    <value>온도</value>
+  </data>
+  <data name="CaptionThrottled" xml:space="preserve">
+    <value>온도 제한</value>
+  </data>
+  <data name="CaptionBattery" xml:space="preserve">
+    <value>배터리</value>
+  </data>
+  <data name="CaptionPluggedIn" xml:space="preserve">
+    <value>전원 연결</value>
+  </data>
+  <data name="FormatWatts" xml:space="preserve">
+    <value>{0} W</value>
+  </data>
+  <data name="FormatPercent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="FormatCelsius" xml:space="preserve">
+    <value>{0}°C</value>
+  </data>
+  <data name="BenchStep" xml:space="preserve">
+    <value>벤치마크 · {0}/{1}단계 · {2}</value>
+  </data>
+  <data name="BenchLeft" xml:space="preserve">
+    <value>{0} 남음</value>
+  </data>
+  <data name="TdpHintFirmware" xml:space="preserve">
+    <value>펌웨어 모드로 고정됨</value>
+  </data>
+  <data name="AutoOn" xml:space="preserve">
+    <value>켜짐</value>
+  </data>
+  <data name="AutoOff" xml:space="preserve">
+    <value>꺼짐</value>
+  </data>
+  <data name="AutoRangeBattery" xml:space="preserve">
+    <value>배터리 사용 시 {0}</value>
+  </data>
+  <data name="Conflicts" xml:space="preserve">
+    <value>⚠ 하드웨어를 함께 제어하는 프로그램: {0}</value>
+  </data>
+  <data name="ReasonNotRunning" xml:space="preserve">
+    <value>Canapé 서비스가 실행되고 있지 않습니다.</value>
+  </data>
+  <data name="ReasonUnreachable" xml:space="preserve">
+    <value>서비스에 연결할 수 없습니다(오류 {0}).</value>
+  </data>
+  <data name="ReasonStopped" xml:space="preserve">
+    <value>서비스가 연결을 닫았습니다.</value>
+  </data>
+  <data name="ReasonRejected" xml:space="preserve">
+    <value>서비스가 거부함: {0}</value>
+  </data>
+  <data name="ReasonOther" xml:space="preserve">
+    <value>연결 오류: {0}</value>
+  </data>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>Canapé (위젯)</value>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>ROG Ally 빠른 설정</value>
+  </data>
+  <data name="WidgetDisplayName" xml:space="preserve">
+    <value>Canapé</value>
+  </data>
+  <data name="WidgetDescription" xml:space="preserve">
+    <value>TDP, 성능 모드, 자동 TDP</value>
+  </data>
+</root>

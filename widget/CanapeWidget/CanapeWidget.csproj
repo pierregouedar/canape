@@ -12,7 +12,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CanapeWidget</RootNamespace>
     <AssemblyName>CanapeWidget</AssemblyName>
-    <DefaultLanguage>fr-FR</DefaultLanguage>
+    <!-- Neutral/fallback language of the package resources (Strings\en-US). -->
+    <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <!-- The SDK the UWP Build Tools workload installs; MinVersion stays 19041. -->
     <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.26100.0</TargetPlatformVersion>
@@ -68,6 +69,22 @@
     <Content Include="Assets\Square150x150Logo.png" />
     <Content Include="Assets\Square44x44Logo.png" />
     <Content Include="Properties\Default.rd.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- UI strings, one folder per language (see widget/README.md). -->
+    <PRIResource Include="Strings\en-US\Resources.resw" />
+    <PRIResource Include="Strings\fr-FR\Resources.resw" />
+    <PRIResource Include="Strings\es-ES\Resources.resw" />
+    <PRIResource Include="Strings\de-DE\Resources.resw" />
+    <PRIResource Include="Strings\it-IT\Resources.resw" />
+    <PRIResource Include="Strings\pt-BR\Resources.resw" />
+    <PRIResource Include="Strings\nl-NL\Resources.resw" />
+    <PRIResource Include="Strings\pl-PL\Resources.resw" />
+    <PRIResource Include="Strings\ru-RU\Resources.resw" />
+    <PRIResource Include="Strings\tr-TR\Resources.resw" />
+    <PRIResource Include="Strings\ja-JP\Resources.resw" />
+    <PRIResource Include="Strings\ko-KR\Resources.resw" />
+    <PRIResource Include="Strings\zh-Hans\Resources.resw" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">

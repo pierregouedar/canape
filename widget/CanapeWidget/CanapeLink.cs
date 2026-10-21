@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -9,10 +10,36 @@ using Windows.Data.Json;
 
 namespace CanapeWidget
 {
+    /// <summary>Why talking to the service failed; the page turns it into localized text.</summary>
+    enum LinkProblemKind
+    {
+        /// <summary>The pipe could not be opened; Detail is the Win32 error code.</summary>
+        Unreachable,
+        /// <summary>The service hung up.</summary>
+        Stopped,
+        /// <summary>The service answered with an error; Detail is its message (not localized).</summary>
+        Rejected,
+        /// <summary>Anything else; Detail is the exception message.</summary>
+        Failed,
+    }
+
+    sealed class LinkProblem
+    {
+        public LinkProblem(LinkProblemKind kind, string detail)
+        {
+            Kind = kind;
+            Detail = detail ?? "";
+        }
+
+        public LinkProblemKind Kind { get; }
+        public string Detail { get; }
+    }
+
     /// <summary>
     /// Client of the Canape service: JSON lines over \\.\pipe\canape
     /// (crates/canape-core/src/protocol.rs). A subscription connection only
     /// receives status pushes; each command uses a short-lived connection.
+    /// No user-visible text here: failures are reported as LinkProblem.
     /// </summary>
     sealed class CanapeLink
     {
@@ -30,7 +57,18 @@ namespace CanapeWidget
             uint creationDisposition, uint flagsAndAttributes, IntPtr templateFile);
 
         public event Action<JsonObject> StatusReceived;
-        public event Action<string> Disconnected;
+        public event Action<LinkProblem> Disconnected;
+
+        private sealed class PipeUnavailableException : IOException
+        {
+            public PipeUnavailableException(int code)
+                : base("CreateFileFromAppW failed: " + code)
+            {
+                Code = code;
+            }
+
+            public int Code { get; }
+        }
 
         private sealed class Connection : IDisposable
         {
@@ -43,7 +81,7 @@ namespace CanapeWidget
                 var handle = CreateFileFromAppW(PipeName, GenericRead | GenericWrite, 0, IntPtr.Zero, OpenExisting, 0, IntPtr.Zero);
                 if (handle.IsInvalid)
                 {
-                    throw new IOException("service injoignable (erreur " + Marshal.GetLastWin32Error() + ")");
+                    throw new PipeUnavailableException(Marshal.GetLastWin32Error());
                 }
                 stream = new FileStream(handle, FileAccess.ReadWrite, 1);
                 reader = new StreamReader(stream, new UTF8Encoding(false));
@@ -78,8 +116,18 @@ namespace CanapeWidget
             }
         }
 
-        /// <summary>Sends one request; returns the error message, or null on success.</summary>
-        public Task<string> SendAsync(JsonObject request)
+        private static LinkProblem Problem(Exception e)
+        {
+            var unavailable = e as PipeUnavailableException;
+            if (unavailable != null)
+            {
+                return new LinkProblem(LinkProblemKind.Unreachable, unavailable.Code.ToString(CultureInfo.InvariantCulture));
+            }
+            return new LinkProblem(LinkProblemKind.Failed, e.Message);
+        }
+
+        /// <summary>Sends one request; returns the problem, or null on success.</summary>
+        public Task<LinkProblem> SendAsync(JsonObject request)
         {
             return Task.Run(() =>
             {
@@ -89,16 +137,20 @@ namespace CanapeWidget
                     {
                         connection.Send(request);
                         var response = connection.Receive();
-                        if (response != null && response.GetNamedString("type", "") == "error")
+                        if (response == null)
                         {
-                            return response.GetNamedString("message", "erreur");
+                            return new LinkProblem(LinkProblemKind.Stopped, null);
+                        }
+                        if (response.GetNamedString("type", "") == "error")
+                        {
+                            return new LinkProblem(LinkProblemKind.Rejected, response.GetNamedString("message", ""));
                         }
                         return null;
                     }
                 }
                 catch (Exception e)
                 {
-                    return e.Message;
+                    return Problem(e);
                 }
             });
         }
@@ -125,13 +177,16 @@ namespace CanapeWidget
                                 }
                             }
                         }
-                        Disconnected?.Invoke("service arrêté");
+                        if (!cancel.IsCancellationRequested)
+                        {
+                            Disconnected?.Invoke(new LinkProblem(LinkProblemKind.Stopped, null));
+                        }
                     }
                     catch (Exception e)
                     {
                         if (!cancel.IsCancellationRequested)
                         {
-                            Disconnected?.Invoke(e.Message);
+                            Disconnected?.Invoke(Problem(e));
                         }
                     }
                     try

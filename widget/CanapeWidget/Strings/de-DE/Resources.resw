@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Canapé widget strings (de-DE). en-US is the default language: every key
+     must exist there; see widget/README.md to add a language. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TdpCaption.Text" xml:space="preserve">
+    <value>TDP</value>
+  </data>
+  <data name="FpsCaption.Text" xml:space="preserve">
+    <value>FPS</value>
+  </data>
+  <data name="ModeHeader.Text" xml:space="preserve">
+    <value>Modus</value>
+  </data>
+  <data name="ModeSilent.Text" xml:space="preserve">
+    <value>Leise</value>
+  </data>
+  <data name="ModePerformance.Text" xml:space="preserve">
+    <value>Leistung</value>
+  </data>
+  <data name="ModeTurbo.Text" xml:space="preserve">
+    <value>Turbo</value>
+  </data>
+  <data name="TdpHeader.Text" xml:space="preserve">
+    <value>Manuelle TDP</value>
+  </data>
+  <data name="TdpMinus.Content" xml:space="preserve">
+    <value>−1 W</value>
+  </data>
+  <data name="TdpPlus.Content" xml:space="preserve">
+    <value>+1 W</value>
+  </data>
+  <data name="AutoHeader.Text" xml:space="preserve">
+    <value>Auto-TDP</value>
+  </data>
+  <data name="Connecting" xml:space="preserve">
+    <value>Verbinden…</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Dienst nicht verbunden</value>
+  </data>
+  <data name="NoGame" xml:space="preserve">
+    <value>Kein Spiel im Vordergrund</value>
+  </data>
+  <data name="ProfileChip" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="ProfileNamed" xml:space="preserve">
+    <value>Profil: {0}</value>
+  </data>
+  <data name="CaptionTemp" xml:space="preserve">
+    <value>Temp.</value>
+  </data>
+  <data name="CaptionThrottled" xml:space="preserve">
+    <value>Gedrosselt</value>
+  </data>
+  <data name="CaptionBattery" xml:space="preserve">
+    <value>Akku</value>
+  </data>
+  <data name="CaptionPluggedIn" xml:space="preserve">
+    <value>Netzteil</value>
+  </data>
+  <data name="FormatWatts" xml:space="preserve">
+    <value>{0} W</value>
+  </data>
+  <data name="FormatPercent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="FormatCelsius" xml:space="preserve">
+    <value>{0} °C</value>
+  </data>
+  <data name="BenchStep" xml:space="preserve">
+    <value>Benchmark · Stufe {0}/{1} · {2}</value>
+  </data>
+  <data name="BenchLeft" xml:space="preserve">
+    <value>noch {0}</value>
+  </data>
+  <data name="TdpHintFirmware" xml:space="preserve">
+    <value>Vom Firmware-Modus festgelegt</value>
+  </data>
+  <data name="AutoOn" xml:space="preserve">
+    <value>Ein</value>
+  </data>
+  <data name="AutoOff" xml:space="preserve">
+    <value>Aus</value>
+  </data>
+  <data name="AutoRangeBattery" xml:space="preserve">
+    <value>{0} im Akkubetrieb</value>
+  </data>
+  <data name="Conflicts" xml:space="preserve">
+    <value>⚠ Steuern ebenfalls die Hardware: {0}</value>
+  </data>
+  <data name="ReasonNotRunning" xml:space="preserve">
+    <value>Der Canapé-Dienst läuft nicht.</value>
+  </data>
+  <data name="ReasonUnreachable" xml:space="preserve">
+    <value>Dienst nicht erreichbar (Fehler {0}).</value>
+  </data>
+  <data name="ReasonStopped" xml:space="preserve">
+    <value>Der Dienst hat die Verbindung getrennt.</value>
+  </data>
+  <data name="ReasonRejected" xml:space="preserve">
+    <value>Vom Dienst abgelehnt: {0}</value>
+  </data>
+  <data name="ReasonOther" xml:space="preserve">
+    <value>Verbindungsfehler: {0}</value>
+  </data>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>Canapé (Widget)</value>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>Schnelleinstellungen für den ROG Ally</value>
+  </data>
+  <data name="WidgetDisplayName" xml:space="preserve">
+    <value>Canapé</value>
+  </data>
+  <data name="WidgetDescription" xml:space="preserve">
+    <value>TDP, Leistungsmodus und Auto-TDP</value>
+  </data>
+</root>

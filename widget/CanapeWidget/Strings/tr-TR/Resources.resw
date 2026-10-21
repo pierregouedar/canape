@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Canapé widget strings (tr-TR). en-US is the default language: every key
+     must exist there; see widget/README.md to add a language. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TdpCaption.Text" xml:space="preserve">
+    <value>TDP</value>
+  </data>
+  <data name="FpsCaption.Text" xml:space="preserve">
+    <value>FPS</value>
+  </data>
+  <data name="ModeHeader.Text" xml:space="preserve">
+    <value>Mod</value>
+  </data>
+  <data name="ModeSilent.Text" xml:space="preserve">
+    <value>Sessiz</value>
+  </data>
+  <data name="ModePerformance.Text" xml:space="preserve">
+    <value>Performans</value>
+  </data>
+  <data name="ModeTurbo.Text" xml:space="preserve">
+    <value>Turbo</value>
+  </data>
+  <data name="TdpHeader.Text" xml:space="preserve">
+    <value>Manuel TDP</value>
+  </data>
+  <data name="TdpMinus.Content" xml:space="preserve">
+    <value>−1 W</value>
+  </data>
+  <data name="TdpPlus.Content" xml:space="preserve">
+    <value>+1 W</value>
+  </data>
+  <data name="AutoHeader.Text" xml:space="preserve">
+    <value>Otomatik TDP</value>
+  </data>
+  <data name="Connecting" xml:space="preserve">
+    <value>Bağlanıyor…</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Hizmete bağlı değil</value>
+  </data>
+  <data name="NoGame" xml:space="preserve">
+    <value>Ön planda oyun yok</value>
+  </data>
+  <data name="ProfileChip" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="ProfileNamed" xml:space="preserve">
+    <value>Profil: {0}</value>
+  </data>
+  <data name="CaptionTemp" xml:space="preserve">
+    <value>Sıcaklık</value>
+  </data>
+  <data name="CaptionThrottled" xml:space="preserve">
+    <value>Kısıtlı</value>
+  </data>
+  <data name="CaptionBattery" xml:space="preserve">
+    <value>Pil</value>
+  </data>
+  <data name="CaptionPluggedIn" xml:space="preserve">
+    <value>Prizde</value>
+  </data>
+  <data name="FormatWatts" xml:space="preserve">
+    <value>{0} W</value>
+  </data>
+  <data name="FormatPercent" xml:space="preserve">
+    <value>%{0}</value>
+  </data>
+  <data name="FormatCelsius" xml:space="preserve">
+    <value>{0} °C</value>
+  </data>
+  <data name="BenchStep" xml:space="preserve">
+    <value>Benchmark · adım {0}/{1} · {2}</value>
+  </data>
+  <data name="BenchLeft" xml:space="preserve">
+    <value>{0} kaldı</value>
+  </data>
+  <data name="TdpHintFirmware" xml:space="preserve">
+    <value>Donanım yazılımı modu belirliyor</value>
+  </data>
+  <data name="AutoOn" xml:space="preserve">
+    <value>Açık</value>
+  </data>
+  <data name="AutoOff" xml:space="preserve">
+    <value>Kapalı</value>
+  </data>
+  <data name="AutoRangeBattery" xml:space="preserve">
+    <value>pilde {0}</value>
+  </data>
+  <data name="Conflicts" xml:space="preserve">
+    <value>⚠ Donanımı ayrıca yönetenler: {0}</value>
+  </data>
+  <data name="ReasonNotRunning" xml:space="preserve">
+    <value>Canapé hizmeti çalışmıyor.</value>
+  </data>
+  <data name="ReasonUnreachable" xml:space="preserve">
+    <value>Hizmete ulaşılamıyor (hata {0}).</value>
+  </data>
+  <data name="ReasonStopped" xml:space="preserve">
+    <value>Hizmet bağlantıyı kapattı.</value>
+  </data>
+  <data name="ReasonRejected" xml:space="preserve">
+    <value>Hizmet reddetti: {0}</value>
+  </data>
+  <data name="ReasonOther" xml:space="preserve">
+    <value>Bağlantı hatası: {0}</value>
+  </data>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>Canapé (pencere öğesi)</value>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>ROG Ally için hızlı ayarlar</value>
+  </data>
+  <data name="WidgetDisplayName" xml:space="preserve">
+    <value>Canapé</value>
+  </data>
+  <data name="WidgetDescription" xml:space="preserve">
+    <value>TDP, performans modu ve otomatik TDP</value>
+  </data>
+</root>
