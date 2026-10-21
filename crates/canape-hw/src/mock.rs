@@ -8,6 +8,8 @@ pub struct MockDevice {
     pub tdp_watts: u32,
     pub mode: PerformanceMode,
     pub charge_limit: u8,
+    pub fps: Option<f32>,
+    pub gpu_util: Option<f32>,
 }
 
 impl Default for MockDevice {
@@ -16,6 +18,8 @@ impl Default for MockDevice {
             tdp_watts: 15,
             mode: PerformanceMode::Performance,
             charge_limit: 100,
+            fps: None,
+            gpu_util: Some(0.7),
         }
     }
 }
@@ -59,9 +63,13 @@ impl Device for MockDevice {
     fn telemetry(&mut self) -> Result<Telemetry> {
         Ok(Telemetry {
             cpu_temp_c: Some(55.0),
-            gpu_util: Some(0.7),
+            gpu_util: self.gpu_util,
             battery_percent: Some(80),
         })
+    }
+
+    fn frame_rate(&mut self) -> Option<f32> {
+        self.fps
     }
 }
 

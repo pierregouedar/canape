@@ -10,6 +10,8 @@ export struct StatusView {
     battery: string,
     auto-tdp: bool,
     target-fps: int,
+    // Other programs driving the hardware, comma separated.
+    conflicts: string,
 }
 
 component Tile inherits Rectangle {
@@ -133,6 +135,12 @@ export component AppWindow inherits Window {
                 font-weight: 800;
             }
             Rectangle { }
+            if root.status.conflicts != "": Text {
+                vertical-alignment: center;
+                text: "⚠ Pilote aussi le matériel : " + root.status.conflicts + "    ";
+                color: #facc15;
+                font-size: 20px;
+            }
             Text {
                 vertical-alignment: center;
                 text: root.status.connected ? "● Service connecté" : "● Service non connecté";

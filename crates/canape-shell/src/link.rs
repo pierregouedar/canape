@@ -116,11 +116,21 @@ fn view(status: Option<&Status>) -> StatusView {
             battery: dash(),
             auto_tdp: false,
             target_fps: 0,
+            conflicts: "".into(),
         };
     };
+    // In a firmware mode the firmware picks the limits and cannot report them.
+    let firmware_mode = matches!(
+        s.performance_mode,
+        Some(PerformanceMode::Silent | PerformanceMode::Performance | PerformanceMode::Turbo)
+    );
     StatusView {
         connected: true,
-        tdp: s.tdp_watts.map_or_else(dash, |w| format!("{w} W").into()),
+        tdp: match s.tdp_watts {
+            Some(w) => format!("{w} W").into(),
+            None if firmware_mode => "Auto".into(),
+            None => dash(),
+        },
         mode: match s.performance_mode {
             Some(PerformanceMode::Silent) => "silent",
             Some(PerformanceMode::Performance) => "performance",
@@ -138,5 +148,6 @@ fn view(status: Option<&Status>) -> StatusView {
             .map_or_else(dash, |b| format!("{b} %").into()),
         auto_tdp: s.auto_tdp.enabled,
         target_fps: s.auto_tdp.target_fps as i32,
+        conflicts: s.conflicts.join(", ").into(),
     }
 }

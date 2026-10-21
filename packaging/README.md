@@ -36,3 +36,12 @@ Le certificat de développement est créé dans `$HOME\dev\canape-cert` et ajout
   ```powershell
   & "C:\Program Files\Canape\canape-ctl.exe" '{\"type\":\"set_tdp\",\"watts\":12}'
   ```
+
+## Builds release sans Smart App Control
+
+La CI GitHub Actions (`.github/workflows/ci.yml`) compile les binaires release sous Windows et les publie comme artefact `canape-windows-x64`. Sur l'Ally :
+
+```powershell
+gh run download --repo pierregouedar/canape --name canape-windows-x64 --dir $HOME\dev\canape-bin
+powershell -ExecutionPolicy Bypass -File packaging\install-dev.ps1 -BinariesDir $HOME\dev\canape-bin
+```

@@ -95,7 +95,9 @@ L'algorithme est une fonction pure, testée sans matériel. Les paramètres (cib
 | `canape-shell` | < 80 Mo | ≈ 0 % hors animation |
 | Widget | ce qu'impose la Game Bar | ≈ 0 % |
 
-Interface du shell : **Slint** (rendu OpenGL via femtovg), sans navigateur embarqué. La manette (XInput, via `gilrs`) est traduite en touches Tab / Maj+Tab / Entrée, uniquement quand le shell est au premier plan. L'écran est pensé pour 1280×720 points logiques (1080p à 150 %). Empreinte mémoire à mesurer sur l'Ally en M2.
+Interface du shell : **Slint** avec son **rendu logiciel**, sans navigateur embarqué ni contexte OpenGL (le pilote OpenGL coûtait l'essentiel des 115 Mo mesurés en M2). La manette est lue en XInput direct, seulement quand le shell est au premier plan, et traduite en touches Tab / Maj+Tab / Entrée avec répétition quand une direction est maintenue. L'écran est pensé pour 1280×720 points logiques (1080p à 150 %).
+
+Le service mémorise les derniers réglages appliqués (`%ProgramData%\Canape\state.json`) et les réapplique au démarrage : le firmware ne sait pas les relire. L'auto TDP ne bouge que si un jeu tourne (au moins 5 FPS et 15 % d'activité GPU), sinon il monterait au maximum devant le bureau.
 
 ## Feuille de route
 
@@ -103,9 +105,10 @@ Interface du shell : **Slint** (rendu OpenGL via femtovg), sans navigateur embar
 |---|---|
 | M0 ✅ | Squelette du dépôt, protocole, algorithme d'auto TDP testé |
 | M1 ✅ | `canape-shell.exe` **démarre en FSE** sur l'Ally (voir `m1-report.md`) |
-| M2 🚧 | Service Windows + pipe, backend ATKACPI, interface Slint à la manette, instance unique |
+| M2 ✅ | Service Windows + pipe, backend ATKACPI, interface Slint à la manette, instance unique (voir `m2-report.md`) |
+| M2.5 🚧 | État persistant et réappliqué au démarrage, journal des écritures, détection des programmes concurrents, rendu logiciel, manette en XInput direct, CI Windows |
 | M3 | Widget Game Bar relié au service |
-| M4 | Auto TDP en conditions réelles (télémétrie ETW) |
+| M4 🚧 | Auto TDP en conditions réelles : FPS et charge GPU via AMD ADL |
 | M5 | Interface complète : bibliothèque de jeux, profils, ventilateurs, écran, batterie |
 
 ## Questions ouvertes

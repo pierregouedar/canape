@@ -2,6 +2,7 @@
 //! and pushes the status to subscribed clients once per second.
 
 use std::io;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -10,14 +11,21 @@ use canape_core::{Request, Response};
 use canape_hw::Device;
 use canape_ipc::{Connection, Listener, Writer};
 
-use crate::handler::Handler;
+use crate::conflicts;
+use crate::handler::{Handler, Saved};
 
 const TICK: Duration = Duration::from_secs(1);
+/// Conflicting programs are looked for every this many ticks.
+const CONFLICT_SCAN_TICKS: u32 = 5;
+
+type Log = Arc<dyn Fn(&str) + Send + Sync>;
 
 #[derive(Clone)]
 struct Shared {
     handler: Arc<Mutex<Handler>>,
     subscribers: Arc<Mutex<Vec<Writer>>>,
+    state_path: PathBuf,
+    log: Log,
 }
 
 impl Shared {
@@ -30,26 +38,59 @@ impl Shared {
         // Drop the clients that went away.
         subscribers.retain_mut(|writer| writer.send(&status).is_ok());
     }
+
+    fn save(&self) {
+        let saved = self.handler.lock().unwrap().saved();
+        let json = serde_json::to_string_pretty(&saved).expect("state always serializes");
+        if let Err(err) = std::fs::write(&self.state_path, json) {
+            (self.log)(&format!("cannot save {}: {err}", self.state_path.display()));
+        }
+    }
 }
 
-/// Binds the pipe and starts serving in background threads.
+/// Re-applies the saved state, binds the pipe and starts serving in
+/// background threads.
 pub fn spawn(
     device: Box<dyn Device>,
+    state_path: PathBuf,
     log: impl Fn(&str) + Send + Sync + 'static,
 ) -> io::Result<()> {
+    let log: Log = Arc::new(log);
+    let mut handler = Handler::new(device);
+    if let Ok(json) = std::fs::read_to_string(&state_path) {
+        match serde_json::from_str::<Saved>(&json) {
+            Ok(saved) => {
+                for error in handler.restore(&saved) {
+                    log(&format!("restore: {error}"));
+                }
+                log(&format!("restored {saved:?}"));
+            }
+            Err(err) => log(&format!("ignoring {}: {err}", state_path.display())),
+        }
+    }
+
     let mut listener = Listener::bind()?;
     let shared = Shared {
-        handler: Arc::new(Mutex::new(Handler::new(device))),
+        handler: Arc::new(Mutex::new(handler)),
         subscribers: Arc::default(),
+        state_path,
+        log,
     };
-    let log = Arc::new(log);
 
     let ticker = shared.clone();
     thread::Builder::new().name("tick".into()).spawn(move || {
-        loop {
+        for tick in 0u32.. {
             thread::sleep(TICK);
-            // FPS comes from the ETW frame-time source in M4.
-            ticker.handler.lock().unwrap().tick(None);
+            let mut handler = ticker.handler.lock().unwrap();
+            handler.tick();
+            if tick % CONFLICT_SCAN_TICKS == 0 {
+                let found = conflicts::detect();
+                let message = format!("conflicting programs: {found:?}");
+                if handler.set_conflicts(found) {
+                    (ticker.log)(&message);
+                }
+            }
+            drop(handler);
             ticker.broadcast_status();
         }
     })?;
@@ -61,15 +102,14 @@ pub fn spawn(
                 match listener.accept() {
                     Ok(conn) => {
                         let shared = shared.clone();
-                        let log = log.clone();
                         let _ = thread::Builder::new().name("client".into()).spawn(move || {
                             if let Err(err) = serve(conn, &shared) {
-                                log(&format!("client error: {err}"));
+                                (shared.log)(&format!("client error: {err}"));
                             }
                         });
                     }
                     Err(err) => {
-                        log(&format!("accept failed: {err}"));
+                        (shared.log)(&format!("accept failed: {err}"));
                         thread::sleep(TICK);
                     }
                 }
@@ -85,6 +125,7 @@ fn serve(mut conn: Connection, shared: &Shared) -> io::Result<()> {
             Request::Hello { .. } | Request::GetStatus | Request::Subscribe
         );
         let subscribe = request == Request::Subscribe;
+        let described = changes_state.then(|| format!("{request:?}"));
         let response = shared.handler.lock().unwrap().handle(request);
         conn.send(&response)?;
         if subscribe {
@@ -93,7 +134,11 @@ fn serve(mut conn: Connection, shared: &Shared) -> io::Result<()> {
             shared.subscribers.lock().unwrap().push(conn.writer()?);
             return Ok(());
         }
-        if changes_state {
+        if let Some(request) = described {
+            (shared.log)(&format!("{request} -> {response:?}"));
+            if response == Response::Ok {
+                shared.save();
+            }
             shared.broadcast_status();
         }
     }

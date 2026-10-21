@@ -1,61 +1,66 @@
-//! Gamepad navigation: the built-in controller drives the UI through key
-//! events (D-pad / left stick → Tab / Shift+Tab, A → Return), only while the
-//! shell has the focus. Windows only: the Ally controller is an XInput pad.
+//! Gamepad navigation (Windows): the built-in controller is an XInput pad.
+//! It is polled only while the shell has the focus, so a game keeps its
+//! input and the shell costs nothing in the background.
 
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use gilrs::{Axis, Button, EventType, Gilrs};
 use slint::platform::{Key, WindowEvent};
 use slint::{ComponentHandle, SharedString, Weak};
+use windows_sys::Win32::UI::Input::XboxController::{
+    XINPUT_GAMEPAD_A, XINPUT_GAMEPAD_B, XINPUT_GAMEPAD_DPAD_DOWN, XINPUT_GAMEPAD_DPAD_LEFT,
+    XINPUT_GAMEPAD_DPAD_RIGHT, XINPUT_GAMEPAD_DPAD_UP, XINPUT_STATE, XInputGetState,
+};
 
 use crate::AppWindow;
+use crate::nav::{Navigator, Pad};
 
-/// Stick deflection that counts as one step.
-const STICK_THRESHOLD: f32 = 0.6;
+const POLL: Duration = Duration::from_millis(16);
+const IDLE: Duration = Duration::from_millis(250);
+/// Stick deflection that counts as a direction.
+const STICK_THRESHOLD: i32 = 20_000;
+
+/// State of the first connected pad.
+fn read_pad() -> Option<Pad> {
+    (0..4).find_map(|user| {
+        let mut state: XINPUT_STATE = unsafe { std::mem::zeroed() };
+        (unsafe { XInputGetState(user, &mut state) } == 0).then(|| {
+            let pad = state.Gamepad;
+            let pressed = |flag| pad.wButtons & flag != 0;
+            let (x, y) = (i32::from(pad.sThumbLX), i32::from(pad.sThumbLY));
+            Pad {
+                forward: pressed(XINPUT_GAMEPAD_DPAD_DOWN)
+                    || pressed(XINPUT_GAMEPAD_DPAD_RIGHT)
+                    || y < -STICK_THRESHOLD
+                    || x > STICK_THRESHOLD,
+                backward: pressed(XINPUT_GAMEPAD_DPAD_UP)
+                    || pressed(XINPUT_GAMEPAD_DPAD_LEFT)
+                    || y > STICK_THRESHOLD
+                    || x < -STICK_THRESHOLD,
+                confirm: pressed(XINPUT_GAMEPAD_A),
+                back: pressed(XINPUT_GAMEPAD_B),
+            }
+        })
+    })
+}
 
 pub fn spawn(ui: Weak<AppWindow>) {
     thread::spawn(move || {
-        let mut gilrs = match Gilrs::new() {
-            Ok(gilrs) => gilrs,
-            Err(err) => {
-                crate::log(&format!("gamepad unavailable: {err}"));
-                return;
-            }
-        };
-        let mut stick_engaged = false;
+        let mut nav = Navigator::default();
         loop {
-            let Some(event) = gilrs.next_event_blocking(Some(Duration::from_millis(500))) else {
+            if !crate::instance::is_foreground() {
+                nav.reset();
+                thread::sleep(IDLE);
                 continue;
-            };
-            let key = match event.event {
-                EventType::ButtonPressed(button, _) => match button {
-                    Button::DPadDown | Button::DPadRight => Some(Key::Tab),
-                    Button::DPadUp | Button::DPadLeft => Some(Key::Backtab),
-                    Button::South => Some(Key::Return),
-                    Button::East => Some(Key::Escape),
-                    _ => None,
-                },
-                EventType::AxisChanged(Axis::LeftStickY | Axis::LeftStickX, value, _) => {
-                    if value.abs() < STICK_THRESHOLD / 2.0 {
-                        stick_engaged = false;
-                        None
-                    } else if !stick_engaged && value.abs() >= STICK_THRESHOLD {
-                        stick_engaged = true;
-                        // Stick Y is positive upward.
-                        let forward = match event.event {
-                            EventType::AxisChanged(Axis::LeftStickY, ..) => value < 0.0,
-                            _ => value > 0.0,
-                        };
-                        Some(if forward { Key::Tab } else { Key::Backtab })
-                    } else {
-                        None
+            }
+            match read_pad() {
+                Some(pad) => {
+                    for key in nav.update(pad, Instant::now()) {
+                        press(&ui, key);
                     }
+                    thread::sleep(POLL);
                 }
-                _ => None,
-            };
-            if let Some(key) = key.filter(|_| crate::instance::is_foreground()) {
-                press(&ui, key);
+                None => thread::sleep(IDLE),
             }
         }
     });

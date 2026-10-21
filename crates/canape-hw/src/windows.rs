@@ -16,6 +16,7 @@ use windows_sys::Win32::System::IO::DeviceIoControl;
 use windows_sys::Win32::System::Power::{GetSystemPowerStatus, SYSTEM_POWER_STATUS};
 use windows_sys::Win32::System::Registry::{HKEY_LOCAL_MACHINE, RRF_RT_REG_SZ, RegGetValueW};
 
+use crate::adl::Adl;
 use crate::atk::{self, Model};
 use crate::{Device, HwError, Result, Telemetry};
 
@@ -50,6 +51,8 @@ fn product_name() -> Option<String> {
 pub struct AllyDevice {
     handle: HANDLE,
     model: Model,
+    /// FPS and GPU load, when the AMD driver exposes them.
+    adl: Option<Adl>,
 }
 
 // The handle is only used behind the service's handler lock.
@@ -75,7 +78,11 @@ impl AllyDevice {
         if handle == INVALID_HANDLE_VALUE {
             return None;
         }
-        Some(Self { handle, model })
+        Some(Self {
+            handle,
+            model,
+            adl: Adl::open(),
+        })
     }
 
     fn call(&self, input: &[u8]) -> Result<[u8; atk::OUTPUT_LEN]> {
@@ -178,9 +185,12 @@ impl Device for AllyDevice {
             .then_some(power.BatteryLifePercent);
         Ok(Telemetry {
             cpu_temp_c,
-            // GPU load comes from AMD ADL with the FPS source (M4).
-            gpu_util: None,
+            gpu_util: self.adl.as_ref().and_then(Adl::gpu_util),
             battery_percent,
         })
+    }
+
+    fn frame_rate(&mut self) -> Option<f32> {
+        self.adl.as_ref().and_then(Adl::fps)
     }
 }

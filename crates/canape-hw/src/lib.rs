@@ -4,6 +4,8 @@
 
 use canape_core::PerformanceMode;
 
+#[cfg(windows)]
+mod adl;
 pub mod atk;
 pub mod mock;
 #[cfg(windows)]
@@ -39,6 +41,10 @@ pub trait Device: Send {
     fn set_performance_mode(&mut self, mode: PerformanceMode) -> Result<()>;
     fn set_battery_charge_limit(&mut self, percent: u8) -> Result<()>;
     fn telemetry(&mut self) -> Result<Telemetry>;
+    /// Frame rate of what is on screen, when the GPU driver reports it.
+    fn frame_rate(&mut self) -> Option<f32> {
+        None
+    }
 }
 
 /// Picks the backend for the machine we run on.

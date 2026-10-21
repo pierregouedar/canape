@@ -6,6 +6,7 @@
 //! - `--stdio`: answer JSON requests read on stdin, for quick tests;
 //! - `install` / `uninstall` (Windows, elevated): register the service.
 
+mod conflicts;
 mod handler;
 mod server;
 #[cfg(windows)]
@@ -16,8 +17,17 @@ use std::path::PathBuf;
 
 use canape_core::{Request, Response, protocol};
 
+fn data_dir() -> PathBuf {
+    canape_core::log::dir("ProgramData")
+}
+
+/// Last settings applied, re-applied at startup.
+pub fn state_path() -> PathBuf {
+    data_dir().join("state.json")
+}
+
 fn log_path() -> PathBuf {
-    canape_core::log::dir("ProgramData").join("service.log")
+    data_dir().join("service.log")
 }
 
 pub fn log(message: &str) {
@@ -55,7 +65,9 @@ fn console() -> io::Result<()> {
         device.name(),
         protocol::PIPE_NAME
     );
-    server::spawn(device, |message| eprintln!("canape-service: {message}"))?;
+    server::spawn(device, state_path(), |message| {
+        eprintln!("canape-service: {message}")
+    })?;
     loop {
         std::thread::park();
     }

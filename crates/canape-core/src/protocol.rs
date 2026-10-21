@@ -51,8 +51,14 @@ pub struct Status {
     pub performance_mode: Option<PerformanceMode>,
     pub auto_tdp: AutoTdpSettings,
     pub fps: Option<f32>,
+    /// GPU activity in `[0, 1]`.
+    #[serde(default)]
+    pub gpu_util: Option<f32>,
     pub cpu_temp_c: Option<f32>,
     pub battery_percent: Option<u8>,
+    /// Other programs that also drive the hardware (Winhanced, Armoury Crate…).
+    #[serde(default)]
+    pub conflicts: Vec<String>,
 }
 
 #[derive(Debug, thiserror::Error)]

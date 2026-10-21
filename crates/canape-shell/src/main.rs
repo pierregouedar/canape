@@ -13,6 +13,8 @@
 mod gamepad;
 mod instance;
 mod link;
+#[cfg(any(windows, test))]
+mod nav;
 
 use canape_core::{AutoTdpSettings, PerformanceMode, Request};
 

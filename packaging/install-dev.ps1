@@ -17,6 +17,8 @@ param(
     # usually pass, so this allows testing with a debug build.
     [ValidateSet("release", "debug")]
     [string]$BuildProfile = "release",
+    # Prebuilt binaries (e.g. the CI artifact) instead of building locally.
+    [string]$BinariesDir = "",
     [switch]$SetAsHomeApp
 )
 
@@ -36,10 +38,16 @@ if ($devMode.AllowDevelopmentWithoutDevLicense -ne 1) {
     throw "Developer Mode is off: Settings > System > Advanced > For developers."
 }
 
-Write-Host "1/6 Building ($BuildProfile)"
-$cargoProfile = if ($BuildProfile -eq "release") { @("--release") } else { @() }
-cargo build @cargoProfile -p canape-shell -p canape-service -p canape-ctl --manifest-path "$repo\Cargo.toml"
-if ($LASTEXITCODE -ne 0) { throw "cargo build failed" }
+if ($BinariesDir) {
+    Write-Host "1/6 Using prebuilt binaries from $BinariesDir"
+    $binaries = $BinariesDir
+} else {
+    Write-Host "1/6 Building ($BuildProfile)"
+    $cargoProfile = if ($BuildProfile -eq "release") { @("--release") } else { @() }
+    cargo build @cargoProfile -p canape-shell -p canape-service -p canape-ctl --manifest-path "$repo\Cargo.toml"
+    if ($LASTEXITCODE -ne 0) { throw "cargo build failed" }
+    $binaries = "$repo\target\$BuildProfile"
+}
 
 Write-Host "2/6 Installing files to $InstallDir"
 $service = Join-Path $InstallDir "canape-service.exe"
@@ -51,7 +59,7 @@ if (Test-Path $service) {
 Get-Process canape-shell -ErrorAction SilentlyContinue | Stop-Process -Force
 New-Item -ItemType Directory -Force $InstallDir | Out-Null
 foreach ($exe in "canape-shell.exe", "canape-service.exe", "canape-ctl.exe") {
-    Copy-Item "$repo\target\$BuildProfile\$exe" $InstallDir -Force
+    Copy-Item "$binaries\$exe" $InstallDir -Force
 }
 Copy-Item "$repo\packaging\identity\CustomCapability.SCCD" $InstallDir -Force
 
