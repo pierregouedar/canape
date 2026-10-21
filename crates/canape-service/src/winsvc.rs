@@ -53,6 +53,9 @@ fn run() -> windows_service::Result<()> {
 
     let device = canape_hw::detect();
     crate::log(&format!("service starting, device = {}", device.name()));
+    for line in device.diagnostics() {
+        crate::log(&line);
+    }
     if let Err(err) = crate::server::spawn(device, crate::state_path(), crate::log) {
         crate::log(&format!("cannot serve the pipe: {err}"));
         let mut stopped = status(ServiceState::Stopped, ServiceControlAccept::empty());

@@ -35,6 +35,10 @@ pub struct Telemetry {
 
 pub trait Device: Send {
     fn name(&self) -> &str;
+    /// Backend details worth a line in the service log.
+    fn diagnostics(&self) -> Vec<String> {
+        Vec::new()
+    }
     /// Supported sustained power range, in watts.
     fn tdp_range(&self) -> (u32, u32);
     fn set_tdp(&mut self, watts: u32) -> Result<()>;

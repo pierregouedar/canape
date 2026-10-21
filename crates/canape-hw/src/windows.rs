@@ -53,6 +53,8 @@ pub struct AllyDevice {
     model: Model,
     /// FPS and GPU load, when the AMD driver exposes them.
     adl: Option<Adl>,
+    /// Why ADL is unavailable, for the service log.
+    adl_error: Option<String>,
 }
 
 // The handle is only used behind the service's handler lock.
@@ -78,10 +80,15 @@ impl AllyDevice {
         if handle == INVALID_HANDLE_VALUE {
             return None;
         }
+        let (adl, adl_error) = match Adl::open() {
+            Ok(adl) => (Some(adl), None),
+            Err(err) => (None, Some(err)),
+        };
         Some(Self {
             handle,
             model,
-            adl: Adl::open(),
+            adl,
+            adl_error,
         })
     }
 
@@ -132,6 +139,14 @@ impl Drop for AllyDevice {
 impl Device for AllyDevice {
     fn name(&self) -> &str {
         self.model.name()
+    }
+
+    fn diagnostics(&self) -> Vec<String> {
+        vec![match (&self.adl, &self.adl_error) {
+            (Some(adl), _) => adl.describe(),
+            (None, Some(err)) => format!("adl unavailable: {err}"),
+            (None, None) => "adl unavailable".into(),
+        }]
     }
 
     fn tdp_range(&self) -> (u32, u32) {

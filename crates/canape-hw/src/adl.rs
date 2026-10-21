@@ -78,6 +78,12 @@ unsafe extern "system" fn adl_malloc(size: i32) -> *mut c_void {
     unsafe { LocalAlloc(LMEM_FIXED, size.max(0) as usize) }
 }
 
+/// A NUL-terminated ANSI field of an ADL struct.
+fn ansi(bytes: &[u8]) -> String {
+    let end = bytes.iter().position(|&b| b == 0).unwrap_or(bytes.len());
+    String::from_utf8_lossy(&bytes[..end]).into_owned()
+}
+
 fn load_api() -> Option<Api> {
     let name: Vec<u16> = "atiadlxx.dll".encode_utf16().chain(Some(0)).collect();
     let module: HMODULE = unsafe { LoadLibraryW(name.as_ptr()) };
@@ -110,47 +116,101 @@ pub struct Adl {
     api: Api,
     context: Context,
     adapter: i32,
+    /// `ADL2_Adapter_FrameMetrics_Start` result; FPS only when `ADL_OK`.
+    frame_metrics: i32,
 }
 
 // ADL contexts are thread-safe; the service also serializes every call.
 unsafe impl Send for Adl {}
 
 impl Adl {
-    /// The integrated AMD GPU, with frame metrics started; `None` without
-    /// an AMD driver.
-    pub fn open() -> Option<Self> {
-        let api = load_api()?;
+    /// The integrated AMD GPU, with frame metrics started. The error names
+    /// the step that failed, for the service log.
+    pub fn open() -> Result<Self, String> {
+        let api = load_api().ok_or("atiadlxx.dll or one of its entry points not found")?;
         let mut context: Context = std::ptr::null_mut();
-        if unsafe { (api.control_create)(adl_malloc, 1, &mut context) } != ADL_OK {
-            return None;
+        let code = unsafe { (api.control_create)(adl_malloc, 1, &mut context) };
+        if code != ADL_OK {
+            return Err(format!("ADL2_Main_Control_Create returned {code}"));
         }
         let mut count = 0;
-        if unsafe { (api.adapters_count)(context, &mut count) } != ADL_OK || count <= 0 {
-            return None;
+        let code = unsafe { (api.adapters_count)(context, &mut count) };
+        if code != ADL_OK || count <= 0 {
+            return Err(format!(
+                "ADL2_Adapter_NumberOfAdapters_Get returned {code}, count {count}"
+            ));
         }
         let mut adapters: Vec<AdapterInfo> = vec![unsafe { std::mem::zeroed() }; count as usize];
         let bytes = (adapters.len() * size_of::<AdapterInfo>()) as i32;
-        if unsafe { (api.adapter_info)(context, adapters.as_mut_ptr(), bytes) } != ADL_OK {
-            return None;
+        let code = unsafe { (api.adapter_info)(context, adapters.as_mut_ptr(), bytes) };
+        if code != ADL_OK {
+            return Err(format!("ADL2_Adapter_AdapterInfo_Get returned {code}"));
         }
+        let integrated = |a: &&AdapterInfo| {
+            let (mut family, mut valid) = (0, 0);
+            let ok =
+                unsafe { (api.asic_family)(context, a.adapter_index, &mut family, &mut valid) };
+            a.vendor_id == AMD_VENDOR_ID
+                && a.exist != 0
+                && ok == ADL_OK
+                && family & valid & ASIC_INTEGRATED != 0
+        };
+        // In session 0 (the service) no adapter is `present`: there is no
+        // display there. Prefer a present one, else take the first that exists.
         let adapter = adapters
             .iter()
-            .filter(|a| a.vendor_id == AMD_VENDOR_ID && a.present != 0 && a.exist != 0)
+            .filter(integrated)
+            .max_by_key(|a| (a.present != 0, std::cmp::Reverse(a.adapter_index)))
             .map(|a| a.adapter_index)
-            .find(|&index| {
-                let (mut family, mut valid) = (0, 0);
-                let ok = unsafe { (api.asic_family)(context, index, &mut family, &mut valid) };
-                ok == ADL_OK && family & valid & ASIC_INTEGRATED != 0
+            .ok_or_else(|| {
+                let seen: Vec<String> = adapters
+                    .iter()
+                    .map(|a| {
+                        let (mut family, mut valid) = (0, 0);
+                        let code = unsafe {
+                            (api.asic_family)(context, a.adapter_index, &mut family, &mut valid)
+                        };
+                        format!(
+                            "#{} {:?} vendor {} present {} exist {} asic {code}:{family:#x}/{valid:#x}",
+                            a.adapter_index,
+                            ansi(&a.adapter_name),
+                            a.vendor_id,
+                            a.present,
+                            a.exist
+                        )
+                    })
+                    .collect();
+                format!(
+                    "no present integrated AMD adapter among {count}: {}",
+                    seen.join("; ")
+                )
             })?;
-        unsafe { (api.frame_metrics_start)(context, adapter, 0) };
-        Some(Self {
+        // session 0 (the service): GPU activity still works there.
+        let frame_metrics = unsafe { (api.frame_metrics_start)(context, adapter, 0) };
+        Ok(Self {
             api,
             context,
             adapter,
+            frame_metrics,
         })
     }
 
+    /// One line for the service log.
+    pub fn describe(&self) -> String {
+        if self.frame_metrics == ADL_OK {
+            format!("adl: frame metrics started on adapter {}", self.adapter)
+        } else {
+            format!(
+                "adl: adapter {}, ADL2_Adapter_FrameMetrics_Start returned {} (no FPS)",
+                self.adapter, self.frame_metrics
+            )
+        }
+    }
+
     pub fn fps(&self) -> Option<f32> {
+        if self.frame_metrics != ADL_OK {
+            return None;
+        }
         let mut fps = 0.0;
         let ok = unsafe { (self.api.frame_metrics_get)(self.context, self.adapter, 0, &mut fps) };
         (ok == ADL_OK && fps.is_finite() && fps >= 0.0).then_some(fps)

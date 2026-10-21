@@ -43,7 +43,10 @@ if ($BinariesDir) {
     $binaries = $BinariesDir
 } else {
     Write-Host "1/6 Building ($BuildProfile)"
-    $cargoProfile = if ($BuildProfile -eq "release") { @("--release") } else { @() }
+    # Built up explicitly: `if` would unroll a one-item array into a string,
+    # which splatting then passes character by character.
+    $cargoProfile = @()
+    if ($BuildProfile -eq "release") { $cargoProfile += "--release" }
     cargo build @cargoProfile -p canape-shell -p canape-service -p canape-ctl --manifest-path "$repo\Cargo.toml"
     if ($LASTEXITCODE -ne 0) { throw "cargo build failed" }
     $binaries = "$repo\target\$BuildProfile"
@@ -56,7 +59,8 @@ if (Test-Path $service) {
     # not registered writes to stderr, which PowerShell 5.1 turns into an error.
     try { & $service uninstall 2>&1 | Out-Null } catch { }
 }
-Get-Process canape-shell -ErrorAction SilentlyContinue | Stop-Process -Force
+# Stop-Process returns before the exe is unlocked: wait for the exit.
+Get-Process canape-shell -ErrorAction SilentlyContinue | Stop-Process -Force -PassThru | Wait-Process -Timeout 10
 New-Item -ItemType Directory -Force $InstallDir | Out-Null
 foreach ($exe in "canape-shell.exe", "canape-service.exe", "canape-ctl.exe") {
     Copy-Item "$binaries\$exe" $InstallDir -Force
