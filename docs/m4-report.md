@@ -79,3 +79,50 @@ Targets: service < 10 MB, OK; shell < 80 MB, **OK** (115 MB in M2, debug + OpenG
 - Auto TDP oscillation (above).
 - The shell's idle CPU (0.94 % of one core).
 - FSE boot not retested (nothing changed on the startup side).
+
+## Retest 99cad07
+
+2026-10-21, local release build. `cargo test` (9 + 8 + … tests), clippy and fmt OK under Windows, no fix needed. Winhanced paused during the measurements and restarted at the end (Pierre's approval).
+
+### FPS from the service
+
+- `shell.log`: `adl: frame metrics started on adapter 0`. Starting the shell is enough, with no probe.
+- `service.log` at startup: `adl: frame metrics started on adapter 0` as well. **[I]** The arming done by the shell earlier persists at the driver level.
+- `canape-ctl`: `fps` ≈ 120 on light Aquarium, 60–70 on heavy. **OK, no probe.**
+
+### Auto TDP, heavy load (Aquarium 30,000 fish, target 60, 5 min)
+
+| | c617cf3 | 99cad07 |
+|---|---|---|
+| After stabilization (4 min) | sawtooth 16–24 W | **18 W for 87 % of the time** (104/120 samples); 16–17 W ×5, 19–20 W ×5, 24 W ×6 |
+| Changes | ~30 in 80 s | **13 in 5 min** (4 at startup: 12 → 19 W in 6 s) |
+| FPS | 55–71 | average 60.6; 5 samples < 57 (the probes) |
+
+- Downward probes come every ~2 min (18 → 17 → 16 W, back to 18 W within 2–4 s), as intended.
+- A one-off stall at 20.8 FPS (21:39:11, probably on Edge's side) caused a jump to 24 W, 20 → 24 W in one step.
+- Minor: two probes went down while FPS were already below 98 % of the target (18 → 17 W at 58.4 FPS, 17 → 16 W at 58.1). Maybe the smoothed FPS was still above the threshold.
+
+### Auto TDP, light load (default Aquarium) right after the heavy one: regression
+
+- **The TDP stays stuck at 24 W for about 4 min** (21:39:11 → 21:43:19) at 120 FPS and 18–19 % GPU. That's the floor created by the rise after the stall, whose hold time had doubled after the failed probes (≈ 240 ticks).
+- Once released, it drops to 7 W in 48 s (1 W every 2–4 s) and stays there.
+- Before this fix, the drop to 7 W took 16 s. Suggestion: release the floor right away when FPS sit well above the target (e.g. > 110 %) with low GPU activity, which is a clear change of load; and/or not let a rise caused by a one-off stall (a single sample, very low FPS) become a floor.
+
+### Idle CPU and memory (release, shell in the foreground)
+
+| Process | Private working set | Idle CPU (30 s) |
+|---|---|---|
+| `canape-shell` | 11.3 MB | **0.31 %** of one core (0.94 % before, 2 % in M2) |
+| `canape-service` | 1.3 MB | 0 % |
+
+### End state
+
+Auto TDP off, `set_performance_mode performance` (firmware balanced, `tdp_watts: null`). `state.json` = `performance`. Winhanced restarted. Note: earlier in the evening Pierre had turned on auto TDP and 23 W from the shell (`SetTdp` 18 → 23 then `SetAutoTdp enabled: true` at 21:27, restored at startup); it's off now.
+
+### Tooling for M3 (Game Bar widget), read-only
+
+- **Visual Studio Build Tools 2022 17.14** (`C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools`). Workloads: `VCTools` and `MSBuildTools` only.
+- **No** `Microsoft.VisualStudio.Workload.Universal`, no `ComponentGroup.UWP.BuildTools`, no `ManagedDesktop`, no XAML/.NET Native targets for UWP.
+- **.NET: runtimes only** (NETCore 8.0.21 / 8.0.32 / 10.0.9, WindowsDesktop 8.0.32 / 10.0.9), **no SDK** (`dotnet --list-sdks` is empty).
+- Windows SDK 10.0.26100.0 present (`Platforms\UAP\10.0.26100.0`).
+- So to build a UWP widget on the Ally, you'd need to install the UWP workload (or the .NET SDK, depending on the chosen approach): that's Pierre's call.
