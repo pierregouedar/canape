@@ -1,0 +1,81 @@
+<Page
+    x:Class="CanapeWidget.WidgetPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Page.Resources>
+        <Style x:Key="Tile" TargetType="Button">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Margin" Value="3" />
+            <Setter Property="MinHeight" Value="40" />
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="12">
+        <StackPanel Spacing="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="TDP" Opacity="0.6" FontSize="12" />
+                    <TextBlock x:Name="TdpText" Text="—" FontSize="20" FontWeight="SemiBold" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="FPS" Opacity="0.6" FontSize="12" />
+                    <TextBlock x:Name="FpsText" Text="—" FontSize="20" FontWeight="SemiBold" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Temp." Opacity="0.6" FontSize="12" />
+                    <TextBlock x:Name="TempText" Text="—" FontSize="20" FontWeight="SemiBold" />
+                </StackPanel>
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="Batterie" Opacity="0.6" FontSize="12" />
+                    <TextBlock x:Name="BatteryText" Text="—" FontSize="20" FontWeight="SemiBold" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Text="Mode" Opacity="0.8" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="SilentButton" Grid.Column="0" Style="{StaticResource Tile}" Content="Silencieux" Tag="silent" Click="OnMode" />
+                <Button x:Name="PerformanceButton" Grid.Column="1" Style="{StaticResource Tile}" Content="Perf." Tag="performance" Click="OnMode" />
+                <Button x:Name="TurboButton" Grid.Column="2" Style="{StaticResource Tile}" Content="Turbo" Tag="turbo" Click="OnMode" />
+            </Grid>
+
+            <TextBlock Text="TDP manuel" Opacity="0.8" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Style="{StaticResource Tile}" Content="− 1 W" Tag="-1" Click="OnTdp" />
+                <Button Grid.Column="1" Style="{StaticResource Tile}" Content="+ 1 W" Tag="1" Click="OnTdp" />
+            </Grid>
+
+            <TextBlock Text="Auto TDP" Opacity="0.8" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="AutoButton" Grid.Column="0" Style="{StaticResource Tile}" Content="Off" Click="OnAutoToggle" />
+                <Button x:Name="Fps30Button" Grid.Column="1" Style="{StaticResource Tile}" Content="30" Tag="30" Click="OnTarget" />
+                <Button x:Name="Fps40Button" Grid.Column="2" Style="{StaticResource Tile}" Content="40" Tag="40" Click="OnTarget" />
+                <Button x:Name="Fps60Button" Grid.Column="3" Style="{StaticResource Tile}" Content="60" Tag="60" Click="OnTarget" />
+            </Grid>
+
+            <TextBlock x:Name="ConflictText" Foreground="#FACC15" TextWrapping="Wrap" Visibility="Collapsed" />
+            <TextBlock x:Name="MessageText" Foreground="#FCA5A5" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</Page>

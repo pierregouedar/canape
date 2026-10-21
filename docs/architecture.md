@@ -107,7 +107,7 @@ Le service mémorise les derniers réglages appliqués (`%ProgramData%\Canape\st
 | M1 ✅ | `canape-shell.exe` **démarre en FSE** sur l'Ally (voir `m1-report.md`) |
 | M2 ✅ | Service Windows + pipe, backend ATKACPI, interface Slint à la manette, instance unique (voir `m2-report.md`) |
 | M2.5 🚧 | État persistant et réappliqué au démarrage, journal des écritures, détection des programmes concurrents, rendu logiciel, manette en XInput direct, CI Windows |
-| M3 | Widget Game Bar relié au service |
+| M3 🚧 | Widget Game Bar (C# UWP) relié au service par le pipe, voir `widget/README.md` |
 | M4 🚧 | Auto TDP en conditions réelles : FPS et charge GPU via AMD ADL |
 | M5 | Interface complète : bibliothèque de jeux, profils, ventilateurs, écran, batterie |
 
