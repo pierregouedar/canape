@@ -108,9 +108,6 @@ msgstr "Bu oyunun profili yok: genel ayarlar geçerli."
 msgid "Start a game: its profile applies by itself."
 msgstr "Bir oyun başlatın: profili kendiliğinden uygulanır."
 
-msgid "Profile active"
-msgstr "Profil etkin"
-
 msgid "On"
 msgstr "Açık"
 
@@ -303,12 +300,6 @@ msgstr "Dil"
 msgid "Automatic follows the Windows display language."
 msgstr "Otomatik, Windows görüntüleme dilini izler."
 
-msgid "Windows language"
-msgstr "Windows dili"
-
-msgid "About"
-msgstr "Hakkında"
-
 msgid "Version {}"
 msgstr "Sürüm {}"
 
@@ -317,9 +308,6 @@ msgstr "ROG Ally için hafif, konsol tarzı bir ana ekran. Donanımı Canapé hi
 
 msgid "Service connected"
 msgstr "Hizmet bağlı"
-
-msgid "Gamepad"
-msgstr "Oyun kumandası"
 
 msgid "Back to Home"
 msgstr "Ana sayfaya dön"
@@ -354,3 +342,30 @@ msgstr "Manuel"
 
 msgid "Accent colour"
 msgstr "Vurgu rengi"
+
+msgid "Offline"
+msgstr "Çevrimdışı"
+
+msgid "Power draw"
+msgstr "Güç tüketimi"
+
+msgid "Hue"
+msgstr "Ton"
+
+msgid "Saturation"
+msgstr "Doygunluk"
+
+msgid "Brightness"
+msgstr "Parlaklık"
+
+msgid "Presets"
+msgstr "Hazır renkler"
+
+msgid "Every page follows this colour, and so does the Game Bar widget."
+msgstr "Tüm sayfalar bu rengi kullanır, Game Bar bileşeni de."
+
+msgid "Press A on a slider to adjust it."
+msgstr "Ayarlamak için bir kaydırıcıda A'ya basın."
+
+msgid "Move with the D-pad or the stick, then press A to finish."
+msgstr "Yön tuşları veya çubukla ayarlayın, bitirmek için A'ya basın."

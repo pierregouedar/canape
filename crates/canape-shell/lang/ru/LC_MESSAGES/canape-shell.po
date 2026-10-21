@@ -108,9 +108,6 @@ msgstr "Для этой игры нет профиля: действуют об�
 msgid "Start a game: its profile applies by itself."
 msgstr "Запустите игру: её профиль применится сам."
 
-msgid "Profile active"
-msgstr "Профиль активен"
-
 msgid "On"
 msgstr "Вкл."
 
@@ -295,19 +292,13 @@ msgid "Most frames per watt: {} FPS"
 msgstr "Больше всего кадров на ватт: {} FPS"
 
 msgid "Automatic"
-msgstr "Автоматически"
+msgstr "Авто"
 
 msgid "Language"
 msgstr "Язык"
 
 msgid "Automatic follows the Windows display language."
-msgstr "«Автоматически» — язык интерфейса Windows."
-
-msgid "Windows language"
-msgstr "Язык Windows"
-
-msgid "About"
-msgstr "О программе"
+msgstr "«Авто» — язык интерфейса Windows."
 
 msgid "Version {}"
 msgstr "Версия {}"
@@ -317,9 +308,6 @@ msgstr "Лёгкий главный экран в стиле консоли дл
 
 msgid "Service connected"
 msgstr "Служба подключена"
-
-msgid "Gamepad"
-msgstr "Геймпад"
 
 msgid "Back to Home"
 msgstr "На главную"
@@ -354,3 +342,30 @@ msgstr "Ручной"
 
 msgid "Accent colour"
 msgstr "Цвет акцента"
+
+msgid "Offline"
+msgstr "Не в сети"
+
+msgid "Power draw"
+msgstr "Потребление"
+
+msgid "Hue"
+msgstr "Оттенок"
+
+msgid "Saturation"
+msgstr "Насыщенность"
+
+msgid "Brightness"
+msgstr "Яркость"
+
+msgid "Presets"
+msgstr "Готовые цвета"
+
+msgid "Every page follows this colour, and so does the Game Bar widget."
+msgstr "Этот цвет используют все страницы и виджет Game Bar."
+
+msgid "Press A on a slider to adjust it."
+msgstr "Нажмите A на ползунке, чтобы настроить его."
+
+msgid "Move with the D-pad or the stick, then press A to finish."
+msgstr "Настройте крестовиной или стиком, затем нажмите A, чтобы завершить."

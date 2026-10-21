@@ -108,9 +108,6 @@ msgstr "Geen profiel voor deze game: de algemene instellingen gelden."
 msgid "Start a game: its profile applies by itself."
 msgstr "Start een game: het profiel wordt vanzelf toegepast."
 
-msgid "Profile active"
-msgstr "Profiel actief"
-
 msgid "On"
 msgstr "Aan"
 
@@ -303,12 +300,6 @@ msgstr "Taal"
 msgid "Automatic follows the Windows display language."
 msgstr "Automatisch volgt de weergavetaal van Windows."
 
-msgid "Windows language"
-msgstr "Windows-taal"
-
-msgid "About"
-msgstr "Over"
-
 msgid "Version {}"
 msgstr "Versie {}"
 
@@ -317,9 +308,6 @@ msgstr "Een licht startscherm in consolestijl voor de ROG Ally. De hardware word
 
 msgid "Service connected"
 msgstr "Service verbonden"
-
-msgid "Gamepad"
-msgstr "Controller"
 
 msgid "Back to Home"
 msgstr "Terug naar start"
@@ -354,3 +342,30 @@ msgstr "Handmatig"
 
 msgid "Accent colour"
 msgstr "Accentkleur"
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "Power draw"
+msgstr "Verbruik"
+
+msgid "Hue"
+msgstr "Tint"
+
+msgid "Saturation"
+msgstr "Verzadiging"
+
+msgid "Brightness"
+msgstr "Helderheid"
+
+msgid "Presets"
+msgstr "Voorinstellingen"
+
+msgid "Every page follows this colour, and so does the Game Bar widget."
+msgstr "Alle pagina's volgen deze kleur, en de Game Bar-widget ook."
+
+msgid "Press A on a slider to adjust it."
+msgstr "Druk op A op een schuifregelaar om hem in te stellen."
+
+msgid "Move with the D-pad or the stick, then press A to finish."
+msgstr "Stel in met de D-pad of de stick en druk op A om af te ronden."

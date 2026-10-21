@@ -108,9 +108,6 @@ msgstr "このゲームのプロファイルはありません。共通の設定
 msgid "Start a game: its profile applies by itself."
 msgstr "ゲームを起動すると、そのプロファイルが自動で適用されます。"
 
-msgid "Profile active"
-msgstr "プロファイル適用中"
-
 msgid "On"
 msgstr "オン"
 
@@ -303,12 +300,6 @@ msgstr "言語"
 msgid "Automatic follows the Windows display language."
 msgstr "「自動」は Windows の表示言語に従います。"
 
-msgid "Windows language"
-msgstr "Windows の言語"
-
-msgid "About"
-msgstr "情報"
-
 msgid "Version {}"
 msgstr "バージョン {}"
 
@@ -317,9 +308,6 @@ msgstr "ROG Ally 向けの軽量なコンソール風ホーム。ハードウェ
 
 msgid "Service connected"
 msgstr "サービス接続済み"
-
-msgid "Gamepad"
-msgstr "コントローラー"
 
 msgid "Back to Home"
 msgstr "ホームに戻る"
@@ -354,3 +342,30 @@ msgstr "手動"
 
 msgid "Accent colour"
 msgstr "アクセントカラー"
+
+msgid "Offline"
+msgstr "オフライン"
+
+msgid "Power draw"
+msgstr "消費電力"
+
+msgid "Hue"
+msgstr "色相"
+
+msgid "Saturation"
+msgstr "彩度"
+
+msgid "Brightness"
+msgstr "明るさ"
+
+msgid "Presets"
+msgstr "プリセット"
+
+msgid "Every page follows this colour, and so does the Game Bar widget."
+msgstr "すべてのページと Game Bar ウィジェットがこの色になります。"
+
+msgid "Press A on a slider to adjust it."
+msgstr "スライダーで A を押すと調整できます。"
+
+msgid "Move with the D-pad or the stick, then press A to finish."
+msgstr "十字キーかスティックで調整し、A で確定します。"

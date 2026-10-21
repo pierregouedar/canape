@@ -56,13 +56,15 @@ export component Tile inherits Pressable {
     in property <string> label;
     in property <string> sub;
     in property <length> font-size: 20px;
+    // Side padding: narrow tiles trade it for room for the label.
+    in property <length> pad: 16px;
     min-height: 64px;
     min-width: 110px;
 
     VerticalLayout {
         alignment: center;
-        padding-left: 16px;
-        padding-right: 16px;
+        padding-left: root.pad;
+        padding-right: root.pad;
         spacing: 2px;
         Text {
             text: root.label;
@@ -184,35 +186,223 @@ export component Card inherits Rectangle {
     }
 }
 
-// Coloured pill: a dot and a short text.
-export component Badge inherits Rectangle {
-    in property <string> text;
-    in property <color> tint: Theme.dim;
-    horizontal-stretch: 0;
-    height: 32px;
-    border-radius: 16px;
-    background: root.tint.with-alpha(0.14);
+// One minute of history (history.rs): an area under a line, and an
+// optional reference line such as the power limit. The paths share one
+// viewbox and stroke width, so they line up exactly.
+export component Graph inherits Rectangle {
+    in property <string> line;
+    in property <string> area;
+    in property <string> reference;
+    in property <color> tint: Theme.accent;
+    clip: true;
 
-    HorizontalLayout {
-        padding-left: 12px;
-        padding-right: 14px;
-        spacing: 8px;
-        alignment: start;
-        VerticalLayout {
-            alignment: center;
-            Rectangle {
-                width: 8px;
-                height: 8px;
-                border-radius: 4px;
-                background: root.tint;
+    // Guides at half and full scale, and the baseline.
+    for level in [0, 0.5]: Rectangle {
+        y: parent.height * level;
+        height: 1px;
+        background: Theme.stroke.with-alpha(0.6);
+    }
+    Rectangle {
+        y: parent.height - 1px;
+        height: 1px;
+        background: Theme.stroke;
+    }
+
+    if root.area != "": Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 59;
+        viewbox-height: 100;
+        fit: fill;
+        commands: root.area;
+        // The software renderer fills paths with plain colours only.
+        fill: root.tint.with-alpha(0.16);
+        stroke: transparent;
+        stroke-width: 2px;
+    }
+
+    if root.reference != "": Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 59;
+        viewbox-height: 100;
+        fit: fill;
+        commands: root.reference;
+        stroke: Theme.reference;
+        stroke-width: 2px;
+    }
+
+    if root.line != "": Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 59;
+        viewbox-height: 100;
+        fit: fill;
+        commands: root.line;
+        stroke: root.tint;
+        stroke-width: 2px;
+        stroke-line-join: round;
+    }
+}
+
+// Warning sign, drawn so it does not depend on the font.
+export component WarnIcon inherits Rectangle {
+    width: 22px;
+    height: 20px;
+    Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 22;
+        viewbox-height: 20;
+        commands: "M 11 0 L 22 20 L 0 20 Z";
+        fill: Theme.warn;
+    }
+
+    Rectangle {
+        x: 10px;
+        y: 6px;
+        width: 2px;
+        height: 7px;
+        background: #1a1300;
+    }
+
+    Rectangle {
+        x: 10px;
+        y: 15px;
+        width: 2px;
+        height: 2px;
+        background: #1a1300;
+    }
+}
+
+// A slider for the colour picker: focus it, press A to grab it, then any
+// direction moves it (the gamepad sends Tab / Shift+Tab, see nav.rs) until
+// A or B lets go. Arrow keys and touch move it directly.
+export component ColorSlider inherits Rectangle {
+    in property <string> label;
+    // Position in [0, 1].
+    in property <float> value;
+    // Change for one press, in [0, 1].
+    in property <float> step: 0.02;
+    in property <brush> track;
+    // Draws the hue circle instead of `track`.
+    in property <bool> rainbow;
+    in property <color> knob;
+    out property <bool> focused: fs.has-focus;
+    out property <bool> grabbed;
+    callback moved(float);
+    forward-focus: fs;
+    height: 62px;
+
+    function nudge(direction: int) {
+        root.moved(max(0, min(1, root.value + direction * root.step)));
+    }
+
+    Text {
+        x: 0;
+        y: 0;
+        height: 20px;
+        text: root.label;
+        color: root.focused ? Theme.text : Theme.dim;
+        font-size: Theme.font-small;
+        font-weight: 600;
+        overflow: elide;
+        width: parent.width;
+    }
+
+    bar := Rectangle {
+        x: 0;
+        y: 26px;
+        width: parent.width;
+        height: 36px;
+        border-radius: 10px;
+        border-width: root.focused ? 3px : 0;
+        border-color: Theme.focus;
+
+        Rectangle {
+            x: 5px;
+            y: 5px;
+            width: parent.width - 10px;
+            height: parent.height - 10px;
+            // Square ends: the software renderer does not round gradients.
+            if !root.rainbow: Rectangle {
+                background: root.track;
+            }
+            // One two-stop gradient per sixth of the hue circle: multi-stop
+            // gradients show seams in the software renderer.
+            for pair[i] in [[#ff0000, #ffff00], [#ffff00, #00ff00], [#00ff00, #00ffff], [#00ffff, #0000ff], [#0000ff, #ff00ff], [#ff00ff, #ff0000]]: Rectangle {
+                visible: root.rainbow;
+                x: parent.width * i / 6;
+                width: parent.width / 6 + 1px;
+                background: @linear-gradient(90deg, pair[0] 0%, pair[1] 100%);
             }
         }
-        Text {
-            text: root.text;
-            color: root.tint;
-            font-size: Theme.font-small;
-            font-weight: 600;
-            vertical-alignment: center;
+
+        Rectangle {
+            property <length> size: root.grabbed ? 30px : 24px;
+            x: 5px + (parent.width - 10px - self.size) * root.value;
+            y: (parent.height - self.size) / 2;
+            width: self.size;
+            height: self.size;
+            border-radius: self.size / 2;
+            background: root.knob;
+            border-width: 3px;
+            border-color: Theme.focus;
+            drop-shadow-blur: 6px;
+            drop-shadow-color: #00000080;
+            animate width, height { duration: 100ms; }
+        }
+
+        TouchArea {
+            pointer-event(event) => {
+                if event.kind == PointerEventKind.down {
+                    fs.focus();
+                }
+            }
+            moved => {
+                if self.pressed {
+                    root.moved(max(0, min(1, (self.mouse-x - 5px) / (bar.width - 10px))));
+                }
+            }
+            clicked => {
+                root.moved(max(0, min(1, (self.mouse-x - 5px) / (bar.width - 10px))));
+            }
+        }
+    }
+
+    fs := FocusScope {
+        focus-on-click: false;
+        key-pressed(event) => {
+            if event.text == Key.LeftArrow {
+                root.nudge(-1);
+                return accept;
+            }
+            if event.text == Key.RightArrow {
+                root.nudge(1);
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                root.grabbed = !root.grabbed;
+                return accept;
+            }
+            if root.grabbed {
+                if event.text == Key.Escape {
+                    root.grabbed = false;
+                    return accept;
+                }
+                if event.text == Key.Backtab || (event.text == Key.Tab && event.modifiers.shift) || event.text == Key.UpArrow {
+                    root.nudge(-1);
+                    return accept;
+                }
+                if event.text == Key.Tab || event.text == Key.DownArrow {
+                    root.nudge(1);
+                    return accept;
+                }
+            }
+            return reject;
+        }
+        focus-lost(reason) => {
+            root.grabbed = false;
         }
     }
 }

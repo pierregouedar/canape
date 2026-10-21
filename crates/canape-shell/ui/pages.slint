@@ -3,7 +3,7 @@
 
 import { Theme } from "theme.slint";
 import { App, ProfileView, BenchRow, RecView } from "state.slint";
-import { Badge, BatteryIcon, Bolt, Caption, Card, Chip, DpadGlyph, Logo, PadGlyph, Pressable, Stepper, Tile } from "widgets.slint";
+import { Caption, Card, Chip, ColorSlider, DpadGlyph, Graph, Logo, PadGlyph, Pressable, Stepper, Tile, WarnIcon } from "widgets.slint";
 
 component Title inherits Text {
     color: Theme.text;
@@ -32,20 +32,7 @@ component Warning inherits Rectangle {
         spacing: 12px;
         VerticalLayout {
             alignment: center;
-            Rectangle {
-                width: 24px;
-                height: 24px;
-                border-radius: 12px;
-                background: Theme.warn;
-                Text {
-                    text: "!";
-                    color: #1a1300;
-                    font-size: 16px;
-                    font-weight: 800;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-            }
+            WarnIcon { }
         }
 
         Text {
@@ -71,9 +58,9 @@ component Stat inherits Rectangle {
     border-color: Theme.stroke;
 
     VerticalLayout {
-        padding: 18px;
+        padding: 16px;
         padding-left: 22px;
-        spacing: 2px;
+        spacing: 0px;
         alignment: center;
         Caption {
             text: root.label;
@@ -84,9 +71,10 @@ component Stat inherits Rectangle {
             Text {
                 text: root.value;
                 color: root.value-color;
-                font-size: 40px;
+                font-size: 34px;
                 font-weight: 700;
                 vertical-alignment: center;
+                overflow: elide;
             }
 
             @children
@@ -94,41 +82,79 @@ component Stat inherits Rectangle {
     }
 }
 
-// Where a wattage sits between two bounds: the auto TDP range, or the
-// manual range.
-component Gauge inherits VerticalLayout {
-    in property <int> value;
-    in property <int> low;
-    in property <int> high;
-    property <float> ratio: max(0, min(1, (root.value - root.low) / max(1, root.high - root.low)));
-    spacing: 6px;
-    Rectangle {
-        height: 8px;
-        border-radius: 4px;
-        background: Theme.surface-high;
-        Rectangle {
-            x: 0;
-            width: max(parent.height, parent.width * root.ratio);
-            border-radius: 4px;
-            background: @linear-gradient(90deg, Theme.accent.with-alpha(0.5) 0%, Theme.accent 100%);
-            animate width { duration: 300ms; }
-        }
+// A caption over a large number, aligned left or right.
+component Reading inherits VerticalLayout {
+    in property <string> label;
+    in property <string> value;
+    in property <length> size: 40px;
+    // The caption doubles as the legend of a graph line.
+    in property <color> label-color: Theme.dim;
+    in property <color> value-color: Theme.text;
+    in property <TextHorizontalAlignment> align: left;
+    spacing: 0px;
+    Caption {
+        text: root.label;
+        color: root.label-color;
+        horizontal-alignment: root.align;
     }
 
-    HorizontalLayout {
-        Text {
-            text: App.watts(root.low);
-            color: Theme.faint;
-            font-size: Theme.font-small;
-        }
+    Text {
+        text: root.value;
+        color: root.value-color;
+        font-size: root.size;
+        font-weight: 800;
+        horizontal-alignment: root.align;
+        overflow: elide;
+    }
+}
 
-        Rectangle { }
+// A caption and a number on one line, for narrow panels.
+component LiveFigure inherits HorizontalLayout {
+    in property <string> label;
+    in property <color> label-color: Theme.dim;
+    in property <string> value;
+    in property <color> value-color: Theme.text;
+    spacing: 12px;
+    Caption {
+        horizontal-stretch: 1;
+        text: root.label;
+        color: root.label-color;
+        vertical-alignment: center;
+    }
 
-        Text {
-            text: App.watts(root.high);
-            color: Theme.faint;
-            font-size: Theme.font-small;
-        }
+    Text {
+        text: root.value;
+        color: root.value-color;
+        font-size: 26px;
+        font-weight: 800;
+        horizontal-alignment: right;
+        vertical-alignment: center;
+    }
+}
+
+// A graph with its scale in the top left corner.
+component GraphPanel inherits Rectangle {
+    in property <string> line;
+    in property <string> area;
+    in property <string> reference;
+    in property <color> tint: Theme.accent;
+    in property <string> scale-label;
+    min-height: 60px;
+    vertical-stretch: 1;
+
+    Graph {
+        line: root.line;
+        area: root.area;
+        reference: root.reference;
+        tint: root.tint;
+    }
+
+    Text {
+        x: 6px;
+        y: 4px;
+        text: root.scale-label;
+        color: Theme.faint;
+        font-size: 13px;
     }
 }
 
@@ -144,84 +170,105 @@ export component HomePage inherits VerticalLayout {
 
     HorizontalLayout {
         spacing: Theme.gap;
-        min-height: 232px;
+        min-height: 230px;
         vertical-stretch: 1;
 
-        power := Rectangle {
-            // The conflict banner and the auto TDP gauge together leave too
-            // little height for the large number: shrink it rather than spill.
-            property <bool> compact: App.status.conflicts != "" && App.status.connected && App.status.tdp >= 0;
-            horizontal-stretch: 5;
+        // What the APU draws, against the limit Canapé set.
+        Rectangle {
+            horizontal-stretch: 7;
+            preferred-width: 10px;
             border-radius: Theme.radius;
-            background: @linear-gradient(135deg, Theme.accent-tint 0%, #161b28 60%);
+            // Plain: the software renderer does not round gradient corners.
+            background: Theme.accent-tint;
             border-width: 1px;
             border-color: Theme.accent.with-alpha(0.35);
 
             VerticalLayout {
-                padding: 24px;
-                spacing: 4px;
-                Caption {
-                    text: @tr("Power limit");
-                }
+                padding: 22px;
+                padding-bottom: 18px;
+                spacing: 10px;
 
-                Text {
-                    text: !App.status.connected ? "—" : App.status.tdp >= 0 ? App.watts(App.status.tdp) : App.firmware-mode() ? @tr("Auto") : "—";
-                    color: App.status.connected ? Theme.text : Theme.faint;
-                    font-size: power.compact ? 60px : 86px;
-                    font-weight: 800;
-                }
+                HorizontalLayout {
+                    spacing: 24px;
+                    Reading {
+                        label: @tr("Power draw");
+                        label-color: Theme.accent;
+                        value: App.known(App.status.power-tenths, App.watts-tenths(App.status.power-tenths));
+                        size: 56px;
+                    }
 
-                Text {
-                    text: !App.status.connected ? @tr("Service not connected") : App.status.auto-tdp ? @tr("Auto TDP, target {} FPS", App.status.target-fps) : App.firmware-mode() ? @tr("Set by the firmware: {} mode", App.mode-name(App.status.mode)) : @tr("Manual TDP");
-                    color: Theme.dim;
-                    font-size: Theme.font-body;
-                    overflow: elide;
-                }
-
-                Rectangle { }
-
-                if App.status.connected && App.status.tdp >= 0: Gauge {
-                    value: App.status.tdp;
-                    low: App.status.auto-tdp ? App.status.min-watts : 5;
-                    high: App.status.auto-tdp ? App.status.max-watts : 35;
-                }
-
-                Rectangle {
-                    height: 6px;
+                    Reading {
+                        label: @tr("Power limit");
+                        label-color: Theme.reference;
+                        value: !App.status.connected ? "—" : App.status.tdp >= 0 ? App.watts(App.status.tdp) : App.firmware-mode() ? @tr("Auto") : "—";
+                        value-color: Theme.dim;
+                        size: 56px;
+                        align: right;
+                    }
                 }
 
                 HorizontalLayout {
-                    spacing: 10px;
-                    alignment: start;
-                    if App.status.connected && App.status.mode != "": Badge {
-                        text: App.status.auto-tdp ? @tr("Auto TDP") : App.mode-name(App.status.mode);
-                        tint: Theme.accent;
+                    spacing: 16px;
+                    Text {
+                        horizontal-stretch: 1;
+                        text: !App.status.connected ? @tr("Service not connected") : App.status.auto-tdp ? @tr("Auto TDP, target {} FPS", App.status.target-fps) : App.firmware-mode() ? @tr("Set by the firmware: {} mode", App.mode-name(App.status.mode)) : @tr("Manual TDP");
+                        color: Theme.dim;
+                        font-size: Theme.font-body;
+                        overflow: elide;
                     }
-                    if App.status.thermal-limited: Badge {
+
+                    if App.status.thermal-limited: Text {
                         text: @tr("Thermal limit reached");
-                        tint: Theme.warn;
+                        color: Theme.warn;
+                        font-size: Theme.font-body;
+                        font-weight: 600;
                     }
-                    if App.status.bench-running: Badge {
+                    if App.status.bench-running: Text {
                         text: @tr("Bench running");
-                        tint: Theme.good;
+                        color: Theme.accent;
+                        font-size: Theme.font-body;
+                        font-weight: 600;
                     }
+                }
+
+                GraphPanel {
+                    line: App.graphs.power-line;
+                    area: App.graphs.power-area;
+                    reference: App.graphs.limit-line;
+                    scale-label: App.watts(App.graphs.power-scale);
                 }
             }
         }
 
         VerticalLayout {
-            horizontal-stretch: 6;
+            horizontal-stretch: 5;
+            preferred-width: 10px;
             spacing: Theme.gap;
-            HorizontalLayout {
-                spacing: Theme.gap;
-                Stat {
-                    label: @tr("Frame rate");
-                    value: App.known(App.status.fps, App.fps-value(App.status.fps));
+
+            Card {
+                vertical-stretch: 1;
+                pad: 22px;
+                inner-spacing: 10px;
+                HorizontalLayout {
+                    spacing: 16px;
+                    Reading {
+                        label: @tr("GPU");
+                        label-color: Theme.graph;
+                        value: App.known(App.status.gpu, App.percent(App.status.gpu));
+                    }
+
+                    Reading {
+                        label: @tr("Frame rate");
+                        value: App.known(App.status.fps, App.fps-value(App.status.fps));
+                        align: right;
+                    }
                 }
 
-                Stat {
-                    label: @tr("GPU");
-                    value: App.known(App.status.gpu, App.percent(App.status.gpu));
+                GraphPanel {
+                    line: App.graphs.gpu-line;
+                    area: App.graphs.gpu-area;
+                    tint: Theme.graph;
+                    scale-label: App.percent(100);
                 }
             }
 
@@ -236,18 +283,7 @@ export component HomePage inherits VerticalLayout {
                 Stat {
                     label: !App.status.connected || !App.status.power-known ? @tr("Battery") : App.status.on-battery ? @tr("On battery") : @tr("Plugged in");
                     value: App.known(App.status.battery, App.percent(App.status.battery));
-                    if App.status.connected && App.status.battery >= 0: VerticalLayout {
-                        alignment: center;
-                        HorizontalLayout {
-                            spacing: 6px;
-                            BatteryIcon {
-                                percent: App.status.battery;
-                                charging: App.status.power-known && !App.status.on-battery;
-                            }
-
-                            if App.status.power-known && !App.status.on-battery: Bolt { }
-                        }
-                    }
+                    value-color: App.status.connected && App.status.battery >= 0 && App.status.battery <= 20 && App.status.on-battery ? Theme.bad : Theme.text;
                 }
             }
         }
@@ -255,40 +291,35 @@ export component HomePage inherits VerticalLayout {
 
     Card {
         title: @tr("Now playing");
-        inner-spacing: 6px;
+        pad: 16px;
+        inner-spacing: 2px;
         HorizontalLayout {
             spacing: Theme.gap;
-            VerticalLayout {
-                spacing: 6px;
-                Title {
-                    text: App.status.foreground != "" ? App.status.foreground : @tr("No game detected");
-                    color: App.status.foreground != "" ? Theme.text : Theme.dim;
-                }
-
-                Text {
-                    text: App.status.active-profile != "" ? @tr("Profile in use: {}", App.status.active-profile) : App.status.foreground != "" ? @tr("No profile for this game: the global settings apply.") : @tr("Start a game: its profile applies by itself.");
-                    color: Theme.dim;
-                    font-size: Theme.font-body;
-                    overflow: elide;
-                }
+            Text {
+                text: App.status.foreground != "" ? App.status.foreground : @tr("No game detected");
+                color: App.status.foreground != "" ? Theme.text : Theme.dim;
+                font-size: 26px;
+                font-weight: 700;
+                overflow: elide;
+                vertical-alignment: center;
             }
 
-            if App.status.active-profile != "": HorizontalLayout {
-                alignment: end;
-                VerticalLayout {
-                    alignment: center;
-                    Badge {
-                        text: @tr("Profile active");
-                        tint: Theme.good;
-                    }
-                }
+            Text {
+                horizontal-stretch: 1;
+                text: App.status.active-profile != "" ? @tr("Profile in use: {}", App.status.active-profile) : App.status.foreground != "" ? @tr("No profile for this game: the global settings apply.") : @tr("Start a game: its profile applies by itself.");
+                color: App.status.active-profile != "" ? Theme.accent : Theme.dim;
+                font-size: Theme.font-body;
+                font-weight: App.status.active-profile != "" ? 600 : 400;
+                horizontal-alignment: right;
+                vertical-alignment: center;
+                overflow: elide;
             }
         }
     }
 
     HorizontalLayout {
         spacing: Theme.gap;
-        height: 84px;
+        height: 80px;
         first := Tile {
             label: @tr("Auto TDP");
             sub: App.status.auto-tdp ? @tr("On") : @tr("Off");
@@ -388,119 +419,159 @@ export component PerformancePage inherits VerticalLayout {
 
     Card {
         title: @tr("Auto TDP");
-        inner-spacing: 14px;
         vertical-stretch: 1;
-
-        Text {
-            text: @tr("Keeps the frame rate on target with as little power as possible.");
-            color: Theme.dim;
-            font-size: Theme.font-body;
-            overflow: elide;
-        }
 
         HorizontalLayout {
             spacing: 24px;
-            alignment: start;
-            Tile {
-                width: 170px;
-                height: 72px;
-                label: App.status.auto-tdp ? @tr("On") : @tr("Off");
-                sub: @tr("Auto TDP");
-                selected: App.status.auto-tdp;
-                enabled: App.status.connected;
-                clicked => {
-                    App.toggle-auto-tdp();
-                }
-            }
-
+            vertical-stretch: 1;
             VerticalLayout {
-                spacing: 8px;
-                Caption {
-                    text: @tr("Target frame rate");
+                spacing: 14px;
+                horizontal-stretch: 1;
+                alignment: space-between;
+                Text {
+                    text: @tr("Keeps the frame rate on target with as little power as possible.");
+                    color: Theme.dim;
+                    font-size: Theme.font-body;
+                    overflow: elide;
                 }
 
                 HorizontalLayout {
-                    spacing: 10px;
-                    for fps in [30, 40, 45, 60, 90, 120]: Chip {
-                        label: fps;
-                        selected: App.status.auto-tdp && App.status.target-fps == fps;
+                    spacing: 24px;
+                    alignment: start;
+                    Tile {
+                        width: 170px;
+                        height: 72px;
+                        label: App.status.auto-tdp ? @tr("On") : @tr("Off");
+                        sub: @tr("Auto TDP");
+                        selected: App.status.auto-tdp;
                         enabled: App.status.connected;
                         clicked => {
-                            App.set-target-fps(fps);
+                            App.toggle-auto-tdp();
+                        }
+                    }
+
+                    VerticalLayout {
+                        spacing: 8px;
+                        Caption {
+                            text: @tr("Target frame rate");
+                        }
+
+                        HorizontalLayout {
+                            spacing: 10px;
+                            for fps in [30, 40, 45, 60, 90, 120]: Chip {
+                                label: fps;
+                                selected: App.status.auto-tdp && App.status.target-fps == fps;
+                                enabled: App.status.connected;
+                                clicked => {
+                                    App.set-target-fps(fps);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 40px;
+                    alignment: start;
+                    VerticalLayout {
+                        spacing: 8px;
+                        Caption {
+                            text: @tr("Minimum power");
+                        }
+
+                        Stepper {
+                            value: App.status.connected ? App.watts(App.status.min-watts) : "—";
+                            enabled: App.status.connected;
+                            step(delta) => {
+                                App.change-min-watts(delta);
+                            }
+                        }
+                    }
+
+                    VerticalLayout {
+                        spacing: 8px;
+                        Caption {
+                            text: @tr("Maximum power");
+                        }
+
+                        Stepper {
+                            value: App.status.connected ? App.watts(App.status.max-watts) : "—";
+                            enabled: App.status.connected;
+                            step(delta) => {
+                                App.change-max-watts(delta);
+                            }
+                        }
+                    }
+
+                    VerticalLayout {
+                        spacing: 8px;
+                        Caption {
+                            text: @tr("Maximum on battery");
+                        }
+
+                        HorizontalLayout {
+                            spacing: 10px;
+                            for watts in [0, 10, 15, 20]: Chip {
+                                label: watts == 0 ? @tr("None") : App.watts(watts);
+                                selected: App.status.connected && App.status.battery-cap == watts;
+                                enabled: App.status.connected;
+                                clicked => {
+                                    App.set-battery-cap(watts);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                VerticalLayout {
+                    spacing: 8px;
+                    Caption {
+                        text: @tr("Temperature limit: above it, power only goes down");
+                    }
+
+                    HorizontalLayout {
+                        spacing: 10px;
+                        alignment: start;
+                        for celsius in [0, 80, 85, 90]: Chip {
+                            label: celsius == 0 ? @tr("None") : App.celsius(celsius);
+                            selected: App.status.connected && App.status.temp-limit == celsius;
+                            enabled: App.status.connected;
+                            clicked => {
+                                App.set-temp-limit(celsius);
+                            }
                         }
                     }
                 }
             }
-        }
 
-        HorizontalLayout {
-            spacing: 40px;
-            alignment: start;
-            VerticalLayout {
-                spacing: 8px;
-                Caption {
-                    text: @tr("Minimum power");
-                }
-
-                Stepper {
-                    value: App.status.connected ? App.watts(App.status.min-watts) : "—";
-                    enabled: App.status.connected;
-                    step(delta) => {
-                        App.change-min-watts(delta);
-                    }
-                }
-            }
-
-            VerticalLayout {
-                spacing: 8px;
-                Caption {
-                    text: @tr("Maximum power");
-                }
-
-                Stepper {
-                    value: App.status.connected ? App.watts(App.status.max-watts) : "—";
-                    enabled: App.status.connected;
-                    step(delta) => {
-                        App.change-max-watts(delta);
-                    }
-                }
-            }
-
-            VerticalLayout {
-                spacing: 8px;
-                Caption {
-                    text: @tr("Maximum on battery");
-                }
-
-                HorizontalLayout {
+            // Live power, to see the settings at work.
+            Rectangle {
+                width: 300px;
+                border-radius: Theme.radius-small;
+                background: Theme.accent-tint;
+                border-width: 1px;
+                border-color: Theme.accent.with-alpha(0.25);
+                VerticalLayout {
+                    padding: 16px;
                     spacing: 10px;
-                    for watts in [0, 10, 15, 20]: Chip {
-                        label: watts == 0 ? @tr("None") : App.watts(watts);
-                        selected: App.status.connected && App.status.battery-cap == watts;
-                        enabled: App.status.connected;
-                        clicked => {
-                            App.set-battery-cap(watts);
-                        }
+                    LiveFigure {
+                        label: @tr("Power draw");
+                        label-color: Theme.accent;
+                        value: App.known(App.status.power-tenths, App.watts-tenths(App.status.power-tenths));
                     }
-                }
-            }
-        }
 
-        VerticalLayout {
-            spacing: 8px;
-            Caption {
-                text: @tr("Temperature limit: above it, power only goes down");
-            }
+                    LiveFigure {
+                        label: @tr("Power limit");
+                        label-color: Theme.reference;
+                        value: !App.status.connected ? "—" : App.status.tdp >= 0 ? App.watts(App.status.tdp) : App.firmware-mode() ? @tr("Auto") : "—";
+                        value-color: Theme.dim;
+                    }
 
-            HorizontalLayout {
-                spacing: 10px;
-                alignment: start;
-                for celsius in [0, 80, 85, 90]: Chip {
-                    label: celsius == 0 ? @tr("None") : App.celsius(celsius);
-                    selected: App.status.connected && App.status.temp-limit == celsius;
-                    enabled: App.status.connected;
-                    clicked => {
-                        App.set-temp-limit(celsius);
+                    GraphPanel {
+                        line: App.graphs.power-line;
+                        area: App.graphs.power-area;
+                        reference: App.graphs.limit-line;
+                        scale-label: App.watts(App.graphs.power-scale);
                     }
                 }
             }
@@ -569,12 +640,12 @@ component ProfileRow inherits Rectangle {
             }
         }
 
-        if root.active: VerticalLayout {
-            alignment: center;
-            Badge {
-                text: @tr("In use");
-                tint: Theme.good;
-            }
+        if root.active: Text {
+            text: @tr("In use");
+            color: Theme.accent;
+            font-size: Theme.font-small;
+            font-weight: 700;
+            vertical-alignment: center;
         }
 
         VerticalLayout {
@@ -988,9 +1059,11 @@ component Control inherits HorizontalLayout {
     in property <string> glyph;
     in property <bool> round: true;
     in property <string> text;
-    spacing: 12px;
+    horizontal-stretch: 1;
+    preferred-width: 10px;
+    spacing: 10px;
     HorizontalLayout {
-        width: 64px;
+        width: 56px;
         alignment: start;
         VerticalLayout {
             alignment: center;
@@ -1005,7 +1078,7 @@ component Control inherits HorizontalLayout {
     Text {
         text: root.text;
         color: Theme.dim;
-        font-size: Theme.font-body;
+        font-size: Theme.font-small;
         vertical-alignment: center;
         overflow: elide;
     }
@@ -1016,8 +1089,37 @@ struct Language {
     name: string,
 }
 
+// A ready-made accent.
+component Swatch inherits Pressable {
+    in property <color> swatch;
+    in property <string> hex;
+    horizontal-stretch: 1;
+    height: 50px;
+    border-radius: 10px;
+    // The swatch shows its own colour, selected or not.
+    background: root.swatch;
+    selected: Theme.accent-hex == root.hex;
+    border-width: self.focused ? 3px : root.selected ? 2px : 0;
+    border-color: self.focused ? Theme.focus : Theme.text.with-alpha(0.7);
+    clicked => {
+        App.pick-accent(root.hex);
+    }
+
+    if root.selected: Text {
+        text: "✓";
+        color: Theme.accent-text;
+        font-size: 20px;
+        font-weight: 800;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
 export component SettingsPage inherits HorizontalLayout {
     spacing: Theme.gap;
+    // Darkest accent the picker allows: below, it no longer reads on the
+    // dark background.
+    property <float> min-value: 0.4;
     property <[[Language]]> rows: [
         [
             { code: "auto", name: @tr("Automatic") },
@@ -1045,29 +1147,54 @@ export component SettingsPage inherits HorizontalLayout {
             { code: "", name: "" },
         ],
     ];
+    // The hex code is what gets saved; the colour, what gets drawn.
+    property <[{ hex: string, color: color }]> presets: [
+        { hex: "#ff3d5e", color: #ff3d5e },
+        { hex: "#f97316", color: #f97316 },
+        { hex: "#eab308", color: #eab308 },
+        { hex: "#10b981", color: #10b981 },
+        { hex: "#06b6d4", color: #06b6d4 },
+        { hex: "#3b82f6", color: #3b82f6 },
+        { hex: "#8b5cf6", color: #8b5cf6 },
+        { hex: "#ec4899", color: #ec4899 },
+    ];
 
     VerticalLayout {
-        width: 760px;
+        horizontal-stretch: 7;
+        preferred-width: 10px;
         spacing: Theme.gap;
 
         Card {
-            title: @tr("Language");
-            inner-spacing: 14px;
+            inner-spacing: 10px;
 
-            Dim {
-                text: @tr("Automatic follows the Windows display language.");
+            HorizontalLayout {
+                spacing: 16px;
+                Caption {
+                    text: @tr("Language");
+                }
+
+                Text {
+                    horizontal-stretch: 1;
+                    text: @tr("Automatic follows the Windows display language.");
+                    color: Theme.faint;
+                    font-size: Theme.font-small;
+                    horizontal-alignment: right;
+                    overflow: elide;
+                }
             }
 
             for row[r] in root.rows: HorizontalLayout {
-                spacing: 12px;
+                spacing: 10px;
                 for language[c] in row: Rectangle {
-                    height: 62px;
+                    height: 54px;
                     horizontal-stretch: 1;
                     if language.code != "": Tile {
                         width: parent.width;
                         height: parent.height;
+                        min-height: 0;
+                        pad: 8px;
+                        font-size: 18px;
                         label: language.name;
-                        sub: language.code == "auto" ? @tr("Windows language") : "";
                         selected: App.language == language.code;
                         clicked => {
                             App.set-language(language.code);
@@ -1084,110 +1211,153 @@ export component SettingsPage inherits HorizontalLayout {
         }
 
         Card {
-            title: @tr("Accent colour");
-            inner-spacing: 14px;
+            vertical-stretch: 1;
+            inner-spacing: 10px;
 
             HorizontalLayout {
-                spacing: 12px;
-                alignment: start;
-                for accent[i] in Theme.accents: Pressable {
-                    width: 76px;
-                    height: 52px;
-                    border-radius: 26px;
-                    // The swatch shows its own colour, selected or not.
-                    background: accent.color;
-                    selected: Theme.accent-index == i;
-                    clicked => {
-                        Theme.accent-index = i;
-                        App.set-accent(accent.code);
-                    }
-
-                    if Theme.accent-index == i: Text {
-                        text: "✓";
-                        color: accent.on;
-                        font-size: 24px;
-                        font-weight: 800;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                spacing: 14px;
+                VerticalLayout {
+                    alignment: center;
+                    Logo {
+                        size: 40px;
                     }
                 }
-            }
-        }
 
-        Rectangle { }
-    }
+                Text {
+                    text: "Canapé";
+                    color: Theme.text;
+                    font-size: 28px;
+                    font-weight: 800;
+                    vertical-alignment: center;
+                }
 
-    Card {
-        title: @tr("About");
-        horizontal-stretch: 2;
-        inner-spacing: 10px;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    alignment: center;
+                    Text {
+                        text: @tr("Version {}", App.version);
+                        color: Theme.dim;
+                        font-size: Theme.font-small;
+                        horizontal-alignment: right;
+                    }
 
-        HorizontalLayout {
-            spacing: 14px;
-            alignment: start;
-            VerticalLayout {
-                alignment: center;
-                Logo {
-                    size: 48px;
+                    Text {
+                        text: App.status.connected ? @tr("Service connected") : @tr("Service not connected");
+                        color: App.status.connected ? Theme.faint : Theme.warn;
+                        font-size: Theme.font-small;
+                        horizontal-alignment: right;
+                        overflow: elide;
+                    }
                 }
             }
 
             Text {
-                text: "Canapé";
-                color: Theme.text;
-                font-size: 34px;
-                font-weight: 800;
+                text: @tr("A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service.");
+                color: Theme.dim;
+                font-size: Theme.font-small;
+                wrap: word-wrap;
+            }
+
+            Rectangle { }
+
+            // A, B and LB / RB are in the hints at the bottom of every page.
+            Control {
+                glyph: "B";
+                text: @tr("Back to Home");
+            }
+
+            Control {
+                glyph: "+";
+                text: @tr("Move (D-pad or left stick)");
+            }
+        }
+    }
+
+    Card {
+        title: @tr("Accent colour");
+        horizontal-stretch: 5;
+        preferred-width: 10px;
+        inner-spacing: 16px;
+
+        HorizontalLayout {
+            spacing: 16px;
+            Rectangle {
+                width: 128px;
+                height: 72px;
+                border-radius: Theme.radius-small;
+                background: Theme.accent;
+                Text {
+                    text: Theme.accent-hex.to-uppercase();
+                    color: Theme.accent-text;
+                    font-size: Theme.font-body;
+                    font-weight: 700;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            Text {
+                text: @tr("Every page follows this colour, and so does the Game Bar widget.");
+                color: Theme.dim;
+                font-size: Theme.font-small;
+                wrap: word-wrap;
                 vertical-alignment: center;
             }
         }
 
-        Text {
-            text: @tr("Version {}", App.version);
-            color: Theme.dim;
-            font-size: Theme.font-body;
-        }
-
-        Dim {
-            text: @tr("A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service.");
-        }
-
-        HorizontalLayout {
-            alignment: start;
-            Badge {
-                text: App.status.connected ? @tr("Service connected") : @tr("Service not connected");
-                tint: App.status.connected ? Theme.good : Theme.warn;
+        hue := ColorSlider {
+            label: @tr("Hue");
+            value: Theme.accent-hue / 360;
+            step: 5 / 360;
+            rainbow: true;
+            knob: Theme.accent;
+            moved(v) => {
+                // 360° is 0° again: stop just before, so the knob stays right.
+                App.pick-accent-hsv(min(v, 0.999) * 360, Theme.accent-saturation, Theme.accent-value);
             }
         }
 
-        Rectangle {
-            height: 8px;
+        sat := ColorSlider {
+            label: @tr("Saturation");
+            value: Theme.accent-saturation;
+            step: 0.05;
+            track: @linear-gradient(90deg, hsv(Theme.accent-hue, 0, Theme.accent-value) 0%, hsv(Theme.accent-hue, 1, Theme.accent-value) 100%);
+            knob: Theme.accent;
+            moved(v) => {
+                App.pick-accent-hsv(Theme.accent-hue, v, Theme.accent-value);
+            }
+        }
+
+        bright := ColorSlider {
+            label: @tr("Brightness");
+            value: max(0, (Theme.accent-value - root.min-value) / (1 - root.min-value));
+            step: 0.05 / (1 - root.min-value);
+            track: @linear-gradient(90deg, hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value) 0%, hsv(Theme.accent-hue, Theme.accent-saturation, 1) 100%);
+            knob: Theme.accent;
+            moved(v) => {
+                App.pick-accent-hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value + v * (1 - root.min-value));
+            }
         }
 
         Caption {
-            text: @tr("Gamepad");
+            text: @tr("Presets");
         }
 
-        Control {
-            glyph: "LB RB";
-            round: false;
-            text: @tr("Change page");
-        }
-
-        Control {
-            glyph: "A";
-            text: @tr("Select");
-        }
-
-        Control {
-            glyph: "B";
-            text: @tr("Back to Home");
-        }
-
-        Control {
-            glyph: "+";
-            text: @tr("Move (D-pad or left stick)");
+        HorizontalLayout {
+            spacing: 10px;
+            for preset in root.presets: Swatch {
+                hex: preset.hex;
+                swatch: preset.color;
+            }
         }
 
         Rectangle { }
+
+        Text {
+            text: hue.grabbed || sat.grabbed || bright.grabbed ? @tr("Move with the D-pad or the stick, then press A to finish.") : @tr("Press A on a slider to adjust it.");
+            color: hue.grabbed || sat.grabbed || bright.grabbed ? Theme.text : Theme.faint;
+            font-size: Theme.font-small;
+            wrap: word-wrap;
+        }
     }
 }

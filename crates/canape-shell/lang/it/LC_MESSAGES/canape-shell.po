@@ -108,9 +108,6 @@ msgstr "Nessun profilo per questo gioco: valgono le impostazioni generali."
 msgid "Start a game: its profile applies by itself."
 msgstr "Avvia un gioco: il suo profilo si applica da solo."
 
-msgid "Profile active"
-msgstr "Profilo attivo"
-
 msgid "On"
 msgstr "Attivo"
 
@@ -303,12 +300,6 @@ msgstr "Lingua"
 msgid "Automatic follows the Windows display language."
 msgstr "Automatica segue la lingua di Windows."
 
-msgid "Windows language"
-msgstr "Lingua di Windows"
-
-msgid "About"
-msgstr "Informazioni"
-
 msgid "Version {}"
 msgstr "Versione {}"
 
@@ -317,9 +308,6 @@ msgstr "Una home leggera in stile console per ROG Ally. L'hardware è gestito da
 
 msgid "Service connected"
 msgstr "Servizio connesso"
-
-msgid "Gamepad"
-msgstr "Controller"
 
 msgid "Back to Home"
 msgstr "Torna alla home"
@@ -354,3 +342,30 @@ msgstr "Manuale"
 
 msgid "Accent colour"
 msgstr "Colore di accento"
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "Power draw"
+msgstr "Consumo"
+
+msgid "Hue"
+msgstr "Tonalità"
+
+msgid "Saturation"
+msgstr "Saturazione"
+
+msgid "Brightness"
+msgstr "Luminosità"
+
+msgid "Presets"
+msgstr "Predefiniti"
+
+msgid "Every page follows this colour, and so does the Game Bar widget."
+msgstr "Tutte le pagine seguono questo colore, e anche il widget della Game Bar."
+
+msgid "Press A on a slider to adjust it."
+msgstr "Premi A su un cursore per regolarlo."
+
+msgid "Move with the D-pad or the stick, then press A to finish."
+msgstr "Regola con la croce direzionale o lo stick, poi premi A per finire."

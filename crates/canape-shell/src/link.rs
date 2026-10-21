@@ -6,12 +6,13 @@ use std::io;
 use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use canape_core::{BenchReport, PerformanceMode, Profile, Request, Response, Status, protocol};
 use canape_ipc::Connection;
 use slint::{ComponentHandle, ModelRc, VecModel, Weak};
 
+use crate::history::History;
 use crate::report::{self, Recommendation};
 use crate::{App, AppWindow, BenchRow, BenchView, Notice, ProfileView, RecView, StatusView};
 
@@ -23,6 +24,16 @@ struct Shared {
     report: Mutex<Option<BenchReport>>,
     /// Last foreground program seen by the shell, resent after a reconnection.
     foreground: Mutex<Option<String>>,
+    history: Mutex<History>,
+    accent: Mutex<AccentState>,
+}
+
+#[derive(Default)]
+struct AccentState {
+    /// Accent shown by the shell, `#rrggbb`.
+    local: String,
+    /// Last accent sent to the service: its echo must not undo a newer pick.
+    sent: Option<String>,
 }
 
 #[derive(Clone)]
@@ -41,8 +52,10 @@ fn is_background(request: &Request) -> bool {
 }
 
 impl Link {
-    pub fn start(ui: Weak<AppWindow>) -> Self {
+    /// `accent`: the one shown at startup, `#rrggbb`.
+    pub fn start(ui: Weak<AppWindow>, accent: String) -> Self {
         let shared = Arc::new(Shared::default());
+        shared.accent.lock().unwrap().local = accent;
         let (commands, rx) = mpsc::channel::<Request>();
 
         let (ui_status, state, again) = (ui.clone(), shared.clone(), commands.clone());
@@ -51,7 +64,7 @@ impl Link {
                 if let Err(err) = follow(&ui_status, &state, &again) {
                     crate::log(&format!("service link: {err}"));
                 }
-                show_status(&ui_status, None);
+                show_status(&ui_status, &state, None);
                 thread::sleep(RETRY);
             }
         });
@@ -120,6 +133,19 @@ impl Link {
         self.shared.report.lock().unwrap().clone()
     }
 
+    /// The user is picking `hex`: from now on it is the shell's accent.
+    pub fn accent_picked(&self, hex: &str) {
+        self.shared.accent.lock().unwrap().local = hex.to_owned();
+    }
+
+    /// Shares the accent with the service, hence with the widget.
+    pub fn send_accent(&self, hex: &str) {
+        self.shared.accent.lock().unwrap().sent = Some(hex.to_owned());
+        self.send(Request::SetAccent {
+            color: hex.to_owned(),
+        });
+    }
+
     /// Reports the foreground program to the service, now and after every
     /// reconnection.
     #[cfg_attr(not(windows), allow(dead_code))]
@@ -176,16 +202,59 @@ fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> 
             if previous.active_profile != status.active_profile {
                 let _ = commands.send(Request::ListProfiles);
             }
+            if first || previous.accent != status.accent {
+                follow_accent(ui, shared, commands, status.accent.as_deref(), first);
+            }
             first = false;
-            show_status(ui, Some(status));
+            show_status(ui, shared, Some(status));
         }
     }
     Ok(())
 }
 
-fn show_status(ui: &Weak<AppWindow>, status: Option<Status>) {
+/// Adopts an accent changed elsewhere (another client, or the service's
+/// saved one at startup); gives ours to a service that has none.
+fn follow_accent(
+    ui: &Weak<AppWindow>,
+    shared: &Shared,
+    commands: &Sender<Request>,
+    remote: Option<&str>,
+    first: bool,
+) {
+    let mut accent = shared.accent.lock().unwrap();
+    let Some(remote) = remote.filter(|hex| protocol::is_hex_color(hex)) else {
+        if first {
+            accent.sent = Some(accent.local.clone());
+            let _ = commands.send(Request::SetAccent {
+                color: accent.local.clone(),
+            });
+        }
+        return;
+    };
+    let remote = remote.to_ascii_lowercase();
+    if remote == accent.local || accent.sent.as_deref() == Some(remote.as_str()) {
+        return;
+    }
+    accent.local = remote.clone();
+    drop(accent);
+    crate::save_accent(&remote);
+    if let Some(color) = crate::accent::parse(&remote) {
+        let _ = ui.upgrade_in_event_loop(move |ui| crate::accent::show(&ui, color, None));
+    }
+}
+
+fn show_status(ui: &Weak<AppWindow>, shared: &Shared, status: Option<Status>) {
     let view = status_view(status.as_ref());
-    let _ = ui.upgrade_in_event_loop(move |ui| ui.global::<App>().set_status(view));
+    let graphs = {
+        let mut history = shared.history.lock().unwrap();
+        history.push(status.as_ref(), Instant::now());
+        history.view()
+    };
+    let _ = ui.upgrade_in_event_loop(move |ui| {
+        let app = ui.global::<App>();
+        app.set_status(view);
+        app.set_graphs(graphs);
+    });
 }
 
 fn show_profiles(ui: &Weak<AppWindow>, profiles: &[Profile]) {
@@ -224,6 +293,7 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
     let Some(s) = status else {
         return StatusView {
             tdp: -1,
+            power_tenths: -1,
             fps: -1,
             gpu: -1,
             temp: -1,
@@ -237,6 +307,7 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
         connected: true,
         tdp: s.tdp_watts.map_or(-1, |w| w as i32),
         mode: mode_name(s.performance_mode).into(),
+        power_tenths: known(s.power_watts.map(|w| w * 10.0)),
         fps: known(s.fps),
         gpu: known(s.gpu_util.map(|g| g * 100.0)),
         temp: known(s.cpu_temp_c),

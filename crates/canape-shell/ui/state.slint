@@ -5,6 +5,8 @@ export struct StatusView {
     connected: bool,
     // Watts, -1 while a firmware mode picks the limits.
     tdp: int,
+    // What the APU draws, in tenths of a watt.
+    power-tenths: int,
     // "silent", "performance", "turbo", "manual" or "".
     mode: string,
     fps: int,
@@ -72,6 +74,19 @@ export struct BenchView {
     most-efficient: RecView,
 }
 
+// The last minute as Path commands (history.rs): viewbox 59 x 100, the
+// newest sample on the right, y = 0 at the top of the scale.
+export struct GraphView {
+    // Watts at the top of the power graph.
+    power-scale: int,
+    power-line: string,
+    power-area: string,
+    limit-line: string,
+    // GPU activity, 0 to 100 %.
+    gpu-line: string,
+    gpu-area: string,
+}
+
 // Outcome of the last command, shown in the bottom bar.
 export enum Notice {
     idle,
@@ -82,6 +97,7 @@ export enum Notice {
 
 export global App {
     in property <StatusView> status;
+    in property <GraphView> graphs: { power-scale: 10 };
     in property <[ProfileView]> profiles;
     in property <BenchView> bench;
     in property <[BenchRow]> bench-rows;
@@ -111,12 +127,18 @@ export global App {
     // Saves a game profile from the bench result at this wattage.
     callback apply-profile(int);
     callback set-language(string);
-    // Saves the accent picked in the settings page (a Theme.accents code).
-    callback set-accent(string);
+    // Accent picked in the settings page, from the sliders (hue in
+    // degrees, saturation and value in [0, 1]) or a preset (#rrggbb).
+    callback pick-accent-hsv(float, float, float);
+    callback pick-accent(string);
 
     // Shared formatting, translated.
     public pure function watts(w: int) -> string {
         @tr("{} W", w)
+    }
+    // Tenths of a watt, with one decimal: 126 -> "12.6 W".
+    public pure function watts-tenths(t: int) -> string {
+        @tr("{} W", tenths(t))
     }
     public pure function fps-value(f: int) -> string {
         @tr("{} FPS", f)

@@ -8,24 +8,22 @@ import { App, Notice } from "state.slint";
 import { BatteryIcon, Bolt, Hint, Logo, PadGlyph } from "widgets.slint";
 import { BenchPage, HomePage, PerformancePage, ProfilesPage, SettingsPage } from "pages.slint";
 
-export { App, Notice, StatusView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
+export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
 
+// A page name; the current one is bright with an accent underline.
 component Tab inherits Rectangle {
     in property <string> label;
     in property <bool> selected;
     callback clicked();
     height: 44px;
-    border-radius: 22px;
-    background: root.selected ? Theme.surface-high : transparent;
-    animate background { duration: 120ms; }
 
     HorizontalLayout {
-        padding-left: 18px;
-        padding-right: 18px;
+        padding-left: 14px;
+        padding-right: 14px;
         Text {
             text: root.label;
-            color: root.selected ? Theme.text : Theme.dim;
+            color: root.selected ? Theme.text : ta.has-hover ? Theme.text.with-alpha(0.85) : Theme.dim;
             font-size: Theme.font-body;
             font-weight: root.selected ? 700 : 500;
             vertical-alignment: center;
@@ -33,16 +31,17 @@ component Tab inherits Rectangle {
         }
     }
 
-    if root.selected: Rectangle {
-        x: (parent.width - self.width) / 2;
-        y: parent.height - 4px;
-        width: 22px;
-        height: 4px;
-        border-radius: 2px;
-        background: Theme.accent;
+    Rectangle {
+        x: 14px;
+        y: parent.height - 3px;
+        width: parent.width - 28px;
+        height: 3px;
+        border-radius: 1.5px;
+        background: root.selected ? Theme.accent : transparent;
+        animate background { duration: 120ms; }
     }
 
-    TouchArea {
+    ta := TouchArea {
         clicked => {
             root.clicked();
         }
@@ -121,15 +120,11 @@ export component AppWindow inherits Window {
                     }
                 }
 
-                Rectangle {
-                    border-radius: 26px;
-                    background: Theme.surface;
-                    border-width: 1px;
-                    border-color: Theme.stroke;
-                    HorizontalLayout {
-                        padding: 4px;
-                        spacing: 2px;
-                        for label[i] in [@tr("Home"), @tr("Performance"), @tr("Profiles"), @tr("Bench"), @tr("Settings")]: Tab {
+                HorizontalLayout {
+                    spacing: 2px;
+                    for label[i] in [@tr("Home"), @tr("Performance"), @tr("Profiles"), @tr("Bench"), @tr("Settings")]: VerticalLayout {
+                        alignment: center;
+                        Tab {
                             label: label;
                             selected: root.page == i;
                             clicked => {
@@ -175,14 +170,12 @@ export component AppWindow inherits Window {
                             vertical-alignment: center;
                         }
                     }
-                    VerticalLayout {
-                        alignment: center;
-                        Rectangle {
-                            width: 10px;
-                            height: 10px;
-                            border-radius: 5px;
-                            background: App.status.connected ? Theme.good : Theme.warn;
-                        }
+                    if !App.status.connected: Text {
+                        text: @tr("Offline");
+                        color: Theme.warn;
+                        font-size: Theme.font-small;
+                        font-weight: 600;
+                        vertical-alignment: center;
                     }
                 }
             }

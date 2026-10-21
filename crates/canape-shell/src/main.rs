@@ -9,10 +9,12 @@
 
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
+mod accent;
 #[cfg(any(windows, test))]
 mod foreground;
 #[cfg(windows)]
 mod gamepad;
+mod history;
 mod i18n;
 mod instance;
 mod link;
@@ -20,9 +22,12 @@ mod link;
 mod nav;
 mod report;
 
+use std::rc::Rc;
+use std::time::Duration;
+
 use canape_core::{AutoTdpSettings, BenchPlan, PerformanceMode, Request};
 
-use slint::{ComponentHandle, Model};
+use slint::{ComponentHandle, Timer, TimerMode};
 
 use crate::link::Link;
 
@@ -34,12 +39,24 @@ const MAX_WATTS: u32 = 35;
 /// Starting point of the manual TDP when leaving a firmware mode, which
 /// cannot report its own limits. Valid on every Ally model.
 const MANUAL_START_WATTS: u32 = 15;
+/// Quiet time after the last accent change before it is saved and shared:
+/// a held direction on a slider changes it several times per second.
+const ACCENT_SETTLE: Duration = Duration::from_millis(600);
 
 fn log(message: &str) {
     canape_core::log::append(
         &canape_core::log::dir("LOCALAPPDATA").join("shell.log"),
         message,
     );
+}
+
+/// Saves the accent in shell.json.
+pub(crate) fn save_accent(hex: &str) {
+    let mut settings = i18n::ShellSettings::load();
+    settings.accent = hex.to_owned();
+    if let Err(err) = settings.save() {
+        log(&format!("saving shell.json: {err}"));
+    }
 }
 
 fn main() -> Result<(), slint::PlatformError> {
@@ -67,20 +84,20 @@ fn main() -> Result<(), slint::PlatformError> {
     log(&format!("language: {} -> {language}", settings.language));
     ui.global::<App>()
         .set_language(settings.language.as_str().into());
-    let theme = ui.global::<Theme>();
-    if let Some(index) = theme
-        .get_accents()
-        .iter()
-        .position(|accent| accent.code == settings.accent.as_str())
-    {
-        theme.set_accent_index(index as i32);
+    let accent = accent::normalize(&settings.accent);
+    if accent != settings.accent {
+        // A preset name from an earlier version, or an unreadable value.
+        save_accent(&accent);
+    }
+    if let Some(color) = accent::parse(&accent) {
+        accent::show(&ui, color, None);
     }
     if let Ok(page) = std::env::var("CANAPE_PAGE") {
         // Development aid: open a given page (0 = home).
         ui.set_page(page.parse().unwrap_or(0));
     }
 
-    let link = Link::start(ui.as_weak());
+    let link = Link::start(ui.as_weak(), accent);
     connect(&ui, &link);
 
     #[cfg(windows)]
@@ -272,12 +289,39 @@ fn connect(ui: &AppWindow, link: &Link) {
         }
     });
 
-    // The page already switched Theme.accent-index: only save it.
-    app.on_set_accent(|code| {
-        let mut settings = i18n::ShellSettings::load();
-        settings.accent = code.to_string();
-        if let Err(err) = settings.save() {
-            log(&format!("saving shell.json: {err}"));
+    // The accent shows at once; it is saved and shared once it settles.
+    let settle = Rc::new(Timer::default());
+    let picked = {
+        let (ui, link) = (ui.as_weak(), link.clone());
+        move |color: slint::Color, hsv: Option<(f32, f32, f32)>| {
+            let Some(ui) = ui.upgrade() else { return };
+            accent::show(&ui, color, hsv);
+            link.accent_picked(&accent::to_hex(color));
+            let (ui, link) = (ui.as_weak(), link.clone());
+            settle.start(TimerMode::SingleShot, ACCENT_SETTLE, move || {
+                if let Some(ui) = ui.upgrade() {
+                    let hex = ui.global::<Theme>().get_accent_hex();
+                    save_accent(&hex);
+                    link.send_accent(&hex);
+                }
+            });
+        }
+    };
+    app.on_pick_accent_hsv({
+        let picked = picked.clone();
+        move |hue, saturation, value| {
+            let (hue, saturation, value) = (
+                hue.rem_euclid(360.0),
+                saturation.clamp(0.0, 1.0),
+                value.clamp(0.0, 1.0),
+            );
+            let color = slint::Color::from_hsva(hue, saturation, value, 1.0);
+            picked(color, Some((hue, saturation, value)));
+        }
+    });
+    app.on_pick_accent(move |hex| {
+        if let Some(color) = accent::parse(&hex) {
+            picked(color, None);
         }
     });
 }

@@ -11,7 +11,7 @@ canape-core.workspace = true
 canape-ipc.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-slint = { version = "1.18", default-features = false, features = ["std", "compat-1-2", "backend-winit", "renderer-software", "software-renderer-systemfonts"] }
+slint = { version = "1.18", default-features = false, features = ["std", "compat-1-2", "backend-winit", "renderer-software", "software-renderer-path", "software-renderer-systemfonts"] }
 
 [target.'cfg(windows)'.dependencies]
 canape-hw.workspace = true

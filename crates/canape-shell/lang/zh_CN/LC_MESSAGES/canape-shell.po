@@ -108,9 +108,6 @@ msgstr "此游戏没有配置文件：使用通用设置。"
 msgid "Start a game: its profile applies by itself."
 msgstr "启动游戏后，其配置文件会自动应用。"
 
-msgid "Profile active"
-msgstr "配置文件已启用"
-
 msgid "On"
 msgstr "开"
 
@@ -303,12 +300,6 @@ msgstr "语言"
 msgid "Automatic follows the Windows display language."
 msgstr "“自动”跟随 Windows 显示语言。"
 
-msgid "Windows language"
-msgstr "Windows 语言"
-
-msgid "About"
-msgstr "关于"
-
 msgid "Version {}"
 msgstr "版本 {}"
 
@@ -317,9 +308,6 @@ msgstr "为 ROG Ally 打造的轻量主机风格主页。硬件由 Canapé 服�
 
 msgid "Service connected"
 msgstr "服务已连接"
-
-msgid "Gamepad"
-msgstr "手柄"
 
 msgid "Back to Home"
 msgstr "返回主页"
@@ -354,3 +342,30 @@ msgstr "手动"
 
 msgid "Accent colour"
 msgstr "强调色"
+
+msgid "Offline"
+msgstr "离线"
+
+msgid "Power draw"
+msgstr "功耗"
+
+msgid "Hue"
+msgstr "色相"
+
+msgid "Saturation"
+msgstr "饱和度"
+
+msgid "Brightness"
+msgstr "亮度"
+
+msgid "Presets"
+msgstr "预设"
+
+msgid "Every page follows this colour, and so does the Game Bar widget."
+msgstr "所有页面和 Game Bar 小组件都会使用此颜色。"
+
+msgid "Press A on a slider to adjust it."
+msgstr "在滑块上按 A 即可调整。"
+
+msgid "Move with the D-pad or the stick, then press A to finish."
+msgstr "用十字键或摇杆调整，按 A 完成。"

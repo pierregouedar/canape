@@ -108,9 +108,6 @@ msgstr "Kein Profil für dieses Spiel: Es gelten die allgemeinen Einstellungen."
 msgid "Start a game: its profile applies by itself."
 msgstr "Starte ein Spiel: Sein Profil wird automatisch angewendet."
 
-msgid "Profile active"
-msgstr "Profil aktiv"
-
 msgid "On"
 msgstr "An"
 
@@ -303,12 +300,6 @@ msgstr "Sprache"
 msgid "Automatic follows the Windows display language."
 msgstr "Automatisch folgt der Anzeigesprache von Windows."
 
-msgid "Windows language"
-msgstr "Windows-Sprache"
-
-msgid "About"
-msgstr "Info"
-
 msgid "Version {}"
 msgstr "Version {}"
 
@@ -317,9 +308,6 @@ msgstr "Ein leichter Startbildschirm im Konsolenstil für das ROG Ally. Die Hard
 
 msgid "Service connected"
 msgstr "Dienst verbunden"
-
-msgid "Gamepad"
-msgstr "Controller"
 
 msgid "Back to Home"
 msgstr "Zurück zum Start"
@@ -354,3 +342,30 @@ msgstr "Manuell"
 
 msgid "Accent colour"
 msgstr "Akzentfarbe"
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "Power draw"
+msgstr "Verbrauch"
+
+msgid "Hue"
+msgstr "Farbton"
+
+msgid "Saturation"
+msgstr "Sättigung"
+
+msgid "Brightness"
+msgstr "Helligkeit"
+
+msgid "Presets"
+msgstr "Vorgaben"
+
+msgid "Every page follows this colour, and so does the Game Bar widget."
+msgstr "Alle Seiten folgen dieser Farbe, auch das Game-Bar-Widget."
+
+msgid "Press A on a slider to adjust it."
+msgstr "A auf einem Regler drücken, um ihn einzustellen."
+
+msgid "Move with the D-pad or the stick, then press A to finish."
+msgstr "Mit Steuerkreuz oder Stick einstellen, dann zum Abschließen A drücken."
