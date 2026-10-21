@@ -47,7 +47,13 @@ Targets (docs/architecture.md): service < 10 MB, OK; shell < 80 MB, **over targe
 
 ## FSE boot test
 
-See the dedicated section below (added after the reboot).
+**OK.** `GamingHomeApp = Canape_84zrj1c9kn010!App`, `StartupToGamingHome = 1`, reboot (debug build):
+
+- Boot at 20:27:52. `CanapeService` starts automatically at 20:28:07 (`device = ROG Ally`).
+- The FSE activates `canape-shell` **only once**, at 20:28:15, with `windows.gaming:///home`. In M1, with only a message box, it had activated 3 times within 5 s. **[I]** The FSE was retrying because no real window showed up. In any case, the single instance would have absorbed retries.
+- Pierre confirms the shell shows up at boot. `canape-ctl` gets the status (66 °C, 100 %) right after.
+
+Winhanced was put back afterwards: `GamingHomeApp = Winhanced_2wdva71107yvr!App`, `StartupToGamingHome = 1`.
 
 ## Still open
 
