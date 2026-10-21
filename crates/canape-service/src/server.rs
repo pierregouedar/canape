@@ -79,7 +79,8 @@ pub fn spawn(
 
     let ticker = shared.clone();
     thread::Builder::new().name("tick".into()).spawn(move || {
-        for tick in 0u32.. {
+        let mut tick = 0u32;
+        loop {
             thread::sleep(TICK);
             let mut handler = ticker.handler.lock().unwrap();
             handler.tick();
@@ -90,6 +91,7 @@ pub fn spawn(
                     (ticker.log)(&message);
                 }
             }
+            tick = tick.wrapping_add(1);
             drop(handler);
             ticker.broadcast_status();
         }
