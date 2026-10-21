@@ -5,10 +5,11 @@
 
 import { Theme } from "theme.slint";
 import { App, Notice } from "state.slint";
-import { BatteryIcon, Bolt, Hint, PadGlyph } from "widgets.slint";
+import { BatteryIcon, Bolt, Hint, Logo, PadGlyph } from "widgets.slint";
 import { BenchPage, HomePage, PerformancePage, ProfilesPage, SettingsPage } from "pages.slint";
 
 export { App, Notice, StatusView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
+export { Theme } from "theme.slint";
 
 component Tab inherits Rectangle {
     in property <string> label;
@@ -98,11 +99,8 @@ export component AppWindow inherits Window {
                     horizontal-stretch: 1;
                     VerticalLayout {
                         alignment: center;
-                        Rectangle {
-                            width: 14px;
-                            height: 14px;
-                            border-radius: 7px;
-                            background: Theme.accent;
+                        Logo {
+                            size: 34px;
                         }
                     }
 

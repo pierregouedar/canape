@@ -351,3 +351,6 @@ msgstr "Turbo"
 
 msgid "Manual"
 msgstr "Handmatig"
+
+msgid "Accent colour"
+msgstr "Accentkleur"

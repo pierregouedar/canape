@@ -22,7 +22,7 @@ mod report;
 
 use canape_core::{AutoTdpSettings, BenchPlan, PerformanceMode, Request};
 
-use slint::ComponentHandle;
+use slint::{ComponentHandle, Model};
 
 use crate::link::Link;
 
@@ -67,6 +67,14 @@ fn main() -> Result<(), slint::PlatformError> {
     log(&format!("language: {} -> {language}", settings.language));
     ui.global::<App>()
         .set_language(settings.language.as_str().into());
+    let theme = ui.global::<Theme>();
+    if let Some(index) = theme
+        .get_accents()
+        .iter()
+        .position(|accent| accent.code == settings.accent.as_str())
+    {
+        theme.set_accent_index(index as i32);
+    }
     if let Ok(page) = std::env::var("CANAPE_PAGE") {
         // Development aid: open a given page (0 = home).
         ui.set_page(page.parse().unwrap_or(0));
@@ -252,9 +260,8 @@ fn connect(ui: &AppWindow, link: &Link) {
     app.on_set_language({
         let ui = ui.as_weak();
         move |choice| {
-            let settings = i18n::ShellSettings {
-                language: choice.to_string(),
-            };
+            let mut settings = i18n::ShellSettings::load();
+            settings.language = choice.to_string();
             if let Err(err) = settings.save() {
                 log(&format!("saving shell.json: {err}"));
             }
@@ -262,6 +269,15 @@ fn connect(ui: &AppWindow, link: &Link) {
             if let Some(ui) = ui.upgrade() {
                 ui.global::<App>().set_language(choice);
             }
+        }
+    });
+
+    // The page already switched Theme.accent-index: only save it.
+    app.on_set_accent(|code| {
+        let mut settings = i18n::ShellSettings::load();
+        settings.accent = code.to_string();
+        if let Err(err) = settings.save() {
+            log(&format!("saving shell.json: {err}"));
         }
     });
 }

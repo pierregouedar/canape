@@ -3,7 +3,7 @@
 
 import { Theme } from "theme.slint";
 import { App, ProfileView, BenchRow, RecView } from "state.slint";
-import { Badge, BatteryIcon, Bolt, Caption, Card, Chip, DpadGlyph, PadGlyph, Pressable, Stepper, Tile } from "widgets.slint";
+import { Badge, BatteryIcon, Bolt, Caption, Card, Chip, DpadGlyph, Logo, PadGlyph, Pressable, Stepper, Tile } from "widgets.slint";
 
 component Title inherits Text {
     color: Theme.text;
@@ -147,10 +147,13 @@ export component HomePage inherits VerticalLayout {
         min-height: 232px;
         vertical-stretch: 1;
 
-        Rectangle {
+        power := Rectangle {
+            // The conflict banner and the auto TDP gauge together leave too
+            // little height for the large number: shrink it rather than spill.
+            property <bool> compact: App.status.conflicts != "" && App.status.connected && App.status.tdp >= 0;
             horizontal-stretch: 5;
             border-radius: Theme.radius;
-            background: @linear-gradient(135deg, #2a1420 0%, #161b28 60%);
+            background: @linear-gradient(135deg, Theme.accent-tint 0%, #161b28 60%);
             border-width: 1px;
             border-color: Theme.accent.with-alpha(0.35);
 
@@ -164,7 +167,7 @@ export component HomePage inherits VerticalLayout {
                 Text {
                     text: !App.status.connected ? "—" : App.status.tdp >= 0 ? App.watts(App.status.tdp) : App.firmware-mode() ? @tr("Auto") : "—";
                     color: App.status.connected ? Theme.text : Theme.faint;
-                    font-size: 86px;
+                    font-size: power.compact ? 60px : 86px;
                     font-weight: 800;
                 }
 
@@ -1043,34 +1046,69 @@ export component SettingsPage inherits HorizontalLayout {
         ],
     ];
 
-    Card {
-        title: @tr("Language");
+    VerticalLayout {
         width: 760px;
-        inner-spacing: 14px;
+        spacing: Theme.gap;
 
-        Dim {
-            text: @tr("Automatic follows the Windows display language.");
+        Card {
+            title: @tr("Language");
+            inner-spacing: 14px;
+
+            Dim {
+                text: @tr("Automatic follows the Windows display language.");
+            }
+
+            for row[r] in root.rows: HorizontalLayout {
+                spacing: 12px;
+                for language[c] in row: Rectangle {
+                    height: 62px;
+                    horizontal-stretch: 1;
+                    if language.code != "": Tile {
+                        width: parent.width;
+                        height: parent.height;
+                        label: language.name;
+                        sub: language.code == "auto" ? @tr("Windows language") : "";
+                        selected: App.language == language.code;
+                        clicked => {
+                            App.set-language(language.code);
+                        }
+                        // Focus the current choice; "auto" first, as a fallback.
+                        init => {
+                            if (r == 0 && c == 0) || App.language == language.code {
+                                self.focus();
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        for row[r] in root.rows: HorizontalLayout {
-            spacing: 12px;
-            for language[c] in row: Rectangle {
-                height: 62px;
-                horizontal-stretch: 1;
-                if language.code != "": Tile {
-                    width: parent.width;
-                    height: parent.height;
-                    label: language.name;
-                    sub: language.code == "auto" ? @tr("Windows language") : "";
-                    selected: App.language == language.code;
+        Card {
+            title: @tr("Accent colour");
+            inner-spacing: 14px;
+
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: start;
+                for accent[i] in Theme.accents: Pressable {
+                    width: 76px;
+                    height: 52px;
+                    border-radius: 26px;
+                    // The swatch shows its own colour, selected or not.
+                    background: accent.color;
+                    selected: Theme.accent-index == i;
                     clicked => {
-                        App.set-language(language.code);
+                        Theme.accent-index = i;
+                        App.set-accent(accent.code);
                     }
-                    // Focus the current choice; "auto" first, as a fallback.
-                    init => {
-                        if (r == 0 && c == 0) || App.language == language.code {
-                            self.focus();
-                        }
+
+                    if Theme.accent-index == i: Text {
+                        text: "✓";
+                        color: accent.on;
+                        font-size: 24px;
+                        font-weight: 800;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
                     }
                 }
             }
@@ -1084,11 +1122,23 @@ export component SettingsPage inherits HorizontalLayout {
         horizontal-stretch: 2;
         inner-spacing: 10px;
 
-        Text {
-            text: "Canapé";
-            color: Theme.text;
-            font-size: 34px;
-            font-weight: 800;
+        HorizontalLayout {
+            spacing: 14px;
+            alignment: start;
+            VerticalLayout {
+                alignment: center;
+                Logo {
+                    size: 48px;
+                }
+            }
+
+            Text {
+                text: "Canapé";
+                color: Theme.text;
+                font-size: 34px;
+                font-weight: 800;
+                vertical-alignment: center;
+            }
         }
 
         Text {

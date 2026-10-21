@@ -24,12 +24,15 @@ pub const LANGUAGES: &[&str] = &[
 pub struct ShellSettings {
     /// [`AUTO`] or one of [`LANGUAGES`].
     pub language: String,
+    /// Code of one of the `Theme.accents` of theme.slint.
+    pub accent: String,
 }
 
 impl Default for ShellSettings {
     fn default() -> Self {
         Self {
             language: AUTO.into(),
+            accent: "red".into(),
         }
     }
 }
@@ -181,6 +184,7 @@ mod tests {
         assert_eq!(settings, ShellSettings::default());
         let settings: ShellSettings = serde_json::from_str(r#"{"language":"ja"}"#).unwrap();
         assert_eq!(settings.language, "ja");
+        assert_eq!(settings.accent, "red");
     }
 
     /// Reads the string literal at the start of `s`; returns it, unescaped,

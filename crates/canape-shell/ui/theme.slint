@@ -1,6 +1,28 @@
-// Colours and sizes shared by every page. One dark theme, one accent.
+// Colours and sizes shared by every page. One dark theme; the accent is
+// picked in the settings page (saved in shell.json by the Rust side).
+
+export struct Accent {
+    // Saved in shell.json.
+    code: string,
+    color: color,
+    // Dark tint for large highlighted panels.
+    tint: color,
+    // Text on a filled accent background.
+    on: color,
+}
 
 export global Theme {
+    out property <[Accent]> accents: [
+        { code: "red", color: #ff3d5e, tint: #2a1420, on: #ffffff },
+        { code: "blue", color: #3b82f6, tint: #14203a, on: #ffffff },
+        { code: "violet", color: #8b5cf6, tint: #1f1738, on: #ffffff },
+        { code: "green", color: #10b981, tint: #102a22, on: #04130d },
+        { code: "orange", color: #f97316, tint: #2c1a10, on: #1a0b00 },
+        { code: "cyan", color: #06b6d4, tint: #0e2630, on: #031418 },
+    ];
+    // Index in `accents`; set from shell.json at startup.
+    in-out property <int> accent-index: 0;
+
     out property <brush> background: @linear-gradient(160deg, #121826 0%, #0a0d14 55%, #07090e 100%);
     out property <color> surface: #141a26;
     out property <color> surface-high: #1c2433;
@@ -9,9 +31,10 @@ export global Theme {
     out property <color> text: #eef2f8;
     out property <color> dim: #93a0b5;
     out property <color> faint: #5d687c;
-    out property <color> accent: #ff3d5e;
-    out property <color> accent-soft: #ff3d5e2e;
-    out property <color> accent-text: #ffffff;
+    out property <color> accent: root.accents[root.accent-index].color;
+    out property <color> accent-soft: root.accent.with-alpha(0.18);
+    out property <color> accent-tint: root.accents[root.accent-index].tint;
+    out property <color> accent-text: root.accents[root.accent-index].on;
     out property <color> focus: #ffffff;
     out property <color> good: #34d399;
     out property <color> warn: #fbbf24;

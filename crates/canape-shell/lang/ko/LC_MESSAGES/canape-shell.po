@@ -351,3 +351,6 @@ msgstr "터보"
 
 msgid "Manual"
 msgstr "수동"
+
+msgid "Accent colour"
+msgstr "강조 색상"

@@ -61,6 +61,8 @@ $dependencies = @(Get-ChildItem $out -Recurse -Include *.appx, *.msix |
             Where-Object { [version]$_.Version -ge [version]$identity.Version }
         -not $installed
     } | ForEach-Object FullName)
+# Same version, different content fails with 0x80073CFB: remove the old one.
+Get-AppxPackage -Name Canape.Widget | Remove-AppxPackage
 Write-Host "Installing $($package.FullName)"
 if ($dependencies.Count -gt 0) {
     Add-AppxPackage -Path $package.FullName -DependencyPath $dependencies -ForceUpdateFromAnyVersion

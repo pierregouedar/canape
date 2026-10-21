@@ -351,3 +351,6 @@ msgstr "Турбо"
 
 msgid "Manual"
 msgstr "Ручной"
+
+msgid "Accent colour"
+msgstr "Цвет акцента"

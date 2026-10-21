@@ -111,6 +111,8 @@ export global App {
     // Saves a game profile from the bench result at this wattage.
     callback apply-profile(int);
     callback set-language(string);
+    // Saves the accent picked in the settings page (a Theme.accents code).
+    callback set-accent(string);
 
     // Shared formatting, translated.
     public pure function watts(w: int) -> string {

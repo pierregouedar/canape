@@ -10,7 +10,7 @@ export component Pressable inherits Rectangle {
     out property <bool> focused: fs.has-focus;
     // Text colour that reads on the current background.
     out property <color> fg: !root.enabled ? Theme.faint : root.selected ? Theme.accent-text : Theme.text;
-    out property <color> fg-dim: !root.enabled ? Theme.faint : root.selected ? #ffffffcc : Theme.dim;
+    out property <color> fg-dim: !root.enabled ? Theme.faint : root.selected ? Theme.accent-text.with-alpha(0.8) : Theme.dim;
     callback clicked();
     callback focus-gained();
 
@@ -21,16 +21,10 @@ export component Pressable inherits Rectangle {
     border-color: fs.has-focus ? Theme.focus : root.selected ? Theme.accent : Theme.stroke;
     animate background, border-color { duration: 120ms; }
 
-    ta := TouchArea {
-        clicked => {
-            fs.focus();
-            if root.enabled {
-                root.clicked();
-            }
-        }
-    }
-
     fs := FocusScope {
+        // A click would otherwise stop here, only moving the focus: the
+        // TouchArea on top takes it and focuses explicitly (touchscreen).
+        focus-on-click: false;
         key-pressed(event) => {
             if event.text == Key.Return || event.text == " " {
                 if root.enabled {
@@ -42,6 +36,15 @@ export component Pressable inherits Rectangle {
         }
         focus-gained(reason) => {
             root.focus-gained();
+        }
+    }
+
+    ta := TouchArea {
+        clicked => {
+            fs.focus();
+            if root.enabled {
+                root.clicked();
+            }
         }
     }
 
@@ -211,6 +214,54 @@ export component Badge inherits Rectangle {
             font-weight: 600;
             vertical-alignment: center;
         }
+    }
+}
+
+// The Canapé logo: a sofa in the accent colour, on a 32 x 24 grid.
+export component Logo inherits Rectangle {
+    in property <length> size: 32px;
+    property <length> u: root.size / 32;
+    width: root.size;
+    height: root.u * 24;
+
+    // Backrest.
+    Rectangle {
+        x: root.u * 5;
+        y: root.u * 1;
+        width: root.u * 22;
+        height: root.u * 13;
+        border-radius: root.u * 4;
+        background: Theme.accent;
+    }
+
+    // Seat cushion, lighter so it reads in front of the backrest.
+    Rectangle {
+        x: root.u * 6;
+        y: root.u * 12;
+        width: root.u * 20;
+        height: root.u * 7;
+        border-radius: root.u * 2.5;
+        background: Theme.accent.brighter(0.35);
+    }
+
+    // Armrests.
+    for side in [0, 1]: Rectangle {
+        x: side == 0 ? 0 : root.u * 24;
+        y: root.u * 8;
+        width: root.u * 8;
+        height: root.u * 12;
+        border-radius: root.u * 3.5;
+        background: Theme.accent;
+    }
+
+    // Legs.
+    for side in [0, 1]: Rectangle {
+        x: side == 0 ? root.u * 3 : root.u * 26;
+        y: root.u * 19;
+        width: root.u * 3;
+        height: root.u * 5;
+        border-radius: root.u * 1;
+        background: Theme.accent.darker(0.35);
     }
 }
 

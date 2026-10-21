@@ -351,3 +351,6 @@ msgstr "增强"
 
 msgid "Manual"
 msgstr "手动"
+
+msgid "Accent colour"
+msgstr "强调色"
