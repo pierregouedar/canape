@@ -26,6 +26,9 @@ export global Theme {
     out property <color> accent-soft: root.accent.with-alpha(0.18);
     // Dark tint for large highlighted panels.
     out property <color> accent-tint: root.accent.mix(root.surface, 0.12);
+    // Graph lines and their legend: the accent lifted toward white, so a
+    // dark accent still reads on the dark panels.
+    out property <color> accent-line: root.accent.mix(#ffffff, 0.7);
     // Second series in graphs (GPU activity), neutral next to any accent.
     out property <color> graph: #9fb4d6;
     // Reference lines in graphs (the power limit).

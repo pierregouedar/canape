@@ -82,20 +82,36 @@ component Stat inherits Rectangle {
     }
 }
 
+// Short coloured stroke before a caption: the legend of a graph line.
+component LegendMark inherits Rectangle {
+    width: 18px;
+    height: 4px;
+    border-radius: 2px;
+}
+
 // A caption over a large number, aligned left or right.
 component Reading inherits VerticalLayout {
     in property <string> label;
     in property <string> value;
     in property <length> size: 40px;
-    // The caption doubles as the legend of a graph line.
-    in property <color> label-color: Theme.dim;
+    // Colour of the graph line this figure stands for, if any.
+    in property <color> mark: transparent;
     in property <color> value-color: Theme.text;
     in property <TextHorizontalAlignment> align: left;
-    spacing: 0px;
-    Caption {
-        text: root.label;
-        color: root.label-color;
-        horizontal-alignment: root.align;
+    spacing: 2px;
+    HorizontalLayout {
+        spacing: 8px;
+        alignment: root.align == TextHorizontalAlignment.right ? end : start;
+        if root.mark != transparent: VerticalLayout {
+            alignment: center;
+            LegendMark {
+                background: root.mark;
+            }
+        }
+        Caption {
+            text: root.label;
+            horizontal-alignment: root.align;
+        }
     }
 
     Text {
@@ -111,14 +127,20 @@ component Reading inherits VerticalLayout {
 // A caption and a number on one line, for narrow panels.
 component LiveFigure inherits HorizontalLayout {
     in property <string> label;
-    in property <color> label-color: Theme.dim;
+    // Colour of the graph line this figure stands for.
+    in property <color> mark: transparent;
     in property <string> value;
     in property <color> value-color: Theme.text;
-    spacing: 12px;
+    spacing: 8px;
+    if root.mark != transparent: VerticalLayout {
+        alignment: center;
+        LegendMark {
+            background: root.mark;
+        }
+    }
     Caption {
         horizontal-stretch: 1;
         text: root.label;
-        color: root.label-color;
         vertical-alignment: center;
     }
 
@@ -137,7 +159,7 @@ component GraphPanel inherits Rectangle {
     in property <string> line;
     in property <string> area;
     in property <string> reference;
-    in property <color> tint: Theme.accent;
+    in property <color> tint: Theme.accent-line;
     in property <string> scale-label;
     min-height: 60px;
     vertical-stretch: 1;
@@ -153,8 +175,9 @@ component GraphPanel inherits Rectangle {
         x: 6px;
         y: 4px;
         text: root.scale-label;
-        color: Theme.faint;
+        color: Theme.dim;
         font-size: 13px;
+        font-weight: 600;
     }
 }
 
@@ -178,10 +201,11 @@ export component HomePage inherits VerticalLayout {
             horizontal-stretch: 7;
             preferred-width: 10px;
             border-radius: Theme.radius;
-            // Plain: the software renderer does not round gradient corners.
-            background: Theme.accent-tint;
+            // Neutral: captions and numbers must read with any accent, even
+            // a dark one; the accent stays on the border and the graph.
+            background: Theme.surface;
             border-width: 1px;
-            border-color: Theme.accent.with-alpha(0.35);
+            border-color: Theme.accent.with-alpha(0.45);
 
             VerticalLayout {
                 padding: 22px;
@@ -192,17 +216,16 @@ export component HomePage inherits VerticalLayout {
                     spacing: 24px;
                     Reading {
                         label: @tr("Power draw");
-                        label-color: Theme.accent;
+                        mark: Theme.accent-line;
                         value: App.known(App.status.power-tenths, App.watts-tenths(App.status.power-tenths));
                         size: 56px;
                     }
 
                     Reading {
                         label: @tr("Power limit");
-                        label-color: Theme.reference;
+                        mark: Theme.reference;
                         value: !App.status.connected ? "—" : App.status.tdp >= 0 ? App.watts(App.status.tdp) : App.firmware-mode() ? @tr("Auto") : "—";
-                        value-color: Theme.dim;
-                        size: 56px;
+                        size: 44px;
                         align: right;
                     }
                 }
@@ -225,7 +248,7 @@ export component HomePage inherits VerticalLayout {
                     }
                     if App.status.bench-running: Text {
                         text: @tr("Bench running");
-                        color: Theme.accent;
+                        color: Theme.accent-line;
                         font-size: Theme.font-body;
                         font-weight: 600;
                     }
@@ -253,7 +276,7 @@ export component HomePage inherits VerticalLayout {
                     spacing: 16px;
                     Reading {
                         label: @tr("GPU");
-                        label-color: Theme.graph;
+                        mark: Theme.graph;
                         value: App.known(App.status.gpu, App.percent(App.status.gpu));
                     }
 
@@ -307,7 +330,7 @@ export component HomePage inherits VerticalLayout {
             Text {
                 horizontal-stretch: 1;
                 text: App.status.active-profile != "" ? @tr("Profile in use: {}", App.status.active-profile) : App.status.foreground != "" ? @tr("No profile for this game: the global settings apply.") : @tr("Start a game: its profile applies by itself.");
-                color: App.status.active-profile != "" ? Theme.accent : Theme.dim;
+                color: App.status.active-profile != "" ? Theme.accent-line : Theme.dim;
                 font-size: Theme.font-body;
                 font-weight: App.status.active-profile != "" ? 600 : 400;
                 horizontal-alignment: right;
@@ -548,23 +571,22 @@ export component PerformancePage inherits VerticalLayout {
             Rectangle {
                 width: 300px;
                 border-radius: Theme.radius-small;
-                background: Theme.accent-tint;
+                background: Theme.surface-high;
                 border-width: 1px;
-                border-color: Theme.accent.with-alpha(0.25);
+                border-color: Theme.accent.with-alpha(0.45);
                 VerticalLayout {
                     padding: 16px;
                     spacing: 10px;
                     LiveFigure {
                         label: @tr("Power draw");
-                        label-color: Theme.accent;
+                        mark: Theme.accent-line;
                         value: App.known(App.status.power-tenths, App.watts-tenths(App.status.power-tenths));
                     }
 
                     LiveFigure {
                         label: @tr("Power limit");
-                        label-color: Theme.reference;
+                        mark: Theme.reference;
                         value: !App.status.connected ? "—" : App.status.tdp >= 0 ? App.watts(App.status.tdp) : App.firmware-mode() ? @tr("Auto") : "—";
-                        value-color: Theme.dim;
                     }
 
                     GraphPanel {
@@ -642,7 +664,7 @@ component ProfileRow inherits Rectangle {
 
         if root.active: Text {
             text: @tr("In use");
-            color: Theme.accent;
+            color: Theme.accent-line;
             font-size: Theme.font-small;
             font-weight: 700;
             vertical-alignment: center;

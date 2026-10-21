@@ -216,7 +216,7 @@ export component Graph inherits Rectangle {
         fit: fill;
         commands: root.area;
         // The software renderer fills paths with plain colours only.
-        fill: root.tint.with-alpha(0.16);
+        fill: root.tint.with-alpha(0.24);
         stroke: transparent;
         stroke-width: 2px;
     }
@@ -240,7 +240,8 @@ export component Graph inherits Rectangle {
         fit: fill;
         commands: root.line;
         stroke: root.tint;
-        stroke-width: 2px;
+        // Thicker than the reference line: the live value comes first.
+        stroke-width: 3px;
         stroke-line-join: round;
     }
 }
