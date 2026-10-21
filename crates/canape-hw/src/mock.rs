@@ -68,6 +68,8 @@ impl Device for MockDevice {
         Ok(Telemetry {
             cpu_temp_c: Some(self.cpu_temp_c),
             gpu_util: self.gpu_util,
+            // A game rarely draws its whole limit.
+            power_watts: Some(self.tdp_watts as f32 * 0.9),
             battery_percent: Some(80),
             on_battery: Some(self.on_battery),
         })

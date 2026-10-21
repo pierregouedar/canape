@@ -55,6 +55,10 @@ pub enum Request {
     CancelBench,
     /// Answered with [`Response::Bench`]: the last run, finished or not.
     GetBenchReport,
+    /// UI accent colour as `#RRGGBB`, shared by the shell and the widget.
+    SetAccent {
+        color: String,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -78,6 +82,9 @@ pub struct Status {
     /// GPU activity in `[0, 1]`.
     #[serde(default)]
     pub gpu_util: Option<f32>,
+    /// What the APU actually draws, in watts (the TDP is only its limit).
+    #[serde(default)]
+    pub power_watts: Option<f32>,
     pub cpu_temp_c: Option<f32>,
     pub battery_percent: Option<u8>,
     /// Other programs that also drive the hardware (Winhanced, Armoury Crate…).
@@ -96,6 +103,14 @@ pub struct Status {
     pub thermal_limited: bool,
     #[serde(default)]
     pub bench: Option<BenchProgress>,
+    /// UI accent colour as `#RRGGBB`, when the user picked one.
+    #[serde(default)]
+    pub accent: Option<String>,
+}
+
+/// True for `#RRGGBB`.
+pub fn is_hex_color(color: &str) -> bool {
+    color.len() == 7 && color.starts_with('#') && color[1..].chars().all(|c| c.is_ascii_hexdigit())
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -125,6 +140,14 @@ mod tests {
         let line = encode(&request).unwrap();
         assert_eq!(line, "{\"type\":\"set_tdp\",\"watts\":15}\n");
         assert_eq!(decode::<Request>(&line).unwrap(), request);
+    }
+
+    #[test]
+    fn hex_colors() {
+        assert!(is_hex_color("#2563eb"));
+        assert!(!is_hex_color("2563eb"));
+        assert!(!is_hex_color("#25g3eb"));
+        assert!(!is_hex_color("#fff"));
     }
 
     #[test]

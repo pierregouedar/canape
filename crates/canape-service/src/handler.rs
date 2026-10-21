@@ -26,6 +26,7 @@ pub struct Saved {
     pub battery_limit: Option<u8>,
     pub profiles: Vec<Profile>,
     pub last_bench: Option<BenchReport>,
+    pub accent: Option<String>,
 }
 
 /// Service state and request dispatch, independent of the transport.
@@ -49,6 +50,7 @@ pub struct Handler {
     /// State to return to when the bench ends.
     before_bench: Option<Saved>,
     last_bench: Option<BenchReport>,
+    accent: Option<String>,
     /// Something worth saving changed outside a request (learned watts, bench).
     dirty: bool,
 }
@@ -72,6 +74,7 @@ impl Handler {
             bench: None,
             before_bench: None,
             last_bench: None,
+            accent: None,
             dirty: false,
         }
     }
@@ -163,6 +166,15 @@ impl Handler {
                     message: "no bench is running".into(),
                 },
             },
+            Request::SetAccent { color } => {
+                if !protocol::is_hex_color(&color) {
+                    return Response::Error {
+                        message: format!("not a #RRGGBB colour: {color}"),
+                    };
+                }
+                self.accent = Some(color.to_ascii_lowercase());
+                Response::Ok
+            }
             // While a run is in progress, the previous one.
             Request::GetBenchReport => Response::Bench {
                 report: self.last_bench.clone(),
@@ -244,6 +256,7 @@ impl Handler {
             auto_tdp: self.auto_tdp,
             fps: self.fps,
             gpu_util: telemetry.gpu_util,
+            power_watts: telemetry.power_watts,
             cpu_temp_c: telemetry.cpu_temp_c,
             battery_percent: telemetry.battery_percent,
             conflicts: self.conflicts.clone(),
@@ -255,6 +268,7 @@ impl Handler {
                 .as_ref()
                 .is_some_and(Controller::thermal_limited),
             bench: self.bench.as_ref().map(BenchRun::progress),
+            accent: self.accent.clone(),
         }
     }
 
@@ -280,6 +294,7 @@ impl Handler {
             battery_limit: self.battery_limit,
             profiles: Vec::new(),
             last_bench: None,
+            accent: None,
         };
         let global = self
             .before_bench
@@ -291,6 +306,7 @@ impl Handler {
             battery_limit: self.battery_limit,
             profiles: self.profiles.clone(),
             last_bench: self.last_bench.clone(),
+            accent: self.accent.clone(),
             ..global
         }
     }
@@ -299,6 +315,7 @@ impl Handler {
     pub fn restore(&mut self, saved: &Saved) -> Vec<String> {
         self.profiles = saved.profiles.clone();
         self.last_bench = saved.last_bench.clone();
+        self.accent = saved.accent.clone();
         let mut errors = self.apply_power_state(saved);
         if let Some(percent) = saved.battery_limit
             && let Response::Error { message } =
@@ -643,7 +660,20 @@ mod tests {
         h.handle(Request::SaveProfile {
             profile: profile("game.exe", 40, Some(12)),
         });
+        assert_eq!(
+            h.handle(Request::SetAccent {
+                color: "#2563EB".into()
+            }),
+            Response::Ok
+        );
+        assert!(matches!(
+            h.handle(Request::SetAccent {
+                color: "blue".into()
+            }),
+            Response::Error { .. }
+        ));
         let saved = h.saved();
+        assert_eq!(saved.accent.as_deref(), Some("#2563eb"));
 
         let mut restored = handler();
         assert!(restored.restore(&saved).is_empty());

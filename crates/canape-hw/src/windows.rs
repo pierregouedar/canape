@@ -194,6 +194,7 @@ impl Device for AllyDevice {
             .get(atk::TEMP_CPU)?
             .filter(|t| (1..125).contains(t))
             .map(|t| t as f32);
+        let (gpu_util, power_watts) = self.adl.as_ref().map_or((None, None), Adl::sensors);
         let mut power = SYSTEM_POWER_STATUS::default();
         let known = unsafe { GetSystemPowerStatus(&mut power) } != 0;
         let battery_percent =
@@ -202,7 +203,8 @@ impl Device for AllyDevice {
         let on_battery = (known && power.ACLineStatus <= 1).then_some(power.ACLineStatus == 0);
         Ok(Telemetry {
             cpu_temp_c,
-            gpu_util: self.adl.as_ref().and_then(Adl::gpu_util),
+            gpu_util,
+            power_watts,
             battery_percent,
             on_battery,
         })

@@ -30,6 +30,8 @@ pub type Result<T> = std::result::Result<T, HwError>;
 pub struct Telemetry {
     pub cpu_temp_c: Option<f32>,
     pub gpu_util: Option<f32>,
+    /// What the APU actually draws, in watts (the TDP is only its limit).
+    pub power_watts: Option<f32>,
     pub battery_percent: Option<u8>,
     pub on_battery: Option<bool>,
 }

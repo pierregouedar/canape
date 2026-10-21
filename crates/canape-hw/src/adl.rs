@@ -12,6 +12,7 @@ const ASIC_INTEGRATED: i32 = 1 << 1;
 const MAX_PATH: usize = 256;
 const PMLOG_MAX_SENSORS: usize = 256;
 const PMLOG_INFO_ACTIVITY_GFX: usize = 19;
+const PMLOG_ASIC_POWER: usize = 23;
 
 /// `AdapterInfo` from the ADL SDK (ANSI strings).
 #[repr(C)]
@@ -216,16 +217,22 @@ impl Adl {
         (ok == ADL_OK && fps.is_finite() && fps >= 0.0).then_some(fps)
     }
 
-    /// GPU activity in `[0, 1]`.
-    pub fn gpu_util(&self) -> Option<f32> {
+    /// GPU activity in `[0, 1]` and APU power draw in watts, from one
+    /// PMLog read.
+    pub fn sensors(&self) -> (Option<f32>, Option<f32>) {
         let mut log = PmLogDataOutput {
             size: size_of::<PmLogDataOutput>() as i32,
             sensors: [SensorData::default(); PMLOG_MAX_SENSORS],
         };
         if unsafe { (self.api.pmlog_get)(self.context, self.adapter, &mut log) } != ADL_OK {
-            return None;
+            return (None, None);
         }
-        let sensor = log.sensors[PMLOG_INFO_ACTIVITY_GFX];
-        (sensor.supported != 0).then(|| (sensor.value.clamp(0, 100) as f32) / 100.0)
+        let read = |index: usize| {
+            let sensor = log.sensors[index];
+            (sensor.supported != 0).then_some(sensor.value)
+        };
+        let gpu = read(PMLOG_INFO_ACTIVITY_GFX).map(|v| (v.clamp(0, 100) as f32) / 100.0);
+        let power = read(PMLOG_ASIC_POWER).filter(|&w| w > 0).map(|w| w as f32);
+        (gpu, power)
     }
 }
