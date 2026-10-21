@@ -6,6 +6,7 @@
 //! - `--stdio`: answer JSON requests read on stdin, for quick tests;
 //! - `install` / `uninstall` (Windows, elevated): register the service.
 
+mod bench_run;
 mod conflicts;
 mod handler;
 mod server;

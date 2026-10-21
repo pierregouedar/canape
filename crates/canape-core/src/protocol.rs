@@ -5,7 +5,8 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::settings::{AutoTdpSettings, PerformanceMode};
+use crate::bench::{BenchPlan, BenchProgress, BenchReport};
+use crate::settings::{AutoTdpSettings, PerformanceMode, Profile};
 
 pub const PIPE_NAME: &str = r"\\.\pipe\canape";
 pub const PROTOCOL_VERSION: u32 = 1;
@@ -33,6 +34,27 @@ pub enum Request {
     SetBatteryChargeLimit {
         percent: u8,
     },
+    /// Sent by the shell (user session) when the foreground program changes:
+    /// the service, in session 0, cannot see the user's windows.
+    ForegroundApp {
+        exe: Option<String>,
+    },
+    /// Creates or replaces the profile for `profile.exe`.
+    SaveProfile {
+        profile: Profile,
+    },
+    DeleteProfile {
+        exe: String,
+    },
+    /// Answered with [`Response::Profiles`].
+    ListProfiles,
+    /// Sweeps power limits on the running game; progress shows in the status.
+    StartBench {
+        plan: BenchPlan,
+    },
+    CancelBench,
+    /// Answered with [`Response::Bench`]: the last run, finished or not.
+    GetBenchReport,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -42,6 +64,8 @@ pub enum Response {
     Status(Status),
     Ok,
     Error { message: String },
+    Profiles { profiles: Vec<Profile> },
+    Bench { report: Option<BenchReport> },
 }
 
 /// Snapshot of the device state, as shown in the shell and the widget.
@@ -59,6 +83,19 @@ pub struct Status {
     /// Other programs that also drive the hardware (Winhanced, Armoury Crate…).
     #[serde(default)]
     pub conflicts: Vec<String>,
+    /// Foreground program reported by the shell.
+    #[serde(default)]
+    pub foreground: Option<String>,
+    /// Executable of the profile in use, if any.
+    #[serde(default)]
+    pub active_profile: Option<String>,
+    #[serde(default)]
+    pub on_battery: Option<bool>,
+    /// Auto TDP is holding power down because of the temperature limit.
+    #[serde(default)]
+    pub thermal_limited: bool,
+    #[serde(default)]
+    pub bench: Option<BenchProgress>,
 }
 
 #[derive(Debug, thiserror::Error)]

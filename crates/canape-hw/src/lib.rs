@@ -31,6 +31,7 @@ pub struct Telemetry {
     pub cpu_temp_c: Option<f32>,
     pub gpu_util: Option<f32>,
     pub battery_percent: Option<u8>,
+    pub on_battery: Option<bool>,
 }
 
 pub trait Device: Send {
@@ -68,5 +69,12 @@ pub fn detect() -> Box<dyn Device> {
     if let Some(device) = windows::AllyDevice::open() {
         return Box::new(device);
     }
-    Box::new(mock::MockDevice::default())
+    // Development: `CANAPE_MOCK_FPS=60` simulates a running game.
+    let fps = std::env::var("CANAPE_MOCK_FPS")
+        .ok()
+        .and_then(|v| v.parse().ok());
+    Box::new(mock::MockDevice {
+        fps,
+        ..mock::MockDevice::default()
+    })
 }

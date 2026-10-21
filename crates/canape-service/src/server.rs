@@ -92,7 +92,11 @@ pub fn spawn(
                 }
             }
             tick = tick.wrapping_add(1);
+            let dirty = handler.take_dirty();
             drop(handler);
+            if dirty {
+                ticker.save();
+            }
             ticker.broadcast_status();
         }
     })?;
@@ -124,7 +128,11 @@ fn serve(mut conn: Connection, shared: &Shared) -> io::Result<()> {
     while let Some(request) = conn.recv::<Request>()? {
         let changes_state = !matches!(
             request,
-            Request::Hello { .. } | Request::GetStatus | Request::Subscribe
+            Request::Hello { .. }
+                | Request::GetStatus
+                | Request::Subscribe
+                | Request::ListProfiles
+                | Request::GetBenchReport
         );
         let subscribe = request == Request::Subscribe;
         let described = changes_state.then(|| format!("{request:?}"));

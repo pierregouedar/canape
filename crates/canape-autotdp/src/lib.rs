@@ -28,6 +28,8 @@ pub struct Config {
     /// hold doubles at each raise, up to `floor_hold_max_ticks`.
     pub floor_hold_ticks: u32,
     pub floor_hold_max_ticks: u32,
+    /// At or above this CPU temperature power only goes down.
+    pub max_temp_c: Option<f32>,
 }
 
 impl Default for Config {
@@ -47,16 +49,21 @@ impl Default for Config {
             fps_smoothing: 0.4,
             floor_hold_ticks: 30,
             floor_hold_max_ticks: 480,
+            max_temp_c: None,
         }
     }
 }
 
+/// Ticks without a change after which the wattage counts as settled.
+const SETTLED_TICKS: u32 = 30;
+
 /// One measurement of the foreground game.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Sample {
     pub fps: f32,
     /// GPU busy ratio in `[0, 1]`, when known.
     pub gpu_util: Option<f32>,
+    pub cpu_temp: Option<f32>,
 }
 
 #[derive(Debug, Clone)]
@@ -70,6 +77,11 @@ pub struct Controller {
     floor_hold: u32,
     /// The last change lowered power: a deficit now means the probe failed.
     probing: bool,
+    /// Lower ceiling than `max_watts`, e.g. on battery.
+    ceiling: Option<u32>,
+    /// Consecutive raw samples below the target band.
+    deficit_streak: u32,
+    thermal_limited: bool,
 }
 
 impl Controller {
@@ -82,6 +94,9 @@ impl Controller {
             floor: None,
             floor_hold: config.floor_hold_ticks,
             probing: false,
+            ceiling: None,
+            deficit_streak: 0,
+            thermal_limited: false,
             config,
         }
     }
@@ -94,16 +109,43 @@ impl Controller {
         self.smoothed_fps
     }
 
+    /// Caps power below `max_watts` (battery), or lifts the cap with `None`.
+    /// Takes effect on the next update.
+    pub fn set_ceiling(&mut self, ceiling: Option<u32>) {
+        self.ceiling = ceiling;
+    }
+
+    /// Power is being held down by the temperature limit.
+    pub fn thermal_limited(&self) -> bool {
+        self.thermal_limited
+    }
+
+    /// The wattage once it has not moved for a while: worth remembering for
+    /// the next session of the same game.
+    pub fn settled_watts(&self) -> Option<u32> {
+        (self.ticks_since_change >= SETTLED_TICKS).then_some(self.watts)
+    }
+
+    fn ceiling(&self) -> u32 {
+        let max = self.config.max_watts;
+        self.ceiling
+            .map_or(max, |c| c.min(max))
+            .max(self.config.min_watts)
+    }
+
     /// Feeds one sample; returns the new wattage when it changed.
     ///
     /// Raises power as soon as the game falls below its target. Lowers it
     /// only when there is clear spare power: frame rate well above target, or
     /// sitting at the target (frame cap) with an idle GPU. GPU activity alone
     /// is not trusted below the target: on the Ally it stays around 50 % even
-    /// when the frame rate depends on power (docs/m4-report.md). A wattage
-    /// that had to be raised to becomes a floor for a while, with a hold that
-    /// grows each time, so probing for a lower wattage gets rarer instead of
-    /// sawing up and down.
+    /// when the frame rate depends on power (docs/m4-report.md).
+    ///
+    /// A wattage that had to be raised to becomes a floor for a while, held
+    /// longer after each failed probe, so probing gets rarer instead of sawing
+    /// up and down. A single stalled frame (loading, hitch) raises power but
+    /// sets no floor, and a clear drop in load releases the floor at once.
+    /// The battery ceiling and the temperature limit always win.
     pub fn update(&mut self, sample: Sample) -> Option<u32> {
         let c = self.config;
         let fps = match self.smoothed_fps {
@@ -118,21 +160,50 @@ impl Controller {
 
         let low = c.target_fps * (1.0 - c.tolerance);
         let high = c.target_fps * (1.0 + c.headroom);
-        let at_target = fps >= c.target_fps * 0.98;
+        let at_target = fps >= c.target_fps * 0.98 && sample.fps >= c.target_fps * 0.98;
         let gpu_has_slack = sample
             .gpu_util
             .is_some_and(|util| util < c.gpu_idle_threshold);
+        self.deficit_streak = if sample.fps < low {
+            self.deficit_streak + 1
+        } else {
+            0
+        };
+        self.thermal_limited = c
+            .max_temp_c
+            .zip(sample.cpu_temp)
+            .is_some_and(|(limit, temp)| temp >= limit);
+        if fps > high && gpu_has_slack {
+            // The load dropped (menu, lighter scene): old floors no longer apply.
+            self.floor = None;
+            self.floor_hold = c.floor_hold_ticks;
+        }
+        let ceiling = self.ceiling();
         let floor = self.floor.map_or(c.min_watts, |(watts, _)| watts);
+        let can_lower = self.ticks_since_change >= c.cooldown_down_ticks;
 
-        let next = if fps < low && self.ticks_since_change >= c.cooldown_up_ticks {
+        let next = if self.watts > ceiling {
+            ceiling
+        } else if self.thermal_limited {
+            if can_lower {
+                self.watts
+                    .saturating_sub(c.step_down_watts)
+                    .max(c.min_watts)
+            } else {
+                self.watts
+            }
+        } else if fps < low
+            && self.deficit_streak > 0
+            && self.ticks_since_change >= c.cooldown_up_ticks
+        {
             // Recover faster from a big deficit.
             let step = if fps < c.target_fps * 0.8 {
                 c.step_up_watts * 2
             } else {
                 c.step_up_watts
             };
-            let raised = self.watts.saturating_add(step).min(c.max_watts);
-            if raised != self.watts {
+            let raised = self.watts.saturating_add(step).min(ceiling);
+            if raised != self.watts && self.deficit_streak >= 2 {
                 // Only a failed probe makes the next one rarer; a plain ramp
                 // up (game start, heavier scene) does not.
                 if self.probing {
@@ -141,9 +212,7 @@ impl Controller {
                 self.floor = Some((raised, self.floor_hold));
             }
             raised
-        } else if (fps > high || (at_target && gpu_has_slack))
-            && self.ticks_since_change >= c.cooldown_down_ticks
-        {
+        } else if (fps > high || (at_target && gpu_has_slack)) && can_lower {
             self.watts
                 .saturating_sub(c.step_down_watts)
                 .max(c.min_watts)
@@ -169,7 +238,7 @@ mod tests {
     fn sample(fps: f32) -> Sample {
         Sample {
             fps,
-            gpu_util: None,
+            ..Sample::default()
         }
     }
 
@@ -200,6 +269,7 @@ mod tests {
         let capped = Sample {
             fps: 60.0,
             gpu_util: Some(0.5),
+            ..Sample::default()
         };
         let changes: Vec<_> = (0..6).filter_map(|_| ctl.update(capped)).collect();
         assert_eq!(changes, vec![14, 13]);
@@ -211,6 +281,7 @@ mod tests {
         let steady = Sample {
             fps: 60.0,
             gpu_util: Some(0.95),
+            ..Sample::default()
         };
         assert!((0..10).all(|_| ctl.update(steady).is_none()));
         assert_eq!(ctl.watts(), 15);
@@ -249,6 +320,7 @@ mod tests {
             ctl.update(Sample {
                 fps,
                 gpu_util: Some(0.5),
+                ..Sample::default()
             });
             watts.push(ctl.watts());
             fps_seen.push(fps);
@@ -271,11 +343,109 @@ mod tests {
     #[test]
     fn raising_sets_a_floor_that_blocks_lowering() {
         let mut ctl = Controller::new(Config::default(), 10);
-        assert_eq!(ctl.update(sample(50.0)), Some(12));
-        // Way over target right after: no lowering below the floor yet.
+        // A lasting deficit: 10 → 12 W, then 12 → 14 W once it persists.
+        let raises: Vec<_> = (0..3).filter_map(|_| ctl.update(sample(50.0))).collect();
+        assert_eq!(raises, vec![12, 14]);
+        // Way over target right after (GPU load unknown): no lowering below
+        // the floor yet.
         for _ in 0..10 {
             assert_eq!(ctl.update(sample(200.0)), None);
         }
-        assert_eq!(ctl.watts(), 12);
+        assert_eq!(ctl.watts(), 14);
+    }
+
+    #[test]
+    fn a_single_stall_raises_power_but_sets_no_floor() {
+        let mut ctl = Controller::new(Config::default(), 15);
+        let capped = Sample {
+            fps: 60.0,
+            gpu_util: Some(0.5),
+            ..Sample::default()
+        };
+        ctl.update(capped);
+        assert!(
+            ctl.update(Sample {
+                fps: 20.0,
+                ..capped
+            })
+            .is_some()
+        );
+        let raised = ctl.watts();
+        // Back at the cap with an idle GPU: power comes back down without
+        // waiting for a floor to expire.
+        let lowered = (0..40).filter_map(|_| ctl.update(capped)).last();
+        assert!(lowered.is_some_and(|w| w < raised), "stuck at {raised} W");
+    }
+
+    #[test]
+    fn a_lighter_load_releases_the_floor() {
+        let mut ctl = Controller::new(Config::default(), 15);
+        let starving = Sample {
+            fps: 50.0,
+            gpu_util: Some(0.9),
+            ..Sample::default()
+        };
+        for _ in 0..6 {
+            ctl.update(starving);
+        }
+        let raised = ctl.watts();
+        let menu = Sample {
+            fps: 120.0,
+            gpu_util: Some(0.18),
+            ..Sample::default()
+        };
+        for _ in 0..12 {
+            ctl.update(menu);
+        }
+        assert!(
+            ctl.watts() < raised - 2,
+            "{} W after {raised} W",
+            ctl.watts()
+        );
+    }
+
+    #[test]
+    fn battery_ceiling_caps_power_at_once() {
+        let mut ctl = Controller::new(Config::default(), 22);
+        ctl.set_ceiling(Some(15));
+        assert_eq!(ctl.update(sample(30.0)), Some(15));
+        assert_eq!(ctl.update(sample(30.0)), None);
+        ctl.set_ceiling(None);
+        assert!(ctl.update(sample(30.0)).is_some_and(|w| w > 15));
+    }
+
+    #[test]
+    fn temperature_limit_only_lets_power_go_down() {
+        let config = Config {
+            max_temp_c: Some(90.0),
+            ..Config::default()
+        };
+        let mut ctl = Controller::new(config, 20);
+        let hot = Sample {
+            fps: 30.0,
+            cpu_temp: Some(92.0),
+            ..Sample::default()
+        };
+        let changes: Vec<_> = (0..9).filter_map(|_| ctl.update(hot)).collect();
+        assert!(
+            !changes.is_empty() && changes.iter().all(|&w| w < 20),
+            "{changes:?}"
+        );
+        assert!(ctl.thermal_limited());
+    }
+
+    #[test]
+    fn settles_after_a_quiet_spell() {
+        let mut ctl = Controller::new(Config::default(), 15);
+        let steady = Sample {
+            fps: 60.0,
+            gpu_util: Some(0.95),
+            ..Sample::default()
+        };
+        assert_eq!(ctl.settled_watts(), None);
+        for _ in 0..SETTLED_TICKS {
+            ctl.update(steady);
+        }
+        assert_eq!(ctl.settled_watts(), Some(15));
     }
 }

@@ -195,13 +195,16 @@ impl Device for AllyDevice {
             .filter(|t| (1..125).contains(t))
             .map(|t| t as f32);
         let mut power = SYSTEM_POWER_STATUS::default();
-        let battery_percent = (unsafe { GetSystemPowerStatus(&mut power) } != 0
-            && power.BatteryLifePercent <= 100)
-            .then_some(power.BatteryLifePercent);
+        let known = unsafe { GetSystemPowerStatus(&mut power) } != 0;
+        let battery_percent =
+            (known && power.BatteryLifePercent <= 100).then_some(power.BatteryLifePercent);
+        // ACLineStatus: 0 offline, 1 online, 255 unknown.
+        let on_battery = (known && power.ACLineStatus <= 1).then_some(power.ACLineStatus == 0);
         Ok(Telemetry {
             cpu_temp_c,
             gpu_util: self.adl.as_ref().and_then(Adl::gpu_util),
             battery_percent,
+            on_battery,
         })
     }
 
