@@ -126,7 +126,7 @@ flowchart TD
     H -->|no| I{"Temperature ≥ limit?"}
     I -->|yes| I1["Lower 1 W after 3 s, never raise"]
     I -->|no| J{"Smoothed and raw FPS below 95 % of target?"}
-    J -->|"yes, and 2 s since the last change"| J1["Raise 2 W, 4 W below 80 %; floor if the deficit lasts"]
+    J -->|"yes, and 2 s since the last change"| J1["Raise 2 W, 4 W below 80 %, floor if the deficit lasts"]
     J -->|no| K{"FPS above 110 %, or at target with GPU below 80 %?"}
     K -->|"yes, and 3 s since the last change"| K1["Lower 1 W, not below the floor or the minimum"]
     K -->|no| L["Hold"]
@@ -260,7 +260,7 @@ sequenceDiagram
     Shell->>Service: foreground_app "eldenring.exe" (on change, checked every 2 s)
     Note over Service: Profile found: remembers the global state,<br/>turns on the profile's auto TDP<br/>starting from the learned watts
     loop every second
-        Service->>Service: auto TDP; after 30 steady seconds, learned watts
+        Service->>Service: auto TDP, then learned watts after 30 steady seconds
     end
     Shell->>Service: foreground_app "other.exe", or null when the game is closed
     Note over Service: No profile: re-applies the remembered global state

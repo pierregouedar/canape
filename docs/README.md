@@ -1,0 +1,52 @@
+# Documentation de Canapé · Canapé documentation
+
+[← README du projet / Project README](../README.md)
+
+Toute la documentation du projet, en français et en anglais. Les rapports d'étape et l'analyse du FSE sont des documents de travail, écrits en anglais.
+
+All the project's documentation, in French and English. The milestone reports and the FSE analysis are working documents, written in English.
+
+## Guides
+
+| | 🇫🇷 Français | 🇬🇧 English | Pour qui · For whom |
+|---|---|---|---|
+| 📖 **Utilisation · Usage** | [Guide d'utilisation](user-guide.fr.md) | [User guide](user-guide.en.md) | Installer sur l'Ally, choisir l'accueil du FSE, chaque page du shell, le widget, les langues, le dépannage, la désinstallation · Installing on the Ally, picking the FSE home app, every shell page, the widget, languages, troubleshooting, uninstalling |
+| 🤖 **Auto TDP** | [Auto TDP et banc d'essai](auto-tdp.fr.md) | [Auto TDP and bench](auto-tdp.en.md) | L'algorithme pas à pas, ses valeurs par défaut, les profils par jeu, le banc d'essai, les mesures, les conseils de réglage · The algorithm step by step, its defaults, per-game profiles, the bench, measurements, tuning tips |
+| 🛠️ **Développement · Development** | [Guide du développeur](developer-guide.fr.md) | [Developer guide](developer-guide.en.md) | Architecture, protocole IPC, compilation sous Linux et Windows, CI, empaquetage, widget, traductions, matériel, conventions · Architecture, IPC protocol, building on Linux and Windows, CI, packaging, widget, translations, hardware, conventions |
+
+## Documents de référence · Reference documents
+
+| Document | Langue · Language | Contenu · Contents |
+|---|---|---|
+| [`architecture.md`](architecture.md) | 🇫🇷 | Document de conception initial : composants, démarrage en FSE, IPC, matériel, objectifs de légèreté, feuille de route. Sa feuille de route n'est plus à jour : voir l'[état d'avancement](../README.md#état-davancement). · Initial design document; its roadmap is out of date, see the [project status](../README.md#project-status). |
+| [`../packaging/README.md`](../packaging/README.md) | 🇫🇷 | Fichiers du paquet d'identité, script d'installation, pièges de Windows. · Identity package files, install script, Windows pitfalls. |
+| [`../widget/README.md`](../widget/README.md) | 🇫🇷 | Choix techniques du widget Game Bar, interface, ajout d'une langue, compilation. · Game Bar widget technical choices, UI, adding a language, building. |
+| [`../CLAUDE.md`](../CLAUDE.md) | 🇫🇷 | Règles du projet pour les sessions de développement. · Project rules for development sessions. |
+
+## Rapports d'étape · Milestone reports
+
+Comptes rendus des essais sur la ROG Ally RC71L : ce qui marche, ce qui a été corrigé, les mesures, les problèmes, ce qui reste ouvert.
+
+Reports of the tests on the ROG Ally RC71L: what works, what was fixed, measurements, problems, what is still open.
+
+| Rapport · Report | Commit de départ · Starting commit | Résumé · Summary |
+|---|---|---|
+| [M1](m1-report.md) | M0 (`16819fa`) | Le paquet d'identité s'installe ; le FSE lance `canape-shell.exe` au démarrage via `windows.gaming:///home`. Smart App Control repéré. · The identity package installs; the FSE launches `canape-shell.exe` at boot through `windows.gaming:///home`. Smart App Control spotted. |
+| [M3](m3-report.md) | `c24e6e4` | Widget Game Bar compilé, installé et relié au service ; pipe ouvert depuis l'AppContainer. · Game Bar widget built, installed and connected to the service; pipe opened from the AppContainer. |
+| [M2.5 / M4](m4-report.md) | `c617cf3`, retest `99cad07` | Persistance, conflits, build release, mémoire (service 1,4 Mo, shell 11 Mo), ADL depuis la session 0, auto TDP réel : fin des dents de scie. · Persistence, conflicts, release build, memory (service 1.4 MB, shell 11 MB), ADL from session 0, real auto TDP: sawtooth fixed. |
+
+## Captures · Screenshots
+
+Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [Captures d'écran avec Xvfb](developer-guide.fr.md#captures-décran-avec-xvfb)). · Rendered on Linux with the hardware simulator and made-up values (see [Screenshots with Xvfb](developer-guide.en.md#screenshots-with-xvfb)).
+
+| Fichier · File | Page | Langue · Language |
+|---|---|---|
+| [`home-fr.png`](images/home-fr.png) | Accueil | Français |
+| [`bench-running-fr.png`](images/bench-running-fr.png) | Banc d'essai en cours | Français |
+| [`en-page0.png`](images/en-page0.png) | Home | English |
+| [`en-page1.png`](images/en-page1.png) | Performance | English |
+| [`en-page2.png`](images/en-page2.png) | Profiles | English |
+| [`en-page3.png`](images/en-page3.png) | Bench (results) | English |
+| [`en-page4.png`](images/en-page4.png) | Settings | English |
+| [`home-ja.png`](images/home-ja.png) | ホーム | 日本語 |
+| [`performance-ru.png`](images/performance-ru.png) | Производительность | Русский |

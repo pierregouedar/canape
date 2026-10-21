@@ -119,14 +119,14 @@ flowchart TD
     D -->|non| Z
     D -->|oui| E["Plafond = maximum sur batterie si sur batterie"]
     E --> F{"FPS ≥ 5 et GPU ≥ 15 % ?"}
-    F -->|non : pas de jeu| Z
+    F -->|"non : pas de jeu"| Z
     F -->|oui| G["Lisser les FPS, décompter le plancher"]
     G --> H{"Puissance au-dessus du plafond ?"}
     H -->|oui| H1["Descendre au plafond tout de suite"]
     H -->|non| I{"Température ≥ limite ?"}
     I -->|oui| I1["Baisser de 1 W après 3 s, ne jamais monter"]
     I -->|non| J{"FPS lissés et bruts sous 95 % de l'objectif ?"}
-    J -->|"oui, et 2 s depuis le dernier changement"| J1["Monter de 2 W, de 4 W sous 80 % ; plancher si le manque dure"]
+    J -->|"oui, et 2 s depuis le dernier changement"| J1["Monter de 2 W, de 4 W sous 80 %, plancher si le manque dure"]
     J -->|non| K{"FPS au-dessus de 110 %, ou à l'objectif avec GPU sous 80 % ?"}
     K -->|"oui, et 3 s depuis le dernier changement"| K1["Baisser de 1 W, pas sous le plancher ni le minimum"]
     K -->|non| L["Garder la puissance"]
@@ -260,7 +260,7 @@ sequenceDiagram
     Shell->>Service: foreground_app "eldenring.exe" (au changement, vérifié toutes les 2 s)
     Note over Service: Profil trouvé : mémorise l'état général,<br/>active l'auto TDP du profil<br/>en partant des watts appris
     loop chaque seconde
-        Service->>Service: auto TDP ; après 30 s stables, watts appris
+        Service->>Service: auto TDP, puis watts appris après 30 s stables
     end
     Shell->>Service: foreground_app "autre.exe", ou null quand le jeu est fermé
     Note over Service: Pas de profil : réapplique l'état général mémorisé

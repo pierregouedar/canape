@@ -1,0 +1,606 @@
+# Developer guide
+
+[🇫🇷 Version française](developer-guide.fr.md) · [📚 Documentation index](README.md)
+
+This guide describes Canapé's architecture, the protocol between its components, how to build and test (on Linux without hardware as well as on the Ally), packaging, the widget, translations and the project's rules.
+
+## Contents
+
+- [Architecture](#architecture)
+  - [Processes, sessions and integrity levels](#processes-sessions-and-integrity-levels)
+  - [Crates](#crates)
+  - [Inside the service](#inside-the-service)
+- [IPC protocol](#ipc-protocol)
+  - [Transport](#transport)
+  - [Requests](#requests)
+  - [Responses](#responses)
+  - [The status](#the-status)
+  - [Nested types](#nested-types)
+  - [Errors](#errors)
+  - [Evolving the protocol](#evolving-the-protocol)
+- [Building and testing on Linux](#building-and-testing-on-linux)
+  - [Service and shell with the simulator](#service-and-shell-with-the-simulator)
+  - [Environment variables](#environment-variables)
+  - [Screenshots with Xvfb](#screenshots-with-xvfb)
+- [Building and testing on Windows](#building-and-testing-on-windows)
+- [Continuous integration](#continuous-integration)
+- [Packaging](#packaging)
+- [The Game Bar widget](#the-game-bar-widget)
+- [Translations](#translations)
+- [Hardware notes](#hardware-notes)
+- [Conventions](#conventions)
+- [Two sessions: the Ally and the cloud](#two-sessions-the-ally-and-the-cloud)
+
+## Architecture
+
+Canapé is made of three programs running at the same time, plus a command-line tool. **Only the service has elevated rights** and touches the hardware; the UI and the widget only send requests.
+
+```mermaid
+flowchart LR
+    subgraph S1["Session 1: user"]
+        FSE["Full-screen experience<br/>GamingHomeApp"]
+        GB["Xbox Game Bar"]
+        SHELL["canape-shell.exe<br/>medium IL, asInvoker<br/>Canape package identity"]
+        WIDGET["Canapé widget<br/>UWP, AppContainer"]
+        CTL["canape-ctl.exe"]
+    end
+    subgraph S0["Session 0: services"]
+        SVC["canape-service.exe<br/>CanapeService, LocalSystem"]
+        STATE[("state.json")]
+    end
+    subgraph HW["Firmware and drivers"]
+        ATK["ASUS firmware<br/>ATKACPI device"]
+        ADL["AMD driver<br/>atiadlxx.dll, ADL"]
+    end
+    FSE -->|"windows.gaming:///home"| SHELL
+    GB --> WIDGET
+    SHELL <-->|"JSON, one line per message<br/>named pipe canape"| SVC
+    WIDGET <-->|"CreateFileFromAppW"| SVC
+    CTL <--> SVC
+    SHELL -.->|"FrameMetrics_Start, once"| ADL
+    SVC -->|"DEVS / DSTS over IOCTL"| ATK
+    SVC -->|"FPS, GPU activity"| ADL
+    SVC --- STATE
+```
+
+### Processes, sessions and integrity levels
+
+| Process | Session | Integrity / account | Identity | Started by |
+|---|---|---|---|---|
+| `canape-service.exe` | 0 | LocalSystem | none | Service manager, at boot (automatic start, restart after a crash: 3 times, 2 s delay) |
+| `canape-shell.exe` | 1 | **medium IL** (`asInvoker`) | sparse package `Canape`, AUMID `Canape_<hash>!App` | The FSE, with `windows.gaming:///home`; or `shell:AppsFolder\…` |
+| Widget | 1 | AppContainer (low IL) | package `Canape.Widget` | Game Bar |
+| `canape-ctl.exe` | 1 | the terminal's | none | By hand |
+
+Consequences:
+
+- The FSE only activates the home app at **medium IL**: the shell must stay `asInvoker` and ask for nothing privileged. Everything that touches the hardware goes through the service.
+- The service, in **session 0**, has no display and no windows: it cannot know which game is in the foreground (the shell tells it, `foreground_app`), and the AMD driver refuses to start frame counting from there (the shell starts it, see [Hardware notes](#adl-from-session-0)).
+- The widget lives in an AppContainer: it opens the pipe with `CreateFileFromAppW`, and the pipe's DACL explicitly allows it.
+- The shell is **single-instance** (mutex `Local\Canape.Shell`): a second activation brings the existing window to the front and exits. The FSE sometimes activates the home app several times at boot (see [m1-report.md](m1-report.md)).
+
+### Crates
+
+```mermaid
+flowchart BT
+    core["canape-core<br/>protocol, settings, bench"]
+    autotdp["canape-autotdp<br/>pure controller"]
+    hw["canape-hw<br/>Device trait, ATKACPI, ADL, simulator"]
+    ipc["canape-ipc<br/>Windows pipe, Unix socket"]
+    service["canape-service"]
+    shell["canape-shell"]
+    ctl["canape-ctl"]
+    hw --> core
+    ipc --> core
+    service --> core
+    service --> autotdp
+    service --> hw
+    service --> ipc
+    shell --> core
+    shell --> ipc
+    shell -.->|"Windows only"| hw
+    ctl --> core
+    ctl --> ipc
+```
+
+| Crate | Kind | Role | Key files |
+|---|---|---|---|
+| `canape-core` | library | Protocol (`Request`, `Response`, `Status`), settings (`AutoTdpSettings`, `PerformanceMode`, `Profile`), bench (`BenchPlan`, `BenchReport` and its recommendations), minimal log | `protocol.rs`, `settings.rs`, `bench.rs`, `log.rs` |
+| `canape-autotdp` | library | Auto TDP controller: a pure state machine fed one `Sample` per second, with no system dependency | `lib.rs` |
+| `canape-hw` | library | `Device` trait; Ally backend (Windows) on top of ATKACPI and ADL; `MockDevice` for everything else | `lib.rs`, `atk.rs`, `windows.rs`, `adl.rs`, `mock.rs` |
+| `canape-ipc` | library | A `Connection` that sends and receives JSON lines; named pipe on Windows, Unix socket elsewhere | `lib.rs`, `windows.rs`, `unix.rs` |
+| `canape-service` | binary | Windows service: state, auto TDP, profiles, bench, conflict detection, IPC server, persistence | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
+| `canape-shell` | binary | Slint home app (software rendering): 5 pages, XInput gamepad, foreground tracking, 13 languages | `main.rs`, `link.rs`, `ui/*.slint`, `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs` |
+| `canape-ctl` | binary | Sends one JSON request, or `watch` to follow the status | `main.rs` |
+
+The shell depends on `canape-hw` on Windows only for `arm_frame_metrics()` (starting the AMD driver's frame counting from the user session); it never writes to the firmware.
+
+### Inside the service
+
+```mermaid
+flowchart TB
+    subgraph Threads
+        TICK["tick thread<br/>every second"]
+        ACCEPT["accept thread"]
+        CLIENT["one thread per client"]
+    end
+    H["Handler<br/>behind a Mutex"]
+    SUBS["subscribers<br/>Vec of Writer"]
+    TICK -->|"tick(), conflicts every 5 s"| H
+    TICK -->|"status"| SUBS
+    ACCEPT -->|"new connection"| CLIENT
+    CLIENT -->|"handle(request)"| H
+    CLIENT -->|"after subscribe"| SUBS
+```
+
+- `Handler` (`handler.rs`) holds all the state and handles requests, independently of the transport; it is tested with `MockDevice`.
+- The **tick** thread calls `Handler::tick()` every second (measurements, bench, auto TDP), looks for conflicting programs every 5 ticks, saves `state.json` if learned watts or a bench changed the state, then pushes the status to subscribers.
+- Each **client** has its own thread. A request that changes the state is logged (`SetTdp { watts: 12 } -> Ok`), followed by a save of `state.json` when the response is `ok`, then by a status push to every subscriber.
+- `canape-service.exe` arguments:
+
+| Argument | Effect |
+|---|---|
+| *(none)* | Started by the service manager; launched by hand on Windows, falls back to `--console`. |
+| `--console` | Serves the pipe (or socket) in the foreground, on any OS; logs to stderr. |
+| `--stdio` | Reads JSON requests on stdin and answers on stdout, without the tick thread (no auto TDP, no status pushes). For quick checks. |
+| `install` / `uninstall` | Windows, elevated: registers (and starts) or removes the `CanapeService` service. |
+
+## IPC protocol
+
+The types are defined in [`crates/canape-core/src/protocol.rs`](../crates/canape-core/src/protocol.rs). The C# widget mirrors them by hand in `widget/CanapeWidget/CanapeLink.cs`.
+
+### Transport
+
+| | Windows | Linux, macOS (development) |
+|---|---|---|
+| Channel | Named pipe `\\.\pipe\canape` | Unix socket: `$CANAPE_SOCKET`, else `$XDG_RUNTIME_DIR/canape.sock`, else `<tmp>/canape.sock` |
+| Format | One JSON object per line (UTF-8, ending with `\n`) | same |
+| Security | DACL `D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;GRGW;;;IU)(A;;GRGW;;;AC)S:(ML;;NW;;;LW)`: full control for SYSTEM and administrators, read / write for the interactive user and **all** AppContainer apps, low integrity label so the widget can write. Remote clients rejected, exclusive first instance (no one else can serve this name). | Socket file permissions |
+
+Messages are internally tagged Serde enums: the `type` field names the variant in `snake_case`, the other fields sit next to it. An empty `Option` is written `null`.
+
+**Life of a connection**
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Service
+    C->>S: {"type":"hello","protocol_version":1}
+    S-->>C: {"type":"hello","protocol_version":1}
+    C->>S: {"type":"set_tdp","watts":12}
+    S-->>C: {"type":"ok"}
+    C->>S: {"type":"subscribe"}
+    S-->>C: {"type":"status", …}
+    loop about every second, and after every change
+        S-->>C: {"type":"status", …}
+    end
+    Note over C,S: After subscribe, the service reads nothing more on this connection
+```
+
+- Every client **should** start with `hello`. The service does not enforce it, but rejects any version other than `1`.
+- A request gets exactly one response, in order.
+- After `subscribe`, the connection only receives. The reason: on Windows, I/O on a synchronous pipe is serialized on the same file object; a pending read would block the tick thread's writes (bug found in M2, see [m2-report.md](m2-report.md)). So clients use **one subscription connection and one or more command connections** (the shell keeps one open, the widget opens one per command).
+- A line that is not valid JSON closes the connection (a `client error: …` log line); only `--stdio` mode answers with an `error`.
+- The Windows client retries for 2 s when every pipe instance is busy.
+
+### Requests
+
+| Request | Fields | Response | Effect |
+|---|---|---|---|
+| `hello` | `protocol_version: u32` | `hello` or `error` | Checks the version (currently `1`). |
+| `get_status` | — | `status` | Current status. |
+| `subscribe` | — | `status`, then a `status` about every second | The connection becomes push-only. |
+| `set_performance_mode` | `mode`: `silent` \| `performance` \| `turbo` \| `manual` | `ok` / `error` | Turns auto TDP off. A firmware mode resets `tdp_watts` to `null`. Rejected during a bench. |
+| `set_tdp` | `watts: u32` | `ok` / `error` | Manual TDP (sPPT, SPL, fPPT), `manual` mode, auto TDP off. Rejected outside the model's range and during a bench. |
+| `set_auto_tdp` | `settings: AutoTdpSettings` | `ok` / `error` | Turns auto TDP on (or off with `enabled: false`). During a profile, changes the profile. Rejected during a bench. |
+| `set_battery_charge_limit` | `percent: u8` (40 to 100) | `ok` / `error` | Battery charge limit. |
+| `foreground_app` | `exe: string \| null` | `ok` | Foreground program (sent by the shell); applies or leaves the matching profile. |
+| `save_profile` | `profile: Profile` | `ok` / `error` | Creates or replaces the profile for `profile.exe` (case-insensitive); re-applies it if active. |
+| `delete_profile` | `exe: string` | `ok` | Deletes the profile; hands back to the global state if it was active. |
+| `list_profiles` | — | `profiles` | All profiles. |
+| `start_bench` | `plan: BenchPlan` | `ok` / `error` | Starts a bench (needs at least 5 FPS). The plan is clamped to the model's range; step and durations at least 1. |
+| `cancel_bench` | — | `ok` / `error` | Stops the bench, keeping a partial report. |
+| `get_bench_report` | — | `bench` | The last finished or cancelled report (during a bench, the previous one). |
+
+Examples:
+
+```json
+{"type":"set_performance_mode","mode":"turbo"}
+{"type":"set_auto_tdp","settings":{"enabled":true,"target_fps":60,"min_watts":7,"max_watts":25,"battery_max_watts":15,"max_temp_c":85}}
+{"type":"set_battery_charge_limit","percent":80}
+{"type":"foreground_app","exe":"eldenring.exe"}
+{"type":"foreground_app","exe":null}
+{"type":"save_profile","profile":{"exe":"eldenring.exe","auto_tdp":{"enabled":true,"target_fps":60,"min_watts":7,"max_watts":19,"battery_max_watts":null,"max_temp_c":null},"learned_watts":16}}
+{"type":"delete_profile","exe":"eldenring.exe"}
+{"type":"start_bench","plan":{"from_watts":25,"to_watts":7,"step_watts":3,"settle_secs":5,"measure_secs":15}}
+```
+
+### Responses
+
+| Response | Fields | Example |
+|---|---|---|
+| `hello` | `protocol_version` | `{"type":"hello","protocol_version":1}` |
+| `status` | the [status](#the-status) fields, flattened | `{"type":"status","tdp_watts":16,…}` |
+| `ok` | — | `{"type":"ok"}` |
+| `error` | `message` (English, not translated) | `{"type":"error","message":"a bench is running: cancel it first"}` |
+| `profiles` | `profiles: [Profile]` | `{"type":"profiles","profiles":[…]}` |
+| `bench` | `report: BenchReport \| null` | `{"type":"bench","report":null}` |
+
+### The status
+
+```json
+{
+  "type": "status",
+  "tdp_watts": 16,
+  "performance_mode": "manual",
+  "auto_tdp": {"enabled": true, "target_fps": 60, "min_watts": 7, "max_watts": 25, "battery_max_watts": 15, "max_temp_c": 85},
+  "fps": 61.2,
+  "gpu_util": 0.93,
+  "cpu_temp_c": 78.0,
+  "battery_percent": 64,
+  "conflicts": [],
+  "foreground": "eldenring.exe",
+  "active_profile": "eldenring.exe",
+  "on_battery": true,
+  "thermal_limited": false,
+  "bench": null
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `tdp_watts` | `u32 \| null` | Limit applied by Canapé. `null` in a firmware mode (the firmware does not report it) or before anything was set. |
+| `performance_mode` | `string \| null` | `silent`, `performance`, `turbo`, `manual`, or `null` if nothing was applied yet. |
+| `auto_tdp` | `AutoTdpSettings` | Settings in effect: global, or the active profile's. Values as set (not clamped to the model). |
+| `fps` | `f32 \| null` | Frame rate of the last tick (AMD driver). |
+| `gpu_util` | `f32 \| null` | GPU activity between 0 and 1. |
+| `cpu_temp_c` | `f32 \| null` | CPU temperature in °C. |
+| `battery_percent` | `u8 \| null` | Battery charge. |
+| `foreground` | `string \| null` | Foreground program reported by the shell. |
+| `active_profile` | `string \| null` | `exe` of the profile applied. |
+| `on_battery` | `bool \| null` | `true` on battery, `false` on AC. |
+| `thermal_limited` | `bool` | Auto TDP is holding power down because of the temperature limit. |
+| `bench` | `BenchProgress \| null` | Progress of the running bench. |
+
+### Nested types
+
+**`AutoTdpSettings`**
+
+| Field | Type | Default | |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | |
+| `target_fps` | `u32` | `60` | 0 rejected |
+| `min_watts` | `u32` | `7` | |
+| `max_watts` | `u32` | `25` | |
+| `battery_max_watts` | `u32 \| null` | `null` | optional on input |
+| `max_temp_c` | `u32 \| null` | `null` | optional on input |
+
+**`Profile`**: `exe` (string, compared case-insensitively), `auto_tdp` (`AutoTdpSettings`), `learned_watts` (`u32 | null`, optional).
+
+**`BenchPlan`**: `from_watts` (25), `to_watts` (7), `step_watts` (3), `settle_secs` (5), `measure_secs` (15).
+
+**`BenchProgress`**: `step` (from 1), `steps`, `watts`, `seconds_left`. Example: `{"step":2,"steps":7,"watts":22,"seconds_left":110}`.
+
+**`BenchReport`**
+
+```json
+{
+  "exe": "eldenring.exe",
+  "started_unix": 1792615847,
+  "plan": {"from_watts": 25, "to_watts": 7, "step_watts": 3, "settle_secs": 5, "measure_secs": 15},
+  "points": [
+    {"watts": 7, "fps_avg": 31.0, "fps_low": 25.0, "gpu_avg": 0.98, "temp_max": 67.0, "samples": 15},
+    {"watts": 10, "fps_avg": 44.0, "fps_low": 38.0, "gpu_avg": 0.97, "temp_max": 70.0, "samples": 15}
+  ],
+  "completed": true
+}
+```
+
+`points` is sorted by ascending power. The recommendations (`sweet_spot`, `watts_for`, `most_efficient`) are `BenchReport` methods, computed on the client side; see [Auto TDP and bench](auto-tdp.en.md#the-three-recommendations).
+
+### Errors
+
+| Message | Cause |
+|---|---|
+| `unsupported protocol version N, expected 1` | `hello` with another version |
+| `a bench is running: cancel it first` | `set_performance_mode`, `set_tdp`, `set_auto_tdp` or `start_bench` during a bench |
+| `invalid auto TDP settings` | Minimum above maximum after clamping to the model, or a target of 0 |
+| `a profile needs an executable name` | `save_profile` with an empty `exe` |
+| `no bench is running` | `cancel_bench` with no bench |
+| `no frame rate: start a game before the bench` | `start_bench` below 5 FPS |
+| `value out of range: …` | Watts outside the model's range, charge limit outside 40 to 100 % |
+| `firmware refused: DEVS 0x… = … returned …` | The firmware did not return 1 |
+| `device I/O failed: …` | `DeviceIoControl` failed |
+
+### Evolving the protocol
+
+- A new field in `Status` or `AutoTdpSettings` gets `#[serde(default)]`: older clients ignore it, and an older `state.json` stays readable.
+- A new request is a new `Request` variant; remember to add it to the read-only request list in `server.rs` if it changes nothing (otherwise it is logged and triggers a save).
+- An incompatible change bumps `PROTOCOL_VERSION`, on the Rust side **and** in `CanapeLink.cs`.
+- The widget only rewrites the fields it knows: `set_auto_tdp` sends back the whole `auto_tdp` object it received, changing only `enabled` and `target_fps`.
+
+## Building and testing on Linux
+
+The cloud session has no hardware: everything is tested with the simulator (`MockDevice`).
+
+**Dependencies** (Debian / Ubuntu, as in CI):
+
+```sh
+sudo apt-get install -y libxkbcommon-dev libfontconfig1-dev
+```
+
+To show the shell you need an X server (the Slint backend is winit + X11, software rendering).
+
+**Checks before pushing** (project rule):
+
+```sh
+cargo fmt --all --check
+cargo clippy --all-targets -- -D warnings
+cargo test
+rustup target add x86_64-pc-windows-msvc   # once
+cargo check --target x86_64-pc-windows-msvc --all-targets
+```
+
+`cargo test` runs 64 tests to date: the auto TDP controller (including a simulation of the M4 oscillation case), the service handler (profiles, bench, persistence), the bench, ATKACPI, IPC, gamepad navigation, foreground tracking, languages and catalog completeness. The Windows `cargo check` catches the `#[cfg(windows)]` code that Linux does not compile, without being able to run it.
+
+### Service and shell with the simulator
+
+```sh
+# Terminal 1: the service, with a "game" simulated at 60 FPS
+CANAPE_MOCK_FPS=60 cargo run -p canape-service -- --console
+
+# Terminal 2: follow the status, send commands
+cargo run -p canape-ctl -- watch
+cargo run -p canape-ctl -- '{"type":"set_auto_tdp","settings":{"enabled":true,"target_fps":60,"min_watts":7,"max_watts":25}}'
+
+# Terminal 3: the shell in a window
+CANAPE_WINDOWED=1 cargo run -p canape-shell
+```
+
+The simulator: 7 to 30 W range, 70 % GPU activity, 55 °C, battery at 80 % on AC, charge limit 40 to 100 %. The frame rate stays at `CANAPE_MOCK_FPS` whatever the power: auto TDP therefore goes down to the minimum (a 60 target with 60 FPS and 70 % GPU triggers the idle GPU rule).
+
+With a keyboard, the shell works like with the gamepad: Tab / Shift+Tab, Enter or Space, Esc, Page Up / Page Down.
+
+On Linux, the shell does not track the foreground. To simulate a game, send it to the service:
+
+```sh
+cargo run -p canape-ctl -- '{"type":"foreground_app","exe":"eldenring.exe"}'
+cargo run -p canape-ctl -- '{"type":"start_bench","plan":{"from_watts":25,"to_watts":7,"step_watts":3,"settle_secs":1,"measure_secs":2}}'
+```
+
+Off Windows, logs and state go to `<tmp>/Canape/` (`service.log`, `state.json`, `shell.log`, `shell.json`, with `<tmp>` = `$TMPDIR` or `/tmp`). Delete `state.json` to start from a clean state.
+
+### Environment variables
+
+| Variable | Read by | Effect |
+|---|---|---|
+| `CANAPE_MOCK_FPS` | service (simulator) | Simulated frame rate, for example `60`. Without it, `fps` is `null` and auto TDP does not move. Also applies on Windows when the simulator is in use. |
+| `CANAPE_SOCKET` | service, shell, `canape-ctl` (off Windows) | Unix socket path. |
+| `CANAPE_WINDOWED` | shell | Present (any value): a window instead of full screen. |
+| `CANAPE_PAGE` | shell | Page shown at startup: 0 Home, 1 Performance, 2 Profiles, 3 Bench, 4 Settings. |
+| `LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG` | shell (off Windows) | Language in Automatic mode, in this order of priority. |
+| `TMPDIR` | all (off Windows) | Temporary folder, hence where `Canape/` lives. |
+
+### Screenshots with Xvfb
+
+The screenshots in `docs/images/` are made this way (verified recipe):
+
+```sh
+Xvfb :99 -screen 0 1280x720x24 &
+CANAPE_MOCK_FPS=60 cargo run -p canape-service -- --console &
+DISPLAY=:99 CANAPE_WINDOWED=1 CANAPE_PAGE=1 LANGUAGE=fr cargo run -p canape-shell &
+sleep 5
+DISPLAY=:99 import -window root docs/images/performance-fr.png   # ImageMagick
+```
+
+- 1280×720 matches the Ally's 1080p screen at 150 %.
+- `LANGUAGE=<code>` picks the language (Automatic mode follows it); otherwise save a choice in `<tmp>/Canape/shell.json` (`{"language":"ja"}`).
+- Set up the state with `canape-ctl` (profiles, foreground, bench) before starting the shell.
+- A `shell.json` or `state.json` left in `<tmp>/Canape/` changes what shows: use a dedicated `TMPDIR` for reproducible screenshots.
+
+## Building and testing on Windows
+
+**Requirements**: Rust (MSVC toolchain), Visual Studio Build Tools 2022 with the C++ tools and the Windows SDK, Developer Mode.
+
+```powershell
+cargo build --release -p canape-shell -p canape-service -p canape-ctl
+```
+
+> [!WARNING]
+> **Smart App Control** blocks the unsigned build scripts of a fresh build (`os error 4551`). Ways out: retry, build in debug, use the CI binaries, or turn Smart App Control off (hard to turn back on). See [m1-report.md](m1-report.md) and [m2-report.md](m2-report.md).
+
+**Install** on the machine: `packaging\install-dev.ps1` (see the [user guide](user-guide.en.md#installing-canapé)).
+
+**Run the service by hand** to see its log:
+
+```powershell
+Stop-Service CanapeService       # only one server can own the pipe
+& .\target\release\canape-service.exe --console
+```
+
+> [!IMPORTANT]
+> Run **without elevation**, or on a PC that is not a recognized Ally, the service cannot open `\\.\ATKACPI` and **silently falls back to the simulator** (`device = mock` in the log). Always check for the `device = ROG Ally` line.
+
+**Windows PowerShell 5.1 pitfalls**:
+
+- the quotes of a JSON argument passed to an `.exe` must be escaped (`'{\"type\":\"get_status\"}'`);
+- `if (…) { @("--release") }` returns a string, which splatting passes character by character (fixed in `install-dev.ps1`);
+- `Stop-Process` returns before the executable is unlocked: wait with `Wait-Process`.
+
+To test the shell **with the package identity** (as the FSE runs it), go through `install-dev.ps1` then `explorer.exe shell:AppsFolder\Canape_<hash>!App`.
+
+## Continuous integration
+
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on every push, pull request or manual dispatch:
+
+| Job | Steps |
+|---|---|
+| `windows` (windows-latest) | `cargo fmt --all --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, `cargo build --release` of the three binaries, **`canape-windows-x64`** artifact (`canape-shell.exe`, `canape-service.exe`, `canape-ctl.exe`) |
+| `linux` (ubuntu-latest) | X11 / fontconfig dependencies, `cargo clippy --all-targets -- -D warnings`, `cargo test` |
+
+The artifact installs on the Ally with `install-dev.ps1 -BinariesDir`: that is the way around Smart App Control. The widget is not built by CI.
+
+Release profile (`Cargo.toml`): `opt-level = "s"`, LTO, `codegen-units = 1`, `panic = "abort"`, stripped symbols.
+
+## Packaging
+
+
+| File | Role |
+|---|---|
+| [`packaging/identity/AppxManifest.xml`](../packaging/identity/AppxManifest.xml) | Identity `Canape`, publisher `CN=Canape Dev`, Windows 10.0.26100 minimum. `uap10:AllowExternalContent`. Application `App` → `canape-shell.exe`, `uap10:TrustLevel="mediumIL"`, `uap10:RuntimeBehavior="win32App"`. Extension `uap3:AppExtension Name="windows.gamingApp"`. Capabilities `runFullTrust`, `unvirtualizedResources` and `Microsoft.appCategory.gamingHome_8wekyb3d8bbwe`. |
+| [`packaging/identity/CustomCapability.SCCD`](../packaging/identity/CustomCapability.SCCD) | Unlocks the `gamingHome` capability. `AllowAny="true"`, catalog `FFFF` (test): **Developer Mode required**. Also copied to the install root. |
+| [`crates/canape-shell/canape-shell.exe.manifest`](../crates/canape-shell/canape-shell.exe.manifest) | Embedded in the exe by `build.rs` (MSVC): `msix` element tying the exe to the package (`publisher`, `packageName`, `applicationId` identical to the package manifest), `asInvoker`, PerMonitorV2 DPI. |
+| [`packaging/install-dev.ps1`](../packaging/install-dev.ps1) | Builds, installs the service, creates the certificate, `makeappx pack`, `signtool sign`, `Add-AppxPackage -ExternalLocation`, and optionally `GamingHomeApp`. |
+
+**Development certificate**: self-signed, subject `CN=Canape Dev`, code signing usage (`1.3.6.1.5.5.7.3.3`), created in `CurrentUser\My`, exported as `.pfx` (password `canape-dev`) and `.cer` to `$HOME\dev\canape-cert`, the `.cer` imported into `LocalMachine\TrustedPeople`. It signs the identity package and the widget. The publisher of the certificate, the package manifest and the exe manifest must stay identical.
+
+**Picking the home app**: by the user in Settings → Gaming → Full screen experience, or by writing the undocumented value `HKCU\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration\GamingHomeApp = <PFN>!App`. At boot, if `StartupToGamingHome = 1`, Windows activates that AUMID with the `windows.gaming:///home` argument (`args=[]` outside the FSE).
+
+> [!NOTE]
+> Distribution outside Developer Mode would need an SCCD signed by Microsoft. That is out of scope while Canapé stays a personal project.
+
+## The Game Bar widget
+
+| Topic | Choice |
+|---|---|
+| Technology | **C# UWP compiled with .NET Native**: Game Bar only accepts UWP XAML apps (not WinUI 3). Project derived from the official `WidgetSampleCS` sample (MIT). |
+| SDK | `Microsoft.Gaming.XboxGameBar` **7.2.240903001** (7.3.x breaks the build). The manifest's `proxyStub` block matches this version. |
+| Target | `TargetPlatformVersion` 10.0.26100.0 (the SDK installed on the Ally), `TargetPlatformMinVersion` 10.0.19041.0. `mp:PhoneIdentity` is required by the UWP packaging targets. |
+| Pipe | `CreateFileFromAppW` (allowed from an AppContainer since Windows 10 2004). One subscription connection, then one short connection per command, reconnecting every 2 s. |
+| Package | `Canape.Widget`, `microsoft.gameBarUIExtension` extension, signed with the development certificate. |
+| Files | `widget/CanapeWidget/`: `CanapeLink.cs` (pipe client), `WidgetPage.xaml(.cs)` (UI), `Strings/<language>/Resources.resw`, `Package.appxmanifest`. |
+
+**Build**: workload `Microsoft.VisualStudio.Workload.UniversalBuildTools`, then `packaging\build-widget.ps1` (see the [user guide](user-guide.en.md#the-xbox-game-bar-widget)). The script runs MSBuild (Release x64, sideload, signed), then `Add-AppxPackage` passing **only the frameworks that are missing or older**: reinstalling VCLibs or .NET Native while Game Bar uses them fails with `0x80073D02` ([m3-report.md](m3-report.md)).
+
+The widget only builds on Windows with the UWP tools: neither CI nor the cloud session checks it.
+
+## Translations
+
+### Shell (Slint + gettext)
+
+- Every visible string goes through `@tr("…")` in `crates/canape-shell/ui/*.slint`. Numbers stay numbers until display: the formats (`"{} W"`, `"{} %"`, `"{} °C"`, the decimal separator) are translated themselves.
+- Catalogs: `crates/canape-shell/lang/<code>/LC_MESSAGES/canape-shell.po`, bundled into the exe by `build.rs` (`with_bundled_translations("lang")`, no default context: a string is translated once). The only exception: `msgctxt "decimal separator"` for `"."`.
+- English is the source language: no catalog.
+- `i18n.rs` picks the catalog: the choice saved in `shell.json` if bundled, otherwise the first preferred language of Windows (`GetUserPreferredUILanguages`) or of the POSIX environment that is bundled, otherwise English. Matching is by base code (`pt-BR` → `pt`, `zh-*` → `zh_CN`).
+
+**Adding a language to the shell**
+
+1. Add the code (folder name) to `LANGUAGES` in [`i18n.rs`](../crates/canape-shell/src/i18n.rs). If the code does not match the base code of Windows' language tags, adapt `match_locale` (as for `zh_CN`).
+2. Copy `lang/fr/LC_MESSAGES/canape-shell.po` to `lang/<code>/LC_MESSAGES/canape-shell.po`, update the header (`Language`, `Plural-Forms`) and translate every `msgstr`. **One line per field**: the test does not read multi-line strings. Keep the same number of `{}`.
+3. Add a tile to the `rows` grid of `SettingsPage` ([`pages.slint`](../crates/canape-shell/ui/pages.slint)), with the language's name in that language (two cells are still empty).
+4. `cargo test -p canape-shell`: the `every_language_translates_every_string` test checks that every catalog contains every `@tr` of the sources, with no empty translation, the same `{}`, and no stale entry.
+5. Take screenshots of every page with Xvfb and `LANGUAGE=<code>`: texts that are too long get cut (`…`).
+
+Adding a string to the UI means adding its entry to all 12 catalogs, otherwise the same test fails.
+
+### Widget (.resw)
+
+- Every string lives in `widget/CanapeWidget/Strings/<tag>/Resources.resw`: `x:Uid` in the XAML (keys `Name.Property`), `ResourceLoader` in the code (keys without a dot), `ms-resource:` in the manifest. The formats (`FormatWatts`, `FormatPercent`, `FormatCelsius`) are resources.
+- Default language `en-US`; Windows picks according to the preferred languages.
+
+**Adding a language to the widget**: copy `Strings/en-US/Resources.resw` to `Strings/<BCP-47 tag>/`, translate every `<value>` keeping the keys and the `{0}`, add `<PRIResource Include="Strings\<tag>\Resources.resw" />` to `CanapeWidget.csproj`, rebuild. Details in [`widget/README.md`](../widget/README.md).
+
+There is no automated test for the widget. To check that every language has the same keys as English:
+
+```sh
+cd widget/CanapeWidget/Strings
+for f in */Resources.resw; do
+  diff <(grep -o 'data name="[^"]*"' en-US/Resources.resw | sort) \
+       <(grep -o 'data name="[^"]*"' "$f" | sort) > /dev/null || echo "$f differs"
+done
+```
+
+## Hardware notes
+
+> [!IMPORTANT]
+
+### ATKACPI
+
+The ASUS firmware is reached through `\\.\ATKACPI` (opened read / write, shared), IOCTL `0x0022240C`. Input buffer: `[method u32][argument length u32][arguments u32…]`, little-endian; 16-byte output.
+
+| Method | Value | Use |
+|---|---|---|
+| `DSTS` | `0x53545344` | Read. Result = value + presence bit `0x00010000`; 0 when the ID does not exist. |
+| `DEVS` | `0x53564544` | Write. The firmware returns 1 on success. |
+
+| ID | Name | Use in Canapé |
+|---|---|---|
+| `0x001200A0` | sPPT (PL2, slow boost) | TDP, written first |
+| `0x001200A3` | SPL (PL1, sustained) | TDP, written second |
+| `0x001200C1` | fPPT (fast boost) | TDP, written last, only if `DSTS` reports it present |
+| `0x00120057` | Charge limit | 40 to 100 % |
+| `0x00120094` | CPU temperature | Read, values from 1 to 124 °C |
+
+
+### Models
+
+The model is read from `HKLM\HARDWARE\DESCRIPTION\System\BIOS\SystemProductName`:
+
+| Contains | Model | TDP range |
+|---|---|---|
+| `RC71` | ROG Ally (Z1 / Z1 Extreme) | 5 to 30 W |
+| `RC72` | ROG Ally X | 5 to 30 W |
+| `RC73YA` | ROG Xbox Ally (Z2 A) | 5 to 35 W |
+| `RC73XA` | ROG Xbox Ally X (Z2 Extreme) | 5 to 35 W |
+
+
+
+### ADL from session 0
+
+`atiadlxx.dll` (shipped with the AMD driver) is loaded at runtime: no driver means no telemetry, but no error either.
+
+| Call | Service (session 0) | User session |
+|---|---|---|
+| `ADL2_Main_Control_Create`, adapter list | OK, but no adapter is `present` (no display) | OK |
+| `ADL2_Adapter_FrameMetrics_Start(adapter, 0)` | **−1** | 0 |
+| `ADL2_Adapter_FrameMetrics_Get` | FPS only **after** a successful `Start` from the user session | OK |
+| `ADL2_New_QueryPMLogData_Get`, sensor 19 (GFX activity) | OK | OK |
+
+Hence the fix: at startup the shell calls `canape_hw::arm_frame_metrics()` (a single `FrameMetrics_Start`, an `adl: …` line in `shell.log`); counting is global to the driver, and the service then reads the frame rate. The adapter chosen is the existing integrated AMD iGPU, preferring a `present` one. Detailed diagnosis: [m4-report.md](m4-report.md).
+
+### Not implemented yet (M5)
+
+| Feature | Planned interface |
+|---|---|
+| Fan curves | ATKACPI `0x00110024` / `0x00110025` (8 temperatures + 8 PWM percentages) |
+| Display refresh rate | `ChangeDisplaySettingsEx` on the internal display |
+| Gamepad mode, special buttons | ASUS HID (VID `0x0B05`, report `0x5A`) |
+
+## Conventions
+
+From [`CLAUDE.md`](../CLAUDE.md):
+
+| Rule | Details |
+|---|---|
+| Languages | Documentation and discussion in French (this documentation also exists in English); code, comments and commit messages in English. |
+| Lightness first | No embedded browser, no async runtime without a measured need, minimal dependencies. Targets: service < 10 MB and ≈ 0 % CPU at rest, shell < 80 MB. Measured in release (M4): service 1.3 to 1.4 MB private, shell 10.9 to 11.3 MB private and 0.31 % of one core in the foreground. |
+| Privileges | Only `canape-service` has elevated rights. `canape-shell` stays `asInvoker`: the FSE activates it at medium IL. |
+| Before pushing | `cargo fmt --all --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, `cargo check --target x86_64-pc-windows-msvc --all-targets` from Linux. |
+| Secrets | Never any `.pfx` / `.cer` / `.msix` in the repository (`.gitignore`). |
+
+## Two sessions: the Ally and the cloud
+
+Two sessions work on the repository and sync through GitHub:
+
+| Session | Machine | Can | Cannot |
+|---|---|---|---|
+| **Ally** | ROG Ally, Windows | Build on Windows, install, test the hardware, the FSE, Game Bar, measure memory and CPU | — |
+| **Cloud** | Linux, no hardware | Write code, tests and documentation; run the simulator, take Xvfb screenshots; `cargo check` for Windows | Run Windows code, touch the hardware |
+
+```mermaid
+sequenceDiagram
+    participant Cloud as Cloud session (Linux)
+    participant GH as GitHub (CI)
+    participant Ally as Ally session (Windows)
+    Cloud->>Cloud: code + tests + simulator + Windows cargo check
+    Cloud->>GH: push
+    GH->>GH: Linux and Windows CI, canape-windows-x64 artifact
+    Ally->>GH: pull, or download the artifact
+    Ally->>Ally: install-dev.ps1, hardware tests, measurements
+    Ally->>GH: fixes + docs/mN-report.md
+    GH->>Cloud: pull, read the report
+```
+
+- **Never claim a Windows behavior works without testing it on the Ally.** What was only checked on Linux is marked as such (see the [project status](../README.md#project-status)).
+- Tests on the Ally produce a **milestone report** (`docs/m1-report.md` to `docs/m4-report.md`): configuration tested and starting commit, what works, what was fixed, memory and CPU measurements, problems found, what is still open. Evidence is dated and quantified.
+- Changes to the Ally's state (Developer Mode, Smart App Control, FSE home app, pausing Winhanced) are made with the owner's approval and put back at the end of the tests.
