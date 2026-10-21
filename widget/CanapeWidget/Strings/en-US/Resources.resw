@@ -14,13 +14,21 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="TdpCaption.Text" xml:space="preserve">
-    <value>TDP</value>
-    <comment>Tile caption: thermal design power</comment>
-  </data>
   <data name="FpsCaption.Text" xml:space="preserve">
     <value>FPS</value>
     <comment>Tile caption: frames per second</comment>
+  </data>
+  <data name="PowerCaption.Text" xml:space="preserve">
+    <value>APU power</value>
+    <comment>Graph card caption: power the APU draws right now (short)</comment>
+  </data>
+  <data name="GpuCaption.Text" xml:space="preserve">
+    <value>GPU</value>
+    <comment>Graph card caption: GPU activity</comment>
+  </data>
+  <data name="PowerLimit" xml:space="preserve">
+    <value>Limit {0}</value>
+    <comment>Next to the live power: the TDP limit; {0} = watts with unit (short)</comment>
   </data>
   <data name="ModeHeader.Text" xml:space="preserve">
     <value>Mode</value>
@@ -68,11 +76,11 @@
   </data>
   <data name="ProfileChip" xml:space="preserve">
     <value>Profile</value>
-    <comment>Chip: a per-game profile is applied to the foreground game</comment>
+    <comment>Header label (accent text): a per-game profile is applied to the foreground game</comment>
   </data>
   <data name="ProfileNamed" xml:space="preserve">
     <value>Profile: {0}</value>
-    <comment>Chip: profile of another program is applied; {0} = program name</comment>
+    <comment>Header label (accent text): profile of another program is applied; {0} = program name</comment>
   </data>
   <data name="CaptionTemp" xml:space="preserve">
     <value>Temp</value>

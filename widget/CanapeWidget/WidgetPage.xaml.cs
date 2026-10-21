@@ -21,23 +21,28 @@ namespace CanapeWidget
         // ERROR_FILE_NOT_FOUND: no pipe server, i.e. the service isn't running.
         private const string ErrorFileNotFound = "2";
 
-        // Created on the UI thread with the page: XAML objects are thread-bound.
-        private readonly Brush good = new SolidColorBrush(Color.FromArgb(255, 0x4A, 0xDE, 0x80));
-        private readonly Brush warning = new SolidColorBrush(Color.FromArgb(255, 0xFA, 0xCC, 0x15));
-        private readonly Brush bad = new SolidColorBrush(Color.FromArgb(255, 0xEF, 0x44, 0x44));
-        private readonly Brush idle = new SolidColorBrush(Color.FromArgb(128, 255, 255, 255));
+        // The service pushes a status once per second: 60 samples = the last minute.
+        private const int HistoryLength = 60;
 
         private readonly ResourceLoader strings = ResourceLoader.GetForCurrentView();
         private readonly CanapeLink link = new CanapeLink();
+        private readonly LiveGraph powerGraph;
+        private readonly LiveGraph gpuGraph;
         private CancellationTokenSource follow;
         private JsonObject lastStatus;
         private XboxGameBarWidget widget;
+        private Color? appliedAccent;
+        // Graphs are not redrawn while Game Bar hides the widget.
+        private bool graphsStale;
 
         public WidgetPage()
         {
             InitializeComponent();
-            link.StatusReceived += status => OnUi(() => Show(status));
+            powerGraph = new LiveGraph(PowerPlot, PowerLine, PowerArea, PowerLimitLine, HistoryLength) { MinimumScale = 10 };
+            gpuGraph = new LiveGraph(GpuPlot, GpuLine, GpuArea, null, HistoryLength) { FixedMax = 1 };
+            link.StatusReceived += status => OnUi(() => OnStatus(status));
             link.Disconnected += problem => OnUi(() => ShowDisconnected(problem));
+            ApplyAccent(null);
             ShowWaiting();
         }
 
@@ -49,6 +54,11 @@ namespace CanapeWidget
                 widget.RequestedOpacityChanged += OnRequestedOpacityChanged;
                 ApplyOpacity();
             }
+            var window = Window.Current;
+            if (window != null)
+            {
+                window.VisibilityChanged += OnWindowVisibilityChanged;
+            }
             follow = new CancellationTokenSource();
             _ = link.FollowAsync(follow.Token);
         }
@@ -56,10 +66,23 @@ namespace CanapeWidget
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             follow?.Cancel();
+            var window = Window.Current;
+            if (window != null)
+            {
+                window.VisibilityChanged -= OnWindowVisibilityChanged;
+            }
             if (widget != null)
             {
                 widget.RequestedOpacityChanged -= OnRequestedOpacityChanged;
                 widget = null;
+            }
+        }
+
+        private void OnWindowVisibilityChanged(object sender, VisibilityChangedEventArgs e)
+        {
+            if (e.Visible && graphsStale)
+            {
+                RenderGraphs();
             }
         }
 
@@ -80,6 +103,55 @@ namespace CanapeWidget
             if (widget != null && panel != null)
             {
                 panel.Opacity = widget.RequestedOpacity;
+            }
+        }
+
+        // ---- Accent -------------------------------------------------------
+
+        /// <summary>
+        /// Recolours the accent brushes in place (Status.accent, "#rrggbb", or
+        /// the default blue): every element using them follows at once.
+        /// </summary>
+        private void ApplyAccent(string text)
+        {
+            Color accent;
+            if (!Palette.TryParse(text, out accent))
+            {
+                accent = Palette.DefaultAccent;
+            }
+            if (appliedAccent.HasValue && appliedAccent.Value.Equals(accent))
+            {
+                return;
+            }
+            appliedAccent = accent;
+
+            var onAccent = Palette.OnAccent(accent);
+            SetBrush(Resources, "AccentBrush", accent);
+            SetBrush(Resources, "AccentFillBrush", Palette.WithAlpha(accent, 0x38));
+            SetBrush(Resources, "AccentTextBrush", Palette.TextOnPanel(accent));
+
+            object value;
+            var theme = Resources.ThemeDictionaries.TryGetValue("Default", out value) ? value as ResourceDictionary : null;
+            SetBrush(theme, "ToggleButtonBackgroundChecked", accent);
+            SetBrush(theme, "ToggleButtonBackgroundCheckedPointerOver", Palette.Mix(accent, Palette.White, 0.12));
+            SetBrush(theme, "ToggleButtonBackgroundCheckedPressed", Palette.Mix(accent, Palette.Ink, 0.15));
+            SetBrush(theme, "ToggleButtonBackgroundCheckedDisabled", Palette.WithAlpha(accent, 0x59));
+            SetBrush(theme, "ToggleButtonForegroundChecked", onAccent);
+            SetBrush(theme, "ToggleButtonForegroundCheckedPointerOver", onAccent);
+            SetBrush(theme, "ToggleButtonForegroundCheckedPressed", Palette.WithAlpha(onAccent, 0xE6));
+            SetBrush(theme, "ToggleButtonForegroundCheckedDisabled", Palette.WithAlpha(onAccent, 0x99));
+        }
+
+        private static void SetBrush(ResourceDictionary dictionary, string key, Color color)
+        {
+            object value;
+            if (dictionary != null && dictionary.TryGetValue(key, out value))
+            {
+                var brush = value as SolidColorBrush;
+                if (brush != null)
+                {
+                    brush.Color = color;
+                }
             }
         }
 
@@ -184,37 +256,40 @@ namespace CanapeWidget
 
         private void ShowWaiting()
         {
-            LinkDot.Fill = idle;
             GameText.Text = S("Connecting");
-            GameText.Opacity = 0.7;
+            GameText.Opacity = 0.6;
             ClearValues();
         }
 
         private void ShowDisconnected(LinkProblem problem)
         {
             lastStatus = null;
-            LinkDot.Fill = bad;
             GameText.Text = S("NotConnected");
-            GameText.Opacity = 1;
+            GameText.Opacity = 0.6;
             ClearValues();
             ShowMessage(problem == null ? null : Describe(problem));
         }
 
         private void ClearValues()
         {
-            ProfileChip.Visibility = Visibility.Collapsed;
+            ProfileText.Visibility = Visibility.Collapsed;
+            PowerText.Text = Dash;
+            PowerLimitText.Text = "";
+            GpuText.Text = Dash;
+            powerGraph.Clear();
+            gpuGraph.Clear();
             TdpText.Text = Dash;
             FpsText.Text = Dash;
             TempText.Text = Dash;
             BatteryText.Text = Dash;
+            BatteryGlyph.Visibility = Visibility.Collapsed;
             TempCaption.Text = S("CaptionTemp");
             BatteryCaption.Text = S("CaptionBattery");
-            Tint(TempCaption, null);
-            Tint(BatteryCaption, null);
-            TempText.ClearValue(TextBlock.ForegroundProperty);
+            Warn(TempCaption, false);
+            Warn(TempText, false);
             BenchCard.Visibility = Visibility.Collapsed;
             ConflictText.Visibility = Visibility.Collapsed;
-            TdpHint.Text = "";
+            ShowHint(TdpHint, "");
             AutoRangeText.Text = "";
             AutoText.Text = S("AutoOff");
             foreach (var button in new[] { SilentButton, PerformanceButton, TurboButton, AutoButton, Fps30Button, Fps40Button, Fps60Button })
@@ -232,33 +307,83 @@ namespace CanapeWidget
             MessageText.Visibility = string.IsNullOrEmpty(message) ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        /// <summary>Caption in a status colour, or back to the style's dimmed look.</summary>
-        private static void Tint(TextBlock caption, Brush brush)
+        private static void ShowHint(TextBlock hint, string text)
         {
-            if (brush == null)
+            hint.Text = text ?? "";
+            hint.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        /// <summary>Warning text colour, or back to the style's look (captions are dimmed).</summary>
+        private void Warn(TextBlock text, bool warning)
+        {
+            if (warning)
             {
-                caption.ClearValue(TextBlock.ForegroundProperty);
-                caption.ClearValue(OpacityProperty);
+                text.Foreground = (Brush)Resources["WarningBrush"];
+                text.Opacity = 1;
             }
             else
             {
-                caption.Foreground = brush;
-                caption.Opacity = 1;
+                text.ClearValue(TextBlock.ForegroundProperty);
+                text.ClearValue(OpacityProperty);
             }
         }
 
+        /// <summary>
+        /// Segoe MDL2 Assets battery glyphs, by tenths of charge: Battery0-9
+        /// (E850-E859), Battery10 (E83F), BatteryCharging0-8 (E85A-E862),
+        /// BatteryCharging9 (E83E, also used at 100 %).
+        /// </summary>
+        private static string BatteryGlyphFor(int percent, bool charging)
+        {
+            var level = Math.Min(Math.Max((int)Math.Round(percent / 10.0), 0), 10);
+            int code;
+            if (charging)
+            {
+                code = level >= 9 ? 0xE83E : 0xE85A + level;
+            }
+            else
+            {
+                code = level == 10 ? 0xE83F : 0xE850 + level;
+            }
+            return ((char)code).ToString();
+        }
+
+        /// <summary>A status push: one more sample in the graphs, then the display.</summary>
+        private void OnStatus(JsonObject status)
+        {
+            var gpu = Number(status, "gpu_util");
+            powerGraph.Add(Number(status, "power_watts"), Number(status, "tdp_watts"));
+            gpuGraph.Add(gpu.HasValue ? Math.Min(Math.Max(gpu.Value, 0), 1) : (double?)null, null);
+            Show(status);
+            RenderGraphs();
+        }
+
+        private void RenderGraphs()
+        {
+            var window = Window.Current;
+            if (window != null && !window.Visible)
+            {
+                graphsStale = true;
+                return;
+            }
+            graphsStale = false;
+            powerGraph.Render();
+            gpuGraph.Render();
+        }
+
+        /// <summary>Text only: also replayed by RestoreChecks, so it adds no graph sample.</summary>
         private void Show(JsonObject status)
         {
             lastStatus = status;
-            LinkDot.Fill = good;
             ShowMessage(null);
+            ApplyAccent(Text(status, "accent"));
 
             // Header: foreground game and the profile applied to it.
             var game = Text(status, "foreground");
             GameText.Text = game != null ? GameName(game) : S("NoGame");
             GameText.Opacity = game != null ? 1 : 0.6;
             var profile = Text(status, "active_profile");
-            ProfileChip.Visibility = profile != null ? Visibility.Visible : Visibility.Collapsed;
+            ProfileText.Visibility = profile != null ? Visibility.Visible : Visibility.Collapsed;
             if (profile != null)
             {
                 ProfileText.Text = game != null && string.Equals(profile, game, StringComparison.OrdinalIgnoreCase)
@@ -266,10 +391,15 @@ namespace CanapeWidget
                     : F("ProfileNamed", GameName(profile));
             }
 
-            // Live values.
+            // Live power against the limit, GPU activity.
             var mode = Text(status, "performance_mode");
             var tdp = Integer(status, "tdp_watts");
-            TdpText.Text = tdp.HasValue ? F("FormatWatts", tdp.Value) : Dash;
+            var power = Number(status, "power_watts");
+            PowerText.Text = power.HasValue ? F("FormatWatts", (int)Math.Round(Math.Max(power.Value, 0))) : Dash;
+            PowerLimitText.Text = tdp.HasValue ? F("PowerLimit", F("FormatWatts", tdp.Value)) : "";
+            var gpu = Number(status, "gpu_util");
+            GpuText.Text = gpu.HasValue ? F("FormatPercent", (int)Math.Round(Math.Min(Math.Max(gpu.Value, 0), 1) * 100)) : Dash;
+
             var fps = Integer(status, "fps");
             FpsText.Text = fps.HasValue ? fps.Value.ToString(CultureInfo.CurrentCulture) : Dash;
 
@@ -277,21 +407,18 @@ namespace CanapeWidget
             TempText.Text = temp.HasValue ? F("FormatCelsius", temp.Value) : Dash;
             var throttled = Flag(status, "thermal_limited") == true;
             TempCaption.Text = S(throttled ? "CaptionThrottled" : "CaptionTemp");
-            Tint(TempCaption, throttled ? warning : null);
-            if (throttled)
-            {
-                TempText.Foreground = warning;
-            }
-            else
-            {
-                TempText.ClearValue(TextBlock.ForegroundProperty);
-            }
+            Warn(TempCaption, throttled);
+            Warn(TempText, throttled);
 
             var battery = Integer(status, "battery_percent");
-            BatteryText.Text = battery.HasValue ? F("FormatPercent", battery.Value) : Dash;
             var onBattery = Flag(status, "on_battery");
+            BatteryText.Text = battery.HasValue ? F("FormatPercent", battery.Value) : Dash;
             BatteryCaption.Text = S(onBattery == false ? "CaptionPluggedIn" : "CaptionBattery");
-            Tint(BatteryCaption, onBattery == false ? good : null);
+            BatteryGlyph.Visibility = battery.HasValue ? Visibility.Visible : Visibility.Collapsed;
+            if (battery.HasValue)
+            {
+                BatteryGlyph.Text = BatteryGlyphFor(battery.Value, onBattery == false);
+            }
 
             // Bench run (driven from the shell).
             var bench = Child(status, "bench");
@@ -317,9 +444,10 @@ namespace CanapeWidget
 
             // ±1 W only from a known wattage: in a firmware mode (silent,
             // performance, turbo) the service reports no TDP.
+            TdpText.Text = tdp.HasValue ? F("FormatWatts", tdp.Value) : Dash;
             TdpMinusButton.IsEnabled = tdp.HasValue && tdp.Value > 1;
             TdpPlusButton.IsEnabled = tdp.HasValue;
-            TdpHint.Text = !tdp.HasValue && mode != null && mode != "manual" ? S("TdpHintFirmware") : "";
+            ShowHint(TdpHint, !tdp.HasValue && mode != null && mode != "manual" ? S("TdpHintFirmware") : "");
 
             // Auto TDP.
             var auto = Child(status, "auto_tdp");
@@ -341,8 +469,8 @@ namespace CanapeWidget
             if (min.HasValue && max.HasValue)
             {
                 AutoRangeText.Text = onBattery == true && batteryMax.HasValue && batteryMax.Value < max.Value
-                    ? F("AutoRangeBattery", F("FormatWatts", min.Value + "\u2013" + batteryMax.Value))
-                    : F("FormatWatts", min.Value + "\u2013" + max.Value);
+                    ? F("AutoRangeBattery", F("FormatWatts", min.Value + "–" + batteryMax.Value))
+                    : F("FormatWatts", min.Value + "–" + max.Value);
             }
             else
             {

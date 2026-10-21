@@ -54,6 +54,8 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="CanapeLink.cs" />
+    <Compile Include="LiveGraph.cs" />
+    <Compile Include="Palette.cs" />
     <Compile Include="WidgetPage.xaml.cs">
       <DependentUpon>WidgetPage.xaml</DependentUpon>
     </Compile>

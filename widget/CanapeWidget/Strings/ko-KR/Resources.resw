@@ -14,11 +14,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="TdpCaption.Text" xml:space="preserve">
-    <value>TDP</value>
-  </data>
   <data name="FpsCaption.Text" xml:space="preserve">
     <value>FPS</value>
+  </data>
+  <data name="PowerCaption.Text" xml:space="preserve">
+    <value>APU 전력</value>
+  </data>
+  <data name="GpuCaption.Text" xml:space="preserve">
+    <value>GPU</value>
+  </data>
+  <data name="PowerLimit" xml:space="preserve">
+    <value>한도 {0}</value>
   </data>
   <data name="ModeHeader.Text" xml:space="preserve">
     <value>모드</value>
