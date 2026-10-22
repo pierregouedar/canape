@@ -146,6 +146,19 @@ Killing the shell, starting it again and bringing Heaven back to the front did r
 - `canape-ctl` writes power limits and fan curves only through the service: no other tool touched the hardware.
 - Heaven's launcher is a Qt browser; the runs called `Heaven.exe` directly with the launcher's arguments.
 
+## Steam install
+
+On `eb31756`, with a Steam Web API key added to `shell.json` (not in the repository):
+
+- The shell fetched the owned games on start (`owned.json`, 62 games) and downloaded 58 covers. Games → Down shows **"À installer · 58"**, every tile with its cover.
+- The shelf is sorted by last played, then title, like Récents. Among Us (1.07 GB on disk, 693 MB to download) was the smallest known game in it.
+- A on Among Us: `library: installing steam:945360`. The **Steam desktop client** came to the front over the shell with its own "Installer" dialog (desktop shortcuts ticked, drive C:), confirmed with the default folder. The download finished in 28 s: `library: steam:945360 installed`, `8 games found`.
+- Back in the shell, the shelf reads "À installer · 57" and Among Us is first in Récents.
+- Not observed: the progress on the cover and in the header, because the download was over before the shell was back in front. Launching Among Us from Récents with A was not done in this session.
+- To consider: on a handheld, the Steam desktop window and its mouse-sized dialog are awkward with the gamepad. Steam's Big Picture would suit the shell better.
+
+![The to-install shelf after installing Among Us](images/ally/install-steam.png)
+
 ## State left on the Ally
 
 Canapé `eb31756` installed (service, shell, ctl; widget from `7c2cf63`, unchanged since). Silent mode, auto TDP off (target 60, 7–25 W), fans on Automatique (no custom curve), frame rate limit 120, screen at 120 Hz, language Automatique, accent `#ff3d5e`. Profiles: `WindowsTerminal.exe` (left as found) and `Heaven.exe` (auto TDP, target 40, learned 11 W) from these tests. Heaven and FurMark stay installed (FurMark in `C:\Users\White\dev\furmark2`). Winhanced still paused.
