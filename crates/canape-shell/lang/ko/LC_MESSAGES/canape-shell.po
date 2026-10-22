@@ -309,11 +309,7 @@ msgstr "ROG Ally를 위한 가벼운 콘솔 스타일 홈. 하드웨어는 Canap
 msgid "Service connected"
 msgstr "서비스 연결됨"
 
-msgid "Back to the library"
-msgstr "라이브러리로"
 
-msgid "Move (D-pad or left stick)"
-msgstr "이동 (방향 패드 또는 왼쪽 스틱)"
 
 msgid "{} W"
 msgstr "{} W"
@@ -499,3 +495,15 @@ msgstr "펌웨어 곡선"
 
 msgid "Maximum"
 msgstr "최대"
+
+msgid "Download missing covers"
+msgstr "없는 표지 다운로드"
+
+msgid "Only the art already on this device is shown."
+msgstr "이 기기에 있는 이미지만 표시합니다."
+
+msgid "From Steam and SteamGridDB."
+msgstr "Steam과 SteamGridDB에서 가져옵니다."
+
+msgid "From Steam. A SteamGridDB key adds the other stores."
+msgstr "Steam에서 가져옵니다. SteamGridDB 키가 있으면 다른 스토어도 지원합니다."

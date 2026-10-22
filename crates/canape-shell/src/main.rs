@@ -88,6 +88,7 @@ fn main() -> Result<(), slint::PlatformError> {
     log(&format!("language: {} -> {language}", settings.language));
     ui.global::<App>()
         .set_language(settings.language.as_str().into());
+    show_online_covers(&ui, &settings);
     let accent = accent::normalize(&settings.accent);
     if accent != settings.accent {
         // A preset name from an earlier version, or an unreadable value.
@@ -113,6 +114,13 @@ fn main() -> Result<(), slint::PlatformError> {
         std::thread::spawn(|| log(&canape_hw::arm_frame_metrics()));
     }
     ui.run()
+}
+
+fn show_online_covers(ui: &AppWindow, settings: &i18n::ShellSettings) {
+    let online = library::online_settings(settings);
+    let app = ui.global::<App>();
+    app.set_online_covers(settings.online_covers);
+    app.set_griddb_key(online.griddb_key.is_some());
 }
 
 /// Changes the auto TDP settings from the last known ones.
@@ -347,6 +355,21 @@ fn connect(ui: &AppWindow, link: &Link) {
                     ..existing
                 },
             });
+        }
+    });
+
+    app.on_toggle_online_covers({
+        let ui = ui.as_weak();
+        move || {
+            let mut settings = i18n::ShellSettings::load();
+            settings.online_covers = !settings.online_covers;
+            if let Err(err) = settings.save() {
+                log(&format!("saving shell.json: {err}"));
+            }
+            // The next library scan downloads what is missing.
+            if let Some(ui) = ui.upgrade() {
+                show_online_covers(&ui, &settings);
+            }
         }
     });
 

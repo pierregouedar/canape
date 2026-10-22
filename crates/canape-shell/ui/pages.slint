@@ -3,7 +3,7 @@
 
 import { Theme } from "theme.slint";
 import { App, ProfileView, BenchRow, RecView } from "state.slint";
-import { Caption, Card, Chip, ColorSlider, DpadGlyph, Graph, Logo, PadGlyph, Pressable, Stepper, Tile, WarnIcon } from "widgets.slint";
+import { Caption, Card, Chip, ColorSlider, Graph, Logo, Pressable, Stepper, Tile, WarnIcon } from "widgets.slint";
 
 component Title inherits Text {
     color: Theme.text;
@@ -1077,35 +1077,6 @@ export component BenchPage inherits VerticalLayout {
     }
 }
 
-component Control inherits HorizontalLayout {
-    in property <string> glyph;
-    in property <bool> round: true;
-    in property <string> text;
-    horizontal-stretch: 1;
-    preferred-width: 10px;
-    spacing: 10px;
-    HorizontalLayout {
-        width: 56px;
-        alignment: start;
-        VerticalLayout {
-            alignment: center;
-            if root.glyph != "+": PadGlyph {
-                text: root.glyph;
-                round: root.round;
-            }
-            if root.glyph == "+": DpadGlyph { }
-        }
-    }
-
-    Text {
-        text: root.text;
-        color: Theme.dim;
-        font-size: Theme.font-small;
-        vertical-alignment: center;
-        overflow: elide;
-    }
-}
-
 struct Language {
     code: string,
     name: string,
@@ -1282,15 +1253,38 @@ export component SettingsPage inherits HorizontalLayout {
 
             Rectangle { }
 
-            // A, B and LB / RB are in the hints at the bottom of every page.
-            Control {
-                glyph: "B";
-                text: @tr("Back to the library");
-            }
+            HorizontalLayout {
+                spacing: 16px;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    alignment: center;
+                    spacing: 2px;
+                    Text {
+                        text: @tr("Download missing covers");
+                        color: Theme.text;
+                        font-size: Theme.font-body;
+                        overflow: elide;
+                    }
 
-            Control {
-                glyph: "+";
-                text: @tr("Move (D-pad or left stick)");
+                    Text {
+                        text: !App.online-covers ? @tr("Only the art already on this device is shown.") : App.griddb-key ? @tr("From Steam and SteamGridDB.") : @tr("From Steam. A SteamGridDB key adds the other stores.");
+                        color: Theme.faint;
+                        font-size: Theme.font-small;
+                        wrap: word-wrap;
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    Chip {
+                        min-width: 110px;
+                        label: App.online-covers ? @tr("On") : @tr("Off");
+                        selected: App.online-covers;
+                        clicked => {
+                            App.toggle-online-covers();
+                        }
+                    }
+                }
             }
         }
     }

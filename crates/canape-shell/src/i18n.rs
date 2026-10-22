@@ -27,6 +27,11 @@ pub struct ShellSettings {
     /// Accent colour, `#rrggbb` (older versions saved a preset name, see
     /// [`crate::accent::normalize`]).
     pub accent: String,
+    /// Download covers for games that have none on disk.
+    pub online_covers: bool,
+    /// SteamGridDB API key (steamgriddb.com, Preferences, API); empty for
+    /// Steam's own covers only.
+    pub steamgriddb_key: String,
 }
 
 impl Default for ShellSettings {
@@ -34,6 +39,8 @@ impl Default for ShellSettings {
         Self {
             language: AUTO.into(),
             accent: crate::accent::DEFAULT.into(),
+            online_covers: true,
+            steamgriddb_key: String::new(),
         }
     }
 }

@@ -1,5 +1,6 @@
 //! The game library: games installed with Steam, the Epic Games Launcher,
-//! GOG Galaxy and the Xbox app, merged into one list for the shell.
+//! GOG Galaxy and the Xbox app, merged into one list for the shell. Games
+//! without art on disk can get a cover downloaded ([`online`]).
 //!
 //! Every store is read from its own files (or the registry for GOG) with
 //! pure parsers that are tested on Linux; only finding the files and
@@ -15,7 +16,10 @@ pub mod cache;
 pub mod cover;
 pub mod epic;
 pub mod gog;
+#[cfg(windows)]
+pub mod http;
 mod launch;
+pub mod online;
 mod sha256;
 pub mod steam;
 pub mod vdf;
@@ -168,7 +172,7 @@ pub fn scan(roots: &Roots) -> Vec<Game> {
 }
 
 /// Folds a title for comparison: `DOOM Eternal™` and `Doom Eternal` match.
-fn title_key(title: &str) -> String {
+pub(crate) fn title_key(title: &str) -> String {
     title
         .chars()
         .filter(|c| c.is_alphanumeric())

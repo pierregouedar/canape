@@ -157,6 +157,10 @@ The gamepad is only read while Canapé is in the foreground: a game launched fro
 
 ### Library
 
+<img src="images/en/library.png" alt="Library page" width="720">
+
+<sub>A made-up library (`tools/fake-library.py`): titles and covers are generated.</sub>
+
 The first page, the one Canapé opens on: the games installed on the console, as covers, the most recently played first.
 
 | Area | Contents |
@@ -172,8 +176,8 @@ The first page, the one Canapé opens on: the games installed on the console, as
 | Store | What Canapé reads | Launch | Covers |
 |---|---|---|---|
 | **Steam** | The library folders (`steamapps\libraryfolders.vdf`) and each game's manifest (`appmanifest_*.acf`). Tools (Steamworks redistributables, Proton, SteamVR) are left out. | Through Steam (`steam://rungameid/…`) | Steam's own cache: the art you picked in Steam, else the 600×900 portrait, else the hero or header image (shown whole, on a blurred backdrop) |
-| **Epic Games** | The launcher's manifests (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, engines and unfinished installs are left out. | Through the Epic launcher | None (title card) |
-| **GOG** | The registry (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), where GOG Galaxy and the offline installers register each game. DLC are left out. | The game's executable directly, without Galaxy | None (title card) |
+| **Epic Games** | The launcher's manifests (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, engines and unfinished installs are left out. | Through the Epic launcher | Downloaded (see below), else a title card |
+| **GOG** | The registry (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), where GOG Galaxy and the offline installers register each game. DLC are left out. | The game's executable directly, without Galaxy | Downloaded (see below), else a title card |
 | **Xbox app** | The `XboxGames` folders of every drive (`Content\MicrosoftGame.config`). | Through Windows (`shell:AppsFolder\…`) | The game's square logo |
 
 - The last played time comes from Steam for Steam games, and from Canapé for every game launched from it.
@@ -181,6 +185,18 @@ The first page, the one Canapé opens on: the games installed on the console, as
 - The list shows at once from the last scan; a new scan runs in the background at every start, and again when you come back to the library after a minute away. A game installed meanwhile appears then.
 - Xbox app games installed outside an `XboxGames` folder are not found.
 - Canapé launches games itself, without rights: like every app of the session.
+
+**Downloaded covers**
+
+A game with no art on the device can get one from the internet after each scan (**Settings → Download missing covers**, on by default):
+
+- **Steam games**: the 600×900 portrait from Steam's public store servers, no account needed. Useful for a game whose art Steam has not cached yet.
+- **Every store** (Epic, GOG, Xbox included), with a free **SteamGridDB** API key: create an account on [steamgriddb.com](https://www.steamgriddb.com), copy the key from *Preferences → API*, and put it in `%LOCALAPPDATA%\Canape\shell.json` as `"steamgriddb_key": "…"`. Steam games are looked up by their Steam id, the others by title; only static portrait images are taken (no animated, NSFW or humour grids). The key is only ever sent to SteamGridDB's API.
+
+Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no art anywhere is asked for again after a week. At most 60 downloads per scan. Turning the setting off keeps the covers already downloaded but fetches no more.
+
+> [!NOTE]
+> Not tried on the Ally yet: the download goes through WinHTTP (built into Windows) and was only tested on Linux against recorded answers.
 
 ### Home
 
@@ -335,7 +351,7 @@ Each card offers **Set as TDP** (manual limit at that value, auto TDP off) and *
 
 - **Language**: "Automatic" (the Windows language) or one of the 13 languages. The change is immediate and remembered. See [Languages](#languages).
 - **Accent colour**: three sliders, **Hue**, **Saturation** and **Brightness**, a preview with the `#RRGGBB` code and 8 **presets**. With the gamepad, A on a slider grabs it, the D-pad or the stick moves it, A again lets go. The whole UI follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the widget follows the accent colour**.
-- **Canapé**: version, service connection state, gamepad controls reminder.
+- **Canapé**: version, service connection state, and the **Download missing covers** switch (see [Library](#library)): the line under it says where covers come from (Steam only, or Steam and SteamGridDB when a key is set).
 
 | Teal accent | Amber accent |
 |---|---|
@@ -431,7 +447,8 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%ProgramData%\Canape\service.log` | Service log: detected model, ADL state at startup, every command that changes the state and its response (`SetTdp { watts: 12 } -> Ok`), conflicting programs, errors. |
 | `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, profiles, last bench. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Shell log: launches (with their arguments), chosen language, ADL state, service errors. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences (language). |
+| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`. |
+| `%LOCALAPPDATA%\Canape\covers\` | Downloaded covers (`<store>_<id>.jpg` / `.png`, `.miss` markers). |
 | `%LOCALAPPDATA%\Canape\library.json` | The games of the last scan, shown at once on the next start. Can be deleted: the next scan writes it again. |
 | `%LOCALAPPDATA%\Canape\recent.json` | When each game was last launched from Canapé (for the "Recent" order). |
 

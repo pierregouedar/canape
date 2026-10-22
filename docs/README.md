@@ -41,6 +41,7 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 
 | Fichier · File | Page | Langue · Language |
 |---|---|---|
+| [`fr/library.png`](images/fr/library.png) | Bibliothèque (jeux inventés) | Français |
 | [`fr/home.png`](images/fr/home.png) | Accueil | Français |
 | [`fr/performance.png`](images/fr/performance.png) | Performance | Français |
 | [`fr/hardware.png`](images/fr/hardware.png) | Matériel | Français |
@@ -48,6 +49,7 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 | [`fr/bench-results.png`](images/fr/bench-results.png) | Banc d'essai (résultats) | Français |
 | [`fr/bench-running.png`](images/fr/bench-running.png) | Banc d'essai en cours | Français |
 | [`fr/settings.png`](images/fr/settings.png) | Réglages (couleur d'accent) | Français |
+| [`en/library.png`](images/en/library.png) | Library (made-up games) | English |
 | [`en/home.png`](images/en/home.png) | Home | English |
 | [`en/performance.png`](images/en/performance.png) | Performance | English |
 | [`en/hardware.png`](images/en/hardware.png) | Hardware | English |

@@ -123,6 +123,10 @@ export global App {
     // "auto" or a language code.
     in property <string> language: "auto";
     in property <string> version;
+    // Covers downloaded for games without art (shell.json), and whether a
+    // SteamGridDB key is set there.
+    in property <bool> online-covers;
+    in property <bool> griddb-key;
 
     callback set-mode(string);
     callback change-tdp(int);
@@ -156,6 +160,7 @@ export global App {
     // Saves the current fan curves and frame rate cap in the profile of the
     // game in the foreground.
     callback save-hardware-profile();
+    callback toggle-online-covers();
 
     // Shared formatting, translated.
     public pure function watts(w: int) -> string {

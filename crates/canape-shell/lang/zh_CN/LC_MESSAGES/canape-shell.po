@@ -309,11 +309,7 @@ msgstr "为 ROG Ally 打造的轻量主机风格主页。硬件由 Canapé 服�
 msgid "Service connected"
 msgstr "服务已连接"
 
-msgid "Back to the library"
-msgstr "返回游戏库"
 
-msgid "Move (D-pad or left stick)"
-msgstr "移动（方向键或左摇杆）"
 
 msgid "{} W"
 msgstr "{} W"
@@ -499,3 +495,15 @@ msgstr "固件曲线"
 
 msgid "Maximum"
 msgstr "最大"
+
+msgid "Download missing covers"
+msgstr "下载缺少的封面"
+
+msgid "Only the art already on this device is shown."
+msgstr "只显示设备上已有的图片。"
+
+msgid "From Steam and SteamGridDB."
+msgstr "来自 Steam 和 SteamGridDB。"
+
+msgid "From Steam. A SteamGridDB key adds the other stores."
+msgstr "来自 Steam。添加 SteamGridDB 密钥可支持其他商店。"

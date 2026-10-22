@@ -8,7 +8,7 @@
 
 use std::cell::RefCell;
 use std::collections::HashSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Sender};
@@ -17,6 +17,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use canape_library::cache::{self, Recent};
+use canape_library::online;
 use canape_library::{Game, Played, Roots, Sort, Source};
 use slint::{
     ComponentHandle, Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, Timer, TimerMode,
@@ -89,6 +90,8 @@ struct State {
     fixture: bool,
     roots: Roots,
     cache_path: PathBuf,
+    /// Downloaded covers.
+    covers_dir: PathBuf,
     recent_path: PathBuf,
     launch_timer: Timer,
     offset: i64,
@@ -247,31 +250,23 @@ impl State {
             ui.global::<Library>().set_scanning(true);
         }
         let (roots, cache_path) = (self.roots.clone(), self.cache_path.clone());
+        let covers = self.covers_dir.clone();
+        let fixture = self.fixture;
         thread::spawn(move || {
             let started = Instant::now();
-            let games = canape_library::scan(&roots);
+            let mut games = canape_library::scan(&roots);
+            online::attach(&mut games, &covers);
             crate::log(&format!(
                 "library: {} games found in {} ms",
                 games.len(),
                 started.elapsed().as_millis()
             ));
-            if let Err(err) = cache::save(&cache_path, &games) {
-                crate::log(&format!("library: saving the cache: {err}"));
+            publish(&cache_path, games.clone());
+            // A fixture never goes online.
+            if !fixture && download_covers(&games, &covers) {
+                online::attach(&mut games, &covers);
+                publish(&cache_path, games);
             }
-            let _ = slint::invoke_from_event_loop(move || {
-                with_state(|state| {
-                    state.scanning = false;
-                    state.last_scan = Some(Instant::now());
-                    state.all = canape_library::merge(games, &state.recent.launched);
-                    let keep = state.selected_id();
-                    state.rebuild(keep);
-                    if let Some(ui) = state.ui.upgrade() {
-                        let library = ui.global::<Library>();
-                        library.set_scanning(false);
-                        library.set_ready(true);
-                    }
-                })
-            });
         });
     }
 
@@ -336,6 +331,64 @@ impl State {
     }
 }
 
+/// Saves `games` as the last scan and shows them.
+fn publish(cache_path: &Path, games: Vec<Game>) {
+    if let Err(err) = cache::save(cache_path, &games) {
+        crate::log(&format!("library: saving the cache: {err}"));
+    }
+    let _ = slint::invoke_from_event_loop(move || {
+        with_state(|state| {
+            state.scanning = false;
+            state.last_scan = Some(Instant::now());
+            state.all = canape_library::merge(games, &state.recent.launched);
+            let keep = state.selected_id();
+            state.rebuild(keep);
+            if let Some(ui) = state.ui.upgrade() {
+                let library = ui.global::<Library>();
+                library.set_scanning(false);
+                library.set_ready(true);
+            }
+        })
+    });
+}
+
+/// Where covers may be downloaded from, per shell.json.
+pub fn online_settings(settings: &crate::i18n::ShellSettings) -> online::Settings {
+    let key = settings.steamgriddb_key.trim();
+    online::Settings {
+        steam_cdn: settings.online_covers,
+        griddb_key: (settings.online_covers && !key.is_empty()).then(|| key.to_owned()),
+    }
+}
+
+/// Downloads the covers of games that have none; true if any arrived.
+fn download_covers(games: &[Game], dir: &Path) -> bool {
+    let settings = online_settings(&crate::i18n::ShellSettings::load());
+    if !settings.enabled() {
+        return false;
+    }
+    #[cfg(windows)]
+    let result = canape_library::http::WinHttp::new()
+        .and_then(|http| online::download_missing(games, dir, &settings, &http));
+    #[cfg(not(windows))]
+    let result: std::io::Result<Vec<String>> = {
+        let _ = (games, dir);
+        Ok(Vec::new())
+    };
+    match result {
+        Ok(got) => {
+            if !got.is_empty() {
+                crate::log(&format!("library: {} covers downloaded", got.len()));
+            }
+            !got.is_empty()
+        }
+        Err(err) => {
+            crate::log(&format!("library: downloading covers: {err}"));
+            false
+        }
+    }
+}
+
 /// Keeps decoding the covers asked for, in order, skipping those no
 /// longer wanted.
 fn spawn_decoder(wanted: Arc<Mutex<HashSet<String>>>) -> Sender<Job> {
@@ -384,6 +437,7 @@ pub fn start(ui: &AppWindow) {
     let suffix = if fixture { "-fixture" } else { "" };
     let cache_path = dir.join(format!("library{suffix}.json"));
     let recent_path = dir.join(format!("recent{suffix}.json"));
+    let covers_dir = dir.join(format!("covers{suffix}"));
     let recent = Recent::load(&recent_path);
     let cached = cache::load(&cache_path);
 
@@ -412,6 +466,7 @@ pub fn start(ui: &AppWindow) {
         roots,
         cache_path,
         recent_path,
+        covers_dir,
         launch_timer: Timer::default(),
         offset: canape_library::local_utc_offset(),
     };

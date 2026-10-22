@@ -28,7 +28,7 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 |---|---|
 | 🎮 **Accueil du FSE** | Choisi dans Paramètres → Jeux → Expérience plein écran ; lancé par Windows au démarrage. Une seule instance, plein écran immédiat. |
 | 🕹️ **100 % manette** | LB / RB pour changer de page, croix ou stick pour se déplacer, A pour valider, B pour revenir à la bibliothèque. |
-| 📚 **Bibliothèque de jeux** | Les jeux installés avec Steam, Epic Games, GOG et l'app Xbox, en jaquettes, les derniers joués en premier ; A pour lancer. |
+| 📚 **Bibliothèque de jeux** | Les jeux installés avec Steam, Epic Games, GOG et l'app Xbox, en jaquettes, les derniers joués en premier ; A pour lancer. Jaquettes manquantes téléchargées depuis Steam, ou SteamGridDB avec une clé gratuite. |
 | ⚡ **Modes et TDP** | Modes firmware ASUS (Silencieux, Performance, Turbo) ou limite manuelle en watts (sPPT, SPL, fPPT écrits ensemble). |
 | 🤖 **Auto TDP** | Tient l'objectif FPS (30 à 120) avec le moins de watts possible : FPS et charge GPU lus dans le pilote AMD, plafond sur batterie, limite de température, anti-oscillation. |
 | 🌀 **Ventilateurs, limite de FPS, manette** | Préréglages de ventilateurs (Automatique, Silencieux, Équilibré, Maximum) avec un plancher de sécurité à chaud, limite de FPS du pilote AMD, mode de la manette (manette de jeu, clavier, souris). |
@@ -42,17 +42,17 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 
 ### Captures
 
-| Accueil : consommation et limite, GPU | Performance : auto TDP et graphe |
+| Bibliothèque : Steam, Epic, GOG et Xbox | Accueil : consommation et limite, GPU |
 |---|---|
-| <img src="docs/images/fr/home.png" alt="Accueil" width="400"> | <img src="docs/images/fr/performance.png" alt="Performance" width="400"> |
-| **Matériel : ventilateurs, limite de FPS, manette** | **Profils par jeu** |
-| <img src="docs/images/fr/hardware.png" alt="Matériel" width="400"> | <img src="docs/images/fr/profiles.png" alt="Profils" width="400"> |
-| **Banc d'essai : résultats et recommandations** | **Banc d'essai en cours** |
-| <img src="docs/images/fr/bench-results.png" alt="Résultats du banc d'essai" width="400"> | <img src="docs/images/fr/bench-running.png" alt="Banc d'essai en cours" width="400"> |
-| **Réglages : langue et couleur d'accent** | **Accent sarcelle** |
-| <img src="docs/images/fr/settings.png" alt="Réglages" width="400"> | <img src="docs/images/accent-teal.png" alt="Accueil avec l'accent sarcelle" width="400"> |
-| **Accent ambre** | |
-| <img src="docs/images/accent-amber.png" alt="Accueil avec l'accent ambre" width="400"> | |
+| <img src="docs/images/fr/library.png" alt="Bibliothèque" width="400"> | <img src="docs/images/fr/home.png" alt="Accueil" width="400"> |
+| **Performance : auto TDP et graphe** | **Matériel : ventilateurs, limite de FPS, manette** |
+| <img src="docs/images/fr/performance.png" alt="Performance" width="400"> | <img src="docs/images/fr/hardware.png" alt="Matériel" width="400"> |
+| **Profils par jeu** | **Banc d'essai : résultats et recommandations** |
+| <img src="docs/images/fr/profiles.png" alt="Profils" width="400"> | <img src="docs/images/fr/bench-results.png" alt="Résultats du banc d'essai" width="400"> |
+| **Banc d'essai en cours** | **Réglages : langue, couleur d'accent, jaquettes** |
+| <img src="docs/images/fr/bench-running.png" alt="Banc d'essai en cours" width="400"> | <img src="docs/images/fr/settings.png" alt="Réglages" width="400"> |
+| **Accent sarcelle** | **Accent ambre** |
+| <img src="docs/images/accent-teal.png" alt="Accueil avec l'accent sarcelle" width="400"> | <img src="docs/images/accent-amber.png" alt="Accueil avec l'accent ambre" width="400"> |
 
 <sub>Captures du shell rendues sous Linux avec le simulateur matériel (valeurs fictives). D'autres captures dans le [guide d'utilisation](docs/user-guide.fr.md).</sub>
 
@@ -122,7 +122,7 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 |---|---|
 | 🎮 **FSE home app** | Picked in Settings → Gaming → Full screen experience; launched by Windows at boot. Single instance, full screen right away. |
 | 🕹️ **Gamepad first** | LB / RB to change page, D-pad or stick to move, A to select, B to go back to the library. |
-| 📚 **Game library** | The games installed with Steam, Epic Games, GOG and the Xbox app, as covers, most recently played first; A to launch. |
+| 📚 **Game library** | The games installed with Steam, Epic Games, GOG and the Xbox app, as covers, most recently played first; A to launch. Missing covers downloaded from Steam, or SteamGridDB with a free key. |
 | ⚡ **Modes and TDP** | ASUS firmware modes (Silent, Performance, Turbo) or a manual limit in watts (sPPT, SPL and fPPT written together). |
 | 🤖 **Auto TDP** | Holds the FPS target (30 to 120) with the fewest watts: frame rate and GPU load read from the AMD driver, battery ceiling, temperature limit, anti-oscillation. |
 | 🌀 **Fans, frame rate limit, controller** | Fan presets (Automatic, Silent, Balanced, Maximum) with a safety floor when hot, AMD driver frame rate limit, controller mode (gamepad, keyboard, mouse). |
@@ -136,17 +136,17 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 
 ### Screenshots
 
-| Home: power draw vs. limit, GPU | Performance: auto TDP and graph |
+| Library: Steam, Epic, GOG and Xbox | Home: power draw vs. limit, GPU |
 |---|---|
-| <img src="docs/images/en/home.png" alt="Home" width="400"> | <img src="docs/images/en/performance.png" alt="Performance" width="400"> |
-| **Hardware: fans, frame rate limit, controller** | **Per-game profiles** |
-| <img src="docs/images/en/hardware.png" alt="Hardware" width="400"> | <img src="docs/images/en/profiles.png" alt="Profiles" width="400"> |
-| **Bench: results and recommendations** | **Bench running** |
-| <img src="docs/images/en/bench-results.png" alt="Bench results" width="400"> | <img src="docs/images/en/bench-running.png" alt="Bench running" width="400"> |
-| **Settings: language and accent colour** | **Teal accent** |
-| <img src="docs/images/en/settings.png" alt="Settings" width="400"> | <img src="docs/images/accent-teal.png" alt="Home with a teal accent" width="400"> |
-| **Amber accent** | |
-| <img src="docs/images/accent-amber.png" alt="Home with an amber accent" width="400"> | |
+| <img src="docs/images/en/library.png" alt="Library" width="400"> | <img src="docs/images/en/home.png" alt="Home" width="400"> |
+| **Performance: auto TDP and graph** | **Hardware: fans, frame rate limit, controller** |
+| <img src="docs/images/en/performance.png" alt="Performance" width="400"> | <img src="docs/images/en/hardware.png" alt="Hardware" width="400"> |
+| **Per-game profiles** | **Bench: results and recommendations** |
+| <img src="docs/images/en/profiles.png" alt="Profiles" width="400"> | <img src="docs/images/en/bench-results.png" alt="Bench results" width="400"> |
+| **Bench running** | **Settings: language, accent colour, covers** |
+| <img src="docs/images/en/bench-running.png" alt="Bench running" width="400"> | <img src="docs/images/en/settings.png" alt="Settings" width="400"> |
+| **Teal accent** | **Amber accent** |
+| <img src="docs/images/accent-teal.png" alt="Home with the teal accent" width="400"> | <img src="docs/images/accent-amber.png" alt="Home with the amber accent" width="400"> |
 
 <sub>Shell screenshots rendered on Linux with the hardware simulator (made-up values). More in the [user guide](docs/user-guide.en.md).</sub>
 

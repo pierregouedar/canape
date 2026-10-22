@@ -309,11 +309,7 @@ msgstr "ROG Ally 向けの軽量なコンソール風ホーム。ハードウェ
 msgid "Service connected"
 msgstr "サービス接続済み"
 
-msgid "Back to the library"
-msgstr "ライブラリに戻る"
 
-msgid "Move (D-pad or left stick)"
-msgstr "移動 (十字キーまたは左スティック)"
 
 msgid "{} W"
 msgstr "{} W"
@@ -499,3 +495,15 @@ msgstr "ファームウェアのカーブ"
 
 msgid "Maximum"
 msgstr "最大"
+
+msgid "Download missing covers"
+msgstr "足りないカバーをダウンロード"
+
+msgid "Only the art already on this device is shown."
+msgstr "この端末にある画像だけを表示します。"
+
+msgid "From Steam and SteamGridDB."
+msgstr "Steam と SteamGridDB から。"
+
+msgid "From Steam. A SteamGridDB key adds the other stores."
+msgstr "Steam から。SteamGridDB のキーがあれば他のストアにも対応します。"

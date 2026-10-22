@@ -157,6 +157,10 @@ La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé dep
 
 ### Bibliothèque
 
+<img src="images/fr/library.png" alt="Page Bibliothèque" width="720">
+
+<sub>Une bibliothèque inventée (`tools/fake-library.py`) : titres et jaquettes sont générés.</sub>
+
 La première page, celle sur laquelle Canapé s'ouvre : les jeux installés sur la console, en jaquettes, les derniers joués en premier.
 
 | Zone | Contenu |
@@ -172,8 +176,8 @@ La première page, celle sur laquelle Canapé s'ouvre : les jeux installés sur 
 | Boutique | Ce que lit Canapé | Lancement | Jaquettes |
 |---|---|---|---|
 | **Steam** | Les dossiers de bibliothèque (`steamapps\libraryfolders.vdf`) et le manifeste de chaque jeu (`appmanifest_*.acf`). Les outils (redistribuables Steamworks, Proton, SteamVR) sont écartés. | Par Steam (`steam://rungameid/…`) | Le cache de Steam : l'image choisie dans Steam, sinon le portrait 600×900, sinon l'image « hero » ou l'en-tête (affichés en entier, sur un fond flouté) |
-| **Epic Games** | Les manifestes du lanceur (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, moteurs et installations inachevées sont écartés. | Par le lanceur Epic | Aucune (carte titre) |
-| **GOG** | Le registre (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), où GOG Galaxy et les installateurs hors ligne inscrivent chaque jeu. Les DLC sont écartés. | L'exécutable du jeu directement, sans Galaxy | Aucune (carte titre) |
+| **Epic Games** | Les manifestes du lanceur (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, moteurs et installations inachevées sont écartés. | Par le lanceur Epic | Téléchargée (voir plus bas), sinon une carte titre |
+| **GOG** | Le registre (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), où GOG Galaxy et les installateurs hors ligne inscrivent chaque jeu. Les DLC sont écartés. | L'exécutable du jeu directement, sans Galaxy | Téléchargée (voir plus bas), sinon une carte titre |
 | **App Xbox** | Les dossiers `XboxGames` de chaque lecteur (`Content\MicrosoftGame.config`). | Par Windows (`shell:AppsFolder\…`) | Le logo carré du jeu |
 
 - La date de dernière partie vient de Steam pour les jeux Steam, et de Canapé pour tout jeu lancé depuis Canapé.
@@ -181,6 +185,18 @@ La première page, celle sur laquelle Canapé s'ouvre : les jeux installés sur 
 - La liste s'affiche tout de suite depuis la dernière recherche ; une nouvelle recherche tourne en arrière-plan à chaque démarrage, et de nouveau quand on revient à la bibliothèque après plus d'une minute ailleurs. Un jeu installé entre-temps apparaît alors.
 - Les jeux de l'app Xbox installés hors d'un dossier `XboxGames` ne sont pas trouvés.
 - Canapé lance les jeux lui-même, sans droits particuliers : comme n'importe quelle app de la session.
+
+**Jaquettes téléchargées**
+
+Un jeu sans image sur l'appareil peut en récupérer une sur Internet après chaque scan (**Réglages → Télécharger les jaquettes manquantes**, activé par défaut) :
+
+- **Jeux Steam** : le portrait 600×900 des serveurs publics de la boutique Steam, sans compte. Utile pour un jeu dont Steam n'a pas encore mis l'image en cache.
+- **Toutes les boutiques** (Epic, GOG et Xbox compris), avec une clé d'API **SteamGridDB** gratuite : créez un compte sur [steamgriddb.com](https://www.steamgriddb.com), copiez la clé depuis *Preferences → API*, et ajoutez-la dans `%LOCALAPPDATA%\Canape\shell.json` sous la forme `"steamgriddb_key": "…"`. Les jeux Steam sont cherchés par leur identifiant Steam, les autres par leur titre ; seules les images fixes au format portrait sont retenues (pas d'animations, ni d'images NSFW ou humoristiques). La clé n'est envoyée qu'à l'API de SteamGridDB.
+
+Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutilisées ; un jeu sans image nulle part est redemandé au bout d'une semaine. 60 téléchargements au plus par scan. Désactiver le réglage garde les jaquettes déjà téléchargées mais n'en récupère plus.
+
+> [!NOTE]
+> Pas encore essayé sur l'Ally : le téléchargement passe par WinHTTP (intégré à Windows) et n'a été testé que sous Linux, sur des réponses enregistrées.
 
 ### Accueil
 
@@ -335,7 +351,7 @@ Chaque carte propose **Régler le TDP** (limite manuelle à cette valeur, auto T
 
 - **Langue** : « Automatique » (langue de Windows) ou l'une des 13 langues. Le changement est immédiat et mémorisé. Voir [Langues](#langues).
 - **Couleur d'accent** : trois curseurs **Teinte**, **Saturation** et **Luminosité**, un aperçu avec le code `#RRGGBB` et 8 **préréglages**. À la manette, A sur un curseur le saisit, la croix ou le stick le déplace, A à nouveau le relâche. Toute l'interface suit en direct ; la couleur est enregistrée dans `shell.json` et envoyée au service une fois le réglage terminé, et **le widget de la Game Bar suit la couleur d'accent**.
-- **Canapé** : version, état de la connexion au service, rappel des commandes de la manette.
+- **Canapé** : version, état de la connexion au service, et l'interrupteur **Télécharger les jaquettes manquantes** (voir [Bibliothèque](#bibliothèque)) : la ligne en dessous indique d'où viennent les jaquettes (Steam seul, ou Steam et SteamGridDB quand une clé est renseignée).
 
 | Accent sarcelle | Accent ambre |
 |---|---|
@@ -431,7 +447,8 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | `%ProgramData%\Canape\service.log` | Journal du service : modèle détecté, état d'ADL au démarrage, chaque commande qui modifie l'état et sa réponse (`SetTdp { watts: 12 } -> Ok`), programmes en conflit, erreurs. |
 | `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS, limite de charge, mode de la manette, profils, dernier banc d'essai. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Journal du shell : démarrages (avec leurs arguments), langue choisie, état d'ADL, erreurs du service. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell (langue). |
+| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`. |
+| `%LOCALAPPDATA%\Canape\covers\` | Jaquettes téléchargées (`<boutique>_<id>.jpg` / `.png`, marqueurs `.miss`). |
 | `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |
 | `%LOCALAPPDATA%\Canape\recent.json` | Quand chaque jeu a été lancé depuis Canapé pour la dernière fois (pour l'ordre « Récents »). |
 

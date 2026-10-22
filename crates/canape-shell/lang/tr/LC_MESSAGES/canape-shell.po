@@ -309,11 +309,7 @@ msgstr "ROG Ally için hafif, konsol tarzı bir ana ekran. Donanımı Canapé hi
 msgid "Service connected"
 msgstr "Hizmet bağlı"
 
-msgid "Back to the library"
-msgstr "Kitaplığa dön"
 
-msgid "Move (D-pad or left stick)"
-msgstr "Hareket (yön tuşları veya sol çubuk)"
 
 msgid "{} W"
 msgstr "{} W"
@@ -499,3 +495,15 @@ msgstr "Yazılım eğrisi"
 
 msgid "Maximum"
 msgstr "Maksimum"
+
+msgid "Download missing covers"
+msgstr "Eksik kapakları indir"
+
+msgid "Only the art already on this device is shown."
+msgstr "Yalnızca cihazda zaten bulunan görseller gösterilir."
+
+msgid "From Steam and SteamGridDB."
+msgstr "Steam ve SteamGridDB'den."
+
+msgid "From Steam. A SteamGridDB key adds the other stores."
+msgstr "Steam'den. Bir SteamGridDB anahtarı diğer mağazaları da ekler."

@@ -309,11 +309,7 @@ msgstr "Лёгкий главный экран в стиле консоли дл
 msgid "Service connected"
 msgstr "Служба подключена"
 
-msgid "Back to the library"
-msgstr "В библиотеку"
 
-msgid "Move (D-pad or left stick)"
-msgstr "Перемещение (крестовина или левый стик)"
 
 msgid "{} W"
 msgstr "{} Вт"
@@ -499,3 +495,15 @@ msgstr "Кривая прошивки"
 
 msgid "Maximum"
 msgstr "Максимум"
+
+msgid "Download missing covers"
+msgstr "Загружать недостающие обложки"
+
+msgid "Only the art already on this device is shown."
+msgstr "Показываются только изображения, которые уже есть на устройстве."
+
+msgid "From Steam and SteamGridDB."
+msgstr "Из Steam и SteamGridDB."
+
+msgid "From Steam. A SteamGridDB key adds the other stores."
+msgstr "Из Steam. Ключ SteamGridDB добавляет остальные магазины."

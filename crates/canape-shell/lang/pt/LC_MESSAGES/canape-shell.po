@@ -309,11 +309,7 @@ msgstr "Uma tela inicial leve, estilo console, para o ROG Ally. O hardware é co
 msgid "Service connected"
 msgstr "Serviço conectado"
 
-msgid "Back to the library"
-msgstr "Voltar à biblioteca"
 
-msgid "Move (D-pad or left stick)"
-msgstr "Mover (direcional ou analógico esquerdo)"
 
 msgid "{} W"
 msgstr "{} W"
@@ -499,3 +495,15 @@ msgstr "Curva do firmware"
 
 msgid "Maximum"
 msgstr "Máximo"
+
+msgid "Download missing covers"
+msgstr "Baixar capas em falta"
+
+msgid "Only the art already on this device is shown."
+msgstr "Só são mostradas as imagens que já estão no dispositivo."
+
+msgid "From Steam and SteamGridDB."
+msgstr "Do Steam e do SteamGridDB."
+
+msgid "From Steam. A SteamGridDB key adds the other stores."
+msgstr "Do Steam. Uma chave do SteamGridDB acrescenta as outras lojas."

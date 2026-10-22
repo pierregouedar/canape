@@ -1,0 +1,174 @@
+//! HTTPS GET with WinHTTP, which ships with Windows: no TLS stack to bundle.
+//! Follows redirects and the system proxy settings.
+
+use std::io;
+
+use windows_sys::Win32::Networking::WinHttp::{
+    INTERNET_DEFAULT_HTTPS_PORT, WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_FLAG_SECURE,
+    WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_QUERY_STATUS_CODE, WinHttpCloseHandle, WinHttpConnect,
+    WinHttpOpen, WinHttpOpenRequest, WinHttpQueryHeaders, WinHttpReadData, WinHttpReceiveResponse,
+    WinHttpSendRequest, WinHttpSetTimeouts,
+};
+
+use crate::online::{Http, MAX_BYTES};
+
+fn wide(s: &str) -> Vec<u16> {
+    s.encode_utf16().chain(Some(0)).collect()
+}
+
+/// Closes a WinHTTP handle when dropped.
+struct Handle(*mut core::ffi::c_void);
+
+impl Handle {
+    fn new(raw: *mut core::ffi::c_void) -> io::Result<Self> {
+        if raw.is_null() {
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(Self(raw))
+        }
+    }
+}
+
+impl Drop for Handle {
+    fn drop(&mut self) {
+        unsafe { WinHttpCloseHandle(self.0) };
+    }
+}
+
+fn check(ok: windows_sys::core::BOOL) -> io::Result<()> {
+    if ok == 0 {
+        Err(io::Error::last_os_error())
+    } else {
+        Ok(())
+    }
+}
+
+/// One WinHTTP session for a batch of downloads.
+pub struct WinHttp {
+    session: Handle,
+}
+
+impl WinHttp {
+    pub fn new() -> io::Result<Self> {
+        let agent = wide(concat!("Canape/", env!("CARGO_PKG_VERSION")));
+        let session = Handle::new(unsafe {
+            WinHttpOpen(
+                agent.as_ptr(),
+                WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
+                std::ptr::null(),
+                std::ptr::null(),
+                0,
+            )
+        })?;
+        // Resolve, connect, send, receive: a slow server is skipped.
+        check(unsafe { WinHttpSetTimeouts(session.0, 5_000, 5_000, 10_000, 15_000) })?;
+        Ok(Self { session })
+    }
+}
+
+/// `https://host/path?query` -> (`host`, `/path?query`).
+fn split(url: &str) -> io::Result<(&str, &str)> {
+    let rest = url
+        .strip_prefix("https://")
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "HTTPS only"))?;
+    Ok(match rest.find('/') {
+        Some(slash) => (&rest[..slash], &rest[slash..]),
+        None => (rest, "/"),
+    })
+}
+
+impl Http for WinHttp {
+    fn get(&self, url: &str, bearer: Option<&str>) -> io::Result<Vec<u8>> {
+        let (host, path) = split(url)?;
+        let (host, path, verb) = (wide(host), wide(path), wide("GET"));
+        let connect = Handle::new(unsafe {
+            WinHttpConnect(
+                self.session.0,
+                host.as_ptr(),
+                INTERNET_DEFAULT_HTTPS_PORT,
+                0,
+            )
+        })?;
+        let request = Handle::new(unsafe {
+            WinHttpOpenRequest(
+                connect.0,
+                verb.as_ptr(),
+                path.as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                WINHTTP_FLAG_SECURE,
+            )
+        })?;
+        let headers = bearer.map(|key| wide(&format!("Authorization: Bearer {key}\r\n")));
+        let (headers_ptr, headers_len) = match &headers {
+            // The length excludes the terminating null.
+            Some(h) => (h.as_ptr(), (h.len() - 1) as u32),
+            None => (std::ptr::null(), 0),
+        };
+        check(unsafe {
+            WinHttpSendRequest(
+                request.0,
+                headers_ptr,
+                headers_len,
+                std::ptr::null(),
+                0,
+                0,
+                0,
+            )
+        })?;
+        check(unsafe { WinHttpReceiveResponse(request.0, std::ptr::null_mut()) })?;
+
+        let mut status = 0u32;
+        let mut size = size_of::<u32>() as u32;
+        check(unsafe {
+            WinHttpQueryHeaders(
+                request.0,
+                WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+                std::ptr::null(),
+                (&mut status as *mut u32).cast(),
+                &mut size,
+                std::ptr::null_mut(),
+            )
+        })?;
+        if status != 200 {
+            return Err(io::Error::other(format!("HTTP {status}")));
+        }
+
+        let mut body = Vec::new();
+        let mut chunk = vec![0u8; 64 * 1024];
+        loop {
+            let mut read = 0u32;
+            check(unsafe {
+                WinHttpReadData(
+                    request.0,
+                    chunk.as_mut_ptr().cast(),
+                    chunk.len() as u32,
+                    &mut read,
+                )
+            })?;
+            if read == 0 {
+                return Ok(body);
+            }
+            body.extend_from_slice(&chunk[..read as usize]);
+            if body.len() > MAX_BYTES {
+                return Err(io::Error::other("answer too large"));
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::split;
+
+    #[test]
+    fn urls_split_into_host_and_path() {
+        assert_eq!(
+            split("https://www.steamgriddb.com/api/v2/grids/steam/400?a=b").unwrap(),
+            ("www.steamgriddb.com", "/api/v2/grids/steam/400?a=b")
+        );
+        assert_eq!(split("https://example.com").unwrap(), ("example.com", "/"));
+        assert!(split("http://example.com/").is_err());
+    }
+}
