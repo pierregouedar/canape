@@ -10,6 +10,8 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod accent;
+#[cfg(windows)]
+mod buttons;
 #[cfg(any(windows, test))]
 mod foreground;
 #[cfg(windows)]
@@ -24,6 +26,7 @@ mod link;
 #[cfg(any(windows, test))]
 mod nav;
 mod report;
+mod screen;
 
 use std::rc::Rc;
 use std::time::Duration;
@@ -88,7 +91,7 @@ fn main() -> Result<(), slint::PlatformError> {
     log(&format!("language: {} -> {language}", settings.language));
     ui.global::<App>()
         .set_language(settings.language.as_str().into());
-    show_online_covers(&ui, &settings);
+    show_shell_settings(&ui, &settings);
     let accent = accent::normalize(&settings.accent);
     if accent != settings.accent {
         // A preset name from an earlier version, or an unreadable value.
@@ -110,17 +113,19 @@ fn main() -> Result<(), slint::PlatformError> {
     #[cfg(windows)]
     {
         gamepad::spawn(ui.as_weak());
+        buttons::spawn(ui.as_weak());
         foreground::spawn(link.clone());
         std::thread::spawn(|| log(&canape_hw::arm_frame_metrics()));
     }
     ui.run()
 }
 
-fn show_online_covers(ui: &AppWindow, settings: &i18n::ShellSettings) {
+fn show_shell_settings(ui: &AppWindow, settings: &i18n::ShellSettings) {
     let online = library::online_settings(settings);
     let app = ui.global::<App>();
     app.set_online_covers(settings.online_covers);
     app.set_griddb_key(online.griddb_key.is_some());
+    app.set_ally_buttons(settings.ally_buttons);
 }
 
 /// Changes the auto TDP settings from the last known ones.
@@ -292,9 +297,10 @@ fn connect(ui: &AppWindow, link: &Link) {
                 fps: point.fps_avg,
             };
             let profile = canape_core::Profile {
-                // Keep the fan curves and FPS limit of an existing profile.
+                // Keep the hardware settings of an existing profile.
                 fan_curves: link.profile(&exe).and_then(|p| p.fan_curves),
                 fps_limit: link.profile(&exe).and_then(|p| p.fps_limit),
+                refresh_hz: link.profile(&exe).and_then(|p| p.refresh_hz),
                 ..report::profile_for(&report, rec, &exe, status.auto_tdp)
             };
             link.send(Request::SaveProfile { profile });
@@ -352,6 +358,7 @@ fn connect(ui: &AppWindow, link: &Link) {
                     // An empty set means "the firmware's curves" for this game.
                     fan_curves: Some(status.fan_curves.clone()),
                     fps_limit: status.fps_limit,
+                    refresh_hz: Some(screen::state().0).filter(|&hz| hz > 0),
                     ..existing
                 },
             });
@@ -368,7 +375,34 @@ fn connect(ui: &AppWindow, link: &Link) {
             }
             // The next library scan downloads what is missing.
             if let Some(ui) = ui.upgrade() {
-                show_online_covers(&ui, &settings);
+                show_shell_settings(&ui, &settings);
+            }
+        }
+    });
+
+    app.on_set_refresh({
+        let ui = ui.as_weak();
+        move |hz| {
+            let hz = hz.max(0) as u32;
+            screen::set(hz);
+            let mut settings = i18n::ShellSettings::load();
+            settings.refresh_hz = hz;
+            if let Err(err) = settings.save() {
+                log(&format!("saving shell.json: {err}"));
+            }
+            link::show_screen(&ui);
+        }
+    });
+    app.on_toggle_ally_buttons({
+        let ui = ui.as_weak();
+        move || {
+            let mut settings = i18n::ShellSettings::load();
+            settings.ally_buttons = !settings.ally_buttons;
+            if let Err(err) = settings.save() {
+                log(&format!("saving shell.json: {err}"));
+            }
+            if let Some(ui) = ui.upgrade() {
+                show_shell_settings(&ui, &settings);
             }
         }
     });

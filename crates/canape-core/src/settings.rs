@@ -71,6 +71,11 @@ pub struct Profile {
     /// Frame rate cap for this game; `None` keeps the global setting.
     #[serde(default)]
     pub fps_limit: Option<u32>,
+    /// Refresh rate of the built-in screen for this game, in Hz. The
+    /// service only stores it: the shell switches the screen, since display
+    /// modes belong to the user's session. `None` keeps the shell's choice.
+    #[serde(default)]
+    pub refresh_hz: Option<u32>,
 }
 
 impl Profile {

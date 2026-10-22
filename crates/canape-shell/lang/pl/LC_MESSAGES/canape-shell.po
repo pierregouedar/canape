@@ -457,8 +457,6 @@ msgstr "Limit FPS"
 msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
 msgstr "Sterownik grafiki utrzymuje gry poniżej tej liczby klatek: mniej ciepła, mniej hałasu, dłużej na baterii."
 
-msgid "With auto TDP, set its target at or below the limit."
-msgstr "Przy automatycznym TDP ustaw jego cel na limicie lub poniżej."
 
 msgid "Controller"
 msgstr "Kontroler"
@@ -487,8 +485,6 @@ msgstr "Ta gra"
 msgid "No game in the foreground"
 msgstr "Brak gry na pierwszym planie"
 
-msgid "Keep fans and limit for this game"
-msgstr "Zachowaj wentylatory i limit dla tej gry"
 
 msgid "Firmware curve"
 msgstr "Krzywa firmware'u"
@@ -507,3 +503,24 @@ msgstr "Ze Steam i SteamGridDB."
 
 msgid "From Steam. A SteamGridDB key adds the other stores."
 msgstr "Ze Steam. Klucz SteamGridDB dodaje pozostałe sklepy."
+
+msgid "Keep these settings for this game"
+msgstr "Zachowaj te ustawienia dla tej gry"
+
+msgid "Screen"
+msgstr "Ekran"
+
+msgid "{} Hz"
+msgstr "{} Hz"
+
+msgid "Refresh rate unavailable on this screen."
+msgstr "Częstotliwości odświeżania nie da się zmienić na tym ekranie."
+
+msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
+msgstr "Niższa częstotliwość oszczędza baterię w grach ograniczonych do 30, 40 lub 60 FPS."
+
+msgid "Use the Ally's buttons"
+msgstr "Używaj przycisków Ally"
+
+msgid "Armoury: back to Canapé. Command Center: Game Bar."
+msgstr "Armoury: powrót do Canapé. Command Center: Game Bar."

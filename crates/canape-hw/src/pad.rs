@@ -38,6 +38,38 @@ pub fn mode_value(mode: ControllerMode) -> u8 {
     }
 }
 
+/// A press on one of the Ally's own buttons, read from the input reports
+/// of the same interface (report ID [`REPORT_ID`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Button {
+    /// The left button under the screen, below View.
+    CommandCenter,
+    /// The right button under the screen, below Menu (the ROG logo).
+    Armoury,
+    /// Either back paddle went down (the two are not told apart).
+    PaddleDown,
+    /// The back paddles were released.
+    PaddleUp,
+    /// Any other key code, for the log.
+    Other(u8),
+}
+
+/// The button an input report stands for, if any. Code 236 is sent
+/// alongside other keys and means nothing on its own.
+pub fn parse_input(report: &[u8]) -> Option<Button> {
+    match report {
+        [REPORT_ID, code, ..] => match code {
+            166 => Some(Button::CommandCenter),
+            56 | 147 => Some(Button::Armoury),
+            165 => Some(Button::PaddleDown),
+            0 => Some(Button::PaddleUp),
+            236 => None,
+            &other => Some(Button::Other(other)),
+        },
+        _ => None,
+    }
+}
+
 /// Zero padding up to the feature report length, report ID included.
 fn pad(mut report: Vec<u8>, len: usize) -> Vec<u8> {
     if report.len() < len {
@@ -57,6 +89,19 @@ mod tests {
         assert_eq!(report[0], 0x5A);
         assert_eq!(&report[1..15], b"ASUS Tech.Inc.");
         assert!(report[15..].iter().all(|&b| b == 0));
+    }
+
+    #[test]
+    fn button_codes() {
+        assert_eq!(parse_input(&[0x5A, 166, 0, 0]), Some(Button::CommandCenter));
+        assert_eq!(parse_input(&[0x5A, 56]), Some(Button::Armoury));
+        assert_eq!(parse_input(&[0x5A, 147]), Some(Button::Armoury));
+        assert_eq!(parse_input(&[0x5A, 165]), Some(Button::PaddleDown));
+        assert_eq!(parse_input(&[0x5A, 0]), Some(Button::PaddleUp));
+        assert_eq!(parse_input(&[0x5A, 162]), Some(Button::Other(162)));
+        assert_eq!(parse_input(&[0x5A, 236]), None);
+        assert_eq!(parse_input(&[0x5D, 166]), None);
+        assert_eq!(parse_input(&[0x5A]), None);
     }
 
     #[test]

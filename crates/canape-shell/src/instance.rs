@@ -36,6 +36,28 @@ pub fn acquire() -> bool {
     true
 }
 
+/// Brings the shell window to the front from the background (a button
+/// press while a game runs).
+#[cfg(windows)]
+pub fn bring_to_front() {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        FindWindowW, SW_RESTORE, SetForegroundWindow, ShowWindow,
+    };
+
+    let title: Vec<u16> = "Canapé".encode_utf16().chain(Some(0)).collect();
+    let window = unsafe { FindWindowW(std::ptr::null(), title.as_ptr()) };
+    if window.is_null() {
+        return;
+    }
+    // Without input of its own, a background process may not take the
+    // foreground: the window would only flash in the taskbar.
+    crate::buttons::tap_alt();
+    unsafe {
+        ShowWindow(window, SW_RESTORE);
+        SetForegroundWindow(window);
+    }
+}
+
 /// True when the shell window has the focus, so gamepad input meant for a
 /// game is not acted upon.
 #[cfg(windows)]

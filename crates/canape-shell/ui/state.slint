@@ -127,6 +127,12 @@ export global App {
     // SteamGridDB key is set there.
     in property <bool> online-covers;
     in property <bool> griddb-key;
+    // Built-in screen: current refresh rate (0: unknown) and the rates it
+    // offers at the current resolution.
+    in property <int> refresh-hz;
+    in property <[int]> refresh-rates;
+    // The Ally's own buttons act on Canapé (shell.json).
+    in property <bool> ally-buttons;
 
     callback set-mode(string);
     callback change-tdp(int);
@@ -161,6 +167,8 @@ export global App {
     // game in the foreground.
     callback save-hardware-profile();
     callback toggle-online-covers();
+    callback set-refresh(int);
+    callback toggle-ally-buttons();
 
     // Shared formatting, translated.
     public pure function watts(w: int) -> string {

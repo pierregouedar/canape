@@ -457,8 +457,6 @@ msgstr "FPS sınırı"
 msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
 msgstr "Grafik sürücüsü oyunları bu kare hızının altında tutar: daha az ısı, daha az gürültü, daha uzun pil ömrü."
 
-msgid "With auto TDP, set its target at or below the limit."
-msgstr "Otomatik TDP ile hedefini sınırda veya altında ayarlayın."
 
 msgid "Controller"
 msgstr "Kumanda"
@@ -487,8 +485,6 @@ msgstr "Bu oyun"
 msgid "No game in the foreground"
 msgstr "Ön planda oyun yok"
 
-msgid "Keep fans and limit for this game"
-msgstr "Fanları ve sınırı bu oyun için sakla"
 
 msgid "Firmware curve"
 msgstr "Yazılım eğrisi"
@@ -507,3 +503,24 @@ msgstr "Steam ve SteamGridDB'den."
 
 msgid "From Steam. A SteamGridDB key adds the other stores."
 msgstr "Steam'den. Bir SteamGridDB anahtarı diğer mağazaları da ekler."
+
+msgid "Keep these settings for this game"
+msgstr "Bu ayarları bu oyun için sakla"
+
+msgid "Screen"
+msgstr "Ekran"
+
+msgid "{} Hz"
+msgstr "{} Hz"
+
+msgid "Refresh rate unavailable on this screen."
+msgstr "Bu ekranda yenileme hızı ayarlanamıyor."
+
+msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
+msgstr "Düşük bir hız, 30, 40 veya 60 FPS ile sınırlı oyunlarda pil tasarrufu sağlar."
+
+msgid "Use the Ally's buttons"
+msgstr "Ally düğmelerini kullan"
+
+msgid "Armoury: back to Canapé. Command Center: Game Bar."
+msgstr "Armoury: Canapé'ye dön. Command Center: Game Bar."

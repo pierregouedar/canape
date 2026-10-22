@@ -280,7 +280,7 @@ Aucune, 30, 40, 45, 60, 90 ou 120. Le pilote graphique AMD maintient tous les je
 
 **Ce jeu**
 
-Le programme au premier plan (« Aucun jeu au premier plan » sinon) et le bouton **Garder ventilateurs et limite pour ce jeu**. Il enregistre les courbes et la limite de FPS en cours dans le profil de ce jeu :
+Le programme au premier plan (« Aucun jeu au premier plan » sinon) et le bouton **Garder ces réglages pour ce jeu**. Il enregistre les courbes, la limite de FPS et la fréquence de l'écran en cours dans le profil de ce jeu :
 
 - Les autres réglages du profil (auto TDP, watts appris) sont conservés. S'il n'y a pas de profil, il est créé avec les réglages d'auto TDP en cours.
 - **Automatique** s'enregistre aussi : ce jeu tournera alors sur les courbes du firmware, même si un préréglage est utilisé le reste du temps.
@@ -300,6 +300,17 @@ Le mode est général (pas par jeu), mémorisé et réappliqué au démarrage du
 
 > [!WARNING]
 > Canapé lit la manette en XInput. En mode Clavier ou Souris, la manette ne devrait plus se présenter comme une manette Xbox, et Canapé risque de ne plus lui répondre : revenez à **Manette de jeu** avec l'écran tactile, ou avec `canape-ctl` (voir [Dépannage](#canape-ctl--parler-au-service)).
+
+**Écran**
+
+Les fréquences que l'écran intégré propose à sa résolution actuelle (60 et 120 Hz sur la ROG Ally). Une fréquence plus basse économise la batterie dans les jeux limités à 30, 40 ou 60 FPS. Le choix s'applique tout de suite et reste mémorisé, comme un réglage fait dans les paramètres de Windows.
+
+- Un profil de jeu peut avoir sa propre fréquence (**Garder ces réglages pour ce jeu**) : elle s'applique quand le jeu passe au premier plan ; quand il le quitte, l'écran revient à la fréquence choisie ici, ou à celle que le profil avait remplacée.
+- Canapé ne change la fréquence qu'au changement de profil : une fréquence choisie entre-temps dans les paramètres de Windows est respectée.
+- Seul l'écran intégré est concerné, jamais une télé ou un moniteur branché. Sans écran intégré (ou hors Windows), la carte indique que la fréquence n'est pas réglable.
+
+> [!NOTE]
+> Pas encore essayé sur l'Ally (`ChangeDisplaySettingsEx` sur l'écran interne, depuis le shell).
 
 ### Profils
 
@@ -351,7 +362,9 @@ Chaque carte propose **Régler le TDP** (limite manuelle à cette valeur, auto T
 
 - **Langue** : « Automatique » (langue de Windows) ou l'une des 13 langues. Le changement est immédiat et mémorisé. Voir [Langues](#langues).
 - **Couleur d'accent** : trois curseurs **Teinte**, **Saturation** et **Luminosité**, un aperçu avec le code `#RRGGBB` et 8 **préréglages**. À la manette, A sur un curseur le saisit, la croix ou le stick le déplace, A à nouveau le relâche. Toute l'interface suit en direct ; la couleur est enregistrée dans `shell.json` et envoyée au service une fois le réglage terminé, et **le widget de la Game Bar suit la couleur d'accent**.
-- **Canapé** : version, état de la connexion au service, et l'interrupteur **Télécharger les jaquettes manquantes** (voir [Bibliothèque](#bibliothèque)) : la ligne en dessous indique d'où viennent les jaquettes (Steam seul, ou Steam et SteamGridDB quand une clé est renseignée).
+- **Canapé** : version, état de la connexion au service, et deux interrupteurs :
+  - **Télécharger les jaquettes manquantes** (voir [Bibliothèque](#bibliothèque)) : la ligne en dessous indique d'où viennent les jaquettes (Steam seul, ou Steam et SteamGridDB quand une clé est renseignée).
+  - **Utiliser les boutons de l'Ally** : le bouton **Armoury** (à droite, sous l'écran) ramène Canapé au premier plan depuis un jeu, ou revient à la bibliothèque si Canapé est déjà devant ; le bouton **Command Center** (à gauche) ouvre la Xbox Game Bar, où se trouve le widget Canapé. Désactivez-le si Armoury Crate ou un autre outil doit les gérer (sinon les deux réagissent). Pas encore essayé sur l'Ally.
 
 | Accent sarcelle | Accent ambre |
 |---|---|
@@ -447,7 +460,7 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | `%ProgramData%\Canape\service.log` | Journal du service : modèle détecté, état d'ADL au démarrage, chaque commande qui modifie l'état et sa réponse (`SetTdp { watts: 12 } -> Ok`), programmes en conflit, erreurs. |
 | `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS, limite de charge, mode de la manette, profils, dernier banc d'essai. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Journal du shell : démarrages (avec leurs arguments), langue choisie, état d'ADL, erreurs du service. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`. |
+| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`, `refresh_hz`, `ally_buttons`. |
 | `%LOCALAPPDATA%\Canape\covers\` | Jaquettes téléchargées (`<boutique>_<id>.jpg` / `.png`, marqueurs `.miss`). |
 | `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |
 | `%LOCALAPPDATA%\Canape\recent.json` | Quand chaque jeu a été lancé depuis Canapé pour la dernière fois (pour l'ordre « Récents »). |

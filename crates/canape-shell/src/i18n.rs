@@ -32,6 +32,11 @@ pub struct ShellSettings {
     /// SteamGridDB API key (steamgriddb.com, Preferences, API); empty for
     /// Steam's own covers only.
     pub steamgriddb_key: String,
+    /// Refresh rate picked on the Hardware page, in Hz; 0 leaves the screen
+    /// as Windows has it.
+    pub refresh_hz: u32,
+    /// The Ally's Armoury and Command Center buttons act on Canapé.
+    pub ally_buttons: bool,
 }
 
 impl Default for ShellSettings {
@@ -41,6 +46,8 @@ impl Default for ShellSettings {
             accent: crate::accent::DEFAULT.into(),
             online_covers: true,
             steamgriddb_key: String::new(),
+            refresh_hz: 0,
+            ally_buttons: true,
         }
     }
 }

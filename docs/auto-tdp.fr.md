@@ -273,7 +273,7 @@ sequenceDiagram
 - **Fin** : quand le jeu quitte le premier plan (autre programme, ou jeu fermé), le service réapplique l'état général mémorisé, ventilateurs et limite de FPS compris. Un mode ou un TDP manuel choisi pendant le profil ne dure donc que le temps du jeu.
 - **Watts appris** : quand la puissance n'a pas bougé pendant 30 ticks avec un jeu détecté, elle est enregistrée dans le profil actif (et dans `state.json`). La prochaine session commence directement là, sans repartir du maximum.
 - **Enregistrer depuis le shell** (page Profils) : les réglages d'auto TDP en cours, plus la puissance actuelle comme watts appris si l'auto TDP est actif. Les courbes de ventilateurs et la limite de FPS du profil sont conservées.
-- **Enregistrer depuis la page Matériel** (**Garder ventilateurs et limite pour ce jeu**) : les courbes de ventilateurs et la limite de FPS en cours, le reste du profil inchangé (ou, sans profil, un nouveau avec les réglages d'auto TDP en cours). Des ventilateurs sur les courbes du firmware sont enregistrés tels quels : ce jeu les retrouvera même si un préréglage est utilisé ailleurs. L'absence de limite s'enregistre comme « suivre la limite générale ».
+- **Enregistrer depuis la page Matériel** (**Garder ces réglages pour ce jeu**) : les courbes de ventilateurs, la limite de FPS et la fréquence de l'écran en cours, le reste du profil inchangé (ou, sans profil, un nouveau avec les réglages d'auto TDP en cours). Des ventilateurs sur les courbes du firmware sont enregistrés tels quels : ce jeu les retrouvera même si un préréglage est utilisé ailleurs. L'absence de limite s'enregistre comme « suivre la limite générale ».
 - **Supprimer** le profil actif rend aussitôt la main à l'état général.
 
 ### Limite de FPS et auto TDP

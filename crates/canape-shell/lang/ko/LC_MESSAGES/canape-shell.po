@@ -457,8 +457,6 @@ msgstr "프레임 제한"
 msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
 msgstr "그래픽 드라이버가 게임을 이 프레임 이하로 유지합니다: 발열과 소음이 줄고 배터리가 오래갑니다."
 
-msgid "With auto TDP, set its target at or below the limit."
-msgstr "자동 TDP를 쓸 때는 목표를 제한 이하로 설정하세요."
 
 msgid "Controller"
 msgstr "컨트롤러"
@@ -487,8 +485,6 @@ msgstr "이 게임"
 msgid "No game in the foreground"
 msgstr "전면에 실행 중인 게임 없음"
 
-msgid "Keep fans and limit for this game"
-msgstr "이 게임에 팬과 제한 저장"
 
 msgid "Firmware curve"
 msgstr "펌웨어 곡선"
@@ -507,3 +503,24 @@ msgstr "Steam과 SteamGridDB에서 가져옵니다."
 
 msgid "From Steam. A SteamGridDB key adds the other stores."
 msgstr "Steam에서 가져옵니다. SteamGridDB 키가 있으면 다른 스토어도 지원합니다."
+
+msgid "Keep these settings for this game"
+msgstr "이 게임에 이 설정 저장"
+
+msgid "Screen"
+msgstr "화면"
+
+msgid "{} Hz"
+msgstr "{} Hz"
+
+msgid "Refresh rate unavailable on this screen."
+msgstr "이 화면에서는 주사율을 바꿀 수 없습니다."
+
+msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
+msgstr "30, 40, 60 FPS로 제한한 게임에서는 낮은 주사율로 배터리를 아낄 수 있습니다."
+
+msgid "Use the Ally's buttons"
+msgstr "Ally 버튼 사용"
+
+msgid "Armoury: back to Canapé. Command Center: Game Bar."
+msgstr "Armoury: Canapé로 돌아가기. Command Center: Game Bar."

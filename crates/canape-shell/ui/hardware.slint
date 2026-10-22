@@ -74,6 +74,8 @@ component CurvePanel inherits Rectangle {
                 stroke-line-join: round;
             }
             if root.line == "": Text {
+                width: parent.width;
+                height: parent.height;
                 text: @tr("The power mode's own curve");
                 color: Theme.dim;
                 font-size: Theme.font-small;
@@ -271,27 +273,30 @@ export component HardwarePage inherits VerticalLayout {
                         }
                     }
                 }
-
-                Text {
-                    text: @tr("With auto TDP, set its target at or below the limit.");
-                    color: Theme.faint;
-                    font-size: Theme.font-small;
-                    wrap: word-wrap;
-                }
             }
 
             Card {
-                title: @tr("This game");
-                Text {
-                    text: App.status.foreground != "" ? App.status.foreground : @tr("No game in the foreground");
-                    color: App.status.foreground != "" ? Theme.text : Theme.dim;
-                    font-size: 20px;
-                    font-weight: 600;
-                    overflow: elide;
+                HorizontalLayout {
+                    spacing: 12px;
+                    Caption {
+                        text: @tr("This game");
+                        vertical-alignment: center;
+                    }
+
+                    Text {
+                        horizontal-stretch: 1;
+                        text: App.status.foreground != "" ? App.status.foreground : @tr("No game in the foreground");
+                        color: App.status.foreground != "" ? Theme.text : Theme.dim;
+                        font-size: Theme.font-body;
+                        font-weight: 600;
+                        horizontal-alignment: right;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
                 }
 
                 Chip {
-                    label: @tr("Keep fans and limit for this game");
+                    label: @tr("Keep these settings for this game");
                     font-size: Theme.font-small;
                     enabled: App.status.connected && App.status.foreground != "";
                     clicked => {
@@ -302,44 +307,73 @@ export component HardwarePage inherits VerticalLayout {
         }
     }
 
-    Card {
-        title: @tr("Controller");
-        HorizontalLayout {
-            spacing: 12px;
-            Tile {
-                horizontal-stretch: 1;
-                preferred-width: 10px;
-                label: @tr("Gamepad");
-                sub: @tr("For games");
-                selected: App.status.controller == "gamepad";
-                enabled: App.status.connected;
-                clicked => {
-                    App.set-controller("gamepad");
+    HorizontalLayout {
+        spacing: Theme.gap;
+        Card {
+            title: @tr("Controller");
+            horizontal-stretch: 3;
+            preferred-width: 10px;
+            HorizontalLayout {
+                spacing: 12px;
+                Tile {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    label: @tr("Gamepad");
+                    sub: @tr("For games");
+                    selected: App.status.controller == "gamepad";
+                    enabled: App.status.connected;
+                    clicked => {
+                        App.set-controller("gamepad");
+                    }
+                }
+
+                Tile {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    label: @tr("Keyboard");
+                    sub: @tr("Buttons send keys");
+                    selected: App.status.controller == "wasd";
+                    enabled: App.status.connected;
+                    clicked => {
+                        App.set-controller("wasd");
+                    }
+                }
+
+                Tile {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    label: @tr("Mouse");
+                    sub: @tr("Stick moves the pointer");
+                    selected: App.status.controller == "mouse";
+                    enabled: App.status.connected;
+                    clicked => {
+                        App.set-controller("mouse");
+                    }
+                }
+            }
+        }
+
+        Card {
+            title: @tr("Screen");
+            horizontal-stretch: 2;
+            preferred-width: 10px;
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: start;
+                for hz in App.refresh-rates: Chip {
+                    label: @tr("{} Hz", hz);
+                    selected: App.refresh-hz == hz;
+                    clicked => {
+                        App.set-refresh(hz);
+                    }
                 }
             }
 
-            Tile {
-                horizontal-stretch: 1;
-                preferred-width: 10px;
-                label: @tr("Keyboard");
-                sub: @tr("Buttons send keys");
-                selected: App.status.controller == "wasd";
-                enabled: App.status.connected;
-                clicked => {
-                    App.set-controller("wasd");
-                }
-            }
-
-            Tile {
-                horizontal-stretch: 1;
-                preferred-width: 10px;
-                label: @tr("Mouse");
-                sub: @tr("Stick moves the pointer");
-                selected: App.status.controller == "mouse";
-                enabled: App.status.connected;
-                clicked => {
-                    App.set-controller("mouse");
-                }
+            Text {
+                text: App.refresh-rates.length == 0 ? @tr("Refresh rate unavailable on this screen.") : @tr("A lower rate saves battery in games capped at 30, 40 or 60 FPS.");
+                color: Theme.faint;
+                font-size: Theme.font-small;
+                wrap: word-wrap;
             }
         }
     }

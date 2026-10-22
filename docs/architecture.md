@@ -71,8 +71,8 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 | Courbes et vitesses des ventilateurs | ATKACPI `0x00110024`/`0x00110025` (8 températures + 8 % de PWM, `0x00110032` pour un ventilateur central), vitesses `0x00110013`/`0x00110014` | M6 : code écrit (service et page Matériel), à valider sur l'Ally |
 | Limite de FPS | AMD ADL (`ADL2_FPS_Settings_Set`), depuis le service | M6 : code écrit, à valider sur l'Ally (session 0 non essayée) |
 | Mode de la manette | HID ASUS (VID `0x0B05`, rapport `0x5A`, commande `0xD1 0x01`) | M6 : code écrit, à valider sur l'Ally |
-| Fréquence de l'écran | `ChangeDisplaySettingsEx` sur l'écran interne | M6 |
-| Boutons spéciaux | HID ASUS (VID `0x0B05`, rapport `0x5A`) | M6 |
+| Fréquence de l'écran | `QueryDisplayConfig` (chemin interne ou eDP) puis `ChangeDisplaySettingsEx`, depuis le shell (session de l'utilisateur), par jeu via les profils | M6 : code écrit (page Matériel), à valider sur l'Ally |
+| Boutons spéciaux | HID ASUS (VID `0x0B05`, rapports d'entrée `0x5A` : 166 Command Center, 56/147 Armoury, 165/0 palettes arrière), lus par le shell | M6 : code écrit (Armoury → Canapé, Command Center → Game Bar), à valider sur l'Ally |
 
 
 
@@ -112,7 +112,7 @@ Le service mémorise les derniers réglages appliqués (`%ProgramData%\Canape\st
 | M3 ✅ | Widget Game Bar (C# UWP) relié au service par le pipe (voir `m3-report.md`) |
 | M4 ✅ | Auto TDP en conditions réelles : FPS et charge GPU via AMD ADL (voir `m4-report.md`) |
 | M5 🚧 | Interface en 7 pages et 13 langues, profils par jeu, TDP appris, bench, plafond batterie, limite de température : code écrit, essais sur l'Ally à faire (vérifications automatisées : `packaging/m5-check.ps1`) |
-| M6 🚧 | Bibliothèque de jeux, ventilateurs, limite de FPS et mode de la manette (HID) : code écrit dans le service et le shell (page Matériel, profils par jeu), testé seulement avec le simulateur, à valider sur l'Ally avec les essais M5. Restent la fréquence de l'écran et les boutons spéciaux |
+| M6 🚧 | Bibliothèque de jeux, ventilateurs, limite de FPS et mode de la manette (HID) : code écrit dans le service et le shell (page Matériel, profils par jeu), testé seulement avec le simulateur, à valider sur l'Ally avec les essais M5. Fréquence de l'écran (globale et par jeu) et boutons Armoury / Command Center : code écrit, à valider aussi |
 
 ## Questions ouvertes
 

@@ -254,6 +254,14 @@ fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> 
             if first || previous.accent != status.accent {
                 follow_accent(ui, shared, commands, status.accent.as_deref(), first);
             }
+            let profile_hz = status.active_profile.as_deref().and_then(|exe| {
+                let profiles = shared.profiles.lock().unwrap();
+                profiles.iter().find(|p| p.matches(exe))?.refresh_hz
+            });
+            crate::screen::follow(profile_hz);
+            if first || pushes % SCREEN_REFRESH_PUSHES == 0 {
+                show_screen(ui);
+            }
             first = false;
             show_status(ui, shared, Some(status));
         }
@@ -289,6 +297,21 @@ fn follow_accent(
     if let Some(color) = crate::accent::parse(&remote) {
         let _ = ui.upgrade_in_event_loop(move |ui| crate::accent::show(&ui, color, None));
     }
+}
+
+/// Status pushes between two reads of the screen's refresh rate, which
+/// Windows settings can change behind the shell's back.
+const SCREEN_REFRESH_PUSHES: u32 = 5;
+
+/// Shows the screen's current refresh rate and the ones it offers.
+pub fn show_screen(ui: &Weak<AppWindow>) {
+    let (current, rates) = crate::screen::state();
+    let rates: Vec<i32> = rates.into_iter().map(|hz| hz as i32).collect();
+    let _ = ui.upgrade_in_event_loop(move |ui| {
+        let app = ui.global::<App>();
+        app.set_refresh_hz(current as i32);
+        app.set_refresh_rates(ModelRc::new(VecModel::from(rates)));
+    });
 }
 
 fn show_status(ui: &Weak<AppWindow>, shared: &Shared, status: Option<Status>) {

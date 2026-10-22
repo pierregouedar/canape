@@ -80,7 +80,7 @@ Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas e
 | M3 | Widget Game Bar relié au service ([rapport](docs/m3-report.md)) | ✅ première version · 🧪 nouvelle version 13 langues pas encore compilée |
 | M4 | Auto TDP réel : FPS et charge GPU via AMD ADL ([rapport](docs/m4-report.md)) | ✅ jusqu'à `99cad07` · 🧪 optimisations suivantes |
 | M5 | Profils par jeu, banc d'essai, shell 7 pages en 13 langues | 🧪 |
-| M6 | Bibliothèque de jeux, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | 🧪 bibliothèque, ventilateurs, limite de FPS et manette (service et page Matériel, jamais essayés sur l'Ally) · ⏳ fréquence de l'écran, boutons spéciaux |
+| M6 | Bibliothèque de jeux, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | 🧪 bibliothèque, ventilateurs, limite de FPS, manette, fréquence de l'écran et boutons Armoury / Command Center (jamais essayés sur l'Ally) |
 
 ### Organisation du dépôt
 
@@ -174,7 +174,7 @@ Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, n
 | M3 | Game Bar widget talking to the service ([report](docs/m3-report.md)) | ✅ first version · 🧪 new 13-language version not built yet |
 | M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `99cad07` · 🧪 later optimizations |
 | M5 | Per-game profiles, bench, 7-page shell in 13 languages | 🧪 |
-| M6 | Game library, fans, frame rate limit, controller mode, display refresh rate, special buttons | 🧪 library, fans, frame rate limit and controller (service and Hardware page, never tried on the Ally) · ⏳ display refresh rate, special buttons |
+| M6 | Game library, fans, frame rate limit, controller mode, display refresh rate, special buttons | 🧪 library, fans, frame rate limit, controller, screen refresh rate and Armoury / Command Center buttons (never tried on the Ally) |
 
 ### Repository map
 

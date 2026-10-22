@@ -273,7 +273,7 @@ sequenceDiagram
 - **End**: when the game leaves the foreground (another program, or the game is closed), the service re-applies the remembered global state, fans and frame rate limit included. So a mode or manual TDP picked while the profile was active only lasts as long as the game.
 - **Learned watts**: once the power has not moved for 30 ticks with a game detected, it is saved in the active profile (and in `state.json`). The next session starts right there, instead of starting from the maximum again.
 - **Saving from the shell** (Profiles page): the current auto TDP settings, plus the current power as learned watts if auto TDP is on. The profile's fan curves and frame rate limit are kept.
-- **Saving from the Hardware page** (**Keep fans and limit for this game**): the current fan curves and frame rate limit, the rest of the profile unchanged (or, without a profile, a new one with the current auto TDP settings). Fans on the firmware's curves are saved as such: that game will use them even when a preset is in use elsewhere. No limit is saved as "follow the global limit".
+- **Saving from the Hardware page** (**Keep these settings for this game**): the current fan curves, frame rate limit and screen refresh rate, the rest of the profile unchanged (or, without a profile, a new one with the current auto TDP settings). Fans on the firmware's curves are saved as such: that game will use them even when a preset is in use elsewhere. No limit is saved as "follow the global limit".
 - **Deleting** the active profile hands back to the global state at once.
 
 ### Frame rate limit and auto TDP

@@ -1,5 +1,6 @@
 //! Feature reports to the Ally's controller over HID (Windows only), with
-//! SetupAPI and `hid.dll`. Which interface and which bytes: see `pad.rs`.
+//! SetupAPI and `hid.dll`, and the input reports of its own buttons. Which
+//! interface and which bytes: see `pad.rs`.
 //!
 //! UNTESTED on the device: checked only by `cargo check` for Windows.
 
@@ -19,7 +20,7 @@ use windows_sys::Win32::Foundation::{
     CloseHandle, GENERIC_READ, GENERIC_WRITE, HANDLE, INVALID_HANDLE_VALUE,
 };
 use windows_sys::Win32::Storage::FileSystem::{
-    CreateFileW, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
+    CreateFileW, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING, ReadFile,
 };
 use windows_sys::core::GUID;
 
@@ -31,6 +32,8 @@ struct Interface {
     handle: HANDLE,
     /// Feature report length, report ID included.
     feature_len: usize,
+    /// Input report length, report ID included.
+    input_len: usize,
 }
 
 impl Drop for Interface {
@@ -61,6 +64,7 @@ impl Interface {
         let mut interface = Self {
             handle,
             feature_len: 0,
+            input_len: 0,
         };
         let mut attributes: HIDD_ATTRIBUTES = unsafe { std::mem::zeroed() };
         attributes.Size = size_of::<HIDD_ATTRIBUTES>() as u32;
@@ -70,7 +74,7 @@ impl Interface {
         {
             return None;
         }
-        interface.feature_len = feature_report_len(handle, pad::REPORT_ID)?;
+        (interface.feature_len, interface.input_len) = report_lens(handle, pad::REPORT_ID)?;
         Some(interface)
     }
 
@@ -90,9 +94,10 @@ impl Interface {
     }
 }
 
-/// The interface's feature report length when its descriptor declares a
-/// feature report with `report_id` (value or button capabilities).
-fn feature_report_len(handle: HANDLE, report_id: u8) -> Option<usize> {
+/// The interface's feature and input report lengths when its descriptor
+/// declares a feature report with `report_id` (value or button
+/// capabilities).
+fn report_lens(handle: HANDLE, report_id: u8) -> Option<(usize, usize)> {
     let mut data = 0;
     if !unsafe { HidD_GetPreparsedData(handle, &mut data) } {
         return None;
@@ -122,7 +127,10 @@ fn feature_report_len(handle: HANDLE, report_id: u8) -> Option<usize> {
             && buttons[..count as usize]
                 .iter()
                 .any(|b| b.ReportID == report_id);
-        (in_values || in_buttons).then_some(caps.FeatureReportByteLength.into())
+        (in_values || in_buttons).then_some((
+            caps.FeatureReportByteLength.into(),
+            caps.InputReportByteLength.into(),
+        ))
     })();
     unsafe { HidD_FreePreparsedData(data) };
     found
@@ -221,5 +229,40 @@ pub fn write_input(reports: impl Fn(usize) -> Vec<Vec<u8>>) -> Result<usize> {
             "no Ally controller HID interface (VID 0x0B05, PID 0x1ABE / 0x1B4C, report 0x5A)",
         )),
         (n, _) => Ok(n),
+    }
+}
+
+/// Reads the Ally's own buttons until the device goes away or a read
+/// fails, calling `on_button` for each press. Blocks: run it on its own
+/// thread, and call it again after an error (the device comes back after
+/// sleep).
+pub fn listen(mut on_button: impl FnMut(pad::Button)) -> Result<()> {
+    let interface = interface_paths()
+        .iter()
+        .find_map(|path| Interface::open(path))
+        .filter(|i| i.input_len > 0)
+        .ok_or(HwError::Unsupported(
+            "no Ally controller HID interface with input reports",
+        ))?;
+    // The buttons only report once the interface has been woken.
+    interface.set_feature(&pad::init_report(interface.feature_len))?;
+    let mut report = vec![0u8; interface.input_len];
+    loop {
+        let mut read = 0u32;
+        let ok = unsafe {
+            ReadFile(
+                interface.handle,
+                report.as_mut_ptr(),
+                report.len() as u32,
+                &mut read,
+                std::ptr::null_mut(),
+            )
+        };
+        if ok == 0 {
+            return Err(std::io::Error::last_os_error().into());
+        }
+        if let Some(button) = pad::parse_input(&report[..read as usize]) {
+            on_button(button);
+        }
     }
 }

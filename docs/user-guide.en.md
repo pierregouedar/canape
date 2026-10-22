@@ -280,7 +280,7 @@ None, 30, 40, 45, 60, 90 or 120. The AMD graphics driver holds every game at or 
 
 **This game**
 
-The foreground program ("No game in the foreground" otherwise) and the **Keep fans and limit for this game** button. It saves the current fan curves and frame rate limit in that game's profile:
+The foreground program ("No game in the foreground" otherwise) and the **Keep these settings for this game** button. It saves the current fan curves, frame rate limit and screen refresh rate in that game's profile:
 
 - The other settings of the profile (auto TDP, learned watts) are kept. Without a profile, one is created with the current auto TDP settings.
 - **Automatic** is saved too: that game will then run on the firmware's curves even if a preset is in use the rest of the time.
@@ -300,6 +300,17 @@ The mode is global (not per game), remembered and re-applied when the service st
 
 > [!WARNING]
 > Canapé reads the gamepad through XInput. In Keyboard or Mouse mode the controller should no longer show up as an Xbox gamepad, so Canapé may stop answering it: come back to **Gamepad** with the touch screen, or with `canape-ctl` (see [Troubleshooting](#canape-ctl-talking-to-the-service)).
+
+**Screen**
+
+The refresh rates the built-in screen offers at its current resolution (60 and 120 Hz on the ROG Ally). A lower rate saves battery in games capped at 30, 40 or 60 FPS. The choice is applied at once and remembered like a change made in Windows settings.
+
+- A game profile can hold its own rate (**Keep these settings for this game**): it applies when the game comes to the foreground; when the game leaves, the screen goes back to the rate picked here, or to the one the profile replaced.
+- Canapé only switches when the profile changes: a rate picked in Windows settings meanwhile is left alone.
+- Only the built-in screen is touched, never a TV or monitor plugged in. Without a built-in screen (or off Windows) the card says the rate is unavailable.
+
+> [!NOTE]
+> Not tried on the Ally yet (`ChangeDisplaySettingsEx` on the internal display, from the shell).
 
 ### Profiles
 
@@ -351,7 +362,9 @@ Each card offers **Set as TDP** (manual limit at that value, auto TDP off) and *
 
 - **Language**: "Automatic" (the Windows language) or one of the 13 languages. The change is immediate and remembered. See [Languages](#languages).
 - **Accent colour**: three sliders, **Hue**, **Saturation** and **Brightness**, a preview with the `#RRGGBB` code and 8 **presets**. With the gamepad, A on a slider grabs it, the D-pad or the stick moves it, A again lets go. The whole UI follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the widget follows the accent colour**.
-- **Canapé**: version, service connection state, and the **Download missing covers** switch (see [Library](#library)): the line under it says where covers come from (Steam only, or Steam and SteamGridDB when a key is set).
+- **Canapé**: version, service connection state, and two switches:
+  - **Download missing covers** (see [Library](#library)): the line under it says where covers come from (Steam only, or Steam and SteamGridDB when a key is set).
+  - **Use the Ally's buttons**: the **Armoury** button (right, under the screen) brings Canapé to the front from a game, or back to the library when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget is. Turn it off if Armoury Crate or another tool should handle them (both would react otherwise). Not tried on the Ally yet.
 
 | Teal accent | Amber accent |
 |---|---|
@@ -447,7 +460,7 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%ProgramData%\Canape\service.log` | Service log: detected model, ADL state at startup, every command that changes the state and its response (`SetTdp { watts: 12 } -> Ok`), conflicting programs, errors. |
 | `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, profiles, last bench. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Shell log: launches (with their arguments), chosen language, ADL state, service errors. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`. |
+| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `refresh_hz`, `ally_buttons`. |
 | `%LOCALAPPDATA%\Canape\covers\` | Downloaded covers (`<store>_<id>.jpg` / `.png`, `.miss` markers). |
 | `%LOCALAPPDATA%\Canape\library.json` | The games of the last scan, shown at once on the next start. Can be deleted: the next scan writes it again. |
 | `%LOCALAPPDATA%\Canape\recent.json` | When each game was last launched from Canapé (for the "Recent" order). |

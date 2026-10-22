@@ -18,6 +18,7 @@ All the project's documentation, in French and English. The milestone reports an
 
 | Document | Langue · Language | Contenu · Contents |
 |---|---|---|
+| [`game-install-study.md`](game-install-study.md) | 🇫🇷 | Étude : installer les jeux possédés depuis Canapé sans ouvrir les launchers (Steam, Epic via Legendary, GOG, Xbox), contraintes et proposition. · Study: installing owned games from Canapé without the store launchers. |
 | [`architecture.md`](architecture.md) | 🇫🇷 | Document de conception initial : composants, démarrage en FSE, IPC, matériel, objectifs de légèreté, feuille de route. Sa feuille de route n'est plus à jour : voir l'[état d'avancement](../README.md#état-davancement). · Initial design document; its roadmap is out of date, see the [project status](../README.md#project-status). |
 | [`../packaging/README.md`](../packaging/README.md) | 🇫🇷 | Fichiers du paquet d'identité, script d'installation, pièges de Windows. · Identity package files, install script, Windows pitfalls. |
 | [`../widget/README.md`](../widget/README.md) | 🇫🇷 | Choix techniques du widget Game Bar, interface, ajout d'une langue, compilation. · Game Bar widget technical choices, UI, adding a language, building. |

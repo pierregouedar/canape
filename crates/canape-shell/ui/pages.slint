@@ -1286,6 +1286,40 @@ export component SettingsPage inherits HorizontalLayout {
                     }
                 }
             }
+
+            HorizontalLayout {
+                spacing: 16px;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    alignment: center;
+                    spacing: 2px;
+                    Text {
+                        text: @tr("Use the Ally's buttons");
+                        color: Theme.text;
+                        font-size: Theme.font-body;
+                        overflow: elide;
+                    }
+
+                    Text {
+                        text: @tr("Armoury: back to Canapé. Command Center: Game Bar.");
+                        color: Theme.faint;
+                        font-size: Theme.font-small;
+                        wrap: word-wrap;
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    Chip {
+                        min-width: 110px;
+                        label: App.ally-buttons ? @tr("On") : @tr("Off");
+                        selected: App.ally-buttons;
+                        clicked => {
+                            App.toggle-ally-buttons();
+                        }
+                    }
+                }
+            }
         }
     }
 

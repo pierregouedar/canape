@@ -457,8 +457,6 @@ msgstr "フレームレート制限"
 msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
 msgstr "グラフィックスドライバーがゲームをこのフレームレート以下に抑えます。発熱と騒音が減り、バッテリーが長持ちします。"
 
-msgid "With auto TDP, set its target at or below the limit."
-msgstr "自動 TDP を使う場合は、目標を制限以下に設定してください。"
 
 msgid "Controller"
 msgstr "コントローラー"
@@ -487,8 +485,6 @@ msgstr "このゲーム"
 msgid "No game in the foreground"
 msgstr "前面のゲームはありません"
 
-msgid "Keep fans and limit for this game"
-msgstr "このゲームにファンと制限を保存"
 
 msgid "Firmware curve"
 msgstr "ファームウェアのカーブ"
@@ -507,3 +503,24 @@ msgstr "Steam と SteamGridDB から。"
 
 msgid "From Steam. A SteamGridDB key adds the other stores."
 msgstr "Steam から。SteamGridDB のキーがあれば他のストアにも対応します。"
+
+msgid "Keep these settings for this game"
+msgstr "この設定をこのゲームに保存"
+
+msgid "Screen"
+msgstr "画面"
+
+msgid "{} Hz"
+msgstr "{} Hz"
+
+msgid "Refresh rate unavailable on this screen."
+msgstr "この画面ではリフレッシュレートを変更できません。"
+
+msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
+msgstr "30・40・60 FPS に制限したゲームでは、低いレートでバッテリーを節約できます。"
+
+msgid "Use the Ally's buttons"
+msgstr "Ally のボタンを使う"
+
+msgid "Armoury: back to Canapé. Command Center: Game Bar."
+msgstr "Armoury：Canapé に戻る。Command Center：Game Bar。"

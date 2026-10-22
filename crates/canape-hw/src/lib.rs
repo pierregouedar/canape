@@ -7,6 +7,7 @@ use canape_core::{ControllerMode, Fan, FanCurve, PerformanceMode};
 #[cfg(windows)]
 mod adl;
 pub mod atk;
+pub mod display;
 #[cfg(windows)]
 mod hid;
 pub mod mock;
@@ -93,6 +94,14 @@ pub fn arm_frame_metrics() -> String {
         Ok(adl) => adl.describe(),
         Err(err) => format!("adl: {err}"),
     }
+}
+
+/// Reads the Ally's own buttons (Command Center, Armoury, back paddles)
+/// from the user session; see [`hid::listen`]. Reading needs no rights and
+/// writes nothing but the interface's wake-up report.
+#[cfg(windows)]
+pub fn listen_buttons(on_button: impl FnMut(pad::Button)) -> Result<()> {
+    hid::listen(on_button)
 }
 
 /// Picks the backend for the machine we run on.

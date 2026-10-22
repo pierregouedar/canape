@@ -457,8 +457,6 @@ msgstr "FPS-limiet"
 msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
 msgstr "Het grafische stuurprogramma houdt games onder deze framerate: minder warmte, minder geluid, langere accuduur."
 
-msgid "With auto TDP, set its target at or below the limit."
-msgstr "Zet bij auto-TDP het doel op of onder de limiet."
 
 msgid "Controller"
 msgstr "Controller"
@@ -487,8 +485,6 @@ msgstr "Deze game"
 msgid "No game in the foreground"
 msgstr "Geen game op de voorgrond"
 
-msgid "Keep fans and limit for this game"
-msgstr "Ventilatoren en limiet bewaren voor deze game"
 
 msgid "Firmware curve"
 msgstr "Curve van de firmware"
@@ -507,3 +503,24 @@ msgstr "Van Steam en SteamGridDB."
 
 msgid "From Steam. A SteamGridDB key adds the other stores."
 msgstr "Van Steam. Met een SteamGridDB-sleutel komen de andere winkels erbij."
+
+msgid "Keep these settings for this game"
+msgstr "Deze instellingen bewaren voor deze game"
+
+msgid "Screen"
+msgstr "Scherm"
+
+msgid "{} Hz"
+msgstr "{} Hz"
+
+msgid "Refresh rate unavailable on this screen."
+msgstr "Verversingssnelheid niet instelbaar op dit scherm."
+
+msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
+msgstr "Een lagere snelheid spaart de accu in games die op 30, 40 of 60 FPS zijn begrensd."
+
+msgid "Use the Ally's buttons"
+msgstr "De knoppen van de Ally gebruiken"
+
+msgid "Armoury: back to Canapé. Command Center: Game Bar."
+msgstr "Armoury: terug naar Canapé. Command Center: Game Bar."

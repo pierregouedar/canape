@@ -457,8 +457,6 @@ msgstr "帧率限制"
 msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
 msgstr "显卡驱动会把游戏帧率限制在此值以下：发热更少、噪音更低、续航更长。"
 
-msgid "With auto TDP, set its target at or below the limit."
-msgstr "使用自动 TDP 时，请将其目标设为不高于该限制。"
 
 msgid "Controller"
 msgstr "控制器"
@@ -487,8 +485,6 @@ msgstr "此游戏"
 msgid "No game in the foreground"
 msgstr "前台没有游戏"
 
-msgid "Keep fans and limit for this game"
-msgstr "为此游戏保存风扇和限制"
 
 msgid "Firmware curve"
 msgstr "固件曲线"
@@ -507,3 +503,24 @@ msgstr "来自 Steam 和 SteamGridDB。"
 
 msgid "From Steam. A SteamGridDB key adds the other stores."
 msgstr "来自 Steam。添加 SteamGridDB 密钥可支持其他商店。"
+
+msgid "Keep these settings for this game"
+msgstr "为此游戏保存这些设置"
+
+msgid "Screen"
+msgstr "屏幕"
+
+msgid "{} Hz"
+msgstr "{} Hz"
+
+msgid "Refresh rate unavailable on this screen."
+msgstr "此屏幕无法调整刷新率。"
+
+msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
+msgstr "在限制为 30、40 或 60 FPS 的游戏中，较低的刷新率更省电。"
+
+msgid "Use the Ally's buttons"
+msgstr "使用 Ally 按键"
+
+msgid "Armoury: back to Canapé. Command Center: Game Bar."
+msgstr "Armoury：返回 Canapé。Command Center：Game Bar。"
