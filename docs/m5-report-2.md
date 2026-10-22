@@ -154,7 +154,10 @@ On `eb31756`, with a Steam Web API key added to `shell.json` (not in the reposit
 - The shelf is sorted by last played, then title, like Récents. Among Us (1.07 GB on disk, 693 MB to download) was the smallest known game in it.
 - A on Among Us: `library: installing steam:945360`. The **Steam desktop client** came to the front over the shell with its own "Installer" dialog (desktop shortcuts ticked, drive C:), confirmed with the default folder. The download finished in 28 s: `library: steam:945360 installed`, `8 games found`.
 - Back in the shell, the shelf reads "À installer · 57" and Among Us is first in Récents.
-- Not observed: the progress on the cover and in the header, because the download was over before the shell was back in front. Launching Among Us from Récents with A was not done in this session.
+- Launch: Récents → Among Us → A gives `library: launching steam:945360 (Uri { uri: "steam://rungameid/945360" })`. The game started, became the foreground game (`Among Us.exe`) with a frame rate of 60 FPS, and showed its own terms screen (not accepted here).
+- The progress on the cover and in the header ("Installation… 0 %", a bar on the cover) was seen only on a second, accidental install (below). Among Us's own download was over before the shell was back in front.
+- **Problem: the focus jumps to the to-install shelf.** After a library refresh (`8 games found`), the focus went back to the first tile of "À installer" (Wallpaper Engine, A = Installer). A press meant for Among Us in Récents therefore started a Wallpaper Engine install. It was cancelled in Steam's dialog before any download.
+- **Problem: a cancelled install keeps showing.** After that cancel, the shell still showed "Installation… 0 %" for Wallpaper Engine.
 - To consider: on a handheld, the Steam desktop window and its mouse-sized dialog are awkward with the gamepad. Steam's Big Picture would suit the shell better.
 
 ![The to-install shelf after installing Among Us](images/ally/install-steam.png)
