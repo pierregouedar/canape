@@ -5,7 +5,7 @@
 This guide explains how to install Canapé on a ROG Ally, make it the home app of the full-screen experience (FSE), use it with the gamepad, add the Xbox Game Bar widget, and then troubleshoot and uninstall it.
 
 > [!IMPORTANT]
-> Canapé is a personal project under development. **Validated on the Ally**: installation, FSE boot, the service, modes, manual TDP, auto TDP (version `99cad07`) and the first version of the widget. **Written and tested without hardware, but not tried on the Ally yet**: the seven-page shell in 13 languages, the game library and installing Steam and Epic games, the Hardware page (fans, frame rate limit, controller mode), per-game profiles, the bench, the latest auto TDP optimizations and the new version of the widget. The sections concerned say so.
+> Canapé is a personal project under development. **Validated on the Ally**: installation, FSE boot, the service, modes, manual TDP, auto TDP (version `99cad07`) and the first version of the widget. **Written and tested without hardware, but not tried on the Ally yet**: the shell in 13 languages (four sections, arrow navigation), the game library and installing Steam and Epic games, the Hardware page (fans, frame rate limit, controller mode), per-game profiles, the bench, the latest auto TDP optimizations and the new version of the widget. The sections concerned say so.
 
 ## Contents
 
@@ -21,14 +21,13 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
 - [Using Canapé with the gamepad](#using-canapé-with-the-gamepad)
   - [Controls](#controls)
   - [Shared elements](#shared-elements)
-  - [Library](#library)
+  - [Games](#games)
     - [Installing owned games](#installing-owned-games)
-  - [Home](#home)
   - [Performance](#performance)
   - [Hardware](#hardware)
-  - [Profiles](#profiles)
-  - [Bench](#bench)
   - [Settings](#settings)
+  - [Game profiles](#game-profiles)
+  - [Bench](#bench)
 - [The Xbox Game Bar widget](#the-xbox-game-bar-widget)
 - [Languages](#languages)
 - [Troubleshooting](#troubleshooting)
@@ -137,40 +136,42 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 ## Using Canapé with the gamepad
 
 > [!NOTE]
-> The seven-page shell described here has not been tried on the Ally yet: only its previous (single-page) version and gamepad navigation were validated. The game library in particular was only tested on Linux, with a fake library: finding the games, their covers and launching them on Windows are still to be checked. The same goes for the Hardware page, whose writes to the fans, the graphics driver and the controller have never reached a real Ally (see [Hardware](#hardware)). Screenshots are rendered on Linux with the hardware simulator and made-up values; a few texts may differ slightly from the current version.
+> The interface described here (four sections, arrow navigation everywhere) has not been tried on the Ally yet: only an earlier version and gamepad navigation were validated there. The game library in particular was only tested on Linux, with a fake library: finding the games, their covers and launching them on Windows are still to be checked. The same goes for the Hardware page, whose writes to the fans, the graphics driver and the controller have never reached a real Ally (see [Hardware](#hardware)). Screenshots are rendered on Linux with the hardware simulator and made-up values.
 
 ### Controls
 
 | Button | Action |
 |---|---|
-| **LB / RB** | Previous / next page (Library → Home → Performance → Hardware → Profiles → Bench → Settings, wrapping around) |
-| **D-pad** or **left stick** | Move to the next control (down, right) or the previous one (up, left). In the library, moves in the grid of games in all four directions. Held, the move repeats after 0.4 s. |
-| **A** | Select the focused control; in the library, launch the game (install it in **To install** mode) |
-| **B** | Back to the library |
+| **LB / RB** | Previous / next section: Games → Performance → Hardware → Settings, wrapping around |
+| **D-pad** or **left stick** | Up and down change row; left and right move along the row or change its value. Held, the move repeats after 0.4 s. In Games, left and right move along the shelf, up and down swap the shelves. |
+| **A** | Choose; in Games, launch the game (or install it) |
+| **X** | Save for the game in the foreground (Performance, Hardware, Bench); delete a profile (Game profiles) |
+| **B** | Leave a sub-page (Game profiles, Bench), otherwise back to Games |
 
-The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. The focused control has a white outline. On a keyboard (development), the same actions are Tab / Shift+Tab (the arrow keys in the library), Enter, Esc and Page Up / Page Down.
+The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. The focused row or tile has a white outline; the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
 
 ### Shared elements
 
-- **Top**: the tabs (the current one is underlined in the accent colour), the battery (with a bolt when plugged in) and the word "Offline" when the service does not answer.
-- **Bottom**: gamepad hints and, on the right, the outcome of the last command ("Profile saved", "Service unreachable", "Service error: …"). Error messages from the service stay in English.
+- **Top**: the logo, the four sections (the current one is underlined in the accent colour) and, on the right, the power draw in watts, the frame rate, the battery (with a bolt when plugged in) and the time. "Offline" replaces the readings when the service does not answer.
+- **Bottom right**: the buttons that do something on the page, with Windows' gamepad glyphs.
+- **Bottom left**: the outcome of the last command ("Profile saved", "Service unreachable", "Service error: …") and the warning when another program also drives the hardware. Error messages from the service stay in English.
 - An unknown value shows as "—" (for example the frame rate when no game is running).
 
-### Library
+### Games
 
-<img src="images/en/library.png" alt="Library page" width="720">
+<img src="images/en/library.png" alt="Games section" width="720">
 
 <sub>A made-up library (`tools/fake-library.py`): titles and covers are generated.</sub>
 
-The first page, the one Canapé opens on: the games installed on the console, as covers, the most recently played first. The **To install** mode shows the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)).
+The first section, the one Canapé opens on: the selected game large, then a shelf of covers.
 
 | Area | Contents |
 |---|---|
-| **Top left** | The selected game: its title, its store (as a word: STEAM, EPIC, GOG, XBOX) and when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…). "Launching…" after A. In To install mode: "Not installed: press A to install", then "Installing… N %", or the error of an install that failed. |
-| **Filters** | Installed or To install, then All, Steam, Epic, GOG, Xbox, then the order: Recent (last played first, then by name) or A–Z. |
-| **Grid** | Six covers per row. The selected one is larger, with a white outline. Under All, each cover shows its store at the bottom left. A game without art shows its title on a card tinted with the accent colour. |
+| **Selected game** | Its store (STEAM, EPIC, GOG, XBOX), its title, when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…) and the **Play** button ("Launching…" after A). Behind it, a glow takes the colour of its cover. |
+| **Recent** | The installed games, the most recently played first (then by name). The selected cover is larger, opaque and outlined in white; the others are dimmed. A game without art shows its title on a tinted card. |
+| **To install · N** | At the bottom, the next shelf peeks in: the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)). |
 
-**Moving around**: the D-pad (or the stick) moves in the grid; down from a row above a shorter last row lands on the last game. Up from the first row reaches the filters: left and right pick one, **A** applies it, down goes back to the games. **A** on a game launches it; Canapé shows "Launching…" for a few seconds, then puts the game first in the list. The page scrolls by itself to keep the selected row at the top.
+**Moving around**: left and right move along the shelf, which scrolls to keep two games visible before the selection. Up or down brings the other shelf to the front: the header then describes the game to install and the button becomes **Install**. **A** launches the selected game; Canapé shows "Launching…" for a few seconds, then puts the game first on the shelf.
 
 **Where the games come from**
 
@@ -201,14 +202,14 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 
 #### Installing owned games
 
-<img src="images/en/library-install.png" alt="Library in To install mode, an install running" width="720">
+<img src="images/en/library-install.png" alt="To install shelf, an install running" width="720">
 
 <sub>Made-up owned games (`tools/fake-library.py`); the install of Mosaic Run is simulated.</sub>
 
 > [!NOTE]
 > **Nothing in this part has been tried on the Ally yet**: not the Steam owned list through the Web API, not installing through Steam, not the Legendary download, not the Epic sign-in, not installing and launching Epic games through Legendary. Only the UI (on Linux, with the fake library and a simulated install) and the reading of Steam's, Epic's and GitHub's answers (against recorded answers) were tested.
 
-At the top of the library, **Installed / To install** switches to the list of games you own on Steam or Epic but have not installed on the console. The store filters and the order apply there too. **A** on a game installs it without opening Steam's interface or the Epic launcher; the hint at the bottom of the screen becomes "A Install". A game already installed, from any store (same id or same title), does not show in this list.
+The **To install** shelf lists the games you own on Steam or Epic but have not installed on the console (up or down from Recent brings it to the front). **A** on a game installs it without opening Steam's interface or the Epic launcher; the button and the hint at the bottom of the screen become "Install". A game already installed, from any store (same id or same title), does not show in this list.
 
 **Steam: set up once**
 
@@ -219,42 +220,27 @@ Canapé asks for the list of the account last signed in to Steam on this device 
 
 **Epic: sign in once**
 
-1. Pick **Sign in to Epic Games** on the To install page (the button only shows when the list is empty) or **Epic sign-in** in [Settings](#settings).
+1. Pick **Sign in to Epic Games** on the To install shelf (the button only shows when it is empty) or **Epic Games account** in [Settings](#settings).
 2. The first time, Canapé downloads **Legendary**, an open-source Epic client (GPL-3 licence) that stays a separate program, from its official releases on GitHub, into `%LOCALAPPDATA%\Canape\tools`. The file is checked against the SHA-256 digest GitHub publishes: without a digest, or if it does not match, nothing is saved and the error shows at the top of the library.
 3. Legendary opens its own Epic sign-in window, with a console next to it (without WebView2, Legendary asks for a code there instead). These windows are not made for the gamepad: the touch screen and the touch keyboard may be needed.
 4. Once the window is closed, Canapé asks for the list of games again. The button then reads "Epic: <account> (sign in again)".
 
 Epic games that install through another store (Ubisoft, EA) are left out: Legendary cannot install them.
 
-**When the list is refreshed**: only when you switch to To install, if the last request is more than 10 minutes old, and right after an Epic sign-in: Canapé asks nothing of the stores at startup. A store that cannot be listed (wrong Steam key, Epic session expired) shows its error in the header for 10 seconds and keeps the last list. The last list is kept in `owned.json` and shows at once. Covers are fetched like the [downloaded covers](#library), under the same **Download missing covers** setting; for Epic games, Canapé first tries the portrait art Epic provides.
+**When the list is refreshed**: when Canapé starts (to count the games of the shelf), when you bring the To install shelf to the front if the last request is more than 10 minutes old, and right after an Epic sign-in. Without a Steam key or an Epic account, no store is asked. A store that cannot be listed (wrong Steam key, Epic session expired) shows its error in the header for 10 seconds and keeps the last list. The last list is kept in `owned.json` and shows at once. Covers are fetched like the [downloaded covers](#games), under the same **Download missing covers** setting; for Epic games, Canapé first tries the portrait art Epic provides.
 
 **What A does**
 
 | Store | Install | Progress | At the end |
 |---|---|---|---|
-| **Steam** | Canapé hands the install to Steam, which starts quietly in the notification area if it was not running. Steam only opens its small install window (folder, shortcuts): confirm it (not checked with the gamepad yet). Steam then downloads in the background. | Read every 2 s from the game's manifest. | The game moves to Installed and launches through Steam, like the others. |
-| **Epic** | Legendary installs the game silently, without a window or questions, into its default folder. | Read from Legendary's output. | The game moves to Installed and launches through Legendary: the Epic launcher is never opened. |
+| **Steam** | Canapé hands the install to Steam, which starts quietly in the notification area if it was not running. Steam only opens its small install window (folder, shortcuts): confirm it (not checked with the gamepad yet). Steam then downloads in the background. | Read every 2 s from the game's manifest. | The game moves to Recent and launches through Steam, like the others. |
+| **Epic** | Legendary installs the game silently, without a window or questions, into its default folder. | Read from Legendary's output. | The game moves to Recent and launches through Legendary: the Epic launcher is never opened. |
 
-- While installing, the cover shows a bar and "Installing… N %", and so does the header when the game is selected. You can keep moving around and install other games.
+- While installing, the cover shows a progress bar, and the header "Installing… N %" when the game is selected. You can keep moving around and install other games.
 - Canapé does not pick the folder nor check the free space: Steam offers them in its window, Legendary uses its default folder.
 - Steam: if the install window is not confirmed, Canapé gives up after 10 minutes ("Steam did not start the download"); an install cancelled in Steam midway gives "cancelled in Steam".
 - On failure, the header shows "<title>: <message>" in yellow, the message in English (`Steam is not installed`, `Legendary is not available`, `legendary: …` with Legendary's last line). It stays until the next install and is also in `shell.log`.
 - Games installed by Legendary are found in its configuration (`%USERPROFILE%\.config\legendary\installed.json`) as long as `legendary.exe` is in `%LOCALAPPDATA%\Canape\tools`.
-
-### Home
-
-<img src="images/en/home.png" alt="Home page" width="720">
-
-| Area | Contents |
-|---|---|
-| **Power draw and power limit** | On the left, what the APU actually draws; on the right, the limit applied ("Auto" when a firmware mode picks its own limits, or "—"). Below: "Auto TDP, target 60 FPS", "Set by the firmware: Turbo mode" or "Manual TDP". |
-| **Power graph** | The last minute, one point per second: the power draw (filled curve, in the accent colour) under the limit (light stepped line). The scale adapts in 5 W steps. A gap in the curve marks a lost connection to the service. |
-| **States** | "Thermal limit reached" (yellow) when the temperature limit is holding power down, "Bench running". |
-| **GPU and frame rate** | GPU activity with its graph of the last minute (0 to 100 %), and the game's frame rate. |
-| **Tiles** | CPU temperature (yellow from 80 °C, red from 90 °C), battery ("On battery" or "Plugged in"). |
-| **Now playing** | The foreground program Canapé detected, and the profile in use, if any. |
-| **Shortcuts** | Auto TDP (on / off), Silent, Performance, Turbo. |
-| **Yellow warning** | Shows at the top when another program also drives the hardware. |
 
 ### Performance
 
@@ -262,30 +248,17 @@ Epic games that install through another store (Ubisoft, EA) are left out: Legend
 
 <sub>The same page in Russian: [ru/performance.png](images/ru/performance.png).</sub>
 
-**Power mode**
+**Moving around**: the page is made of rows. Up and down move from row to row (rows that do not apply to the current mode are skipped), left and right move along a row of tiles or change the row's value at once, **A** picks a tile, **X** saves the settings for the game in the foreground (creates or updates its profile). The focused row has a white outline.
 
-| Tile | Effect |
+| Row | Content |
 |---|---|
-| Silent | ASUS silent firmware mode. The firmware sets its own limits, which Canapé cannot read: the TDP shows as "Auto". |
-| Performance | Balanced firmware mode. |
-| Turbo | Turbo firmware mode. |
-| Manual | Manual limit: keeps the current power if known, otherwise starts from **15 W**. |
+| **Mode** | Silent, Performance and Turbo are the ASUS firmware modes: the firmware sets its own limits, which Canapé cannot read. **Auto TDP** turns auto TDP on. The current mode has a lighter tile and an accent bar. Picking a firmware mode turns auto TDP off. Right of the title: "<game> · game profile" when a profile applies, "General settings" otherwise. |
+| **Target** (auto TDP) | A ruler of stops: 30, 40, 45, 60, 90, 120 FPS. Left and right move to the next stop. |
+| **Power range** (auto TDP) | ‹ minimum › — bar — ‹ maximum ›. The bar is on the model's scale (5 to 30 W on the ROG Ally and Ally X, 5 to 35 W on the ROG Xbox Ally models; 5 to 35 W if the service does not say). Up and down pick the minimum or the maximum (the active knob grows), left and right move it by 1 W; the minimum cannot pass the maximum. An accent mark shows what the APU draws now, with the value and the profile's learned watts. |
+| **Power limit** (manual TDP) | The same bar with one knob: left and right change the limit by 1 W. Only shows while a manual limit is in place (from **Set as TDP** on the bench, or ±1 W in the widget): there is no Manual tile any more; a minimum equal to the maximum under auto TDP does the same. |
+| **Other settings** | Tiles: **On battery** (none, 10, 15, 20 W, a ceiling applied only on battery), **Temperature** (none, 80, 85, 90 °C: above it, power only goes down), **Screen** (moves to the next rate the screen offers), **Bench** (opens the [bench](#bench), with its duration, or the time left during a run). A goes to the next value. |
 
-Picking a firmware mode turns auto TDP off.
-
-**Manual TDP**: − / + change the limit by 1 W, within the range of the model the service detected (see below). The buttons are disabled in a firmware mode ("Choose Manual to set the power yourself."). Changing the TDP by hand turns auto TDP off.
-
-**Auto TDP**
-
-| Control | Effect |
-|---|---|
-| On / Off | Turns auto TDP on or off. |
-| Target frame rate | 30, 40, 45, 60, 90 or 120. Picking a target **also turns** auto TDP on. |
-| Minimum / maximum power | − / + in 1 W steps. The minimum cannot pass the maximum. Both stay within the range of the model the service detected and reports: 5 to 30 W on the ROG Ally and Ally X, 5 to 35 W on the ROG Xbox Ally models. Without that information (older service), the shell falls back to 5 to 35 W and the service still brings the values into the model's range. |
-| Maximum on battery | None, 10, 15 or 20 W: a ceiling applied only on battery. |
-| Temperature limit | None, 80, 85 or 90 °C: above it, power only goes down. |
-
-On the right, the same graph as on Home shows the power draw against the limit live: you can watch auto TDP bring the power down or up.
+On the right: the power draw (with the limit, or "Thermal limit reached"), the frame rate (with the target) and the graph of the last minute: the draw in the accent colour, the limit dashed in grey. The scale adapts in 5 W steps; a gap in the line means the service was unreachable.
 
 How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
@@ -298,6 +271,8 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
 > [!NOTE]
 
+Four rows, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, **X** saves the fans, the frame rate limit and the screen refresh rate for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
+
 **Fans**
 
 | Tile | Curve (CPU and GPU fans alike) |
@@ -307,29 +282,28 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 | Balanced | From 10 % at 40 °C to 75 % from 92 °C, close to ASUS's balanced behaviour. |
 | Maximum | 35 % from 30 °C, full speed from 80 °C: loud, but the coolest. |
 
-- Below the tiles: the CPU fan and GPU fan speeds, in rpm, and the CPU temperature. "—" when the firmware gives no reading.
-- On the right: the CPU fan's curve, from 20 to 110 °C across and from 0 to 100 % up. With Automatic, the panel only says "The power mode's own curve".
+- The CPU fan's curve runs from 20 to 110 °C across and from 0 to 100 % up. With Automatic, it gives way to "The power mode's own curve".
 - A preset **survives power mode changes**: the firmware puts its own curves back at every mode change, and the service writes the preset again right after.
 - **Automatic** writes the current power mode again: that is how the firmware takes its curves back. In Manual, the service then puts your TDP back.
 - **Safety**: every curve is checked before it reaches the firmware. The fan may never slow down as the temperature rises, and it must run at least at 25 % from 80 °C, 30 % from 90 °C and 40 % from 100 °C, just under ASUS's own Silent mode. A curve that would leave the fans stopped when hot is refused. The APU also throttles itself at its temperature limit, but a quiet curve makes the console hot to hold.
-- **Custom**: when the curves in use match no preset (set with `canape-ctl`, or a different preset on each fan), no tile is selected and the page shows "Custom curves set by another client."
+- **Custom**: when the curves in use match no preset (set with `canape-ctl`, or a different preset on each fan), no tile is selected and the row's title reads "Custom curves set by another client."
 
 **Frame rate limit**
 
-None, 30, 40, 45, 60, 90 or 120. The AMD graphics driver holds every game at or below that rate, on AC and on battery: less heat, less noise, longer battery life. **None** removes the limit.
+A ruler: None, 30, 40, 45, 60, 90 or 120. The AMD graphics driver holds every game at or below that rate, on AC and on battery: less heat, less noise, longer battery life. **None** removes the limit.
 
 > [!TIP]
 > With auto TDP, set its target **at or below** the limit. Auto TDP regulates power to reach its target: with a limit of 40 and a target of 60, the target can never be reached and auto TDP would raise power to its maximum for nothing. A limit equal to the target is ideal: the game sits at its cap and auto TDP takes back the watts it does not need (see [Auto TDP and bench](auto-tdp.en.md#the-frame-cap-and-the-idle-gpu-rule)).
 
-**This game**
+#### This game
 
-The foreground program ("No game in the foreground" otherwise) and the **Keep these settings for this game** button. It saves the current fan curves, frame rate limit and screen refresh rate in that game's profile:
+The title of the Fans row shows the program in the foreground. **X** saves the current fan curves, frame rate limit and screen refresh rate in that game's profile (nothing happens without a game in the foreground):
 
 - The other settings of the profile (auto TDP, learned watts) are kept. Without a profile, one is created with the current auto TDP settings.
 - **Automatic** is saved too: that game will then run on the firmware's curves even if a preset is in use the rest of the time.
 - **None** is saved as "follow the global limit": a profile cannot force "no limit" while a global limit is set.
 - When the game comes to the foreground, its curves and limit apply; when it leaves, the global ones come back.
-- While the game is in front, picking a preset or a limit changes **its profile** if the profile has its own fans (or its own limit); otherwise the change is global and stays after the game. A profile made from the Profiles page or the bench has neither: it follows the global fans and limit.
+- While the game is in front, picking a preset or a limit changes **its profile** if the profile has its own fans (or its own limit); otherwise the change is global and stays after the game. A profile made from the Game profiles page or the bench has neither: it follows the global fans and limit.
 
 **Controller**
 
@@ -346,25 +320,50 @@ The mode is global (not per game), remembered and re-applied when the service st
 
 **Screen**
 
-The refresh rates the built-in screen offers at its current resolution (60 and 120 Hz on the ROG Ally). A lower rate saves battery in games capped at 30, 40 or 60 FPS. The choice is applied at once and remembered like a change made in Windows settings.
+One tile per refresh rate the built-in screen offers at its current resolution (60 and 120 Hz on the ROG Ally); A applies the focused one. A lower rate saves battery in games capped at 30, 40 or 60 FPS. The choice is applied at once and remembered like a change made in Windows settings.
 
-- A game profile can hold its own rate (**Keep these settings for this game**): it applies when the game comes to the foreground; when the game leaves, the screen goes back to the rate picked here, or to the one the profile replaced.
+- A game profile can hold its own rate (**X** on this page): it applies when the game comes to the foreground; when the game leaves, the screen goes back to the rate picked here, or to the one the profile replaced.
 - Canapé only switches when the profile changes: a rate picked in Windows settings meanwhile is left alone.
-- Only the built-in screen is touched, never a TV or monitor plugged in. Without a built-in screen (or off Windows) the card says the rate is unavailable.
+- Only the built-in screen is touched, never a TV or monitor plugged in. Without a built-in screen (or off Windows) the Screen row does not show.
 
 > [!NOTE]
 > Not tried on the Ally yet (`ChangeDisplaySettingsEx` on the internal display, from the shell).
 
-### Profiles
+### Settings
 
-<img src="images/en/profiles.png" alt="Profiles page" width="720">
+<img src="images/en/settings.png" alt="Settings page" width="720">
 
-A profile ties an executable (for example `eldenring.exe`) to auto TDP settings and, if you saved them from the [Hardware](#hardware) page, to fan curves and a frame rate limit. When that program comes to the foreground, the service applies the profile; when it leaves, the global settings come back.
+Setting lines: up and down move from one to the next (the left column, then the right one), left and right change the value (it turns to the accent colour between ‹ ›), A acts on the line.
 
-- **Current game** (left): the foreground program, the settings that will be saved (target, power, maximum on battery, temperature limit) and the **Save as profile** (or **Update the profile**) button. The button is disabled until a game is detected.
-  - If auto TDP is on, the current power is also saved as **learned watts**: the next session of that game starts right there.
-  - The fan curves and frame rate limit already in the profile are kept. This page does not show them.
-- **Profiles** (right): the list sorted by name, with the target, the power range and the learned watts. The profile in use is highlighted ("In use"). **Delete** asks for confirmation: a first press of A shows "Confirm", a second one deletes. Moving away cancels.
+| Line | Effect |
+|---|---|
+| **Language** | "Automatic" (the Windows language) or one of the 13 languages. Left and right go through the list, **A** applies the language shown; the choice is remembered. See [Languages](#languages). |
+| **Use the Ally's buttons** | The **Armoury** button (right, under the screen) brings Canapé to the front from a game, or goes back to Games when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget lives. Turn it off if Armoury Crate or another tool should handle them (otherwise both react). Not tried on the Ally yet. |
+| **Download missing covers** | See [Games](#games). |
+| **Epic Games account** | The signed-in account, or "Sign in": **A** opens the Epic sign-in, downloading Legendary first if needed (see [Installing owned games](#installing-owned-games)). Not tried on the Ally yet. |
+| **Game profiles** | The number of profiles; **A** opens the [Game profiles](#game-profiles) sub-page. |
+| **Accent colour** | Eight ready-made swatches (left and right, A picks) and three lines **Hue**, **Saturation** and **Brightness** that left and right move. The whole interface follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the Game Bar widget follows the accent colour**. |
+
+Bottom right: Canapé's version, the state of the connection to the service and whether a Steam API key is in `shell.json` (its validity is not checked).
+
+| Teal accent | Orange accent |
+|---|---|
+| <img src="images/accent-teal.png" alt="Performance with a teal accent" width="400"> | <img src="images/accent-amber.png" alt="Performance with an orange accent" width="400"> |
+
+<sub>The same settings in German: [de/settings.png](images/de/settings.png).</sub>
+
+### Game profiles
+
+<img src="images/en/profiles.png" alt="Game profiles sub-page" width="720">
+
+Opened from **Settings → Game profiles**; **B** goes back. A profile ties an executable (for example `eldenring.exe`) to auto TDP settings and, if you saved them from the [Hardware](#hardware) page, to fan curves, a frame rate limit and a screen refresh rate. When that program comes to the foreground the service applies the profile; when it leaves, the global settings come back.
+
+- **First line**: "Save a profile for <game>" (or "Update the profile of <game>"); **A** saves the current auto TDP settings (target, power, maximum on battery, temperature limit). Greyed out while no game is in the foreground.
+  - With auto TDP on, the current power is saved too as **learned watts**: the game's next session starts right there.
+  - Fan curves and a frame rate limit already in the profile are kept.
+- **The profiles**, sorted by name, with the target, the power range and the learned watts; "In use" after the name of the profile that applies. **X** asks for a confirmation ("Press X again to delete"), a second **X** deletes; moving to another line cancels.
+
+The Performance and Hardware pages do the same with **X**.
 
 > [!NOTE]
 > **How Canapé detects the game**: every 2 seconds the shell checks which program is in the foreground and tells the service (which, in session 0, cannot see windows). Explorer, Game Bar, the Start menu, Task Manager and Canapé itself are ignored: going back to Canapé does not "leave" the game while it is still running. Another program counts as a game when it **fills the screen** (full screen or borderless window) or **already has a profile**: a browser or Discord in an ordinary window does not replace the game running behind it. To create a profile for a windowed game, switch it to full screen while you save the profile. The shell must be running for profiles to work.
@@ -373,48 +372,31 @@ Profiles and learned watts are covered in [Auto TDP and bench](auto-tdp.en.md#pe
 
 ### Bench
 
-<img src="images/en/bench-results.png" alt="Bench page with results" width="720">
+<img src="images/en/bench-results.png" alt="Bench with results" width="720">
 
-The bench plays the foreground game at several power limits, from 25 W down to 7 W, measures each one and suggests the right value.
+Opened from the **Bench** tile of the Performance page; **B** goes back. The bench runs the foreground game at several power limits, from 25 W down to 7 W, measures each one and suggests the right value.
 
 1. Start the game and leave a **demanding, steady scene** running (not a menu).
-2. Go back to Canapé (Xbox button or Alt+Tab), **Bench** page.
-3. Pick the **step** (2, 3 or 5 W) and the measuring time **per step** (10, 15 or 30 s). The total time shows under **Start** (about 2:20 with 3 W and 15 s).
-4. **Start**, then go back to the game. The limit changes on its own; each step waits 5 s before measuring.
+2. Come back to Canapé (Xbox button or Alt+Tab), **Performance → Bench**.
+3. Set the **step** (2, 3 or 5 W) and the time **per step** (10, 15 or 30 s) with left and right. The total time shows on the **Start** line (about 2:20 with 3 W and 15 s).
+4. **A** on **Start**, then go back to the game. The limit changes on its own; each step waits 5 s before measuring.
 
 <img src="images/en/bench-running.png" alt="Bench running" width="720">
 
-During a bench, the mode, the TDP and auto TDP are locked ("a bench is running: cancel it first"); **Cancel** stops the bench and keeps the steps already measured. At the end, or on cancel, the service restores the previous state.
+While the bench runs, the mode, TDP and auto TDP are locked ("a bench is running: cancel it first"); the line becomes **Cancel**, which stops the bench and keeps the steps already measured. On the right: the current step, its power, a progress bar and the time left. At the end, or when cancelled, the service restores the previous state.
 
-**Results**: for each step, the power, the average FPS (with a relative bar), the lowest FPS (the worst second), FPS per watt and the maximum temperature. The sweet spot is highlighted. Three recommendations follow:
+**Results**: under the settings, for each step, the power, the average FPS, the lowest FPS (the worst second), FPS per watt and the maximum temperature; the sweet spot's column is highlighted. On the right, three recommendations, each with its power and frame rate:
 
-| Card | Meaning |
+| Line | Meaning |
 |---|---|
-| **Sweet spot** | The lowest power within 5 % of the best result: past it, more watts buy almost nothing. |
-| **For N FPS** | The lowest power that holds the current auto TDP target, on average. "Target not reached in this run" otherwise. |
+| **Sweet spot** | The lowest power within 5 % of the best result: above it, more watts bring almost nothing. |
+| **For N FPS** | The lowest power that holds the current auto TDP target, on average. "—" if the target was not reached. |
 | **Most efficient** | The most frames per watt: the most battery-friendly setting. |
 
-Each card offers **Set as TDP** (manual limit at that value, auto TDP off) and **Save for the game** (creates or replaces the game's profile: auto TDP on, target and ceiling taken from the measurement). The exact computation is in [Auto TDP and bench](auto-tdp.en.md#the-bench).
+On a recommendation, **A** sets the TDP (manual limit at that value, auto TDP off) and **X** saves it in the game's profile (creates or replaces the profile: auto TDP on, target and ceiling taken from the measure). The exact computation is in [Auto TDP and bench](auto-tdp.en.md#the-bench).
 
 > [!NOTE]
 > The bench has not been tried on the Ally yet.
-
-### Settings
-
-<img src="images/en/settings.png" alt="Settings page" width="720">
-
-- **Language**: "Automatic" (the Windows language) or one of the 13 languages. The change is immediate and remembered. See [Languages](#languages).
-- **Accent colour**: three sliders, **Hue**, **Saturation** and **Brightness**, a preview with the `#RRGGBB` code and 8 **presets**. With the gamepad, A on a slider grabs it, the D-pad or the stick moves it, A again lets go. The whole UI follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the widget follows the accent colour**.
-- **Canapé**: version, service connection state, a row for installing games, and two switches:
-  - **Install games from Canapé** (see [Installing owned games](#installing-owned-games)): says whether a Steam API key is in `shell.json` (without checking that it is valid) and which Epic account is signed in ("Epic: not signed in." otherwise). The **Epic sign-in** button opens the Epic sign-in, downloading Legendary first if needed. Not tried on the Ally yet.
-  - **Download missing covers** (see [Library](#library)): the line under it says where covers come from (Steam only, or Steam and SteamGridDB when a key is set).
-  - **Use the Ally's buttons**: the **Armoury** button (right, under the screen) brings Canapé to the front from a game, or back to the library when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget is. Turn it off if Armoury Crate or another tool should handle them (both would react otherwise). Not tried on the Ally yet.
-
-| Teal accent | Amber accent |
-|---|---|
-| <img src="images/accent-teal.png" alt="Home with a teal accent" width="400"> | <img src="images/accent-amber.png" alt="Home with an amber accent" width="400"> |
-
-<sub>The same settings in German: [de/settings.png](images/de/settings.png).</sub>
 
 ## The Xbox Game Bar widget
 
@@ -437,19 +419,21 @@ The widget gives you the quick settings without leaving the game. All the logic 
 
 **Contents**
 
-| Area | Details |
+| Area | Detail |
 |---|---|
-| Header | Connection state as text ("Connecting…", "Service not connected"), foreground game (without `.exe`), "Profile" in the accent colour when a profile is applied. |
-| Tiles | TDP, FPS, temperature (caption "Throttled" in yellow when the temperature limit is holding power down), battery (caption "Plugged in" in green on the charger). |
+| Header | The foreground game (without `.exe`) and "game profile" when its profile applies; otherwise the connection state ("Connecting…", "Service not connected"). |
+| Figures | The power draw (one decimal) and the frame rate. |
+| Graph | The last minute: the draw in the accent colour, the limit dashed in grey. |
 | Bench | Step, power and time left while a bench runs (started from the shell). |
-| Modes | Silent, Performance, Turbo. |
-| ±1 W | Only active when the TDP is known; disabled in a firmware mode ("Set by the firmware mode"). Stays within the model's range reported by the service. |
-| Auto TDP | On / off and target 30, 40 or 60 FPS. The other settings (minimum, maximum, battery, temperature) are kept as they are. |
+| Mode | Four tiles: Silent, Performance, Turbo, Auto. The chosen tile is white. A firmware mode turns auto TDP off. |
+| ‹ value › | Under auto TDP, the **target** (30, 40, 45, 60, 90, 120 FPS); otherwise the **power limit** ±1 W, greyed out in a firmware mode ("Set by the firmware mode") and kept within the model's range. |
+| Power | The auto TDP range (or the manual limit) on the model's scale, with a mark on the current draw. Read-only: the range is set in the shell. |
+| Footer | CPU temperature ("Throttled" in amber when the temperature limit holds power back), GPU activity, battery. |
 
-The widget has no Manual mode, no bench button, no profile management and no fan, frame rate limit or controller settings: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell.
+The widget has no bench button, no profile management, and no setting for the power range, the fans, the frame rate limit or the controller: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell. Default size 400 × 600, resizable.
 
 > [!NOTE]
-> The **first version** of the widget was validated on the Ally (M3) through Win+G on the desktop. The **current version** (13 languages, new look, ±1 W disabled in firmware modes and bounded by the model's range) has not been built yet. Opening it from the Xbox button in the FSE, with Canapé as the home app, has not been tested yet.
+> The **first version** of the widget was validated on the Ally (M3) through Win+G on the desktop. The **current version** (new layout with mode tiles, target and power bar, 13 languages) has not been built yet. Opening it from the Xbox button in the FSE, with Canapé as the home app, has not been tested yet.
 
 ## Languages
 
@@ -471,7 +455,7 @@ Canapé is translated into 13 languages:
 | 한국어 | `ko` | `ko-KR` |
 | 简体中文 | `zh_CN` | `zh-Hans` |
 
-<img src="images/ja/home.png" alt="Home in Japanese" width="480">
+<img src="images/ja/library.png" alt="Games in Japanese" width="480">
 
 - **Shell, Automatic mode** (default): the first language in Windows' preferred languages list that is bundled, otherwise English. Any Chinese variant shows Simplified Chinese.
 - **Shell, manual choice**: **Settings → Language** page. The choice is saved in `%LOCALAPPDATA%\Canape\shell.json` and applied at once.
@@ -556,7 +540,7 @@ The exit code is 0 when the service answered without an error, 1 otherwise. The 
 | FPS stay at "—" in game | The AMD driver only counts frames once armed from the user session: the shell does it at startup (line `adl: frame metrics started` in `shell.log`). Launch Canapé at least once after boot. |
 | The TDP shows "Auto" and −/+ are disabled | A firmware mode (Silent, Performance, Turbo) is active: the firmware does not report its limits. Pick **Manual**. |
 | Auto TDP does not move | It only acts while a game runs: at least 5 FPS **and** at least 15 % GPU activity. On the desktop or in a still menu, it keeps the current value. |
-| The power changes on its own | Another tool drives the hardware (yellow warning), or a game profile just kicked in ("Profile in use" on Home). |
+| The power changes on its own | Another tool drives the hardware (yellow warning), or a game profile just kicked in ("<game> · game profile" at the top of the Performance page). |
 | The fans or the frame rate limit change on their own | A game profile with its own fans or limit just kicked in or ended, or another tool rewrote them (yellow warning). |
 | "Service error: GPU driver refused: ADL2_FPS_Settings_Set… (session 0)" on the frame rate limit | The AMD driver refuses the limit from the service. This case has not been tried yet: note the message (it is also in `service.log`) and report it. |
 | The gamepad no longer moves around Canapé after picking Keyboard or Mouse | Expected: the controller no longer acts as an Xbox gamepad. Tap **Gamepad** on the touch screen, or send `{"type":"set_controller_mode","mode":"gamepad"}` with `canape-ctl`. |

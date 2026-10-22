@@ -9,14 +9,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Home"
-msgstr "Ana sayfa"
-
 msgid "Performance"
 msgstr "Performans"
-
-msgid "Profiles"
-msgstr "Profiller"
 
 msgid "Bench"
 msgstr "Test"
@@ -24,14 +18,8 @@ msgstr "Test"
 msgid "Settings"
 msgstr "Ayarlar"
 
-msgid "Select"
-msgstr "Seç"
-
 msgid "Back"
 msgstr "Geri"
-
-msgid "Change page"
-msgstr "Sayfa değiştir"
 
 msgid "Service not connected: start canape-service."
 msgstr "Hizmet bağlı değil: canape-service'i başlatın."
@@ -51,20 +39,8 @@ msgstr "Donanımı yöneten başka program: {}. Çakışmaları önlemek için k
 msgid "Power limit"
 msgstr "Güç sınırı"
 
-msgid "Auto"
-msgstr "Otomatik"
-
 msgid "Service not connected"
 msgstr "Hizmet bağlı değil"
-
-msgid "Auto TDP, target {} FPS"
-msgstr "Otomatik TDP, hedef {} FPS"
-
-msgid "Set by the firmware: {} mode"
-msgstr "Firmware belirliyor: {} modu"
-
-msgid "Manual TDP"
-msgstr "Manuel TDP"
 
 msgid "Auto TDP"
 msgstr "Otomatik TDP"
@@ -72,41 +48,14 @@ msgstr "Otomatik TDP"
 msgid "Thermal limit reached"
 msgstr "Sıcaklık sınırına ulaşıldı"
 
-msgid "Bench running"
-msgstr "Test sürüyor"
-
 msgid "Frame rate"
 msgstr "Kare hızı"
-
-msgid "GPU"
-msgstr "GPU"
 
 msgid "CPU temperature"
 msgstr "CPU sıcaklığı"
 
-msgid "Battery"
-msgstr "Pil"
-
 msgid "On battery"
 msgstr "Pilde"
-
-msgid "Plugged in"
-msgstr "Prize takılı"
-
-msgid "Now playing"
-msgstr "Şu an oynanan"
-
-msgid "No game detected"
-msgstr "Oyun algılanmadı"
-
-msgid "Profile in use: {}"
-msgstr "Kullanılan profil: {}"
-
-msgid "No profile for this game: the global settings apply."
-msgstr "Bu oyunun profili yok: genel ayarlar geçerli."
-
-msgid "Start a game: its profile applies by itself."
-msgstr "Bir oyun başlatın: profili kendiliğinden uygulanır."
 
 msgid "On"
 msgstr "Açık"
@@ -114,74 +63,20 @@ msgstr "Açık"
 msgid "Off"
 msgstr "Kapalı"
 
-msgid "Firmware mode"
-msgstr "Firmware modu"
-
-msgid "Power mode"
-msgstr "Güç modu"
-
-msgid "Quiet, cool"
-msgstr "Sessiz ve serin"
-
 msgid "Balanced"
 msgstr "Dengeli"
-
-msgid "Maximum power"
-msgstr "Azami güç"
-
-msgid "Your own limit"
-msgstr "Kendi sınırınız"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "Gücü kendiniz ayarlamak için Manuel'i seçin."
-
-msgid "Changing it turns auto TDP off."
-msgstr "Değiştirmek otomatik TDP'yi kapatır."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "Kare hızını olabildiğince az güçle hedefte tutar."
-
-msgid "Target frame rate"
-msgstr "Hedef kare hızı"
-
-msgid "Minimum power"
-msgstr "Asgari güç"
-
-msgid "Maximum on battery"
-msgstr "Pilde azami"
 
 msgid "None"
 msgstr "Yok"
 
-msgid "Temperature limit: above it, power only goes down"
-msgstr "Sıcaklık sınırı: üzerinde güç yalnızca düşer"
-
 msgid "Auto TDP off"
 msgstr "Otomatik TDP kapalı"
-
-msgid "learned: {}"
-msgstr "öğrenilen: {}"
 
 msgid "In use"
 msgstr "Kullanımda"
 
-msgid "Confirm"
-msgstr "Onayla"
-
 msgid "Delete"
 msgstr "Sil"
-
-msgid "Current game"
-msgstr "Geçerli oyun"
-
-msgid "A profile is in use for this game."
-msgstr "Bu oyun için bir profil kullanılıyor."
-
-msgid "This game has no profile yet."
-msgstr "Bu oyunun henüz profili yok."
-
-msgid "Settings saved with the profile"
-msgstr "Profile kaydedilen ayarlar"
 
 msgid "Target"
 msgstr "Hedef"
@@ -189,32 +84,8 @@ msgstr "Hedef"
 msgid "Power"
 msgstr "Güç"
 
-msgid "Temperature limit"
-msgstr "Sıcaklık sınırı"
-
-msgid "Update the profile"
-msgstr "Profili güncelle"
-
-msgid "Save as profile"
-msgstr "Profil olarak kaydet"
-
-msgid "Start a game first"
-msgstr "Önce bir oyun başlatın"
-
-msgid "A profile applies by itself when its game comes to the front."
-msgstr "Oyunu öne geldiğinde profil kendiliğinden uygulanır."
-
 msgid "No profiles yet. Save one while a game is running, or from a bench result."
 msgstr "Henüz profil yok. Oyun açıkken ya da bir test sonucundan kaydedin."
-
-msgid "Set as TDP"
-msgstr "TDP olarak ayarla"
-
-msgid "Save for the game"
-msgstr "Oyun için kaydet"
-
-msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
-msgstr "Öndeki oyunu birkaç güç sınırında çalıştırır ve her birini ölçer. Zorlu bir sahneyi açık bırakın."
 
 msgid "Step"
 msgstr "Adım"
@@ -273,35 +144,17 @@ msgstr "Azami sıcaklık"
 msgid "Sweet spot"
 msgstr "En iyi denge"
 
-msgid "Near the best frame rate: {} FPS"
-msgstr "En iyi kare hızına yakın: {} FPS"
-
 msgid "For {} FPS"
 msgstr "{} FPS için"
 
-msgid "Lowest power holding the target: {} FPS"
-msgstr "Hedefi tutan en düşük güç: {} FPS"
-
-msgid "Target not reached in this run"
-msgstr "Bu testte hedefe ulaşılamadı"
-
 msgid "Most efficient"
 msgstr "En verimli"
-
-msgid "Most frames per watt: {} FPS"
-msgstr "Watt başına en çok kare: {} FPS"
 
 msgid "Automatic"
 msgstr "Otomatik"
 
 msgid "Language"
 msgstr "Dil"
-
-msgid "Automatic follows the Windows display language."
-msgstr "Otomatik, Windows görüntüleme dilini izler."
-
-msgid "Version {}"
-msgstr "Sürüm {}"
 
 
 msgid "Service connected"
@@ -352,34 +205,13 @@ msgstr "Doygunluk"
 msgid "Brightness"
 msgstr "Parlaklık"
 
-msgid "Presets"
-msgstr "Hazır renkler"
-
-msgid "Every page follows this colour, and so does the Game Bar widget."
-msgstr "Tüm sayfalar bu rengi kullanır, Game Bar bileşeni de."
-
-msgid "Press A on a slider to adjust it."
-msgstr "Ayarlamak için bir kaydırıcıda A'ya basın."
-
-msgid "Move with the D-pad or the stick, then press A to finish."
-msgstr "Yön tuşları veya çubukla ayarlayın, bitirmek için A'ya basın."
-
 # Library page
-
-msgid "Library"
-msgstr "Kitaplık"
 
 msgid "Play"
 msgstr "Oyna"
 
-msgid "All"
-msgstr "Tümü"
-
 msgid "Recent"
 msgstr "Son oynanan"
-
-msgid "A–Z"
-msgstr "A–Z"
 
 msgid "Played today"
 msgstr "Bugün oynandı"
@@ -408,9 +240,6 @@ msgstr "Oyunlar aranıyor…"
 msgid "No games found"
 msgstr "Oyun bulunamadı"
 
-msgid "No games from this store"
-msgstr "Bu mağazadan oyun yok"
-
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé; Steam, Epic Games Launcher, GOG Galaxy ve Xbox uygulamasıyla yüklenen oyunları gösterir."
 
@@ -420,25 +249,11 @@ msgstr "Donanım"
 msgid "Fans"
 msgstr "Fanlar"
 
-
-msgid "Off while cool"
-msgstr "Serinken kapalı"
-
-msgid "Steady"
-msgstr "Dengeli hız"
-
-
-msgid "Loud, coolest"
-msgstr "Gürültülü, en serin"
-
 msgid "CPU fan"
 msgstr "CPU fanı"
 
 msgid "{} rpm"
 msgstr "{} dev/dk"
-
-msgid "GPU fan"
-msgstr "GPU fanı"
 
 msgid "The power mode's own curve"
 msgstr "Güç modunun kendi eğrisi"
@@ -446,14 +261,8 @@ msgstr "Güç modunun kendi eğrisi"
 msgid "Custom curves set by another client."
 msgstr "Başka bir istemcinin ayarladığı özel eğriler."
 
-msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
-msgstr "Hazır ayar, donanım yazılımının eğrisinin yerini alır; Otomatik onu geri getirir. Güç modunu değiştirmek hazır ayarı korur."
-
 msgid "Frame rate limit"
 msgstr "FPS sınırı"
-
-msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
-msgstr "Grafik sürücüsü oyunları bu kare hızının altında tutar: daha az ısı, daha az gürültü, daha uzun pil ömrü."
 
 
 msgid "Controller"
@@ -462,30 +271,14 @@ msgstr "Kumanda"
 msgid "Gamepad"
 msgstr "Oyun kumandası"
 
-msgid "For games"
-msgstr "Oyunlar için"
-
 msgid "Keyboard"
 msgstr "Klavye"
-
-msgid "Buttons send keys"
-msgstr "Düğmeler tuş gönderir"
 
 msgid "Mouse"
 msgstr "Fare"
 
-msgid "Stick moves the pointer"
-msgstr "Çubuk imleci hareket ettirir"
-
-msgid "This game"
-msgstr "Bu oyun"
-
 msgid "No game in the foreground"
 msgstr "Ön planda oyun yok"
-
-
-msgid "Firmware curve"
-msgstr "Yazılım eğrisi"
 
 msgid "Maximum"
 msgstr "Maksimum"
@@ -493,65 +286,20 @@ msgstr "Maksimum"
 msgid "Download missing covers"
 msgstr "Eksik kapakları indir"
 
-msgid "Only the art already on this device is shown."
-msgstr "Yalnızca cihazda zaten bulunan görseller gösterilir."
-
-msgid "From Steam and SteamGridDB."
-msgstr "Steam ve SteamGridDB'den."
-
-msgid "From Steam. A SteamGridDB key adds the other stores."
-msgstr "Steam'den. Bir SteamGridDB anahtarı diğer mağazaları da ekler."
-
-msgid "Keep these settings for this game"
-msgstr "Bu ayarları bu oyun için sakla"
-
 msgid "Screen"
 msgstr "Ekran"
 
 msgid "{} Hz"
 msgstr "{} Hz"
 
-msgid "Refresh rate unavailable on this screen."
-msgstr "Bu ekranda yenileme hızı ayarlanamıyor."
-
-msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
-msgstr "Düşük bir hız, 30, 40 veya 60 FPS ile sınırlı oyunlarda pil tasarrufu sağlar."
-
 msgid "Use the Ally's buttons"
 msgstr "Ally düğmelerini kullan"
-
-msgid "Armoury: back to Canapé. Command Center: Game Bar."
-msgstr "Armoury: Canapé'ye dön. Command Center: Game Bar."
-
-msgid "Install games from Canapé"
-msgstr "Oyunları Canapé'den kur"
-
-msgid "Steam: API key set."
-msgstr "Steam: API anahtarı ayarlı."
-
-msgid "Steam: no API key in shell.json."
-msgstr "Steam: shell.json'da API anahtarı yok."
-
-msgid "Epic: {}."
-msgstr "Epic: {}."
-
-msgid "Epic: not signed in."
-msgstr "Epic: giriş yapılmadı."
-
-msgid "Epic sign-in"
-msgstr "Epic girişi"
 
 msgid "Installing… {} %"
 msgstr "Kuruluyor… %{}"
 
-msgid "Installed"
-msgstr "Kurulu"
-
 msgid "To install"
 msgstr "Kurulacak"
-
-msgid "Not installed: press A to install"
-msgstr "Kurulu değil: kurmak için A'ya basın"
 
 msgid "Looking for your games…"
 msgstr "Oyunların aranıyor…"
@@ -576,3 +324,111 @@ msgstr "Epic Games'e giriş yap"
 
 msgid "Install"
 msgstr "Kur"
+
+msgid "Mode"
+msgstr "Mod"
+
+msgid "Power range"
+msgstr "Güç aralığı"
+
+msgid "Temperature"
+msgstr "Sıcaklık"
+
+msgid "limit {}"
+msgstr "sınır {}"
+
+msgid "target {}"
+msgstr "hedef {}"
+
+msgid "W"
+msgstr "W"
+
+msgid "1 min"
+msgstr "1 dk"
+
+msgid "Canapé {}"
+msgstr "Canapé {}"
+
+msgid "Choose"
+msgstr "Seç"
+
+msgid "Epic Games account"
+msgstr "Epic Games hesabı"
+
+msgid "GPU {}"
+msgstr "GPU {}"
+
+msgid "Game profiles"
+msgstr "Oyun profilleri"
+
+msgid "Games"
+msgstr "Oyunlar"
+
+msgid "General"
+msgstr "Genel"
+
+msgid "General settings"
+msgstr "Genel ayarlar"
+
+msgid "Installing…"
+msgstr "Yükleniyor…"
+
+msgid "Limit"
+msgstr "Sınır"
+
+msgid "No Steam API key"
+msgstr "Steam API anahtarı yok"
+
+msgid "Not installed"
+msgstr "Yüklü değil"
+
+msgid "Press X again to delete"
+msgstr "Silmek için X'e tekrar basın"
+
+msgid "Save a profile for {}"
+msgstr "{} için profil kaydet"
+
+msgid "Save for this game"
+msgstr "Bu oyun için kaydet"
+
+msgid "Sections"
+msgstr "Bölümler"
+
+msgid "Setting"
+msgstr "Ayar"
+
+msgid "Sign in"
+msgstr "Oturum aç"
+
+msgid "Start · {}"
+msgstr "Başlat · {}"
+
+msgid "Steam API key set"
+msgstr "Steam API anahtarı ayarlı"
+
+msgid "To install · {}"
+msgstr "Yüklenecek · {}"
+
+msgid "Update the profile of {}"
+msgstr "{} profilini güncelle"
+
+msgid "Value"
+msgstr "Değer"
+
+msgid "rpm"
+msgstr "dev/dk"
+
+msgid "{} learned"
+msgstr "{} öğrenildi"
+
+msgid "{} max"
+msgstr "en fazla {}"
+
+msgid "{} now"
+msgstr "şu an {}"
+
+msgid "{} now · {} learned"
+msgstr "şu an {} · {} öğrenildi"
+
+msgid "{} · game profile"
+msgstr "{} · oyun profili"

@@ -1,7 +1,7 @@
 //! Gamepad state → navigation keys, with auto-repeat while a direction is
 //! held. Pure logic; the XInput polling lives in `gamepad.rs`.
 //!
-//! A → Return, B → Escape, and the bumpers LB / RB → PageUp / PageDown,
+//! A → Return, B → Escape, X → F2, Y → F3, and the bumpers LB / RB → PageUp / PageDown,
 //! which the window turns into page changes. The D-pad and the stick send
 //! Tab / Shift+Tab (down or right / up or left), which every page
 //! understands; while the library grid has the focus they send the arrow
@@ -23,6 +23,10 @@ pub struct Pad {
     pub right: bool,
     pub confirm: bool,
     pub back: bool,
+    /// X: the page's secondary action.
+    pub x: bool,
+    /// Y: settings of the selected item.
+    pub y: bool,
     /// LB: previous page.
     pub page_prev: bool,
     /// RB: next page.
@@ -72,6 +76,12 @@ impl Navigator {
         if pad.back && !self.previous.back {
             keys.push(Key::Escape);
         }
+        if pad.x && !self.previous.x {
+            keys.push(Key::F2);
+        }
+        if pad.y && !self.previous.y {
+            keys.push(Key::F3);
+        }
         if pad.page_prev && !self.previous.page_prev {
             keys.push(Key::PageUp);
         }
@@ -114,6 +124,8 @@ mod tests {
         right: false,
         confirm: false,
         back: false,
+        x: false,
+        y: false,
         page_prev: false,
         page_next: false,
     };
@@ -130,6 +142,19 @@ mod tests {
         assert!(nav.update(pressed, t + REPEAT_DELAY * 2, false).is_empty());
         assert!(nav.update(Pad::default(), t, false).is_empty());
         assert_eq!(nav.update(pressed, t, true), vec![Key::Return]);
+    }
+
+    #[test]
+    fn face_buttons_send_function_keys() {
+        let mut nav = Navigator::default();
+        let t = Instant::now();
+        let pad = Pad {
+            x: true,
+            y: true,
+            ..Pad::default()
+        };
+        assert_eq!(nav.update(pad, t, false), vec![Key::F2, Key::F3]);
+        assert!(nav.update(pad, t, false).is_empty());
     }
 
     #[test]

@@ -68,9 +68,9 @@ Ctl @{ type = "save_profile"; profile = @{ exe = $Game; auto_tdp = $auto; learne
 Ctl @{ type = "foreground_app"; exe = $Game } | Out-Null
 $s = Status
 Check "Profile activated" ($s.active_profile -ieq $Game -and $s.auto_tdp.target_fps -eq 40) "profile $($s.active_profile), target $($s.auto_tdp.target_fps)"
-Start-Sleep -Seconds 40
+Start-Sleep -Seconds 75
 $learned = ((Ctl @{ type = "list_profiles" }).profiles | Where-Object { $_.exe -ieq $Game }).learned_watts
-Check "Learned TDP" ($null -ne $learned) "learned_watts = $learned (needs 30 s without a change)"
+Check "Learned TDP" ($null -ne $learned) "learned_watts = $learned (needs about a minute to settle, then 30 s without a change)"
 
 # 4. Bench.
 if (-not $SkipBench) {

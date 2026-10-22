@@ -9,14 +9,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Home"
-msgstr "Start"
-
 msgid "Performance"
 msgstr "Leistung"
-
-msgid "Profiles"
-msgstr "Profile"
 
 msgid "Bench"
 msgstr "Benchmark"
@@ -24,14 +18,8 @@ msgstr "Benchmark"
 msgid "Settings"
 msgstr "Einstellungen"
 
-msgid "Select"
-msgstr "Auswählen"
-
 msgid "Back"
 msgstr "Zurück"
-
-msgid "Change page"
-msgstr "Seite wechseln"
 
 msgid "Service not connected: start canape-service."
 msgstr "Dienst nicht verbunden: Starte canape-service."
@@ -51,20 +39,8 @@ msgstr "Steuert ebenfalls die Hardware: {}. Schließe es, um Konflikte zu vermei
 msgid "Power limit"
 msgstr "Leistungsgrenze"
 
-msgid "Auto"
-msgstr "Auto"
-
 msgid "Service not connected"
 msgstr "Dienst nicht verbunden"
-
-msgid "Auto TDP, target {} FPS"
-msgstr "Auto-TDP, Ziel {} FPS"
-
-msgid "Set by the firmware: {} mode"
-msgstr "Von der Firmware festgelegt: Modus {}"
-
-msgid "Manual TDP"
-msgstr "Manueller TDP"
 
 msgid "Auto TDP"
 msgstr "Auto-TDP"
@@ -72,41 +48,14 @@ msgstr "Auto-TDP"
 msgid "Thermal limit reached"
 msgstr "Temperaturgrenze erreicht"
 
-msgid "Bench running"
-msgstr "Benchmark läuft"
-
 msgid "Frame rate"
 msgstr "Bildrate"
-
-msgid "GPU"
-msgstr "GPU"
 
 msgid "CPU temperature"
 msgstr "CPU-Temperatur"
 
-msgid "Battery"
-msgstr "Akku"
-
 msgid "On battery"
 msgstr "Akkubetrieb"
-
-msgid "Plugged in"
-msgstr "Netzbetrieb"
-
-msgid "Now playing"
-msgstr "Gerade im Spiel"
-
-msgid "No game detected"
-msgstr "Kein Spiel erkannt"
-
-msgid "Profile in use: {}"
-msgstr "Aktives Profil: {}"
-
-msgid "No profile for this game: the global settings apply."
-msgstr "Kein Profil für dieses Spiel: Es gelten die allgemeinen Einstellungen."
-
-msgid "Start a game: its profile applies by itself."
-msgstr "Starte ein Spiel: Sein Profil wird automatisch angewendet."
 
 msgid "On"
 msgstr "An"
@@ -114,74 +63,20 @@ msgstr "An"
 msgid "Off"
 msgstr "Aus"
 
-msgid "Firmware mode"
-msgstr "Firmware-Modus"
-
-msgid "Power mode"
-msgstr "Leistungsmodus"
-
-msgid "Quiet, cool"
-msgstr "Leise und kühl"
-
 msgid "Balanced"
 msgstr "Ausgewogen"
-
-msgid "Maximum power"
-msgstr "Maximale Leistung"
-
-msgid "Your own limit"
-msgstr "Eigene Grenze"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "Wähle Manuell, um die Leistung selbst festzulegen."
-
-msgid "Changing it turns auto TDP off."
-msgstr "Eine Änderung schaltet Auto-TDP aus."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "Hält die Bildrate mit möglichst wenig Leistung auf dem Zielwert."
-
-msgid "Target frame rate"
-msgstr "Ziel-Bildrate"
-
-msgid "Minimum power"
-msgstr "Minimale Leistung"
-
-msgid "Maximum on battery"
-msgstr "Maximum im Akkubetrieb"
 
 msgid "None"
 msgstr "Keine"
 
-msgid "Temperature limit: above it, power only goes down"
-msgstr "Temperaturgrenze: Darüber wird die Leistung nur noch gesenkt"
-
 msgid "Auto TDP off"
 msgstr "Auto-TDP aus"
-
-msgid "learned: {}"
-msgstr "gelernt: {}"
 
 msgid "In use"
 msgstr "Aktiv"
 
-msgid "Confirm"
-msgstr "Bestätigen"
-
 msgid "Delete"
 msgstr "Löschen"
-
-msgid "Current game"
-msgstr "Aktuelles Spiel"
-
-msgid "A profile is in use for this game."
-msgstr "Für dieses Spiel ist ein Profil aktiv."
-
-msgid "This game has no profile yet."
-msgstr "Dieses Spiel hat noch kein Profil."
-
-msgid "Settings saved with the profile"
-msgstr "Im Profil gespeicherte Einstellungen"
 
 msgid "Target"
 msgstr "Ziel"
@@ -189,32 +84,8 @@ msgstr "Ziel"
 msgid "Power"
 msgstr "Leistung"
 
-msgid "Temperature limit"
-msgstr "Temperaturgrenze"
-
-msgid "Update the profile"
-msgstr "Profil aktualisieren"
-
-msgid "Save as profile"
-msgstr "Als Profil speichern"
-
-msgid "Start a game first"
-msgstr "Starte zuerst ein Spiel"
-
-msgid "A profile applies by itself when its game comes to the front."
-msgstr "Ein Profil wird automatisch angewendet, sobald sein Spiel im Vordergrund ist."
-
 msgid "No profiles yet. Save one while a game is running, or from a bench result."
 msgstr "Noch keine Profile. Speichere eines während ein Spiel läuft oder aus einem Benchmark-Ergebnis."
-
-msgid "Set as TDP"
-msgstr "Als TDP setzen"
-
-msgid "Save for the game"
-msgstr "Als Spielprofil"
-
-msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
-msgstr "Lässt das Spiel im Vordergrund mit mehreren Leistungsgrenzen laufen und misst jede. Lass eine fordernde Szene laufen."
 
 msgid "Step"
 msgstr "Schritt"
@@ -273,35 +144,17 @@ msgstr "Max. Temperatur"
 msgid "Sweet spot"
 msgstr "Bester Kompromiss"
 
-msgid "Near the best frame rate: {} FPS"
-msgstr "Nahe an der besten Bildrate: {} FPS"
-
 msgid "For {} FPS"
 msgstr "Für {} FPS"
 
-msgid "Lowest power holding the target: {} FPS"
-msgstr "Geringste Leistung, die das Ziel hält: {} FPS"
-
-msgid "Target not reached in this run"
-msgstr "Ziel in diesem Durchlauf nicht erreicht"
-
 msgid "Most efficient"
 msgstr "Am effizientesten"
-
-msgid "Most frames per watt: {} FPS"
-msgstr "Die meisten Bilder pro Watt: {} FPS"
 
 msgid "Automatic"
 msgstr "Automatisch"
 
 msgid "Language"
 msgstr "Sprache"
-
-msgid "Automatic follows the Windows display language."
-msgstr "Automatisch folgt der Anzeigesprache von Windows."
-
-msgid "Version {}"
-msgstr "Version {}"
 
 
 msgid "Service connected"
@@ -352,34 +205,13 @@ msgstr "Sättigung"
 msgid "Brightness"
 msgstr "Helligkeit"
 
-msgid "Presets"
-msgstr "Vorgaben"
-
-msgid "Every page follows this colour, and so does the Game Bar widget."
-msgstr "Alle Seiten folgen dieser Farbe, auch das Game-Bar-Widget."
-
-msgid "Press A on a slider to adjust it."
-msgstr "A auf einem Regler drücken, um ihn einzustellen."
-
-msgid "Move with the D-pad or the stick, then press A to finish."
-msgstr "Mit Steuerkreuz oder Stick einstellen, dann zum Abschließen A drücken."
-
 # Library page
-
-msgid "Library"
-msgstr "Bibliothek"
 
 msgid "Play"
 msgstr "Spielen"
 
-msgid "All"
-msgstr "Alle"
-
 msgid "Recent"
 msgstr "Zuletzt"
-
-msgid "A–Z"
-msgstr "A–Z"
 
 msgid "Played today"
 msgstr "Heute gespielt"
@@ -408,9 +240,6 @@ msgstr "Spiele werden gesucht…"
 msgid "No games found"
 msgstr "Keine Spiele gefunden"
 
-msgid "No games from this store"
-msgstr "Keine Spiele aus diesem Store"
-
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé zeigt die Spiele, die mit Steam, dem Epic Games Launcher, GOG Galaxy und der Xbox-App installiert wurden."
 
@@ -420,25 +249,11 @@ msgstr "Hardware"
 msgid "Fans"
 msgstr "Lüfter"
 
-
-msgid "Off while cool"
-msgstr "Aus, solange kühl"
-
-msgid "Steady"
-msgstr "Gleichmäßig"
-
-
-msgid "Loud, coolest"
-msgstr "Laut, am kühlsten"
-
 msgid "CPU fan"
 msgstr "CPU-Lüfter"
 
 msgid "{} rpm"
 msgstr "{} U/min"
-
-msgid "GPU fan"
-msgstr "GPU-Lüfter"
 
 msgid "The power mode's own curve"
 msgstr "Die eigene Kurve des Leistungsmodus"
@@ -446,14 +261,8 @@ msgstr "Die eigene Kurve des Leistungsmodus"
 msgid "Custom curves set by another client."
 msgstr "Eigene Kurven, von einem anderen Client gesetzt."
 
-msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
-msgstr "Eine Vorgabe ersetzt die Kurve der Firmware; Automatisch stellt sie wieder her. Ein Wechsel des Leistungsmodus behält die Vorgabe."
-
 msgid "Frame rate limit"
 msgstr "Bildratenlimit"
-
-msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
-msgstr "Der Grafiktreiber hält Spiele unter dieser Bildrate: weniger Wärme, weniger Lärm, längere Akkulaufzeit."
 
 
 msgid "Controller"
@@ -462,30 +271,14 @@ msgstr "Controller"
 msgid "Gamepad"
 msgstr "Gamepad"
 
-msgid "For games"
-msgstr "Für Spiele"
-
 msgid "Keyboard"
 msgstr "Tastatur"
-
-msgid "Buttons send keys"
-msgstr "Tasten senden Tastendrücke"
 
 msgid "Mouse"
 msgstr "Maus"
 
-msgid "Stick moves the pointer"
-msgstr "Stick bewegt den Zeiger"
-
-msgid "This game"
-msgstr "Dieses Spiel"
-
 msgid "No game in the foreground"
 msgstr "Kein Spiel im Vordergrund"
-
-
-msgid "Firmware curve"
-msgstr "Kurve der Firmware"
 
 msgid "Maximum"
 msgstr "Maximum"
@@ -493,65 +286,20 @@ msgstr "Maximum"
 msgid "Download missing covers"
 msgstr "Fehlende Cover herunterladen"
 
-msgid "Only the art already on this device is shown."
-msgstr "Nur die bereits auf dem Gerät vorhandenen Bilder werden gezeigt."
-
-msgid "From Steam and SteamGridDB."
-msgstr "Von Steam und SteamGridDB."
-
-msgid "From Steam. A SteamGridDB key adds the other stores."
-msgstr "Von Steam. Ein SteamGridDB-Schlüssel ergänzt die anderen Stores."
-
-msgid "Keep these settings for this game"
-msgstr "Diese Einstellungen für dieses Spiel behalten"
-
 msgid "Screen"
 msgstr "Bildschirm"
 
 msgid "{} Hz"
 msgstr "{} Hz"
 
-msgid "Refresh rate unavailable on this screen."
-msgstr "Bildwiederholrate auf diesem Bildschirm nicht einstellbar."
-
-msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
-msgstr "Eine niedrigere Rate spart Akku bei Spielen mit 30, 40 oder 60 FPS."
-
 msgid "Use the Ally's buttons"
 msgstr "Die Tasten des Ally verwenden"
-
-msgid "Armoury: back to Canapé. Command Center: Game Bar."
-msgstr "Armoury: zurück zu Canapé. Command Center: Game Bar."
-
-msgid "Install games from Canapé"
-msgstr "Spiele aus Canapé installieren"
-
-msgid "Steam: API key set."
-msgstr "Steam: API-Schlüssel hinterlegt."
-
-msgid "Steam: no API key in shell.json."
-msgstr "Steam: kein API-Schlüssel in shell.json."
-
-msgid "Epic: {}."
-msgstr "Epic: {}."
-
-msgid "Epic: not signed in."
-msgstr "Epic: nicht angemeldet."
-
-msgid "Epic sign-in"
-msgstr "Epic-Anmeldung"
 
 msgid "Installing… {} %"
 msgstr "Wird installiert… {} %"
 
-msgid "Installed"
-msgstr "Installiert"
-
 msgid "To install"
 msgstr "Zu installieren"
-
-msgid "Not installed: press A to install"
-msgstr "Nicht installiert: A drücken zum Installieren"
 
 msgid "Looking for your games…"
 msgstr "Deine Spiele werden gesucht…"
@@ -576,3 +324,111 @@ msgstr "Bei Epic Games anmelden"
 
 msgid "Install"
 msgstr "Installieren"
+
+msgid "Mode"
+msgstr "Modus"
+
+msgid "Power range"
+msgstr "Leistungsbereich"
+
+msgid "Temperature"
+msgstr "Temperatur"
+
+msgid "limit {}"
+msgstr "Limit {}"
+
+msgid "target {}"
+msgstr "Ziel {}"
+
+msgid "W"
+msgstr "W"
+
+msgid "1 min"
+msgstr "1 Min."
+
+msgid "Canapé {}"
+msgstr "Canapé {}"
+
+msgid "Choose"
+msgstr "Auswählen"
+
+msgid "Epic Games account"
+msgstr "Epic-Games-Konto"
+
+msgid "GPU {}"
+msgstr "GPU {}"
+
+msgid "Game profiles"
+msgstr "Spielprofile"
+
+msgid "Games"
+msgstr "Spiele"
+
+msgid "General"
+msgstr "Allgemein"
+
+msgid "General settings"
+msgstr "Allgemeine Einstellungen"
+
+msgid "Installing…"
+msgstr "Installation…"
+
+msgid "Limit"
+msgstr "Limit"
+
+msgid "No Steam API key"
+msgstr "Kein Steam-API-Schlüssel"
+
+msgid "Not installed"
+msgstr "Nicht installiert"
+
+msgid "Press X again to delete"
+msgstr "Zum Löschen erneut X drücken"
+
+msgid "Save a profile for {}"
+msgstr "Profil für {} speichern"
+
+msgid "Save for this game"
+msgstr "Für dieses Spiel speichern"
+
+msgid "Sections"
+msgstr "Bereiche"
+
+msgid "Setting"
+msgstr "Einstellung"
+
+msgid "Sign in"
+msgstr "Anmelden"
+
+msgid "Start · {}"
+msgstr "Starten · {}"
+
+msgid "Steam API key set"
+msgstr "Steam-API-Schlüssel gesetzt"
+
+msgid "To install · {}"
+msgstr "Zu installieren · {}"
+
+msgid "Update the profile of {}"
+msgstr "Profil von {} aktualisieren"
+
+msgid "Value"
+msgstr "Wert"
+
+msgid "rpm"
+msgstr "U/min"
+
+msgid "{} learned"
+msgstr "{} gelernt"
+
+msgid "{} max"
+msgstr "max. {}"
+
+msgid "{} now"
+msgstr "{} jetzt"
+
+msgid "{} now · {} learned"
+msgstr "{} jetzt · {} gelernt"
+
+msgid "{} · game profile"
+msgstr "{} · Spielprofil"

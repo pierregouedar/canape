@@ -9,14 +9,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-msgid "Home"
-msgstr "Главная"
-
 msgid "Performance"
 msgstr "Производительность"
-
-msgid "Profiles"
-msgstr "Профили"
 
 msgid "Bench"
 msgstr "Тест"
@@ -24,14 +18,8 @@ msgstr "Тест"
 msgid "Settings"
 msgstr "Настройки"
 
-msgid "Select"
-msgstr "Выбрать"
-
 msgid "Back"
 msgstr "Назад"
-
-msgid "Change page"
-msgstr "Сменить страницу"
 
 msgid "Service not connected: start canape-service."
 msgstr "Служба не подключена: запустите canape-service."
@@ -51,20 +39,8 @@ msgstr "Оборудованием также управляет: {}. Закро
 msgid "Power limit"
 msgstr "Предел мощности"
 
-msgid "Auto"
-msgstr "Авто"
-
 msgid "Service not connected"
 msgstr "Служба не подключена"
-
-msgid "Auto TDP, target {} FPS"
-msgstr "Авто TDP, цель {} FPS"
-
-msgid "Set by the firmware: {} mode"
-msgstr "Задано прошивкой: режим «{}»"
-
-msgid "Manual TDP"
-msgstr "Ручной TDP"
 
 msgid "Auto TDP"
 msgstr "Авто TDP"
@@ -72,41 +48,14 @@ msgstr "Авто TDP"
 msgid "Thermal limit reached"
 msgstr "Достигнут предел температуры"
 
-msgid "Bench running"
-msgstr "Идёт тест"
-
 msgid "Frame rate"
 msgstr "Частота кадров"
-
-msgid "GPU"
-msgstr "GPU"
 
 msgid "CPU temperature"
 msgstr "Температура CPU"
 
-msgid "Battery"
-msgstr "Батарея"
-
 msgid "On battery"
 msgstr "От батареи"
-
-msgid "Plugged in"
-msgstr "От сети"
-
-msgid "Now playing"
-msgstr "Сейчас в игре"
-
-msgid "No game detected"
-msgstr "Игра не обнаружена"
-
-msgid "Profile in use: {}"
-msgstr "Используется профиль: {}"
-
-msgid "No profile for this game: the global settings apply."
-msgstr "Для этой игры нет профиля: действуют общие настройки."
-
-msgid "Start a game: its profile applies by itself."
-msgstr "Запустите игру: её профиль применится сам."
 
 msgid "On"
 msgstr "Вкл."
@@ -114,74 +63,20 @@ msgstr "Вкл."
 msgid "Off"
 msgstr "Выкл."
 
-msgid "Firmware mode"
-msgstr "Режим прошивки"
-
-msgid "Power mode"
-msgstr "Режим питания"
-
-msgid "Quiet, cool"
-msgstr "Тихо и прохладно"
-
 msgid "Balanced"
 msgstr "Сбалансированный"
-
-msgid "Maximum power"
-msgstr "Максимальная мощность"
-
-msgid "Your own limit"
-msgstr "Свой предел"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "Выберите «Ручной», чтобы задать мощность самостоятельно."
-
-msgid "Changing it turns auto TDP off."
-msgstr "Изменение отключает авто TDP."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "Держит целевую частоту кадров при минимально возможной мощности."
-
-msgid "Target frame rate"
-msgstr "Целевая частота кадров"
-
-msgid "Minimum power"
-msgstr "Минимальная мощность"
-
-msgid "Maximum on battery"
-msgstr "Максимум от батареи"
 
 msgid "None"
 msgstr "Нет"
 
-msgid "Temperature limit: above it, power only goes down"
-msgstr "Предел температуры: выше него мощность только снижается"
-
 msgid "Auto TDP off"
 msgstr "Авто TDP выключен"
-
-msgid "learned: {}"
-msgstr "изучено: {}"
 
 msgid "In use"
 msgstr "Используется"
 
-msgid "Confirm"
-msgstr "Подтвердить"
-
 msgid "Delete"
 msgstr "Удалить"
-
-msgid "Current game"
-msgstr "Текущая игра"
-
-msgid "A profile is in use for this game."
-msgstr "Для этой игры используется профиль."
-
-msgid "This game has no profile yet."
-msgstr "У этой игры пока нет профиля."
-
-msgid "Settings saved with the profile"
-msgstr "Настройки, сохраняемые в профиле"
 
 msgid "Target"
 msgstr "Цель"
@@ -189,32 +84,8 @@ msgstr "Цель"
 msgid "Power"
 msgstr "Мощность"
 
-msgid "Temperature limit"
-msgstr "Предел температуры"
-
-msgid "Update the profile"
-msgstr "Обновить профиль"
-
-msgid "Save as profile"
-msgstr "Сохранить как профиль"
-
-msgid "Start a game first"
-msgstr "Сначала запустите игру"
-
-msgid "A profile applies by itself when its game comes to the front."
-msgstr "Профиль применяется сам, когда его игра выходит на передний план."
-
 msgid "No profiles yet. Save one while a game is running, or from a bench result."
 msgstr "Профилей пока нет. Сохраните профиль во время игры или из результата теста."
-
-msgid "Set as TDP"
-msgstr "Задать TDP"
-
-msgid "Save for the game"
-msgstr "В профиль игры"
-
-msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
-msgstr "Запускает активную игру с несколькими пределами мощности и измеряет каждый. Оставьте на экране требовательную сцену."
 
 msgid "Step"
 msgstr "Шаг"
@@ -273,35 +144,17 @@ msgstr "Макс. температура"
 msgid "Sweet spot"
 msgstr "Оптимум"
 
-msgid "Near the best frame rate: {} FPS"
-msgstr "Почти лучший результат: {} FPS"
-
 msgid "For {} FPS"
 msgstr "Для {} FPS"
 
-msgid "Lowest power holding the target: {} FPS"
-msgstr "Наименьшая мощность для цели: {} FPS"
-
-msgid "Target not reached in this run"
-msgstr "Цель не достигнута в этом тесте"
-
 msgid "Most efficient"
 msgstr "Самый экономичный"
-
-msgid "Most frames per watt: {} FPS"
-msgstr "Больше всего кадров на ватт: {} FPS"
 
 msgid "Automatic"
 msgstr "Авто"
 
 msgid "Language"
 msgstr "Язык"
-
-msgid "Automatic follows the Windows display language."
-msgstr "«Авто» — язык интерфейса Windows."
-
-msgid "Version {}"
-msgstr "Версия {}"
 
 
 msgid "Service connected"
@@ -352,34 +205,13 @@ msgstr "Насыщенность"
 msgid "Brightness"
 msgstr "Яркость"
 
-msgid "Presets"
-msgstr "Готовые цвета"
-
-msgid "Every page follows this colour, and so does the Game Bar widget."
-msgstr "Этот цвет используют все страницы и виджет Game Bar."
-
-msgid "Press A on a slider to adjust it."
-msgstr "Нажмите A на ползунке, чтобы настроить его."
-
-msgid "Move with the D-pad or the stick, then press A to finish."
-msgstr "Настройте крестовиной или стиком, затем нажмите A, чтобы завершить."
-
 # Library page
-
-msgid "Library"
-msgstr "Библиотека"
 
 msgid "Play"
 msgstr "Играть"
 
-msgid "All"
-msgstr "Все"
-
 msgid "Recent"
 msgstr "Недавние"
-
-msgid "A–Z"
-msgstr "A–Z"
 
 msgid "Played today"
 msgstr "Запускалась сегодня"
@@ -408,9 +240,6 @@ msgstr "Поиск игр…"
 msgid "No games found"
 msgstr "Игры не найдены"
 
-msgid "No games from this store"
-msgstr "Нет игр из этого магазина"
-
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé показывает игры, установленные через Steam, Epic Games Launcher, GOG Galaxy и приложение Xbox."
 
@@ -420,25 +249,11 @@ msgstr "Железо"
 msgid "Fans"
 msgstr "Вентиляторы"
 
-
-msgid "Off while cool"
-msgstr "Стоят, пока прохладно"
-
-msgid "Steady"
-msgstr "Ровно"
-
-
-msgid "Loud, coolest"
-msgstr "Шумно, холоднее всего"
-
 msgid "CPU fan"
 msgstr "Вентилятор ЦП"
 
 msgid "{} rpm"
 msgstr "{} об/мин"
-
-msgid "GPU fan"
-msgstr "Вентилятор ГП"
 
 msgid "The power mode's own curve"
 msgstr "Собственная кривая режима питания"
@@ -446,14 +261,8 @@ msgstr "Собственная кривая режима питания"
 msgid "Custom curves set by another client."
 msgstr "Свои кривые, заданные другим клиентом."
 
-msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
-msgstr "Пресет заменяет кривую прошивки; «Авто» возвращает её. При смене режима питания пресет сохраняется."
-
 msgid "Frame rate limit"
 msgstr "Ограничение FPS"
-
-msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
-msgstr "Графический драйвер держит игры ниже этой частоты кадров: меньше нагрев и шум, дольше работа от батареи."
 
 
 msgid "Controller"
@@ -462,30 +271,14 @@ msgstr "Контроллер"
 msgid "Gamepad"
 msgstr "Геймпад"
 
-msgid "For games"
-msgstr "Для игр"
-
 msgid "Keyboard"
 msgstr "Клавиатура"
-
-msgid "Buttons send keys"
-msgstr "Клавиши клавиатуры"
 
 msgid "Mouse"
 msgstr "Мышь"
 
-msgid "Stick moves the pointer"
-msgstr "Стик двигает указатель"
-
-msgid "This game"
-msgstr "Эта игра"
-
 msgid "No game in the foreground"
 msgstr "Нет игры на переднем плане"
-
-
-msgid "Firmware curve"
-msgstr "Кривая прошивки"
 
 msgid "Maximum"
 msgstr "Максимум"
@@ -493,65 +286,20 @@ msgstr "Максимум"
 msgid "Download missing covers"
 msgstr "Загружать недостающие обложки"
 
-msgid "Only the art already on this device is shown."
-msgstr "Показываются только изображения, которые уже есть на устройстве."
-
-msgid "From Steam and SteamGridDB."
-msgstr "Из Steam и SteamGridDB."
-
-msgid "From Steam. A SteamGridDB key adds the other stores."
-msgstr "Из Steam. Ключ SteamGridDB добавляет остальные магазины."
-
-msgid "Keep these settings for this game"
-msgstr "Сохранить эти настройки для игры"
-
 msgid "Screen"
 msgstr "Экран"
 
 msgid "{} Hz"
 msgstr "{} Гц"
 
-msgid "Refresh rate unavailable on this screen."
-msgstr "Частоту обновления этого экрана изменить нельзя."
-
-msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
-msgstr "Низкая частота экономит батарею в играх с ограничением 30, 40 или 60 FPS."
-
 msgid "Use the Ally's buttons"
 msgstr "Кнопки Ally"
-
-msgid "Armoury: back to Canapé. Command Center: Game Bar."
-msgstr "Armoury: назад в Canapé. Command Center: Game Bar."
-
-msgid "Install games from Canapé"
-msgstr "Установка игр из Canapé"
-
-msgid "Steam: API key set."
-msgstr "Steam: ключ API задан."
-
-msgid "Steam: no API key in shell.json."
-msgstr "Steam: нет ключа API в shell.json."
-
-msgid "Epic: {}."
-msgstr "Epic: {}."
-
-msgid "Epic: not signed in."
-msgstr "Epic: вход не выполнен."
-
-msgid "Epic sign-in"
-msgstr "Вход в Epic"
 
 msgid "Installing… {} %"
 msgstr "Установка… {} %"
 
-msgid "Installed"
-msgstr "Установленные"
-
 msgid "To install"
 msgstr "К установке"
-
-msgid "Not installed: press A to install"
-msgstr "Не установлена: нажмите A для установки"
 
 msgid "Looking for your games…"
 msgstr "Поиск ваших игр…"
@@ -576,3 +324,111 @@ msgstr "Войти в Epic Games"
 
 msgid "Install"
 msgstr "Установить"
+
+msgid "Mode"
+msgstr "Режим"
+
+msgid "Power range"
+msgstr "Диапазон мощности"
+
+msgid "Temperature"
+msgstr "Температура"
+
+msgid "limit {}"
+msgstr "предел {}"
+
+msgid "target {}"
+msgstr "цель {}"
+
+msgid "W"
+msgstr "Вт"
+
+msgid "1 min"
+msgstr "1 мин"
+
+msgid "Canapé {}"
+msgstr "Canapé {}"
+
+msgid "Choose"
+msgstr "Выбрать"
+
+msgid "Epic Games account"
+msgstr "Аккаунт Epic Games"
+
+msgid "GPU {}"
+msgstr "GPU {}"
+
+msgid "Game profiles"
+msgstr "Профили игр"
+
+msgid "Games"
+msgstr "Игры"
+
+msgid "General"
+msgstr "Общие"
+
+msgid "General settings"
+msgstr "Общие настройки"
+
+msgid "Installing…"
+msgstr "Установка…"
+
+msgid "Limit"
+msgstr "Предел"
+
+msgid "No Steam API key"
+msgstr "Нет ключа Steam API"
+
+msgid "Not installed"
+msgstr "Не установлена"
+
+msgid "Press X again to delete"
+msgstr "Нажмите X ещё раз, чтобы удалить"
+
+msgid "Save a profile for {}"
+msgstr "Сохранить профиль для {}"
+
+msgid "Save for this game"
+msgstr "Сохранить для этой игры"
+
+msgid "Sections"
+msgstr "Разделы"
+
+msgid "Setting"
+msgstr "Параметр"
+
+msgid "Sign in"
+msgstr "Войти"
+
+msgid "Start · {}"
+msgstr "Запустить · {}"
+
+msgid "Steam API key set"
+msgstr "Ключ Steam API задан"
+
+msgid "To install · {}"
+msgstr "К установке · {}"
+
+msgid "Update the profile of {}"
+msgstr "Обновить профиль {}"
+
+msgid "Value"
+msgstr "Значение"
+
+msgid "rpm"
+msgstr "об/мин"
+
+msgid "{} learned"
+msgstr "изучено {}"
+
+msgid "{} max"
+msgstr "макс. {}"
+
+msgid "{} now"
+msgstr "сейчас {}"
+
+msgid "{} now · {} learned"
+msgstr "сейчас {} · изучено {}"
+
+msgid "{} · game profile"
+msgstr "{} · профиль игры"

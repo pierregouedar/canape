@@ -10,8 +10,10 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod accent;
+mod backdrop;
 #[cfg(windows)]
 mod buttons;
+mod clock;
 #[cfg(any(windows, test))]
 mod foreground;
 #[cfg(windows)]
@@ -92,6 +94,8 @@ fn main() -> Result<(), slint::PlatformError> {
     ui.global::<App>()
         .set_language(settings.language.as_str().into());
     show_shell_settings(&ui, &settings);
+    // Windows draws the gamepad glyphs with its own icon font.
+    ui.global::<Theme>().set_system_glyphs(cfg!(windows));
     let accent = accent::normalize(&settings.accent);
     if accent != settings.accent {
         // A preset name from an earlier version, or an unreadable value.
@@ -101,11 +105,22 @@ fn main() -> Result<(), slint::PlatformError> {
         accent::show(&ui, color, None);
     }
     if let Ok(page) = std::env::var("CANAPE_PAGE") {
-        // Development aid: open a given page (0 = library, 1 = home).
+        // Development aid: open a given page (see AppWindow.page).
         ui.set_page(page.parse().unwrap_or(0));
     }
     library::set_shown(ui.get_page() == 0);
     library::start(&ui);
+
+    ui.global::<App>().set_clock(clock::now().into());
+    let clock_timer = Timer::default();
+    {
+        let ui = ui.as_weak();
+        clock_timer.start(TimerMode::Repeated, clock::REFRESH, move || {
+            if let Some(ui) = ui.upgrade() {
+                ui.global::<App>().set_clock(clock::now().into());
+            }
+        });
+    }
 
     let link = Link::start(ui.as_weak(), accent);
     connect(&ui, &link);
@@ -380,6 +395,28 @@ fn connect(ui: &AppWindow, link: &Link) {
         }
     });
 
+    app.on_arrow_focus(library::set_page_arrows);
+    app.on_cycle_refresh({
+        let ui = ui.as_weak();
+        move || {
+            let (current, rates) = screen::state();
+            let Some(next) = rates
+                .iter()
+                .copied()
+                .find(|&hz| hz > current)
+                .or(rates.first().copied())
+            else {
+                return;
+            };
+            screen::set(next);
+            let mut settings = i18n::ShellSettings::load();
+            settings.refresh_hz = next;
+            if let Err(err) = settings.save() {
+                log(&format!("saving shell.json: {err}"));
+            }
+            link::show_screen(&ui);
+        }
+    });
     app.on_set_refresh({
         let ui = ui.as_weak();
         move |hz| {

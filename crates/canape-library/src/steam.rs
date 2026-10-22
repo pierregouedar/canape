@@ -46,7 +46,18 @@ fn is_tool(appid: u32, name: &str) -> bool {
         || name == "SteamVR"
 }
 
-/// Library folders listed in `libraryfolders.vdf`, `steam` itself first.
+/// A folder as Windows compares it: case-insensitive, either slash, no
+/// trailing separator. The registry gives `c:/program files (x86)/steam`
+/// where `libraryfolders.vdf` gives `C:\\Program Files (x86)\\Steam`.
+fn folder_key(path: &Path) -> String {
+    path.to_string_lossy()
+        .replace('/', "\\")
+        .trim_end_matches('\\')
+        .to_lowercase()
+}
+
+/// Library folders listed in `libraryfolders.vdf`, `steam` itself first,
+/// each once.
 pub fn library_folders(steam: &Path, vdf_text: Option<&str>) -> Vec<PathBuf> {
     let mut folders = vec![steam.to_path_buf()];
     let Some(text) = vdf_text else {
@@ -68,22 +79,13 @@ pub fn library_folders(steam: &Path, vdf_text: Option<&str>) -> Vec<PathBuf> {
         };
         if let Some(path) = path.filter(|p| !p.is_empty()) {
             let path = PathBuf::from(path);
-            if !folders.iter().any(|f| folder_key(f) == folder_key(&path)) {
+            let key = folder_key(&path);
+            if !folders.iter().any(|f| folder_key(f) == key) {
                 folders.push(path);
             }
         }
     }
     folders
-}
-
-/// Windows paths ignore case and slash direction: the registry gives
-/// `c:/program files (x86)/steam`, `libraryfolders.vdf` gives
-/// `C:\Program Files (x86)\Steam` for the same folder.
-fn folder_key(path: &Path) -> String {
-    path.to_string_lossy()
-        .replace('/', "\\")
-        .trim_end_matches('\\')
-        .to_lowercase()
 }
 
 /// What an `appmanifest_<appid>.acf` says about an installed game.
@@ -425,10 +427,10 @@ mod tests {
             [PathBuf::from(r"C:\Steam"), PathBuf::from(r"E:\Games")]
         );
         assert_eq!(library_folders(steam, None), [PathBuf::from(r"C:\Steam")]);
-        // The same folder as the install folder, written differently.
-        let registry = Path::new("c:/program files (x86)/steam");
-        let same = "\"libraryfolders\" { \"0\" { \"path\" \"C:\\\\Program Files (x86)\\\\Steam\\\\\" } }";
-        assert_eq!(library_folders(registry, Some(same)), [registry]);
+        // The same folder written two ways is listed once.
+        let lower = Path::new("c:/program files (x86)/steam");
+        let text = r#""libraryfolders" { "0" { "path" "C:\\Program Files (x86)\\Steam\\" } }"#;
+        assert_eq!(library_folders(lower, Some(text)), [lower.to_path_buf()]);
     }
 
     #[test]

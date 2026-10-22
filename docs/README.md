@@ -34,6 +34,7 @@ Reports of the tests on the ROG Ally RC71L: what works, what was fixed, measurem
 |---|---|---|
 | [M1](m1-report.md) | M0 (`16819fa`) | Le paquet d'identité s'installe ; le FSE lance `canape-shell.exe` au démarrage via `windows.gaming:///home`. Smart App Control repéré. · The identity package installs; the FSE launches `canape-shell.exe` at boot through `windows.gaming:///home`. Smart App Control spotted. |
 | [M3](m3-report.md) | `c24e6e4` | Widget Game Bar compilé, installé et relié au service ; pipe ouvert depuis l'AppContainer. · Game Bar widget built, installed and connected to the service; pipe opened from the AppContainer. |
+| [M5, 1ʳᵉ partie · part 1](m5-report.md) | `6412cb0`, correctifs `d65b0fa`, `c5fd2e3` | Shell, page Matériel, boutons, bibliothèque et bench sur l'Ally ; auto TDP en dents de scie corrigé, jeux Steam en double, limite de FPS ; prochains bancs avec Unigine Heaven et FurMark 2. · Shell, Hardware page, buttons, library and bench on the Ally; low-target sawtooth fixed, duplicated Steam games, frame rate limit; next benches with Unigine Heaven and FurMark 2. |
 | [M2.5 / M4](m4-report.md) | `c617cf3`, retest `99cad07` | Persistance, conflits, build release, mémoire (service 1,4 Mo, shell 11 Mo), ADL depuis la session 0, auto TDP réel : fin des dents de scie. · Persistence, conflicts, release build, memory (service 1.4 MB, shell 11 MB), ADL from session 0, real auto TDP: sawtooth fixed. |
 
 ## Captures · Screenshots
@@ -44,24 +45,22 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 |---|---|---|
 | [`fr/library.png`](images/fr/library.png) | Bibliothèque (jeux inventés) | Français |
 | [`fr/library-install.png`](images/fr/library-install.png) | Bibliothèque, jeux à installer (installation simulée) | Français |
-| [`fr/home.png`](images/fr/home.png) | Accueil | Français |
 | [`fr/performance.png`](images/fr/performance.png) | Performance | Français |
 | [`fr/hardware.png`](images/fr/hardware.png) | Matériel | Français |
 | [`fr/profiles.png`](images/fr/profiles.png) | Profils | Français |
 | [`fr/bench-results.png`](images/fr/bench-results.png) | Banc d'essai (résultats) | Français |
 | [`fr/bench-running.png`](images/fr/bench-running.png) | Banc d'essai en cours | Français |
-| [`fr/settings.png`](images/fr/settings.png) | Réglages (couleur d'accent, installation des jeux) | Français |
+| [`fr/settings.png`](images/fr/settings.png) | Réglages (langue, boutons de l'Ally, jaquettes, compte Epic, couleur d'accent) | Français |
 | [`en/library.png`](images/en/library.png) | Library (made-up games) | English |
 | [`en/library-install.png`](images/en/library-install.png) | Library, games to install (simulated install) | English |
-| [`en/home.png`](images/en/home.png) | Home | English |
 | [`en/performance.png`](images/en/performance.png) | Performance | English |
 | [`en/hardware.png`](images/en/hardware.png) | Hardware | English |
 | [`en/profiles.png`](images/en/profiles.png) | Profiles | English |
 | [`en/bench-results.png`](images/en/bench-results.png) | Bench (results) | English |
 | [`en/bench-running.png`](images/en/bench-running.png) | Bench running | English |
-| [`en/settings.png`](images/en/settings.png) | Settings (accent colour, installing games) | English |
-| [`ja/home.png`](images/ja/home.png) | ホーム | 日本語 |
+| [`en/settings.png`](images/en/settings.png) | Settings (language, Ally buttons, covers, Epic account, accent colour) | English |
+| [`ja/library.png`](images/ja/library.png) | ゲーム | 日本語 |
 | [`ru/performance.png`](images/ru/performance.png) | Производительность | Русский |
 | [`de/settings.png`](images/de/settings.png) | Einstellungen | Deutsch |
-| [`accent-teal.png`](images/accent-teal.png) | Home, accent sarcelle · teal accent | English |
-| [`accent-amber.png`](images/accent-amber.png) | Home, accent ambre · amber accent | English |
+| [`accent-teal.png`](images/accent-teal.png) | Performance, accent sarcelle · teal accent | English |
+| [`accent-amber.png`](images/accent-amber.png) | Performance, accent orange · orange accent | English |

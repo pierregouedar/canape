@@ -196,11 +196,11 @@ export component Graph inherits Rectangle {
     in property <color> tint: Theme.accent;
     clip: true;
 
-    // Guides at half and full scale, and the baseline.
-    for level in [0, 0.5]: Rectangle {
-        y: parent.height * level;
+    // A guide at half scale, and the baseline.
+    Rectangle {
+        y: parent.height / 2;
         height: 1px;
-        background: Theme.stroke.with-alpha(0.6);
+        background: Theme.stroke.with-alpha(0.45);
     }
     Rectangle {
         y: parent.height - 1px;
@@ -229,7 +229,7 @@ export component Graph inherits Rectangle {
         fit: fill;
         commands: root.reference;
         stroke: Theme.reference;
-        stroke-width: 2px;
+        stroke-width: 1.5px;
     }
 
     if root.line != "": Path {
@@ -408,176 +408,203 @@ export component ColorSlider inherits Rectangle {
     }
 }
 
-// The Canapé logo: a sofa in the accent colour, on a 32 x 24 grid.
+// The Canapé logo: a sofa in the accent colour, on a 30 x 22 grid.
 export component Logo inherits Rectangle {
-    in property <length> size: 32px;
-    property <length> u: root.size / 32;
+    in property <length> size: 30px;
+    property <length> u: root.size / 30;
     width: root.size;
-    height: root.u * 24;
+    height: root.u * 22;
 
     // Backrest.
     Rectangle {
         x: root.u * 5;
-        y: root.u * 1;
-        width: root.u * 22;
-        height: root.u * 13;
-        border-radius: root.u * 4;
-        background: Theme.accent;
-    }
-
-    // Seat cushion, lighter so it reads in front of the backrest.
-    Rectangle {
-        x: root.u * 6;
-        y: root.u * 12;
+        y: root.u * 2;
         width: root.u * 20;
-        height: root.u * 7;
-        border-radius: root.u * 2.5;
-        background: Theme.accent.brighter(0.35);
-    }
-
-    // Armrests.
-    for side in [0, 1]: Rectangle {
-        x: side == 0 ? 0 : root.u * 24;
-        y: root.u * 8;
-        width: root.u * 8;
-        height: root.u * 12;
+        height: root.u * 10;
         border-radius: root.u * 3.5;
         background: Theme.accent;
     }
 
+    // Armrests.
+    for side in [0, 1]: Rectangle {
+        x: side == 0 ? root.u * 1 : root.u * 22;
+        y: root.u * 8;
+        width: root.u * 7;
+        height: root.u * 10;
+        border-radius: root.u * 3;
+        background: Theme.accent;
+    }
+
+    // Seat.
+    Rectangle {
+        x: root.u * 6;
+        y: root.u * 11.5;
+        width: root.u * 18;
+        height: root.u * 6.5;
+        border-radius: root.u * 1.5;
+        background: Theme.accent;
+        opacity: 0.8;
+    }
+
     // Legs.
     for side in [0, 1]: Rectangle {
-        x: side == 0 ? root.u * 3 : root.u * 26;
-        y: root.u * 19;
-        width: root.u * 3;
-        height: root.u * 5;
+        x: side == 0 ? root.u * 4 : root.u * 23.5;
+        y: root.u * 18;
+        width: root.u * 2.5;
+        height: root.u * 3;
         border-radius: root.u * 1;
-        background: Theme.accent.darker(0.35);
+        background: Theme.accent;
     }
 }
 
 // Lightning bolt, drawn so it does not depend on the font.
 export component Bolt inherits Path {
-    width: 12px;
-    height: 18px;
+    width: 8px;
+    height: 12px;
     viewbox-width: 12;
     viewbox-height: 18;
     commands: "M 7 0 L 0 10.5 L 5 10.5 L 4 18 L 12 7 L 7 7 L 8 0 Z";
-    fill: Theme.warn;
+    fill: Theme.text.mix(Theme.dim, 0.6);
 }
 
+// A small battery outline, filled to the charge; low charge turns red.
 export component BatteryIcon inherits Rectangle {
     in property <int> percent;
     in property <bool> charging;
-    in property <color> tint: Theme.text;
-    width: 40px;
-    height: 20px;
+    property <color> ink: Theme.text.mix(Theme.dim, 0.6);
+    width: 22px;
+    height: 12px;
 
     Rectangle {
         x: 0;
-        y: 0;
-        width: parent.width - 4px;
-        height: parent.height;
-        border-width: 2px;
-        border-color: root.tint;
-        border-radius: 5px;
+        width: 20px;
+        border-width: 1.5px;
+        border-color: root.ink;
+        border-radius: 3px;
         Rectangle {
-            x: 4px;
-            y: 4px;
-            height: parent.height - 8px;
-            width: (parent.width - 8px) * max(0, min(100, root.percent)) / 100;
-            border-radius: 2px;
-            background: root.percent <= 20 && !root.charging ? Theme.bad : root.charging ? Theme.good : root.tint;
+            x: 2.5px;
+            y: 2.5px;
+            height: parent.height - 5px;
+            width: (parent.width - 5px) * clamp(root.percent, 0, 100) / 100;
+            border-radius: 1px;
+            background: root.percent <= 20 && !root.charging ? Theme.bad : Theme.text;
         }
     }
 
     Rectangle {
-        x: parent.width - 3px;
-        y: (parent.height - self.height) / 2;
-        width: 3px;
-        height: 8px;
-        border-radius: 1px;
-        background: root.tint;
+        x: 20.5px;
+        y: 4px;
+        width: 1.5px;
+        height: 4px;
+        border-radius: 0.75px;
+        background: root.ink;
     }
 }
 
-// A gamepad button, as drawn in the hints: round for A / B, a pill for LB / RB.
+// A gamepad button as Windows draws it: a thin circle with the letter, in
+// the text colour (Segoe Fluent Icons U+F093 A, U+F094 B, U+F095 Y,
+// U+F096 X). Bumpers and other labels get a rounded outline.
 export component PadGlyph inherits Rectangle {
     in property <string> text;
     in property <bool> round: true;
-    height: 26px;
-    min-width: 26px;
-    border-radius: root.round ? 13px : 8px;
-    background: Theme.surface-high;
-    border-width: 1px;
-    border-color: #3a4560;
+    in property <color> ink: Theme.text.mix(Theme.dim, 0.7);
+    property <string> system: root.text == "A" ? "\u{F093}" : root.text == "B" ? "\u{F094}" : root.text == "Y" ? "\u{F095}" : root.text == "X" ? "\u{F096}" : "";
+    property <bool> use-font: Theme.system-glyphs && root.round && root.system != "";
+    height: 22px;
+    width: root.round ? 22px : max(22px, label.preferred-width + 12px);
+    border-radius: root.round ? 11px : 6px;
+    border-width: root.use-font ? 0 : 1.5px;
+    border-color: root.ink;
 
-    HorizontalLayout {
-        padding-left: root.round ? 0 : 8px;
-        padding-right: root.round ? 0 : 8px;
-        Text {
-            text: root.text;
-            color: Theme.text;
-            font-size: 13px;
-            font-weight: 700;
-            horizontal-alignment: center;
-            vertical-alignment: center;
-        }
+    if root.use-font: Text {
+        text: root.system;
+        font-family: "Segoe Fluent Icons";
+        font-size: 22px;
+        color: root.ink;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    label := Text {
+        visible: !root.use-font;
+        text: root.text;
+        color: root.ink;
+        font-size: root.round ? 11px : 10px;
+        font-weight: 600;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+// The D-pad, with the two arrows of the axis it moves along.
+export component DpadGlyph inherits Rectangle {
+    in property <bool> horizontal;
+    width: 22px;
+    height: 22px;
+    Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: Theme.stroke;
+        stroke: Theme.dim;
+        stroke-width: 1.2px;
+        stroke-line-join: round;
+        commands: "M 9 2 L 15 2 L 15 9 L 22 9 L 22 15 L 15 15 L 15 22 L 9 22 L 9 15 L 2 15 L 2 9 L 9 9 Z";
+    }
+
+    Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: Theme.text;
+        commands: root.horizontal ? "M 5.5 12 L 7.5 10.4 L 7.5 13.6 Z M 18.5 12 L 16.5 10.4 L 16.5 13.6 Z" : "M 12 5.5 L 13.6 7.5 L 10.4 7.5 Z M 12 18.5 L 13.6 16.5 L 10.4 16.5 Z";
     }
 }
 
+// A gamepad hint: the button, then what it does. `glyph` is a button name,
+// "LB RB" for both bumpers, or "updown" / "leftright" for the D-pad.
 export component Hint inherits HorizontalLayout {
     in property <string> glyph;
-    in property <bool> round: true;
     in property <string> text;
+    property <bool> bumpers: root.glyph == "LB RB";
+    property <bool> dpad: root.glyph == "updown" || root.glyph == "leftright";
+    horizontal-stretch: 0;
     spacing: 8px;
-    VerticalLayout {
+    if root.dpad: VerticalLayout {
+        alignment: center;
+        DpadGlyph {
+            horizontal: root.glyph == "leftright";
+        }
+    }
+    if root.bumpers: HorizontalLayout {
+        spacing: 4px;
+        VerticalLayout {
+            alignment: center;
+            PadGlyph {
+                text: "LB";
+                round: false;
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            PadGlyph {
+                text: "RB";
+                round: false;
+            }
+        }
+    }
+    if !root.dpad && !root.bumpers: VerticalLayout {
         alignment: center;
         PadGlyph {
             text: root.glyph;
-            round: root.round;
         }
     }
 
     Text {
         text: root.text;
-        color: Theme.dim;
-        font-size: Theme.font-small;
+        color: Theme.text.mix(Theme.dim, 0.6);
+        font-size: 13px;
         vertical-alignment: center;
-    }
-}
-
-// The D-pad, drawn as a cross.
-export component DpadGlyph inherits Rectangle {
-    width: 26px;
-    height: 26px;
-    Rectangle {
-        x: 9px;
-        y: 1px;
-        width: 8px;
-        height: 24px;
-        border-radius: 2px;
-        background: Theme.surface-high;
-        border-width: 1px;
-        border-color: #3a4560;
-    }
-
-    Rectangle {
-        x: 1px;
-        y: 9px;
-        width: 24px;
-        height: 8px;
-        border-radius: 2px;
-        background: Theme.surface-high;
-        border-width: 1px;
-        border-color: #3a4560;
-    }
-
-    Rectangle {
-        x: 9px;
-        y: 9px;
-        width: 8px;
-        height: 8px;
-        background: Theme.surface-high;
     }
 }

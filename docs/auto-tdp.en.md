@@ -29,6 +29,7 @@ This page explains how Canapé sets the ROG Ally's power on its own: first in a 
 - [Per-game profiles](#per-game-profiles)
   - [Frame rate limit and auto TDP](#frame-rate-limit-and-auto-tdp)
 - [The bench](#the-bench)
+  - [Choosing a test load](#choosing-a-test-load)
 - [Persistence: `state.json`](#persistence-statejson)
 - [Measured results on the Ally](#measured-results-on-the-ally)
 - [Tuning tips](#tuning-tips)
@@ -270,7 +271,7 @@ sequenceDiagram
     Note over Service: No profile: re-applies the remembered global state
 ```
 
-- **Detection**: the service, in session 0, cannot see windows. The shell tells it which program is in the foreground (see the [user guide](user-guide.en.md#profiles)). After reconnecting to the service, the shell sends the last known program again.
+- **Detection**: the service, in session 0, cannot see windows. The shell tells it which program is in the foreground (see the [user guide](user-guide.en.md#game-profiles)). After reconnecting to the service, the shell sends the last known program again.
 - **Activation**: when a game that has a profile comes to the foreground, the service remembers the global state (mode, TDP, auto TDP, fan curves, frame rate limit), then applies the profile's auto TDP starting from the learned watts. A profile whose auto TDP is off turns auto TDP off and keeps the current power. Then come the profile's fan curves and frame rate limit; what the profile does not set follows the global settings. Only what differs is written.
 - **While the profile is active**: changing the target or another auto TDP option changes **the profile**, not the global settings. Fans and the frame rate limit follow the same rule only if the profile has its own (each one separately); otherwise the change is global and stays after the game.
 - **End**: when the game leaves the foreground (another program, or the game is closed), the service re-applies the remembered global state, fans and frame rate limit included. So a mode or manual TDP picked while the profile was active only lasts as long as the game.
@@ -314,6 +315,19 @@ Steps go from the highest to the lowest power. They are aligned **on the lowest*
 | 5 W | 25, 22, 17, 12, 7 | 1:40 |
 
 Total time = number of steps × (settling + measuring). The service brings "from" and "to" into the model's range.
+
+### Choosing a test load
+
+The bench and auto TDP read the frame rate of whatever is in the foreground. To compare runs, the load must stay the same from second to second, and the frame rate must not hit the screen's 120 Hz cap.
+
+| Load | Use it for | Notes |
+|---|---|---|
+| **Unigine Heaven** (free, benchmark.unigine.com) | The bench and auto TDP in a game-like scene | Run it full screen, DirectX 11, vsync off; its camera loops through the same flight. The frame rate changes with the scene, so take **30 s** per step. |
+| **FurMark 2** (free, geeks3d.com) | The power, temperature and fan curves | Run it full screen: a constant, worst-case GPU load, so a very steady frame rate. Hotter than any game: keep the temperature limit on, and do not read its frame rates as game performance. |
+| WebGL Aquarium in Edge | A quick check without installing anything | With few fish it stays at 120 FPS whatever the power, which says nothing; with 30,000 fish it is a usable heavy load. |
+| A real game | The final word for that game | Pick a demanding, steady scene; menus and title screens can drop or cap on their own (on the Ally, Sonic Mania's title screen fell from 60 to 27 FPS by itself). |
+
+`m5-check.ps1 -Game <exe>` and the per-game profiles need the executable's name: look it up in Task Manager (Details tab) while the program runs. Neither tool is shipped with Canapé.
 
 ### How a run goes
 
@@ -420,7 +434,7 @@ The firmware cannot report the mode or the limits back. So the service keeps the
 
 ## Measured results on the Ally
 
-Measurements from the [M4 report](m4-report.md), on a ROG Ally RC71L, with WebGL Aquarium in Edge (120 Hz screen, vsync), target 60 FPS. No real game has been measured yet.
+Measurements from the [M4 report](m4-report.md), on a ROG Ally RC71L, with WebGL Aquarium in Edge (120 Hz screen, vsync), target 60 FPS, then from the [M5 report](m5-report.md). No real game has been measured yet; the next runs will use Unigine Heaven and FurMark 2 (see [Choosing a test load](#choosing-a-test-load)).
 
 ### Heavy load (30,000 fish, 5 min)
 
@@ -441,6 +455,10 @@ What changed between the two versions: lowering below the target only happens at
 
 The optimizations in `fceaf22` target these two defects (a single stall sets no floor, floor release when the load drops, lowering at the cap only when the raw sample is at the target too). A simulation of the M4 case (`power_limited_game_settles_without_sawtooth`) checks that after settling the power stays within a 3 W range with at most 12 changes in 13 minutes, for an average of at least 57 FPS. **These optimizations have not been measured on the Ally yet.**
 
+### M5 bench (heavy WebGL Aquarium)
+
+From the [M5 report](m5-report.md), with `m5-check` (steps of 6 W, 3 s settling, 8 s measuring): 7 W 19 FPS (low 17), 13 W 43 (40), 19 W 61 (61), 25 W 69 (69); 47, 53 and 64 °C on the first three steps. The same load with a 40 FPS target settles at 13 W and learns it within a minute since `d65b0fa`.
+
 ## Tuning tips
 
 > [!TIP]
@@ -452,8 +470,8 @@ The optimizations in `fceaf22` target these two defects (a single stall sets no 
 - **On battery**: 15 W is a good balance; 10 W for light games.
 - **Temperature limit**: 85 °C leaves some margin. Power climbs again only once the temperature is 3 °C below it.
 - **Profiles**: save the profile after a session where auto TDP settled; the next one will start at the learned watts.
-- **Bench**: in a demanding, steady scene (not a menu or a cutscene). Use 30 s per step for games whose frame rate varies a lot.
-- **Check the frame rate** on Home: if it stays at "—", auto TDP does nothing (see [troubleshooting](user-guide.en.md#common-problems)).
+- **Bench**: in a demanding, steady scene (not a menu or a cutscene), or with Unigine Heaven (see [Choosing a test load](#choosing-a-test-load)). Use 30 s per step for games whose frame rate varies a lot.
+- **Check the frame rate** at the top right of the screen (or on the Performance page): if it stays at "—", auto TDP does nothing (see [troubleshooting](user-guide.en.md#common-problems)).
 
 ## Known limits
 

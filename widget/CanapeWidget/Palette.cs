@@ -12,10 +12,10 @@ namespace CanapeWidget
     static class Palette
     {
         /// <summary>Accent when the status carries none.</summary>
-        public static readonly Color DefaultAccent = Color.FromArgb(255, 0x25, 0x63, 0xEB);
+        public static readonly Color DefaultAccent = Color.FromArgb(255, 0xFF, 0x3D, 0x5E);
 
         /// <summary>Panel surface; keep in sync with PanelBackground in WidgetPage.xaml.</summary>
-        public static readonly Color Panel = Color.FromArgb(255, 0x1A, 0x1B, 0x1F);
+        public static readonly Color Panel = Color.FromArgb(255, 0x12, 0x13, 0x17);
 
         public static readonly Color White = Color.FromArgb(255, 255, 255, 255);
 

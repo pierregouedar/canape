@@ -9,14 +9,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-msgid "Home"
-msgstr "홈"
-
 msgid "Performance"
 msgstr "성능"
-
-msgid "Profiles"
-msgstr "프로필"
 
 msgid "Bench"
 msgstr "벤치마크"
@@ -24,14 +18,8 @@ msgstr "벤치마크"
 msgid "Settings"
 msgstr "설정"
 
-msgid "Select"
-msgstr "선택"
-
 msgid "Back"
 msgstr "뒤로"
-
-msgid "Change page"
-msgstr "페이지 전환"
 
 msgid "Service not connected: start canape-service."
 msgstr "서비스에 연결되지 않았습니다. canape-service를 시작하세요."
@@ -51,20 +39,8 @@ msgstr "{}도 하드웨어를 제어하고 있습니다. 충돌을 막으려면 
 msgid "Power limit"
 msgstr "전력 제한"
 
-msgid "Auto"
-msgstr "자동"
-
 msgid "Service not connected"
 msgstr "서비스 연결 안 됨"
-
-msgid "Auto TDP, target {} FPS"
-msgstr "자동 TDP, 목표 {} FPS"
-
-msgid "Set by the firmware: {} mode"
-msgstr "펌웨어가 설정: {} 모드"
-
-msgid "Manual TDP"
-msgstr "수동 TDP"
 
 msgid "Auto TDP"
 msgstr "자동 TDP"
@@ -72,41 +48,14 @@ msgstr "자동 TDP"
 msgid "Thermal limit reached"
 msgstr "온도 제한 도달"
 
-msgid "Bench running"
-msgstr "벤치마크 진행 중"
-
 msgid "Frame rate"
 msgstr "프레임 속도"
-
-msgid "GPU"
-msgstr "GPU"
 
 msgid "CPU temperature"
 msgstr "CPU 온도"
 
-msgid "Battery"
-msgstr "배터리"
-
 msgid "On battery"
 msgstr "배터리 사용 중"
-
-msgid "Plugged in"
-msgstr "전원 연결됨"
-
-msgid "Now playing"
-msgstr "플레이 중"
-
-msgid "No game detected"
-msgstr "감지된 게임 없음"
-
-msgid "Profile in use: {}"
-msgstr "사용 중인 프로필: {}"
-
-msgid "No profile for this game: the global settings apply."
-msgstr "이 게임의 프로필이 없습니다. 공통 설정이 적용됩니다."
-
-msgid "Start a game: its profile applies by itself."
-msgstr "게임을 시작하면 해당 프로필이 자동으로 적용됩니다."
 
 msgid "On"
 msgstr "켜짐"
@@ -114,74 +63,20 @@ msgstr "켜짐"
 msgid "Off"
 msgstr "꺼짐"
 
-msgid "Firmware mode"
-msgstr "펌웨어 모드"
-
-msgid "Power mode"
-msgstr "전력 모드"
-
-msgid "Quiet, cool"
-msgstr "조용하고 시원하게"
-
 msgid "Balanced"
 msgstr "균형"
-
-msgid "Maximum power"
-msgstr "최대 전력"
-
-msgid "Your own limit"
-msgstr "직접 설정"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "전력을 직접 설정하려면 수동을 선택하세요."
-
-msgid "Changing it turns auto TDP off."
-msgstr "변경하면 자동 TDP가 꺼집니다."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "가능한 한 적은 전력으로 프레임 속도를 목표에 맞춥니다."
-
-msgid "Target frame rate"
-msgstr "목표 프레임 속도"
-
-msgid "Minimum power"
-msgstr "최소 전력"
-
-msgid "Maximum on battery"
-msgstr "배터리 사용 시 최대"
 
 msgid "None"
 msgstr "없음"
 
-msgid "Temperature limit: above it, power only goes down"
-msgstr "온도 제한: 이를 넘으면 전력은 내려가기만 합니다"
-
 msgid "Auto TDP off"
 msgstr "자동 TDP 꺼짐"
-
-msgid "learned: {}"
-msgstr "학습값: {}"
 
 msgid "In use"
 msgstr "사용 중"
 
-msgid "Confirm"
-msgstr "확인"
-
 msgid "Delete"
 msgstr "삭제"
-
-msgid "Current game"
-msgstr "현재 게임"
-
-msgid "A profile is in use for this game."
-msgstr "이 게임에 프로필이 적용되어 있습니다."
-
-msgid "This game has no profile yet."
-msgstr "이 게임에는 아직 프로필이 없습니다."
-
-msgid "Settings saved with the profile"
-msgstr "프로필에 저장되는 설정"
 
 msgid "Target"
 msgstr "목표"
@@ -189,32 +84,8 @@ msgstr "목표"
 msgid "Power"
 msgstr "전력"
 
-msgid "Temperature limit"
-msgstr "온도 제한"
-
-msgid "Update the profile"
-msgstr "프로필 업데이트"
-
-msgid "Save as profile"
-msgstr "프로필로 저장"
-
-msgid "Start a game first"
-msgstr "먼저 게임을 시작하세요"
-
-msgid "A profile applies by itself when its game comes to the front."
-msgstr "게임이 앞으로 오면 해당 프로필이 자동으로 적용됩니다."
-
 msgid "No profiles yet. Save one while a game is running, or from a bench result."
 msgstr "아직 프로필이 없습니다. 게임 실행 중이나 벤치마크 결과에서 저장하세요."
-
-msgid "Set as TDP"
-msgstr "TDP로 설정"
-
-msgid "Save for the game"
-msgstr "게임에 저장"
-
-msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
-msgstr "앞에 있는 게임을 여러 전력 제한으로 실행하고 각각을 측정합니다. 부하가 큰 장면을 띄워 두세요."
 
 msgid "Step"
 msgstr "간격"
@@ -273,35 +144,17 @@ msgstr "최고 온도"
 msgid "Sweet spot"
 msgstr "최적점"
 
-msgid "Near the best frame rate: {} FPS"
-msgstr "최고에 가까운 프레임 속도: {} FPS"
-
 msgid "For {} FPS"
 msgstr "{} FPS용"
 
-msgid "Lowest power holding the target: {} FPS"
-msgstr "목표를 유지하는 최소 전력: {} FPS"
-
-msgid "Target not reached in this run"
-msgstr "이번 측정에서 목표에 도달하지 못함"
-
 msgid "Most efficient"
 msgstr "최고 효율"
-
-msgid "Most frames per watt: {} FPS"
-msgstr "와트당 최다 프레임: {} FPS"
 
 msgid "Automatic"
 msgstr "자동"
 
 msgid "Language"
 msgstr "언어"
-
-msgid "Automatic follows the Windows display language."
-msgstr "자동은 Windows 표시 언어를 따릅니다."
-
-msgid "Version {}"
-msgstr "버전 {}"
 
 
 msgid "Service connected"
@@ -352,34 +205,13 @@ msgstr "채도"
 msgid "Brightness"
 msgstr "밝기"
 
-msgid "Presets"
-msgstr "프리셋"
-
-msgid "Every page follows this colour, and so does the Game Bar widget."
-msgstr "모든 페이지와 Game Bar 위젯에 이 색이 적용됩니다."
-
-msgid "Press A on a slider to adjust it."
-msgstr "슬라이더에서 A를 눌러 조정하세요."
-
-msgid "Move with the D-pad or the stick, then press A to finish."
-msgstr "방향 패드나 스틱으로 조정한 다음 A를 눌러 마치세요."
-
 # Library page
-
-msgid "Library"
-msgstr "라이브러리"
 
 msgid "Play"
 msgstr "플레이"
 
-msgid "All"
-msgstr "전체"
-
 msgid "Recent"
 msgstr "최근"
-
-msgid "A–Z"
-msgstr "이름순"
 
 msgid "Played today"
 msgstr "오늘 플레이"
@@ -408,9 +240,6 @@ msgstr "게임 찾는 중…"
 msgid "No games found"
 msgstr "게임이 없습니다"
 
-msgid "No games from this store"
-msgstr "이 스토어의 게임이 없습니다"
-
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé는 Steam, Epic Games Launcher, GOG Galaxy, Xbox 앱으로 설치한 게임을 보여 줍니다."
 
@@ -420,25 +249,11 @@ msgstr "하드웨어"
 msgid "Fans"
 msgstr "팬"
 
-
-msgid "Off while cool"
-msgstr "낮은 온도에서 정지"
-
-msgid "Steady"
-msgstr "일정함"
-
-
-msgid "Loud, coolest"
-msgstr "시끄럽지만 가장 시원함"
-
 msgid "CPU fan"
 msgstr "CPU 팬"
 
 msgid "{} rpm"
 msgstr "{} rpm"
-
-msgid "GPU fan"
-msgstr "GPU 팬"
 
 msgid "The power mode's own curve"
 msgstr "전원 모드 자체 곡선"
@@ -446,14 +261,8 @@ msgstr "전원 모드 자체 곡선"
 msgid "Custom curves set by another client."
 msgstr "다른 클라이언트가 설정한 사용자 곡선입니다."
 
-msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
-msgstr "프리셋은 펌웨어 곡선을 대체합니다. 자동을 선택하면 되돌아갑니다. 전원 모드를 바꿔도 프리셋은 유지됩니다."
-
 msgid "Frame rate limit"
 msgstr "프레임 제한"
-
-msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
-msgstr "그래픽 드라이버가 게임을 이 프레임 이하로 유지합니다: 발열과 소음이 줄고 배터리가 오래갑니다."
 
 
 msgid "Controller"
@@ -462,30 +271,14 @@ msgstr "컨트롤러"
 msgid "Gamepad"
 msgstr "게임패드"
 
-msgid "For games"
-msgstr "게임용"
-
 msgid "Keyboard"
 msgstr "키보드"
-
-msgid "Buttons send keys"
-msgstr "버튼이 키를 입력"
 
 msgid "Mouse"
 msgstr "마우스"
 
-msgid "Stick moves the pointer"
-msgstr "스틱으로 포인터 이동"
-
-msgid "This game"
-msgstr "이 게임"
-
 msgid "No game in the foreground"
 msgstr "전면에 실행 중인 게임 없음"
-
-
-msgid "Firmware curve"
-msgstr "펌웨어 곡선"
 
 msgid "Maximum"
 msgstr "최대"
@@ -493,65 +286,20 @@ msgstr "최대"
 msgid "Download missing covers"
 msgstr "없는 표지 다운로드"
 
-msgid "Only the art already on this device is shown."
-msgstr "이 기기에 있는 이미지만 표시합니다."
-
-msgid "From Steam and SteamGridDB."
-msgstr "Steam과 SteamGridDB에서 가져옵니다."
-
-msgid "From Steam. A SteamGridDB key adds the other stores."
-msgstr "Steam에서 가져옵니다. SteamGridDB 키가 있으면 다른 스토어도 지원합니다."
-
-msgid "Keep these settings for this game"
-msgstr "이 게임에 이 설정 저장"
-
 msgid "Screen"
 msgstr "화면"
 
 msgid "{} Hz"
 msgstr "{} Hz"
 
-msgid "Refresh rate unavailable on this screen."
-msgstr "이 화면에서는 주사율을 바꿀 수 없습니다."
-
-msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
-msgstr "30, 40, 60 FPS로 제한한 게임에서는 낮은 주사율로 배터리를 아낄 수 있습니다."
-
 msgid "Use the Ally's buttons"
 msgstr "Ally 버튼 사용"
-
-msgid "Armoury: back to Canapé. Command Center: Game Bar."
-msgstr "Armoury: Canapé로 돌아가기. Command Center: Game Bar."
-
-msgid "Install games from Canapé"
-msgstr "Canapé에서 게임 설치"
-
-msgid "Steam: API key set."
-msgstr "Steam: API 키 설정됨."
-
-msgid "Steam: no API key in shell.json."
-msgstr "Steam: shell.json에 API 키 없음."
-
-msgid "Epic: {}."
-msgstr "Epic: {}."
-
-msgid "Epic: not signed in."
-msgstr "Epic: 로그인 안 됨."
-
-msgid "Epic sign-in"
-msgstr "Epic 로그인"
 
 msgid "Installing… {} %"
 msgstr "설치 중… {} %"
 
-msgid "Installed"
-msgstr "설치됨"
-
 msgid "To install"
 msgstr "설치할 게임"
-
-msgid "Not installed: press A to install"
-msgstr "설치 안 됨: A를 눌러 설치"
 
 msgid "Looking for your games…"
 msgstr "게임을 찾는 중…"
@@ -576,3 +324,111 @@ msgstr "Epic Games 로그인"
 
 msgid "Install"
 msgstr "설치"
+
+msgid "Mode"
+msgstr "모드"
+
+msgid "Power range"
+msgstr "전력 범위"
+
+msgid "Temperature"
+msgstr "온도"
+
+msgid "limit {}"
+msgstr "제한 {}"
+
+msgid "target {}"
+msgstr "목표 {}"
+
+msgid "W"
+msgstr "W"
+
+msgid "1 min"
+msgstr "1분"
+
+msgid "Canapé {}"
+msgstr "Canapé {}"
+
+msgid "Choose"
+msgstr "선택"
+
+msgid "Epic Games account"
+msgstr "Epic Games 계정"
+
+msgid "GPU {}"
+msgstr "GPU {}"
+
+msgid "Game profiles"
+msgstr "게임 프로필"
+
+msgid "Games"
+msgstr "게임"
+
+msgid "General"
+msgstr "일반"
+
+msgid "General settings"
+msgstr "전체 설정"
+
+msgid "Installing…"
+msgstr "설치 중…"
+
+msgid "Limit"
+msgstr "제한"
+
+msgid "No Steam API key"
+msgstr "Steam API 키 없음"
+
+msgid "Not installed"
+msgstr "설치되지 않음"
+
+msgid "Press X again to delete"
+msgstr "삭제하려면 X를 다시 누르세요"
+
+msgid "Save a profile for {}"
+msgstr "{} 프로필 저장"
+
+msgid "Save for this game"
+msgstr "이 게임용으로 저장"
+
+msgid "Sections"
+msgstr "섹션"
+
+msgid "Setting"
+msgstr "설정"
+
+msgid "Sign in"
+msgstr "로그인"
+
+msgid "Start · {}"
+msgstr "시작 · {}"
+
+msgid "Steam API key set"
+msgstr "Steam API 키 설정됨"
+
+msgid "To install · {}"
+msgstr "설치할 게임 · {}"
+
+msgid "Update the profile of {}"
+msgstr "{} 프로필 업데이트"
+
+msgid "Value"
+msgstr "값"
+
+msgid "rpm"
+msgstr "rpm"
+
+msgid "{} learned"
+msgstr "학습값 {}"
+
+msgid "{} max"
+msgstr "최대 {}"
+
+msgid "{} now"
+msgstr "현재 {}"
+
+msgid "{} now · {} learned"
+msgstr "현재 {} · 학습값 {}"
+
+msgid "{} · game profile"
+msgstr "{} · 게임 프로필"

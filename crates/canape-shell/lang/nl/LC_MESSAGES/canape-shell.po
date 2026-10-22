@@ -9,14 +9,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Home"
-msgstr "Start"
-
 msgid "Performance"
 msgstr "Prestaties"
-
-msgid "Profiles"
-msgstr "Profielen"
 
 msgid "Bench"
 msgstr "Benchmark"
@@ -24,14 +18,8 @@ msgstr "Benchmark"
 msgid "Settings"
 msgstr "Instellingen"
 
-msgid "Select"
-msgstr "Selecteren"
-
 msgid "Back"
 msgstr "Terug"
-
-msgid "Change page"
-msgstr "Andere pagina"
 
 msgid "Service not connected: start canape-service."
 msgstr "Service niet verbonden: start canape-service."
@@ -51,20 +39,8 @@ msgstr "Stuurt ook de hardware aan: {}. Sluit het om conflicten te voorkomen."
 msgid "Power limit"
 msgstr "Vermogenslimiet"
 
-msgid "Auto"
-msgstr "Auto"
-
 msgid "Service not connected"
 msgstr "Service niet verbonden"
-
-msgid "Auto TDP, target {} FPS"
-msgstr "Auto-TDP, doel {} FPS"
-
-msgid "Set by the firmware: {} mode"
-msgstr "Ingesteld door de firmware: modus {}"
-
-msgid "Manual TDP"
-msgstr "Handmatige TDP"
 
 msgid "Auto TDP"
 msgstr "Auto-TDP"
@@ -72,41 +48,14 @@ msgstr "Auto-TDP"
 msgid "Thermal limit reached"
 msgstr "Temperatuurlimiet bereikt"
 
-msgid "Bench running"
-msgstr "Benchmark bezig"
-
 msgid "Frame rate"
 msgstr "Framerate"
-
-msgid "GPU"
-msgstr "GPU"
 
 msgid "CPU temperature"
 msgstr "CPU-temperatuur"
 
-msgid "Battery"
-msgstr "Batterij"
-
 msgid "On battery"
 msgstr "Op batterij"
-
-msgid "Plugged in"
-msgstr "Aan de lader"
-
-msgid "Now playing"
-msgstr "Nu aan het spelen"
-
-msgid "No game detected"
-msgstr "Geen game gevonden"
-
-msgid "Profile in use: {}"
-msgstr "Actief profiel: {}"
-
-msgid "No profile for this game: the global settings apply."
-msgstr "Geen profiel voor deze game: de algemene instellingen gelden."
-
-msgid "Start a game: its profile applies by itself."
-msgstr "Start een game: het profiel wordt vanzelf toegepast."
 
 msgid "On"
 msgstr "Aan"
@@ -114,74 +63,20 @@ msgstr "Aan"
 msgid "Off"
 msgstr "Uit"
 
-msgid "Firmware mode"
-msgstr "Firmwaremodus"
-
-msgid "Power mode"
-msgstr "Vermogensmodus"
-
-msgid "Quiet, cool"
-msgstr "Stil en koel"
-
 msgid "Balanced"
 msgstr "Gebalanceerd"
-
-msgid "Maximum power"
-msgstr "Maximaal vermogen"
-
-msgid "Your own limit"
-msgstr "Eigen limiet"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "Kies Handmatig om het vermogen zelf in te stellen."
-
-msgid "Changing it turns auto TDP off."
-msgstr "Wijzigen zet auto-TDP uit."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "Houdt de framerate op het doel met zo min mogelijk vermogen."
-
-msgid "Target frame rate"
-msgstr "Doel-framerate"
-
-msgid "Minimum power"
-msgstr "Minimaal vermogen"
-
-msgid "Maximum on battery"
-msgstr "Maximum op batterij"
 
 msgid "None"
 msgstr "Geen"
 
-msgid "Temperature limit: above it, power only goes down"
-msgstr "Temperatuurlimiet: daarboven gaat het vermogen alleen omlaag"
-
 msgid "Auto TDP off"
 msgstr "Auto-TDP uit"
-
-msgid "learned: {}"
-msgstr "geleerd: {}"
 
 msgid "In use"
 msgstr "In gebruik"
 
-msgid "Confirm"
-msgstr "Bevestigen"
-
 msgid "Delete"
 msgstr "Verwijderen"
-
-msgid "Current game"
-msgstr "Huidige game"
-
-msgid "A profile is in use for this game."
-msgstr "Voor deze game is een profiel actief."
-
-msgid "This game has no profile yet."
-msgstr "Deze game heeft nog geen profiel."
-
-msgid "Settings saved with the profile"
-msgstr "Instellingen die in het profiel komen"
 
 msgid "Target"
 msgstr "Doel"
@@ -189,32 +84,8 @@ msgstr "Doel"
 msgid "Power"
 msgstr "Vermogen"
 
-msgid "Temperature limit"
-msgstr "Temperatuurlimiet"
-
-msgid "Update the profile"
-msgstr "Profiel bijwerken"
-
-msgid "Save as profile"
-msgstr "Opslaan als profiel"
-
-msgid "Start a game first"
-msgstr "Start eerst een game"
-
-msgid "A profile applies by itself when its game comes to the front."
-msgstr "Een profiel wordt vanzelf toegepast zodra de game op de voorgrond komt."
-
 msgid "No profiles yet. Save one while a game is running, or from a bench result."
 msgstr "Nog geen profielen. Sla er een op terwijl een game draait, of vanuit een benchmarkresultaat."
-
-msgid "Set as TDP"
-msgstr "Als TDP instellen"
-
-msgid "Save for the game"
-msgstr "Opslaan voor de game"
-
-msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
-msgstr "Laat de game op de voorgrond op verschillende vermogenslimieten draaien en meet elke limiet. Laat een zware scène lopen."
 
 msgid "Step"
 msgstr "Stap"
@@ -273,35 +144,17 @@ msgstr "Max. temperatuur"
 msgid "Sweet spot"
 msgstr "Beste balans"
 
-msgid "Near the best frame rate: {} FPS"
-msgstr "Dicht bij de beste framerate: {} FPS"
-
 msgid "For {} FPS"
 msgstr "Voor {} FPS"
 
-msgid "Lowest power holding the target: {} FPS"
-msgstr "Laagste vermogen dat het doel haalt: {} FPS"
-
-msgid "Target not reached in this run"
-msgstr "Doel niet gehaald in deze run"
-
 msgid "Most efficient"
 msgstr "Meest efficiënt"
-
-msgid "Most frames per watt: {} FPS"
-msgstr "Meeste frames per watt: {} FPS"
 
 msgid "Automatic"
 msgstr "Automatisch"
 
 msgid "Language"
 msgstr "Taal"
-
-msgid "Automatic follows the Windows display language."
-msgstr "Automatisch volgt de weergavetaal van Windows."
-
-msgid "Version {}"
-msgstr "Versie {}"
 
 
 msgid "Service connected"
@@ -352,34 +205,13 @@ msgstr "Verzadiging"
 msgid "Brightness"
 msgstr "Helderheid"
 
-msgid "Presets"
-msgstr "Voorinstellingen"
-
-msgid "Every page follows this colour, and so does the Game Bar widget."
-msgstr "Alle pagina's volgen deze kleur, en de Game Bar-widget ook."
-
-msgid "Press A on a slider to adjust it."
-msgstr "Druk op A op een schuifregelaar om hem in te stellen."
-
-msgid "Move with the D-pad or the stick, then press A to finish."
-msgstr "Stel in met de D-pad of de stick en druk op A om af te ronden."
-
 # Library page
-
-msgid "Library"
-msgstr "Bibliotheek"
 
 msgid "Play"
 msgstr "Spelen"
 
-msgid "All"
-msgstr "Alle"
-
 msgid "Recent"
 msgstr "Recent"
-
-msgid "A–Z"
-msgstr "A–Z"
 
 msgid "Played today"
 msgstr "Vandaag gespeeld"
@@ -408,9 +240,6 @@ msgstr "Games zoeken…"
 msgid "No games found"
 msgstr "Geen games gevonden"
 
-msgid "No games from this store"
-msgstr "Geen games uit deze winkel"
-
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé toont de games die met Steam, de Epic Games Launcher, GOG Galaxy en de Xbox-app zijn geïnstalleerd."
 
@@ -420,25 +249,11 @@ msgstr "Hardware"
 msgid "Fans"
 msgstr "Ventilatoren"
 
-
-msgid "Off while cool"
-msgstr "Uit zolang koel"
-
-msgid "Steady"
-msgstr "Gelijkmatig"
-
-
-msgid "Loud, coolest"
-msgstr "Luid, het koelst"
-
 msgid "CPU fan"
 msgstr "CPU-ventilator"
 
 msgid "{} rpm"
 msgstr "{} tpm"
-
-msgid "GPU fan"
-msgstr "GPU-ventilator"
 
 msgid "The power mode's own curve"
 msgstr "De eigen curve van de energiemodus"
@@ -446,14 +261,8 @@ msgstr "De eigen curve van de energiemodus"
 msgid "Custom curves set by another client."
 msgstr "Aangepaste curves, ingesteld door een andere client."
 
-msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
-msgstr "Een voorinstelling vervangt de curve van de firmware; Automatisch zet die terug. Een andere energiemodus behoudt de voorinstelling."
-
 msgid "Frame rate limit"
 msgstr "FPS-limiet"
-
-msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
-msgstr "Het grafische stuurprogramma houdt games onder deze framerate: minder warmte, minder geluid, langere accuduur."
 
 
 msgid "Controller"
@@ -462,30 +271,14 @@ msgstr "Controller"
 msgid "Gamepad"
 msgstr "Gamepad"
 
-msgid "For games"
-msgstr "Voor games"
-
 msgid "Keyboard"
 msgstr "Toetsenbord"
-
-msgid "Buttons send keys"
-msgstr "Knoppen sturen toetsen"
 
 msgid "Mouse"
 msgstr "Muis"
 
-msgid "Stick moves the pointer"
-msgstr "Stick beweegt de aanwijzer"
-
-msgid "This game"
-msgstr "Deze game"
-
 msgid "No game in the foreground"
 msgstr "Geen game op de voorgrond"
-
-
-msgid "Firmware curve"
-msgstr "Curve van de firmware"
 
 msgid "Maximum"
 msgstr "Maximaal"
@@ -493,65 +286,20 @@ msgstr "Maximaal"
 msgid "Download missing covers"
 msgstr "Ontbrekende covers downloaden"
 
-msgid "Only the art already on this device is shown."
-msgstr "Alleen afbeeldingen die al op het apparaat staan worden getoond."
-
-msgid "From Steam and SteamGridDB."
-msgstr "Van Steam en SteamGridDB."
-
-msgid "From Steam. A SteamGridDB key adds the other stores."
-msgstr "Van Steam. Met een SteamGridDB-sleutel komen de andere winkels erbij."
-
-msgid "Keep these settings for this game"
-msgstr "Deze instellingen bewaren voor deze game"
-
 msgid "Screen"
 msgstr "Scherm"
 
 msgid "{} Hz"
 msgstr "{} Hz"
 
-msgid "Refresh rate unavailable on this screen."
-msgstr "Verversingssnelheid niet instelbaar op dit scherm."
-
-msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
-msgstr "Een lagere snelheid spaart de accu in games die op 30, 40 of 60 FPS zijn begrensd."
-
 msgid "Use the Ally's buttons"
 msgstr "De knoppen van de Ally gebruiken"
-
-msgid "Armoury: back to Canapé. Command Center: Game Bar."
-msgstr "Armoury: terug naar Canapé. Command Center: Game Bar."
-
-msgid "Install games from Canapé"
-msgstr "Games installeren vanuit Canapé"
-
-msgid "Steam: API key set."
-msgstr "Steam: API-sleutel ingesteld."
-
-msgid "Steam: no API key in shell.json."
-msgstr "Steam: geen API-sleutel in shell.json."
-
-msgid "Epic: {}."
-msgstr "Epic: {}."
-
-msgid "Epic: not signed in."
-msgstr "Epic: niet aangemeld."
-
-msgid "Epic sign-in"
-msgstr "Epic-aanmelding"
 
 msgid "Installing… {} %"
 msgstr "Installeren… {} %"
 
-msgid "Installed"
-msgstr "Geïnstalleerd"
-
 msgid "To install"
 msgstr "Te installeren"
-
-msgid "Not installed: press A to install"
-msgstr "Niet geïnstalleerd: druk op A om te installeren"
 
 msgid "Looking for your games…"
 msgstr "Je games worden gezocht…"
@@ -576,3 +324,111 @@ msgstr "Aanmelden bij Epic Games"
 
 msgid "Install"
 msgstr "Installeren"
+
+msgid "Mode"
+msgstr "Modus"
+
+msgid "Power range"
+msgstr "Vermogensbereik"
+
+msgid "Temperature"
+msgstr "Temperatuur"
+
+msgid "limit {}"
+msgstr "limiet {}"
+
+msgid "target {}"
+msgstr "doel {}"
+
+msgid "W"
+msgstr "W"
+
+msgid "1 min"
+msgstr "1 min"
+
+msgid "Canapé {}"
+msgstr "Canapé {}"
+
+msgid "Choose"
+msgstr "Kiezen"
+
+msgid "Epic Games account"
+msgstr "Epic Games-account"
+
+msgid "GPU {}"
+msgstr "GPU {}"
+
+msgid "Game profiles"
+msgstr "Spelprofielen"
+
+msgid "Games"
+msgstr "Games"
+
+msgid "General"
+msgstr "Algemeen"
+
+msgid "General settings"
+msgstr "Algemene instellingen"
+
+msgid "Installing…"
+msgstr "Installeren…"
+
+msgid "Limit"
+msgstr "Limiet"
+
+msgid "No Steam API key"
+msgstr "Geen Steam-API-sleutel"
+
+msgid "Not installed"
+msgstr "Niet geïnstalleerd"
+
+msgid "Press X again to delete"
+msgstr "Druk nogmaals op X om te verwijderen"
+
+msgid "Save a profile for {}"
+msgstr "Profiel opslaan voor {}"
+
+msgid "Save for this game"
+msgstr "Opslaan voor deze game"
+
+msgid "Sections"
+msgstr "Secties"
+
+msgid "Setting"
+msgstr "Instelling"
+
+msgid "Sign in"
+msgstr "Aanmelden"
+
+msgid "Start · {}"
+msgstr "Starten · {}"
+
+msgid "Steam API key set"
+msgstr "Steam-API-sleutel ingesteld"
+
+msgid "To install · {}"
+msgstr "Te installeren · {}"
+
+msgid "Update the profile of {}"
+msgstr "Profiel van {} bijwerken"
+
+msgid "Value"
+msgstr "Waarde"
+
+msgid "rpm"
+msgstr "tpm"
+
+msgid "{} learned"
+msgstr "{} geleerd"
+
+msgid "{} max"
+msgstr "max. {}"
+
+msgid "{} now"
+msgstr "{} nu"
+
+msgid "{} now · {} learned"
+msgstr "{} nu · {} geleerd"
+
+msgid "{} · game profile"
+msgstr "{} · spelprofiel"

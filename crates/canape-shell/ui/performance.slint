@@ -1,0 +1,440 @@
+// Performance page: rows the D-pad moves through. Up and down change row;
+// left and right move along a row of tiles or change the row's value; A
+// picks; X saves the settings for the game in the foreground. Rows that do
+// not apply to the current mode are skipped:
+//   0 mode tiles, 1 target frame rate (auto TDP), 2 minimum power, 3
+//   maximum power (auto TDP; one limit in manual mode), 4 other settings.
+
+import { Theme } from "theme.slint";
+import { App } from "state.slint";
+import { Graph } from "widgets.slint";
+import { Figure, IconTile, LegendKey, Row, Ruler, SectionTitle, Stepper, ValueTile } from "kit.slint";
+
+// The power range on the model's scale, with what the APU draws now.
+component PowerBar inherits Rectangle {
+    in property <bool> two-knobs;
+    in property <int> low;
+    in property <int> high;
+    // Which knob has the focus: 0 none, 1 low, 2 high.
+    in property <int> active;
+    property <int> floor: App.status.tdp-floor > 0 ? App.status.tdp-floor : 5;
+    property <int> ceiling: App.status.tdp-ceiling > root.floor ? App.status.tdp-ceiling : 35;
+    property <float> scale: 1 / (root.ceiling - root.floor);
+    property <length> knob-low: self.width * clamp((root.low - root.floor) * root.scale, 0, 1);
+    property <length> knob-high: self.width * clamp((root.high - root.floor) * root.scale, 0, 1);
+    property <float> live: App.status.power-tenths / 10;
+    property <bool> live-known: App.status.connected && App.status.power-tenths >= 0;
+    property <length> live-x: self.width * clamp((root.live - root.floor) * root.scale, 0, 1);
+    height: 46px;
+
+    Rectangle {
+        y: 21px;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.surface-focus;
+    }
+
+    Rectangle {
+        x: root.two-knobs ? root.knob-low : 0;
+        y: 21px;
+        width: root.two-knobs ? root.knob-high - root.knob-low : root.knob-high;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.accent;
+        animate x, width { duration: 160ms; easing: ease-out; }
+    }
+
+    if root.two-knobs: Rectangle {
+        x: root.knob-low - self.width / 2;
+        y: 23px - self.height / 2;
+        width: root.active == 1 ? 24px : 20px;
+        height: self.width;
+        border-radius: self.width / 2;
+        background: Theme.focus;
+        border-width: root.active == 1 ? 4px : 0;
+        border-color: Theme.accent.with-alpha(0.35);
+        animate x { duration: 160ms; easing: ease-out; }
+    }
+
+    Rectangle {
+        x: root.knob-high - self.width / 2;
+        y: 23px - self.height / 2;
+        width: root.active == 2 ? 24px : 20px;
+        height: self.width;
+        border-radius: self.width / 2;
+        background: Theme.focus;
+        border-width: root.active == 2 ? 4px : 0;
+        border-color: Theme.accent.with-alpha(0.35);
+        animate x { duration: 160ms; easing: ease-out; }
+    }
+
+    if root.live-known: Rectangle {
+        x: root.live-x - 3px;
+        y: 13px;
+        width: 6px;
+        height: 20px;
+        border-radius: 3px;
+        background: Theme.background;
+        animate x { duration: 300ms; easing: ease-out; }
+        Rectangle {
+            x: 2px;
+            y: 2px;
+            width: 2px;
+            height: 16px;
+            border-radius: 1px;
+            background: Theme.accent-line;
+        }
+    }
+    if root.live-known: Text {
+        x: clamp(root.live-x - self.width / 2, 0, max(0, root.width - self.width));
+        y: 34px;
+        text: App.learned-watts > 0 ? @tr("{} now · {} learned", App.watts-tenths(App.status.power-tenths), App.watts(App.learned-watts)) : @tr("{} now", App.watts-tenths(App.status.power-tenths));
+        color: Theme.text.mix(Theme.dim, 0.4);
+        font-size: 12px;
+    }
+}
+
+export component PerformancePage inherits Rectangle {
+    // Opens the bench page.
+    callback open-bench();
+    in-out property <int> focus-row: 0;
+    in-out property <int> mode-col: root.mode-index >= 0 ? root.mode-index : 0;
+    in-out property <int> more-col: 0;
+
+    property <bool> auto: App.status.auto-tdp;
+    property <bool> manual: !root.auto && App.status.mode == "manual";
+    // 0 silent, 1 performance, 2 turbo, 3 auto TDP.
+    property <int> mode-index: root.auto ? 3 : App.status.mode == "silent" ? 0 : App.status.mode == "performance" ? 1 : App.status.mode == "turbo" ? 2 : -1;
+    property <int> target-index: App.status.target-fps <= 30 ? 0 : App.status.target-fps <= 40 ? 1 : App.status.target-fps <= 45 ? 2 : App.status.target-fps <= 60 ? 3 : App.status.target-fps <= 90 ? 4 : 5;
+    property <[int]> target-stops: [30, 40, 45, 60, 90, 120];
+    property <bool> active: fs.has-focus;
+
+    pure function row-on(r: int) -> bool {
+        r == 0 || r == 4 || (r == 1 && root.auto) || (r == 2 && (root.auto || root.manual)) || (r == 3 && root.auto)
+    }
+    function step-row(d: int) {
+        if root.row-on(root.focus-row + d) {
+            root.focus-row = root.focus-row + d;
+        } else if root.row-on(root.focus-row + 2 * d) {
+            root.focus-row = root.focus-row + 2 * d;
+        } else if root.row-on(root.focus-row + 3 * d) {
+            root.focus-row = root.focus-row + 3 * d;
+        } else if root.row-on(root.focus-row + 4 * d) {
+            root.focus-row = root.focus-row + 4 * d;
+        }
+    }
+    function pick-mode(i: int) {
+        if i == 3 {
+            if !root.auto {
+                App.toggle-auto-tdp();
+            }
+        } else {
+            App.set-mode(i == 0 ? "silent" : i == 1 ? "performance" : "turbo");
+        }
+    }
+    function activate-more(i: int) {
+        if i == 0 {
+            App.set-battery-cap(App.status.battery-cap == 0 ? 10 : App.status.battery-cap <= 10 ? 15 : App.status.battery-cap <= 15 ? 20 : 0);
+        } else if i == 1 {
+            App.set-temp-limit(App.status.temp-limit == 0 ? 80 : App.status.temp-limit <= 80 ? 85 : App.status.temp-limit <= 85 ? 90 : 0);
+        } else if i == 2 {
+            App.cycle-refresh();
+        } else {
+            root.open-bench();
+        }
+    }
+    // Left (-1) or right (1) on the focused row.
+    function side(d: int) {
+        if root.focus-row == 0 {
+            root.mode-col = clamp(root.mode-col + d, 0, 3);
+        } else if root.focus-row == 1 {
+            App.set-target-fps(root.target-stops[clamp(root.target-index + d, 0, 5)]);
+        } else if root.focus-row == 2 {
+            if root.auto {
+                App.change-min-watts(d);
+            } else {
+                App.change-tdp(d);
+            }
+        } else if root.focus-row == 3 {
+            App.change-max-watts(d);
+        } else {
+            root.more-col = clamp(root.more-col + d, 0, 3);
+        }
+    }
+    changed auto => {
+        if !root.row-on(root.focus-row) {
+            root.focus-row = 0;
+        }
+    }
+    changed manual => {
+        if !root.row-on(root.focus-row) {
+            root.focus-row = 0;
+        }
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        key-pressed(event) => {
+            if !App.status.connected {
+                return reject;
+            }
+            if event.text == Key.UpArrow {
+                root.step-row(-1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.step-row(1);
+                return accept;
+            }
+            if event.text == Key.LeftArrow {
+                root.side(-1);
+                return accept;
+            }
+            if event.text == Key.RightArrow {
+                root.side(1);
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                if root.focus-row == 0 {
+                    root.pick-mode(root.mode-col);
+                } else if root.focus-row == 4 {
+                    root.activate-more(root.more-col);
+                }
+                return accept;
+            }
+            // X: keep these settings for the game in the foreground.
+            if event.text == Key.F2 || event.text == "x" {
+                App.save-profile();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    HorizontalLayout {
+        width: parent.width;
+        height: parent.height;
+        spacing: 40px;
+
+        VerticalLayout {
+            width: 784px;
+            spacing: 10px;
+
+            Row {
+                focused: root.active && root.focus-row == 0;
+                VerticalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-top: 14px;
+                    padding-bottom: 14px;
+                    spacing: 12px;
+                    HorizontalLayout {
+                        SectionTitle {
+                            text: @tr("Mode");
+                        }
+
+                        Text {
+                            horizontal-stretch: 1;
+                            text: App.status.active-profile != "" ? @tr("{} · game profile", App.status.active-profile) : @tr("General settings");
+                            color: Theme.dim;
+                            font-size: 13px;
+                            horizontal-alignment: right;
+                            vertical-alignment: center;
+                            overflow: elide;
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 12px;
+                        for icon[i] in ["silent", "balanced", "turbo", "auto"]: IconTile {
+                            horizontal-stretch: 1;
+                            preferred-width: 10px;
+                            icon: icon;
+                            label: i == 0 ? App.mode-name("silent") : i == 1 ? App.mode-name("performance") : i == 2 ? App.mode-name("turbo") : @tr("Auto TDP");
+                            selected: root.mode-index == i;
+                            focused: root.active && root.focus-row == 0 && root.mode-col == i;
+                            clicked => {
+                                root.focus-row = 0;
+                                root.mode-col = i;
+                                root.pick-mode(i);
+                                fs.focus();
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row {
+                focused: root.active && root.focus-row == 1;
+                enabled: root.auto;
+                VerticalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-top: 14px;
+                    padding-bottom: 14px;
+                    spacing: 12px;
+                    SectionTitle {
+                        text: @tr("Target");
+                    }
+
+                    Ruler {
+                        labels: [App.fps-value(30), App.fps-value(40), App.fps-value(45), App.fps-value(60), App.fps-value(90), App.fps-value(120)];
+                        selected: root.auto ? root.target-index : -1;
+                        pick(i) => {
+                            root.focus-row = 1;
+                            App.set-target-fps(root.target-stops[i]);
+                            fs.focus();
+                        }
+                    }
+                }
+            }
+
+            Row {
+                focused: root.active && (root.focus-row == 2 || root.focus-row == 3);
+                enabled: root.auto || root.manual;
+                VerticalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-top: 14px;
+                    padding-bottom: 14px;
+                    spacing: 12px;
+                    SectionTitle {
+                        text: root.manual ? @tr("Power limit") : @tr("Power range");
+                    }
+
+                    HorizontalLayout {
+                        spacing: 14px;
+                        if !root.manual: Stepper {
+                            width: 104px;
+                            value: App.watts(App.status.min-watts);
+                            active: root.active && root.focus-row == 2;
+                            step(d) => {
+                                root.focus-row = 2;
+                                App.change-min-watts(d);
+                                fs.focus();
+                            }
+                        }
+                        PowerBar {
+                            horizontal-stretch: 1;
+                            two-knobs: !root.manual;
+                            low: App.status.min-watts;
+                            high: root.manual ? max(App.status.tdp, 0) : App.status.max-watts;
+                            active: !root.active ? 0 : root.manual && root.focus-row == 2 ? 2 : root.focus-row == 2 ? 1 : root.focus-row == 3 ? 2 : 0;
+                        }
+
+                        Stepper {
+                            width: 104px;
+                            value: root.manual ? App.known(App.status.tdp, App.watts(App.status.tdp)) : App.watts(App.status.max-watts);
+                            active: root.active && (root.manual ? root.focus-row == 2 : root.focus-row == 3);
+                            step(d) => {
+                                if root.manual {
+                                    root.focus-row = 2;
+                                    App.change-tdp(d);
+                                } else {
+                                    root.focus-row = 3;
+                                    App.change-max-watts(d);
+                                }
+                                fs.focus();
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row {
+                focused: root.active && root.focus-row == 4;
+                HorizontalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-top: 14px;
+                    padding-bottom: 14px;
+                    spacing: 12px;
+                    for label[i] in [@tr("On battery"), @tr("Temperature"), @tr("Screen"), @tr("Bench")]: ValueTile {
+                        horizontal-stretch: 1;
+                        preferred-width: 10px;
+                        label: label;
+                        value: i == 0 ? (App.status.battery-cap == 0 ? @tr("None") : @tr("{} max", App.watts(App.status.battery-cap)))
+                            : i == 1 ? (App.status.temp-limit == 0 ? @tr("None") : @tr("{} max", App.celsius(App.status.temp-limit)))
+                            : i == 2 ? (App.refresh-hz > 0 ? @tr("{} Hz", App.refresh-hz) : "—")
+                            : App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("Start · {}", App.duration(App.bench-duration(3, 15)));
+                        focused: root.active && root.focus-row == 4 && root.more-col == i;
+                        clicked => {
+                            root.focus-row = 4;
+                            root.more-col = i;
+                            root.activate-more(i);
+                            fs.focus();
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
+            }
+        }
+
+        VerticalLayout {
+            padding-top: 12px;
+            spacing: 26px;
+            HorizontalLayout {
+                spacing: 20px;
+                Figure {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    label: @tr("Power draw");
+                    value: App.known(App.status.power-tenths, App.tenths(App.status.power-tenths));
+                    unit: @tr("W");
+                    note: App.status.thermal-limited ? @tr("Thermal limit reached") : App.status.tdp >= 0 ? @tr("limit {}", App.watts(App.status.tdp)) : " ";
+                }
+
+                Figure {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    label: @tr("Frame rate");
+                    value: App.known(App.status.fps, App.status.fps);
+                    unit: "FPS";
+                    note: root.auto ? @tr("target {}", App.status.target-fps) : " ";
+                }
+            }
+
+            VerticalLayout {
+                spacing: 10px;
+                Graph {
+                    height: 140px;
+                    line: App.graphs.power-line;
+                    area: "";
+                    reference: App.graphs.limit-line;
+                    tint: Theme.accent;
+                }
+
+                HorizontalLayout {
+                    spacing: 18px;
+                    LegendKey {
+                        text: @tr("Power draw");
+                        ink: Theme.accent;
+                    }
+
+                    LegendKey {
+                        text: @tr("Limit");
+                        ink: Theme.reference;
+                        dashed: true;
+                    }
+
+                    Text {
+                        horizontal-stretch: 1;
+                        text: @tr("1 min");
+                        color: Theme.dim;
+                        font-size: 13px;
+                        horizontal-alignment: right;
+                    }
+                }
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
+            }
+        }
+    }
+}

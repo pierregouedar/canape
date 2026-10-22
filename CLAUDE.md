@@ -2,6 +2,7 @@
 
 - Docs et échanges en français ; code, commentaires et messages de commit en anglais. Aucun commentaire en français dans le code.
 - Deux sessions travaillent sur ce dépôt : une sur la ROG Ally (Windows, peut compiler, lancer et tester le matériel et le FSE) et une dans le cloud (Linux, sans matériel). Synchroniser par GitHub ; ne jamais affirmer qu'un comportement Windows marche sans l'avoir testé sur l'Ally.
+- Interface : pas de sous-titres ni de descriptions sous les libellés (tuiles, modes, réglages) quand ils n'apportent pas une information réelle (une valeur, un état, une conséquence non évidente). Les descriptions décoratives (« Frais et discret », « Équilibré », « Puissance maximale »…) font « généré par IA » : on les retire.
 - Légèreté d'abord : pas de navigateur embarqué, pas de runtime async sans besoin mesuré, dépendances minimales. Voir les objectifs chiffrés dans docs/architecture.md.
 - Seul `canape-service` a des droits élevés. `canape-shell` doit rester `asInvoker` : le FSE l'active en medium IL.
 - Le matériel ne se touche que via le trait `canape_hw::Device`. Toute valeur écrite dans le firmware ASUS doit être vérifiée contre une implémentation de référence pour le modèle concerné, sans citer cette source dans le code.

@@ -1,0 +1,324 @@
+// Settings page: lines the D-pad moves through, the general settings on
+// the left and the accent colour on the right. Up and down change line,
+// left and right change its value, A acts on it:
+//   0 language (A applies the one shown), 1 the Ally's buttons, 2 online
+//   covers, 3 Epic account, 4 game profiles, 5 accent presets, 6 hue,
+//   7 saturation, 8 brightness.
+
+import { Theme } from "theme.slint";
+import { App } from "state.slint";
+import { Library } from "library.slint";
+import { Logo } from "widgets.slint";
+import { Row, SectionTitle, SettingLine, Swatch, TrackLine } from "kit.slint";
+
+export component SettingsPage inherits Rectangle {
+    // Opens the game profiles.
+    callback open-profiles();
+    in-out property <int> focus-row: 0;
+    property <bool> active: fs.has-focus;
+    property <[{ code: string, name: string }]> languages: [
+        { code: "auto", name: @tr("Automatic") },
+        { code: "en", name: "English" },
+        { code: "fr", name: "Français" },
+        { code: "es", name: "Español" },
+        { code: "de", name: "Deutsch" },
+        { code: "it", name: "Italiano" },
+        { code: "pt", name: "Português" },
+        { code: "nl", name: "Nederlands" },
+        { code: "pl", name: "Polski" },
+        { code: "ru", name: "Русский" },
+        { code: "tr", name: "Türkçe" },
+        { code: "ja", name: "日本語" },
+        { code: "ko", name: "한국어" },
+        { code: "zh_CN", name: "简体中文" },
+    ];
+    property <int> language-index: App.language == "en" ? 1 : App.language == "fr" ? 2 : App.language == "es" ? 3 : App.language == "de" ? 4 : App.language == "it" ? 5 : App.language == "pt" ? 6 : App.language == "nl" ? 7 : App.language == "pl" ? 8 : App.language == "ru" ? 9 : App.language == "tr" ? 10 : App.language == "ja" ? 11 : App.language == "ko" ? 12 : App.language == "zh_CN" ? 13 : 0;
+    // The language shown on the line; A applies it.
+    in-out property <int> language-pick: root.language-index;
+    // The hex code is what gets saved; the colour, what gets drawn.
+    property <[{ hex: string, color: color }]> presets: [
+        { hex: "#ff3d5e", color: #ff3d5e },
+        { hex: "#f97316", color: #f97316 },
+        { hex: "#eab308", color: #eab308 },
+        { hex: "#10b981", color: #10b981 },
+        { hex: "#06b6d4", color: #06b6d4 },
+        { hex: "#3b82f6", color: #3b82f6 },
+        { hex: "#8b5cf6", color: #8b5cf6 },
+        { hex: "#ec4899", color: #ec4899 },
+    ];
+    in-out property <int> preset-col: 0;
+    // Darkest accent the picker allows: below, it no longer reads on the
+    // dark background.
+    property <float> min-value: 0.4;
+
+    function hue(d: int) {
+        // 360° is 0° again: stop just before, so the knob stays right.
+        App.pick-accent-hsv(clamp(Theme.accent-hue + d * 5, 0, 359), Theme.accent-saturation, Theme.accent-value);
+    }
+    function saturation(d: int) {
+        App.pick-accent-hsv(Theme.accent-hue, clamp(Theme.accent-saturation + d * 0.05, 0, 1), Theme.accent-value);
+    }
+    function brightness(d: int) {
+        App.pick-accent-hsv(Theme.accent-hue, Theme.accent-saturation, clamp(Theme.accent-value + d * 0.05, root.min-value, 1));
+    }
+    // Left (-1) or right (1) on the focused line.
+    function side(d: int) {
+        if root.focus-row == 0 {
+            root.language-pick = Math.mod(root.language-pick + d + root.languages.length, root.languages.length);
+        } else if root.focus-row == 1 {
+            App.toggle-ally-buttons();
+        } else if root.focus-row == 2 {
+            App.toggle-online-covers();
+        } else if root.focus-row == 5 {
+            root.preset-col = clamp(root.preset-col + d, 0, root.presets.length - 1);
+        } else if root.focus-row == 6 {
+            root.hue(d);
+        } else if root.focus-row == 7 {
+            root.saturation(d);
+        } else if root.focus-row == 8 {
+            root.brightness(d);
+        }
+    }
+    function activate() {
+        if root.focus-row == 0 {
+            App.set-language(root.languages[root.language-pick].code);
+        } else if root.focus-row == 1 {
+            App.toggle-ally-buttons();
+        } else if root.focus-row == 2 {
+            App.toggle-online-covers();
+        } else if root.focus-row == 3 {
+            if !Library.epic-busy {
+                Library.epic-login();
+            }
+        } else if root.focus-row == 4 {
+            root.open-profiles();
+        } else if root.focus-row == 5 {
+            App.pick-accent(root.presets[root.preset-col].hex);
+        }
+    }
+    function line-focused(r: int) -> bool {
+        root.active && root.focus-row == r
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        key-pressed(event) => {
+            if event.text == Key.UpArrow {
+                root.focus-row = max(0, root.focus-row - 1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.focus-row = min(8, root.focus-row + 1);
+                return accept;
+            }
+            if event.text == Key.LeftArrow {
+                root.side(-1);
+                return accept;
+            }
+            if event.text == Key.RightArrow {
+                root.side(1);
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                root.activate();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    HorizontalLayout {
+        width: parent.width;
+        height: parent.height;
+        spacing: 40px;
+
+        VerticalLayout {
+            horizontal-stretch: 1;
+            preferred-width: 10px;
+            spacing: 2px;
+            alignment: start;
+
+            SectionTitle {
+                height: 36px;
+                x: 16px;
+                text: @tr("General");
+            }
+
+            SettingLine {
+                label: @tr("Language");
+                value: root.languages[root.language-pick].name;
+                focused: root.line-focused(0);
+                clicked => {
+                    root.focus-row = 0;
+                    fs.focus();
+                }
+                step(d) => {
+                    root.focus-row = 0;
+                    root.side(d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                label: @tr("Use the Ally's buttons");
+                value: App.ally-buttons ? @tr("On") : @tr("Off");
+                focused: root.line-focused(1);
+                clicked => {
+                    root.focus-row = 1;
+                    App.toggle-ally-buttons();
+                    fs.focus();
+                }
+                step(d) => {
+                    root.focus-row = 1;
+                    App.toggle-ally-buttons();
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                label: @tr("Download missing covers");
+                value: App.online-covers ? @tr("On") : @tr("Off");
+                focused: root.line-focused(2);
+                clicked => {
+                    root.focus-row = 2;
+                    App.toggle-online-covers();
+                    fs.focus();
+                }
+                step(d) => {
+                    root.focus-row = 2;
+                    App.toggle-online-covers();
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                label: @tr("Epic Games account");
+                value: Library.epic-busy ? "…" : Library.epic-account != "" ? Library.epic-account : @tr("Sign in");
+                chevrons: false;
+                focused: root.line-focused(3);
+                clicked => {
+                    root.focus-row = 3;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                label: @tr("Game profiles");
+                value: App.profiles.length + " ›";
+                chevrons: false;
+                focused: root.line-focused(4);
+                clicked => {
+                    root.focus-row = 4;
+                    root.activate();
+                }
+            }
+        }
+
+        VerticalLayout {
+            horizontal-stretch: 1;
+            preferred-width: 10px;
+            spacing: 2px;
+
+            SectionTitle {
+                height: 36px;
+                x: 16px;
+                text: @tr("Accent colour");
+            }
+
+            Row {
+                height: 64px;
+                border-radius: 10px;
+                focused: root.line-focused(5);
+                HorizontalLayout {
+                    padding-left: 12px;
+                    padding-right: 12px;
+                    alignment: space-between;
+                    for preset[i] in root.presets: VerticalLayout {
+                        alignment: center;
+                        Swatch {
+                            swatch: preset.color;
+                            selected: Theme.accent-hex == preset.hex;
+                            focused: root.line-focused(5) && root.preset-col == i;
+                            clicked => {
+                                root.focus-row = 5;
+                                root.preset-col = i;
+                                App.pick-accent(preset.hex);
+                                fs.focus();
+                            }
+                        }
+                    }
+                }
+            }
+
+            TrackLine {
+                label: @tr("Hue");
+                value: Theme.accent-hue / 360;
+                track: @linear-gradient(90deg, hsv(0, 1, 1) 0%, hsv(60, 1, 1) 16.7%, hsv(120, 1, 1) 33.3%, hsv(180, 1, 1) 50%, hsv(240, 1, 1) 66.7%, hsv(300, 1, 1) 83.3%, hsv(359, 1, 1) 100%);
+                focused: root.line-focused(6);
+                moved(v) => {
+                    root.focus-row = 6;
+                    App.pick-accent-hsv(min(v, 0.999) * 360, Theme.accent-saturation, Theme.accent-value);
+                    fs.focus();
+                }
+            }
+
+            TrackLine {
+                label: @tr("Saturation");
+                value: Theme.accent-saturation;
+                track: @linear-gradient(90deg, hsv(Theme.accent-hue, 0, Theme.accent-value) 0%, hsv(Theme.accent-hue, 1, Theme.accent-value) 100%);
+                focused: root.line-focused(7);
+                moved(v) => {
+                    root.focus-row = 7;
+                    App.pick-accent-hsv(Theme.accent-hue, v, Theme.accent-value);
+                    fs.focus();
+                }
+            }
+
+            TrackLine {
+                label: @tr("Brightness");
+                value: max(0, (Theme.accent-value - root.min-value) / (1 - root.min-value));
+                track: @linear-gradient(90deg, hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value) 0%, hsv(Theme.accent-hue, Theme.accent-saturation, 1) 100%);
+                focused: root.line-focused(8);
+                moved(v) => {
+                    root.focus-row = 8;
+                    App.pick-accent-hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value + v * (1 - root.min-value));
+                    fs.focus();
+                }
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
+            }
+
+            HorizontalLayout {
+                padding-left: 16px;
+                spacing: 12px;
+                VerticalLayout {
+                    alignment: center;
+                    Logo { }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    Text {
+                        text: @tr("Canapé {}", App.version);
+                        color: Theme.text;
+                        font-size: 14px;
+                        font-weight: 600;
+                    }
+
+                    Text {
+                        text: (App.status.connected ? @tr("Service connected") : @tr("Service not connected")) + " · " + (Library.steam-key ? @tr("Steam API key set") : @tr("No Steam API key"));
+                        color: Theme.dim;
+                        font-size: 13px;
+                        overflow: elide;
+                    }
+                }
+            }
+        }
+    }
+}

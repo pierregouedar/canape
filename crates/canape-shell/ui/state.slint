@@ -133,6 +133,11 @@ export global App {
     in property <[int]> refresh-rates;
     // The Ally's own buttons act on Canapé (shell.json).
     in property <bool> ally-buttons;
+    // Time of day, "21:42".
+    in property <string> clock;
+    // Power the auto TDP learned for the game in the foreground, -1 when
+    // none.
+    in property <int> learned-watts: -1;
 
     callback set-mode(string);
     callback change-tdp(int);
@@ -168,6 +173,11 @@ export global App {
     callback save-hardware-profile();
     callback toggle-online-covers();
     callback set-refresh(int);
+    // Next refresh rate the screen offers, wrapping around.
+    callback cycle-refresh();
+    // A page that moves with the arrow keys gained (true) or lost the
+    // focus: the gamepad sends arrows instead of Tab while it has it.
+    callback arrow-focus(bool);
     callback toggle-ally-buttons();
 
     // Shared formatting, translated.

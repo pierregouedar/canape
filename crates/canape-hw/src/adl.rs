@@ -44,9 +44,10 @@ const _: () = assert!(size_of::<PmLogDataOutput>() == 4 + 8 * PMLOG_MAX_SENSORS)
 const _: () = assert!(size_of::<FpsSettingsOutput>() == 36);
 const _: () = assert!(size_of::<FpsSettingsInput>() == 40);
 
-/// Written to turn the limiter "off": above the Ally's 120 Hz screen, so no
-/// cap in practice.
-pub const FPS_LIMIT_OFF: u32 = 240;
+/// Written to turn the limiter "off" when the driver does not report its
+/// range: the top of the range the Ally's driver reports (15..=1000), which
+/// is also the value it ships with.
+pub const FPS_LIMIT_OFF: u32 = 1000;
 
 /// `ADLFPSSettingsOutput` from the ADL SDK.
 #[repr(C)]
@@ -305,22 +306,35 @@ impl Adl {
         )
     }
 
+    /// The top of the driver's limiter range: writing it lifts the cap.
+    /// A lower "high" value such as 240 did not lift it on the Ally: the
+    /// game stayed near 26 FPS until 1000 was written (docs/m5-report.md;
+    /// the game also dropped on its own, so this is to be measured again).
+    fn fps_limit_off(&self) -> i32 {
+        let Some(get) = self.api.fps_settings_get else {
+            return FPS_LIMIT_OFF as i32;
+        };
+        let mut settings = FpsSettingsOutput::default();
+        let code = unsafe { get(self.context, self.adapter, &mut settings) };
+        if code == ADL_OK && settings.ac_maximum > 0 {
+            settings.ac_maximum
+        } else {
+            FPS_LIMIT_OFF as i32
+        }
+    }
+
     /// Caps the frame rate on AC and battery, for every game ("global"
-    /// flag); `None` writes [`FPS_LIMIT_OFF`]. `ulSize` and the reserved
-    /// fields stay at 0, the form of the call known to work.
-    ///
-    /// UNTESTED from session 0: only known to work from the user session.
-    /// PMLog works from the service, FrameMetrics_Start does not
-    /// (docs/m4-report.md). If the driver refuses here, the fallback is to
-    /// make the same call from the shell (session 1), which already loads
-    /// ADL for `arm_frame_metrics`: the shell would apply `status.fps_limit`
-    /// whenever it changes. The error carries the ADL code for the log.
+    /// flag); `None` writes the top of the driver's range (see
+    /// [`Self::fps_limit_off`]). `ulSize` and the reserved fields stay at 0,
+    /// the form of the call known to work. Works from the service: on the
+    /// Ally a cap of 40 written from session 0 held a game at 40.0 FPS.
+    /// The error carries the ADL code for the log.
     pub fn set_fps_limit(&self, fps: Option<u32>) -> Result<(), String> {
         let set = self
             .api
             .fps_settings_set
             .ok_or("no ADL2_FPS_Settings_Set in this driver")?;
-        let fps = fps.unwrap_or(FPS_LIMIT_OFF) as i32;
+        let fps = fps.map_or_else(|| self.fps_limit_off(), |fps| fps as i32);
         let settings = FpsSettingsInput {
             global_settings: 1,
             ac_current: fps,
