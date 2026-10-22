@@ -206,7 +206,10 @@ A single very low second (loading, hitch, autosave) raises power — the game ma
 
 ### Floor release when the load drops
 
-When the smoothed frame rate is above 110 % of the target **and** GPU activity is below 80 %, the load has clearly dropped (menu, lighter scene): the current floor is **removed** and the floor duration goes back to 30 s. Power can then come down by 1 W every 3 s.
+When the smoothed frame rate is above 125 % of the target **and** GPU activity is below 80 %, the load has clearly dropped (menu, lighter scene): the current floor is **removed** and the floor duration goes back to 30 s. Power can then come down by 1 W every 3 s.
+
+> [!NOTE]
+> The threshold was 110 % until M5. On the Ally, with a heavy load and a 40 FPS target, 1 W above the need already gave 113 %: each raise released its own floor and power went 11 ↔ 13 W every 5 to 10 s, never learned ([m5-report.md](m5-report.md)). Test: `steep_game_at_a_low_target_settles`.
 
 When GPU activity is unknown, this release does not happen.
 

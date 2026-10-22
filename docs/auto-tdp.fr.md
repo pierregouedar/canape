@@ -206,7 +206,10 @@ Une seule seconde très basse (chargement, à-coup, sauvegarde) fait monter la p
 
 ### Libération du plancher quand la charge baisse
 
-Quand les FPS lissés dépassent 110 % de l'objectif **et** que l'activité GPU est sous 80 %, la charge a clairement baissé (menu, scène plus légère) : le plancher en cours est **supprimé** et la durée des planchers revient à 30 s. La puissance peut alors redescendre d'1 W toutes les 3 s.
+Quand les FPS lissés dépassent 125 % de l'objectif **et** que l'activité GPU est sous 80 %, la charge a clairement baissé (menu, scène plus légère) : le plancher en cours est **supprimé** et la durée des planchers revient à 30 s. La puissance peut alors redescendre d'1 W toutes les 3 s.
+
+> [!NOTE]
+> Le seuil était de 110 % jusqu'à M5. Sur l'Ally, avec une charge lourde et un objectif de 40 FPS, 1 W au-dessus du besoin donnait déjà 113 % : chaque montée libérait son propre plancher et la puissance faisait 11 ↔ 13 W toutes les 5 à 10 s, sans jamais être apprise ([m5-report.md](m5-report.md)). Test : `steep_game_at_a_low_target_settles`.
 
 Si l'activité GPU est inconnue, cette libération n'a pas lieu.
 

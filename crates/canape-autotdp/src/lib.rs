@@ -56,6 +56,10 @@ impl Default for Config {
 
 /// Ticks without a change after which the wattage counts as settled.
 const SETTLED_TICKS: u32 = 30;
+/// Frame rate, as a multiple of the target, above which an idle GPU means
+/// the load dropped and floors are released. Well above the headroom band:
+/// on a steep game one watt over the need already passes that band.
+const FLOOR_RELEASE_RATIO: f32 = 1.25;
 /// Once over the temperature limit, power stays held until this far below it.
 const THERMAL_HYSTERESIS_C: f32 = 3.0;
 
@@ -188,7 +192,7 @@ impl Controller {
             }
             _ => false,
         };
-        if fps > high && gpu_has_slack {
+        if fps > c.target_fps * FLOOR_RELEASE_RATIO && gpu_has_slack {
             // The load dropped (menu, lighter scene): old floors no longer apply.
             self.floor = None;
             self.floor_hold = c.floor_hold_ticks;
@@ -353,6 +357,32 @@ mod tests {
         assert!(hi - lo <= 3, "watts spread {lo}..={hi}");
         let mean = fps[120..].iter().sum::<f32>() / (fps.len() - 120) as f32;
         assert!(mean >= 57.0, "mean fps {mean}");
+    }
+
+    /// A low target on a steep game: ≈ 3.45 FPS per watt, so one watt over
+    /// what 40 FPS needs already lands above the headroom band. Measured on
+    /// the Ally (heavy WebGL load, 40 FPS target), where it sawed 11–13 W.
+    #[test]
+    fn steep_game_at_a_low_target_settles() {
+        let config = Config {
+            target_fps: 40.0,
+            ..Config::default()
+        };
+        let mut ctl = Controller::new(config, 21);
+        let mut watts = Vec::new();
+        for t in 0..600 {
+            let jitter = 2.0 * ((t as f32) * 0.7).sin();
+            ctl.update(Sample {
+                fps: 3.45 * ctl.watts() as f32 + 0.5 + jitter,
+                gpu_util: Some(0.5),
+                ..Sample::default()
+            });
+            watts.push(ctl.watts());
+        }
+        let settled = &watts[120..];
+        let changes = settled.windows(2).filter(|w| w[0] != w[1]).count();
+        assert!(changes <= 12, "{changes} changes after settling");
+        assert!(ctl.settled_watts().is_some(), "never settled");
     }
 
     #[test]
