@@ -1,7 +1,7 @@
 //! ASUS ATK ACPI interface: device IDs and buffer layouts.
 //!
-//! reimplemented here; no code is copied. The I/O itself lives in
-//! `windows.rs`; everything in this module is plain data, tested on any OS.
+//! The I/O itself lives in `windows.rs`; everything in this module is plain
+//! data, tested on any OS.
 
 use canape_core::{Fan, FanCurve};
 
@@ -28,14 +28,19 @@ pub const PPT_FPPT: u32 = 0x0012_00C1;
 pub const BATTERY_LIMIT: u32 = 0x0012_0057;
 pub const TEMP_CPU: u32 = 0x0012_0094;
 
+/// Fan speed reads, in units of 100 RPM ([`fan_rpm`]). The mid fan read
+/// doubles as its presence test.
 pub const FAN_CPU: u32 = 0x0011_0013;
 pub const FAN_GPU: u32 = 0x0011_0014;
 pub const FAN_MID: u32 = 0x0011_0031;
 
+/// Fan curves, 16 bytes ([`fan_curve_buffer`]).
 pub const FAN_CURVE_CPU: u32 = 0x0011_0024;
 pub const FAN_CURVE_GPU: u32 = 0x0011_0025;
 pub const FAN_CURVE_MID: u32 = 0x0011_0032;
 
+/// The firmware resets the fan curves on a performance mode change: wait
+/// this long after the mode write before writing them again.
 pub const FAN_CURVE_DELAY_MS: u64 = 100;
 
 /// Firmware values for [`PERFORMANCE_MODE`].
@@ -47,6 +52,8 @@ pub mod mode {
 }
 
 /// Mode argument of a fan curve read (DSTS): the firmware swaps silent and
+/// turbo compared with [`PERFORMANCE_MODE`] (mode 1 reads 2, mode 2 reads 1,
+/// anything else 0).
 pub fn fan_curve_mode(performance_mode: u32) -> u32 {
     match performance_mode {
         mode::TURBO => 2,
@@ -93,8 +100,8 @@ pub fn get_buffer(device_id: u32) -> Vec<u8> {
     call_buffer(DSTS, &[device_id, 0])
 }
 
-/// DEVS with a byte payload: `[DEVS][4 + len][device id][payload]`, as
-/// whose length field is 20.
+/// DEVS with a byte payload: `[DEVS][4 + len][device id][payload]`. A fan
+/// curve makes a 28-byte buffer whose length field is 20.
 pub fn set_bytes_buffer(device_id: u32, payload: &[u8]) -> Vec<u8> {
     let mut buffer = Vec::with_capacity(12 + payload.len());
     buffer.extend_from_slice(&DEVS.to_le_bytes());
@@ -110,12 +117,14 @@ pub fn fan_curve_buffer(fan: Fan, curve: &FanCurve) -> Vec<u8> {
 }
 
 /// Reads the firmware's curve for a performance mode: DSTS with the mode as
+/// second argument; the 16 output bytes are the curve.
 pub fn fan_curve_read_buffer(fan: Fan, performance_mode: u32) -> Vec<u8> {
     call_buffer(DSTS, &[fan_curve_id(fan), fan_curve_mode(performance_mode)])
 }
 
-/// the low 16 bits; above 120, or 0 without the presence bit, there is no
-/// reading. The unit is 100 RPM (app/HardwareControl.cs:859-860).
+/// Fan speed from a DSTS output, in RPM: take the result minus the presence
+/// bit, keep the low 16 bits; above 120, or 0 without the presence bit, there
+/// is no reading. The unit is 100 RPM.
 pub fn fan_rpm(output: &[u8; OUTPUT_LEN]) -> Option<u32> {
     let raw = (result(output) as i32).wrapping_sub(PRESENT as i32);
     let speed = raw & 0xFFFF;
@@ -175,7 +184,8 @@ impl Model {
         }
     }
 
-    /// against an ASUS spec yet.
+    /// Sustained power range, in watts, with a 5 W floor; the RC73 values
+    /// are not confirmed against an ASUS spec yet.
     pub fn tdp_range(self) -> (u32, u32) {
         match self {
             Self::Ally | Self::AllyX => (5, 30),

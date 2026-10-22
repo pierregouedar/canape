@@ -121,7 +121,7 @@ pub struct Status {
     pub power_watts: Option<f32>,
     pub cpu_temp_c: Option<f32>,
     pub battery_percent: Option<u8>,
-    /// Other programs that also drive the hardware (Winhanced, Armoury Crate…).
+    /// Other running tools that write the same firmware settings.
     #[serde(default)]
     pub conflicts: Vec<String>,
     /// Foreground program reported by the shell.

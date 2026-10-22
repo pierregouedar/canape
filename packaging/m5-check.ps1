@@ -5,8 +5,9 @@
 
 .DESCRIPTION
   Writes power limits through the service (bench sweep): run it only with
-  the owner's approval, Winhanced paused, and a game (or WebGL Aquarium in
-  full screen) running so the frame rate is measured. Restores the power
+  the owner's approval, any other tool that writes the same firmware
+  settings paused, and a game (or WebGL Aquarium in full screen) running so
+  the frame rate is measured. Restores the power
   state and the accent it found. Does not need elevation.
     powershell -ExecutionPolicy Bypass -File packaging\m5-check.ps1 -Game msedge.exe
 #>
@@ -34,28 +35,28 @@ function Ctl($request) {
 function Status { Ctl @{ type = "get_status" } }
 
 function Check([string]$name, [bool]$ok, [string]$detail) {
-    $mark = if ($ok) { "OK" } else { "ECHEC" }
+    $mark = if ($ok) { "OK" } else { "FAIL" }
     $results.Add("| $name | $mark | $detail |")
     Write-Host ("[{0}] {1} {2}" -f $mark, $name, $detail)
 }
 
 $before = Status
-Write-Host "Statut initial : mode $($before.performance_mode), TDP $($before.tdp_watts), accent $($before.accent)"
+Write-Host "Initial status: mode $($before.performance_mode), TDP $($before.tdp_watts), accent $($before.accent)"
 
 # 1. Telemetry.
 $log = Get-Content "$env:ProgramData\Canape\service.log" -Tail 400 -ErrorAction SilentlyContinue
 $device = ($log | Select-String "device = " | Select-Object -Last 1).Line
-Check "Matériel détecté" ($device -match "ROG Ally") "$device"
+Check "Device detected" ($device -match "ROG Ally") "$device"
 $s = Status
-Check "Consommation réelle (power_watts)" ($null -ne $s.power_watts) "$($s.power_watts) W pour une limite de $($s.tdp_watts) W"
-Check "Activité GPU" ($null -ne $s.gpu_util) "$($s.gpu_util)"
-Check "FPS" ($null -ne $s.fps -and $s.fps -ge 5) "$($s.fps) FPS (un jeu doit tourner)"
+Check "Actual power draw (power_watts)" ($null -ne $s.power_watts) "$($s.power_watts) W for a $($s.tdp_watts) W limit"
+Check "GPU activity" ($null -ne $s.gpu_util) "$($s.gpu_util)"
+Check "FPS" ($null -ne $s.fps -and $s.fps -ge 5) "$($s.fps) FPS (a game must be running)"
 
 # 2. Accent shared through the service.
 $accent = $before.accent
 Ctl @{ type = "set_accent"; color = "#14b8a6" } | Out-Null
 Start-Sleep -Seconds 2
-Check "Accent partagé" ((Status).accent -eq "#14b8a6") "lu : $((Status).accent) (vérifier à l'œil le shell et le widget)"
+Check "Shared accent" ((Status).accent -eq "#14b8a6") "read: $((Status).accent) (check the shell and the widget by eye)"
 if ($accent) { Ctl @{ type = "set_accent"; color = $accent } | Out-Null }
 
 # 3. Game profile.
@@ -66,10 +67,10 @@ $auto.target_fps = 40
 Ctl @{ type = "save_profile"; profile = @{ exe = $Game; auto_tdp = $auto; learned_watts = $null } } | Out-Null
 Ctl @{ type = "foreground_app"; exe = $Game } | Out-Null
 $s = Status
-Check "Profil activé" ($s.active_profile -ieq $Game -and $s.auto_tdp.target_fps -eq 40) "profil $($s.active_profile), objectif $($s.auto_tdp.target_fps)"
+Check "Profile activated" ($s.active_profile -ieq $Game -and $s.auto_tdp.target_fps -eq 40) "profile $($s.active_profile), target $($s.auto_tdp.target_fps)"
 Start-Sleep -Seconds 40
 $learned = ((Ctl @{ type = "list_profiles" }).profiles | Where-Object { $_.exe -ieq $Game }).learned_watts
-Check "TDP appris" ($null -ne $learned) "learned_watts = $learned (exige 30 s sans changement)"
+Check "Learned TDP" ($null -ne $learned) "learned_watts = $learned (needs 30 s without a change)"
 
 # 4. Bench.
 if (-not $SkipBench) {
@@ -78,9 +79,9 @@ if (-not $SkipBench) {
     $deadline = (Get-Date).AddMinutes(3)
     do { Start-Sleep -Seconds 2; $s = Status } while ($s.bench -and (Get-Date) -lt $deadline)
     $report = (Ctl @{ type = "get_bench_report" }).report
-    $points = ($report.points | ForEach-Object { "$($_.watts) W : $([math]::Round($_.fps_avg)) FPS (min $([math]::Round($_.fps_low)))" }) -join ", "
-    Check "Bench terminé" ($report.completed -and $report.points.Count -ge 3) $points
-    Check "État rétabli après le bench" ($null -eq $s.bench -and $s.active_profile -ieq $Game) "TDP $($s.tdp_watts) W, profil $($s.active_profile)"
+    $points = ($report.points | ForEach-Object { "$($_.watts) W: $([math]::Round($_.fps_avg)) FPS (min $([math]::Round($_.fps_low)))" }) -join ", "
+    Check "Bench completed" ($report.completed -and $report.points.Count -ge 3) $points
+    Check "State restored after the bench" ($null -eq $s.bench -and $s.active_profile -ieq $Game) "TDP $($s.tdp_watts) W, profile $($s.active_profile)"
     $report | ConvertTo-Json -Depth 6 | Set-Content "$OutDir\bench.json" -Encoding UTF8
 }
 
@@ -88,9 +89,9 @@ if (-not $SkipBench) {
 foreach ($name in "canape-service", "canape-shell", "CanapeWidget") {
     $p = Get-Process $name -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($p) {
-        Check "Mémoire $name" $true ("{0:N1} Mo privés, {1:N1} Mo de working set" -f ($p.PrivateMemorySize64 / 1MB), ($p.WorkingSet64 / 1MB))
+        Check "Memory $name" $true ("{0:N1} MB private, {1:N1} MB working set" -f ($p.PrivateMemorySize64 / 1MB), ($p.WorkingSet64 / 1MB))
     } else {
-        Check "Mémoire $name" $false "processus absent"
+        Check "Memory $name" $false "process not running"
     }
 }
 
@@ -106,7 +107,7 @@ if ($before.performance_mode -eq "manual" -and $before.tdp_watts) {
 Ctl @{ type = "set_auto_tdp"; settings = $before.auto_tdp } | Out-Null
 Get-Content "$env:ProgramData\Canape\service.log" -Tail 60 | Set-Content "$OutDir\service-tail.log" -Encoding UTF8
 
-$summary = @("| Vérification | Résultat | Détail |", "|---|---|---|") + $results
+$summary = @("| Check | Result | Detail |", "|---|---|---|") + $results
 $summary | Set-Content "$OutDir\results.md" -Encoding UTF8
 Write-Host ""
-Write-Host "Résumé : $OutDir\results.md (bench.json, service-tail.log à côté)"
+Write-Host "Summary: $OutDir\results.md (bench.json, service-tail.log next to it)"

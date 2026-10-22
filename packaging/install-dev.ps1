@@ -101,6 +101,8 @@ $aumid = "$($package.PackageFamilyName)!App"
 Write-Host "Registered $aumid"
 
 if ($SetAsHomeApp) {
+    # Undocumented per-user value read by the full-screen experience: the AUMID
+    # of the app it opens as its home.
     # Elevated PowerShell runs as the same user, so HKCU is the right hive.
     $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration"
     # New-Item -Force would wipe the key's other values (StartupToGamingHome).

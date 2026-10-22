@@ -1,4 +1,5 @@
-//! Other programs that write the same firmware settings as Canape.
+//! Other running tools that write the same firmware settings as Canape,
+//! detected by process name to warn the user.
 
 /// Process name (lowercase) → name shown to the user.
 const KNOWN: &[(&str, &str)] = &[

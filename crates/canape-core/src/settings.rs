@@ -79,10 +79,11 @@ impl Profile {
     }
 }
 
-/// shows "OFF").
+/// Frame rate caps accepted by `set_fps_limit`: from 30 up to the Ally's
+/// 120 Hz screen; above that a cap has no effect.
 pub const FPS_LIMIT_RANGE: (u32, u32) = (30, 120);
 
-/// Mode of the Ally's built-in controller, as the firmware names them
+/// Mode of the Ally's built-in controller, as the firmware names them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ControllerMode {

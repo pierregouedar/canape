@@ -1,7 +1,7 @@
 //! Feature reports to the Ally's controller over HID (Windows only), with
 //! SetupAPI and `hid.dll`. Which interface and which bytes: see `pad.rs`.
 //!
-//! facts, checked only by `cargo check` for Windows.
+//! UNTESTED on the device: checked only by `cargo check` for Windows.
 
 use std::ffi::c_void;
 
@@ -199,7 +199,7 @@ fn interface_paths() -> Vec<Vec<u16>> {
 }
 
 /// Sends `reports` (built for a given length by the closure) to every
-/// (app/USB/AsusHid.cs:127-138). Returns how many interfaces took them.
+/// matching controller interface. Returns how many interfaces took them.
 pub fn write_input(reports: impl Fn(usize) -> Vec<Vec<u8>>) -> Result<usize> {
     let mut written = 0;
     let mut last_error = None;

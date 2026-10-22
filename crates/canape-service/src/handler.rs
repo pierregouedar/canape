@@ -13,6 +13,7 @@ use crate::bench_run::{BenchRun, Reading, Step};
 
 /// Below this frame rate nothing is being played (desktop, idle shell).
 const MIN_GAME_FPS: f32 = 5.0;
+/// Below this GPU activity nothing is being played either.
 const MIN_GAME_GPU: f32 = 0.15;
 
 /// What the service re-applies at startup: the firmware cannot report the

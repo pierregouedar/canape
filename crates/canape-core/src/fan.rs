@@ -23,8 +23,10 @@ impl Fan {
 /// Points per curve.
 pub const POINTS: usize = 8;
 
+/// Accepted point temperatures, in °C.
 pub const TEMP_RANGE: (u8, u8) = (20, 110);
 
+/// Duty is a percentage, 0–100 in the firmware buffer.
 pub const MAX_DUTY: u8 = 100;
 
 /// Safety floor: at or above each temperature, the curve must run the fan
@@ -32,6 +34,8 @@ pub const MAX_DUTY: u8 = 100;
 /// steps; with non-decreasing duties, the duty of the last point at or below
 /// a temperature is a lower bound in both cases ([`FanCurve::duty_at`]).
 ///
+/// The values sit just under ASUS's own Silent curves (28 % CPU / 35 % GPU
+/// from 80 °C,
 /// 34 % / 40 % from 90 °C, 41 % / 45 % at 100 °C): a user curve may be as
 /// quiet as the factory Silent mode, never quieter when hot. So a curve can
 /// never hold 0 % at 90 °C.
@@ -102,9 +106,12 @@ impl FanCurve {
     }
 
     /// A curve read from the firmware (its default for a mode). `None` when
+    /// the buffer is not 16 bytes, is all zero (no curve) or holds values out
+    /// of range.
     ///
-    /// ASUS defaults sometimes repeat a temperature, so a temperature not above
-    /// the previous one is moved to the previous one + 6, capped at 100.
+    /// Makes temperatures increasing: ASUS defaults sometimes repeat a
+    /// temperature, so a temperature not above the previous one is moved to
+    /// the previous one + 6, capped at 100.
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
         if bytes.len() != 2 * POINTS || bytes.iter().all(|&b| b == 0) {
             return None;
@@ -229,6 +236,7 @@ mod tests {
         FanCurve(points)
     }
 
+    /// ASUS's default curves, as bytes.
     const ASUS_DEFAULTS: [[u8; 16]; 6] = [
         // Turbo GPU, CPU.
         [

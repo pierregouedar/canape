@@ -1,7 +1,8 @@
 //! ROG Ally backend (Windows only), on top of the ATK ACPI device.
 //!
-//! Needs the service's LocalSystem rights to open `\\.\ATKACPI`. Armoury
-//! one of them should run.
+//! Needs the service's LocalSystem rights to open `\\.\ATKACPI`. Other
+//! tools that write the same firmware settings must not run at the same
+//! time.
 
 use std::ffi::c_void;
 use std::time::{Duration, Instant};
@@ -200,7 +201,8 @@ impl Device for AllyDevice {
         self.model.tdp_range()
     }
 
-    /// sPPT, then SPL, then fPPT.
+    /// Same value for the three limits, in this order: sPPT, then SPL,
+    /// then fPPT.
     fn set_tdp(&mut self, watts: u32) -> Result<()> {
         let (min, max) = self.tdp_range();
         if !(min..=max).contains(&watts) {
@@ -257,9 +259,11 @@ impl Device for AllyDevice {
         self.adl.as_ref().and_then(Adl::fps)
     }
 
-    /// back to the "fan range" IDs, and if that fails too it writes the mode
-    /// range fallback is for laptops without curves; on the Ally we go
-    /// straight to the reset.
+    /// UNTESTED on the device. The curves are written at least
+    /// [`atk::FAN_CURVE_DELAY_MS`] after the mode. When a write fails, the
+    /// mode is written again to get the firmware's default curves back.
+    /// Laptops without curves have "fan range" IDs as a fallback; the Ally
+    /// does not need them, so a failure goes straight to the reset.
     fn set_fan_curve(&mut self, fan: Fan, curve: &FanCurve) -> Result<()> {
         curve.validate().map_err(HwError::OutOfRange)?;
         if fan == Fan::Mid && self.get(atk::FAN_MID)?.is_none() {
@@ -283,7 +287,8 @@ impl Device for AllyDevice {
         )))
     }
 
-    /// firmware then also applies the mode's power limits.
+    /// Writing the current mode again restores the firmware's default
+    /// curves. The firmware then also applies the mode's power limits.
     fn reset_fan_curves(&mut self) -> Result<()> {
         self.write_mode(self.current_mode())
     }
@@ -301,8 +306,8 @@ impl Device for AllyDevice {
         adl.set_fps_limit(fps).map_err(HwError::Driver)
     }
 
-    /// UNTESTED on the device. The init report once, then the mode command
-    /// writes its button bindings after the mode; Canape keeps the
+    /// UNTESTED on the device. The init report once, then the mode command.
+    /// Button bindings could be written after the mode; Canape keeps the
     /// firmware's.
     fn set_controller_mode(&mut self, mode: ControllerMode) -> Result<()> {
         let init = !self.controller_ready;

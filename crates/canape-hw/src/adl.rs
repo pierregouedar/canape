@@ -1,4 +1,6 @@
 //! AMD Display Library (`atiadlxx.dll`, shipped with the GPU driver): frame
+//! rate and GPU activity of the integrated GPU. Loaded at runtime: no
+//! driver, no telemetry.
 
 use std::ffi::c_void;
 
@@ -12,6 +14,7 @@ const ASIC_INTEGRATED: i32 = 1 << 1;
 const MAX_PATH: usize = 256;
 const PMLOG_MAX_SENSORS: usize = 256;
 const PMLOG_INFO_ACTIVITY_GFX: usize = 19;
+/// Whole-APU power draw, in watts.
 const PMLOG_ASIC_POWER: usize = 23;
 
 /// `AdapterInfo` from the ADL SDK (ANSI strings).
@@ -41,8 +44,11 @@ const _: () = assert!(size_of::<PmLogDataOutput>() == 4 + 8 * PMLOG_MAX_SENSORS)
 const _: () = assert!(size_of::<FpsSettingsOutput>() == 36);
 const _: () = assert!(size_of::<FpsSettingsInput>() == 40);
 
+/// Written to turn the limiter "off": above the Ally's 120 Hz screen, so no
+/// cap in practice.
 pub const FPS_LIMIT_OFF: u32 = 240;
 
+/// `ADLFPSSettingsOutput` from the ADL SDK.
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 struct FpsSettingsOutput {
@@ -57,6 +63,7 @@ struct FpsSettingsOutput {
     dc_minimum: i32,
 }
 
+/// `ADLFPSSettingsInput` from the ADL SDK.
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 struct FpsSettingsInput {
@@ -91,8 +98,8 @@ type FrameMetricsStart = unsafe extern "C" fn(Context, i32, i32) -> i32;
 type FrameMetricsGet = unsafe extern "C" fn(Context, i32, i32, *mut f32) -> i32;
 type PmLogGet = unsafe extern "C" fn(Context, i32, *mut PmLogDataOutput) -> i32;
 type FpsSettingsGet = unsafe extern "C" fn(Context, i32, *mut FpsSettingsOutput) -> i32;
-// app/Gpu/AMD/AmdAdl2.cs:598-599); on x64 that is a pointer to a copy,
-// which Rust's C ABI produces the same way.
+// The ADL SDK passes the input struct by value; on x64 that is a pointer
+// to a copy, which Rust's C ABI produces the same way.
 type FpsSettingsSet = unsafe extern "C" fn(Context, i32, FpsSettingsInput) -> i32;
 
 /// The ADL entry points Canape uses.
@@ -225,6 +232,7 @@ impl Adl {
                     seen.join("; ")
                 )
             })?;
+        // Display source 0. Fails with -1 from
         // session 0 (the service): GPU activity still works there.
         let frame_metrics = unsafe { (api.frame_metrics_start)(context, adapter, 0) };
         Ok(Self {
@@ -280,6 +288,7 @@ impl Adl {
         let Some(get) = self.api.fps_settings_get else {
             return "adl: no ADL2_FPS_Settings_Get in this driver".into();
         };
+        // Zeroed, `ulSize` included.
         let mut settings = FpsSettingsOutput::default();
         let code = unsafe { get(self.context, self.adapter, &mut settings) };
         if code != ADL_OK {
@@ -297,8 +306,10 @@ impl Adl {
     }
 
     /// Caps the frame rate on AC and battery, for every game ("global"
-    /// reserved fields at 0: so do we, to send the exact call known to work.
+    /// flag); `None` writes [`FPS_LIMIT_OFF`]. `ulSize` and the reserved
+    /// fields stay at 0, the form of the call known to work.
     ///
+    /// UNTESTED from session 0: only known to work from the user session.
     /// PMLog works from the service, FrameMetrics_Start does not
     /// (docs/m4-report.md). If the driver refuses here, the fallback is to
     /// make the same call from the shell (session 1), which already loads
