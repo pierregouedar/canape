@@ -438,3 +438,12 @@ msgstr "Wachten op de game"
 
 msgid "Bring the game back to the front: the bench starts on its own."
 msgstr "Ga terug naar de game: de test start vanzelf."
+
+msgid "Waiting for the store…"
+msgstr "Wachten op de winkel…"
+
+msgid "Press A again to install"
+msgstr "Druk nogmaals op A om te installeren"
+
+msgid "Confirm"
+msgstr "Bevestigen"

@@ -438,3 +438,12 @@ msgstr "正在等待游戏"
 
 msgid "Bring the game back to the front: the bench starts on its own."
 msgstr "回到游戏：测试会自动开始。"
+
+msgid "Waiting for the store…"
+msgstr "正在等待商店…"
+
+msgid "Press A again to install"
+msgstr "再按一次 A 进行安装"
+
+msgid "Confirm"
+msgstr "确认"

@@ -209,7 +209,7 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 > [!NOTE]
 > **Nothing in this part has been tried on the Ally yet**: not the Steam owned list through the Web API, not installing through Steam, not the Legendary download, not the Epic sign-in, not installing and launching Epic games through Legendary. Only the UI (on Linux, with the fake library and a simulated install) and the reading of Steam's, Epic's and GitHub's answers (against recorded answers) were tested.
 
-The **To install** shelf lists the games you own on Steam or Epic but have not installed on the console (up or down from Recent brings it to the front). **A** on a game installs it without opening Steam's interface or the Epic launcher; the button and the hint at the bottom of the screen become "Install". A game already installed, from any store (same id or same title), does not show in this list.
+The **To install** shelf lists the games you own on Steam or Epic but have not installed on the console (up or down from Recent brings it to the front). **A**, then **A** again ("Confirm"), installs the game without opening Steam's interface or the Epic launcher: a single press never starts a download; the button and the hint at the bottom of the screen become "Install". A game already installed, from any store (same id or same title), does not show in this list.
 
 **Steam: set up once**
 
@@ -236,7 +236,7 @@ Epic games that install through another store (Ubisoft, EA) are left out: Legend
 | **Steam** | Canapé hands the install to Steam, which starts quietly in the notification area if it was not running. Steam only opens its small install window (folder, shortcuts): confirm it (not checked with the gamepad yet). Steam then downloads in the background. | Read every 2 s from the game's manifest. | The game moves to Recent, which comes back to the front with the game selected: A launches it, through Steam like the others. |
 | **Epic** | Legendary installs the game silently, without a window or questions, into its default folder. | Read from Legendary's output. | The game moves to Recent and launches through Legendary: the Epic launcher is never opened. |
 
-- While installing, the cover shows a progress bar, and the header "Installing… N %" when the game is selected. You can keep moving around and install other games.
+- While installing, the cover shows a progress bar, and the header "Installing… N %" when the game is selected; "Waiting for the store…" until the download starts (Steam's window to confirm, for example). You can keep moving around and install other games.
 - Canapé does not pick the folder nor check the free space: Steam offers them in its window, Legendary uses its default folder.
 - Steam: if the install window is not confirmed, Canapé gives up after 10 minutes ("Steam did not start the download"); an install cancelled in Steam midway gives "cancelled in Steam".
 - On failure, the header shows "<title>: <message>" in yellow, the message in English (`Steam is not installed`, `Legendary is not available`, `legendary: …` with Legendary's last line). It stays until the next install and is also in `shell.log`.

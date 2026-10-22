@@ -221,6 +221,7 @@ export component LibraryPage inherits Rectangle {
     // Scrolled so that two games stay visible before the selected one.
     property <length> scroll: max(0, min((Library.selected - 2) * root.pitch, Library.games.length * root.pitch + 12px - root.width));
     changed sel => {
+        root.armed = "";
         Library.select(self.sel);
     }
 
@@ -232,8 +233,17 @@ export component LibraryPage inherits Rectangle {
             128px / 1phx,
             192px / 1phx);
     }
+    // A game to install takes a second A: a stray press (or a list that
+    // moved under the focus) never starts a download on its own.
+    in-out property <string> armed;
+    changed to-install => {
+        root.armed = "";
+    }
     function act() {
-        if root.has-games {
+        if root.has-games && !root.current.installed && root.current.progress < 0 && root.armed != root.current.id {
+            root.armed = root.current.id;
+        } else if root.has-games {
+            root.armed = "";
             Library.launch(Library.selected);
         } else if root.to-install && !Library.epic-busy {
             Library.epic-login();
@@ -308,7 +318,7 @@ export component LibraryPage inherits Rectangle {
         }
 
         Text {
-            text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : !root.has-games && root.to-install ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress >= 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
+            text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : !root.has-games && root.to-install ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && root.armed == root.current.id ? @tr("Press A again to install") : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
             color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
             font-size: 16px;
             wrap: word-wrap;
@@ -320,7 +330,7 @@ export component LibraryPage inherits Rectangle {
             padding-top: 10px;
             alignment: start;
             PrimaryButton {
-                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : @tr("Install");
+                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : root.armed == root.current.id ? @tr("Confirm") : @tr("Install");
                 clicked => {
                     root.act();
                     fs.focus();
@@ -355,7 +365,7 @@ export component LibraryPage inherits Rectangle {
             animate x { duration: 160ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
             clicked => {
                 if Library.selected == i {
-                    Library.launch(i);
+                    root.act();
                 } else {
                     Library.selected = i;
                 }

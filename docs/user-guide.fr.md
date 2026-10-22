@@ -209,7 +209,7 @@ Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutili
 > [!NOTE]
 > **Rien de cette partie n'a encore été essayé sur l'Ally** : ni la liste des jeux Steam par l'API Web, ni l'installation par Steam, ni le téléchargement de Legendary, ni la connexion Epic, ni l'installation et le lancement des jeux Epic par Legendary. Seuls l'interface (sous Linux, avec la fausse bibliothèque et une installation simulée) et la lecture des réponses de Steam, d'Epic et de GitHub (sur des réponses enregistrées) ont été testées.
 
-L'étagère **À installer** liste les jeux que vous possédez sur Steam ou sur Epic sans les avoir installés sur la console (haut ou bas depuis Récents la fait passer devant). **A** sur un jeu l'installe sans ouvrir l'interface de Steam ni le lanceur Epic ; le bouton et l'aide en bas de l'écran deviennent « Installer ». Un jeu déjà installé, depuis n'importe quelle boutique (même identifiant ou même titre), n'apparaît pas dans cette liste.
+L'étagère **À installer** liste les jeux que vous possédez sur Steam ou sur Epic sans les avoir installés sur la console (haut ou bas depuis Récents la fait passer devant). **A** puis **A** de nouveau (« Confirmer ») installe le jeu sans ouvrir l'interface de Steam ni le lanceur Epic : un appui isolé ne lance jamais de téléchargement ; le bouton et l'aide en bas de l'écran deviennent « Installer ». Un jeu déjà installé, depuis n'importe quelle boutique (même identifiant ou même titre), n'apparaît pas dans cette liste.
 
 **Steam : préparer une fois**
 
@@ -236,7 +236,7 @@ Les jeux Epic qui s'installent par une autre boutique (Ubisoft, EA) sont écart�
 | **Steam** | Canapé confie l'installation à Steam, qui démarre discrètement dans la zone de notification s'il ne tournait pas. Steam n'ouvre que sa petite fenêtre d'installation (dossier, raccourcis) : confirmez-la (pas encore vérifié à la manette). Steam télécharge ensuite en arrière-plan. | Lue toutes les 2 s dans le manifeste du jeu. | Le jeu passe dans Récents, qui revient devant avec le jeu sélectionné : A le lance, par Steam comme les autres. |
 | **Epic** | Legendary installe le jeu en silence, sans fenêtre ni question, dans son dossier par défaut. | Lue dans ce qu'affiche Legendary. | Le jeu passe dans Récents et se lance par Legendary : le lanceur Epic n'est jamais ouvert. |
 
-- Pendant l'installation, la jaquette affiche une barre de progression et le bandeau « Installation… N % » quand le jeu est sélectionné. On peut continuer à naviguer et installer d'autres jeux.
+- Pendant l'installation, la jaquette affiche une barre de progression et le bandeau « Installation… N % » quand le jeu est sélectionné ; « En attente de la boutique… » tant que le téléchargement n'a pas commencé (fenêtre de Steam à valider, par exemple). On peut continuer à naviguer et installer d'autres jeux.
 - Canapé ne choisit pas le dossier et ne vérifie pas l'espace libre : Steam le propose dans sa fenêtre, Legendary prend son dossier par défaut.
 - Steam : si la fenêtre d'installation n'est pas confirmée, Canapé abandonne au bout de 10 minutes (« Steam did not start the download ») ; une installation annulée dans Steam en cours de route donne « cancelled in Steam ».
 - En cas d'échec, le bandeau affiche « <titre> : <message> » en jaune, le message restant en anglais (`Steam is not installed`, `Legendary is not available`, `legendary: …` avec la dernière ligne de Legendary). Il reste affiché jusqu'à la prochaine installation et figure aussi dans `shell.log`.

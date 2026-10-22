@@ -438,3 +438,12 @@ msgstr "Aguardando o jogo"
 
 msgid "Bring the game back to the front: the bench starts on its own."
 msgstr "Volte ao jogo: o teste começa sozinho."
+
+msgid "Waiting for the store…"
+msgstr "Aguardando a loja…"
+
+msgid "Press A again to install"
+msgstr "Pressione A de novo para instalar"
+
+msgid "Confirm"
+msgstr "Confirmar"
