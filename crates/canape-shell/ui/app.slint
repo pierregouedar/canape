@@ -287,7 +287,7 @@ export component AppWindow inherits Window {
                 }
                 Hint {
                     glyph: "A";
-                    text: root.page == 0 ? (Library.mode == 1 ? @tr("Install") : @tr("Play")) : @tr("Choose");
+                    text: root.page == 0 ? (Library.armed != "" ? @tr("Confirm") : Library.mode == 1 ? @tr("Install") : @tr("Play")) : @tr("Choose");
                 }
 
                 if root.page == 1 || root.page == 2 || root.page == 5: Hint {
