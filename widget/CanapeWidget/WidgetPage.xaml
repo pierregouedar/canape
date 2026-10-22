@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     RequestedTheme="Dark"
+    FontFamily="ms-appx:///Assets/Fonts/PlusJakartaSans-Regular.ttf#Plus Jakarta Sans"
     Background="Transparent">
 
     <!-- Every user-visible string comes from Strings\<lang>\Resources.resw:
@@ -67,6 +68,16 @@
             <SolidColorBrush x:Key="DimTextBrush" Color="#8B919B" />
             <SolidColorBrush x:Key="TrackBrush" Color="#26282E" />
             <SolidColorBrush x:Key="KnobBrush" Color="#F4F5F7" />
+
+            <!-- Plus Jakarta Sans, one file per weight: a font URI loads that
+                 file alone, so each weight names its own. Scripts it lacks
+                 fall back to the system fonts. The page sets the regular
+                 weight; buttons take theirs from the theme font. -->
+            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/PlusJakartaSans-Regular.ttf#Plus Jakarta Sans</FontFamily>
+            <FontFamily x:Key="JakartaMedium">ms-appx:///Assets/Fonts/PlusJakartaSans-Medium.ttf#Plus Jakarta Sans</FontFamily>
+            <FontFamily x:Key="JakartaSemiBold">ms-appx:///Assets/Fonts/PlusJakartaSans-SemiBold.ttf#Plus Jakarta Sans</FontFamily>
+            <FontFamily x:Key="JakartaBold">ms-appx:///Assets/Fonts/PlusJakartaSans-Bold.ttf#Plus Jakarta Sans</FontFamily>
+
             <SolidColorBrush x:Key="ReferenceBrush" Color="#6B7280" />
             <SolidColorBrush x:Key="WarningBrush" Color="#FBBF24" />
             <SolidColorBrush x:Key="ErrorBrush" Color="#FCA5A5" />
@@ -80,6 +91,7 @@
 
             <Style x:Key="SectionHeader" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontFamily" Value="{StaticResource JakartaSemiBold}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Foreground" Value="{StaticResource SoftTextBrush}" />
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -88,6 +100,7 @@
 
             <Style x:Key="Figure" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="34" />
+                <Setter Property="FontFamily" Value="{StaticResource JakartaSemiBold}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="LineHeight" Value="36" />
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -115,6 +128,7 @@
 
             <Style x:Key="ModeName" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontFamily" Value="{StaticResource JakartaSemiBold}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -131,6 +145,7 @@
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="CornerRadius" Value="8" />
                 <Setter Property="FontSize" Value="18" />
+                <Setter Property="FontFamily" Value="{StaticResource JakartaSemiBold}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
             </Style>
         </ResourceDictionary>
@@ -157,7 +172,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="GameText" FontSize="17" FontWeight="Bold"
+                    <TextBlock x:Name="GameText" FontSize="17" FontFamily="{StaticResource JakartaBold}" FontWeight="Bold"
                                TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Bottom" />
                     <TextBlock x:Name="ProfileText" Grid.Column="1" Style="{StaticResource Caption}" MaxWidth="160"
                                VerticalAlignment="Bottom" Margin="0,0,0,2" Visibility="Collapsed" />
@@ -172,14 +187,14 @@
                     <StackPanel Spacing="2">
                         <TextBlock x:Uid="PowerCaption" Style="{StaticResource Caption}" />
                         <TextBlock Style="{StaticResource Figure}" Typography.NumeralAlignment="Tabular">
-                            <Run x:Name="PowerValue" Text="—" /><Run x:Name="PowerUnit" FontSize="15" FontWeight="Medium"
+                            <Run x:Name="PowerValue" Text="—" /><Run x:Name="PowerUnit" FontSize="15" FontFamily="{StaticResource JakartaMedium}" FontWeight="Medium"
                                  Foreground="{StaticResource DimTextBrush}" />
                         </TextBlock>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="2">
                         <TextBlock x:Uid="FpsCaption" Style="{StaticResource Caption}" />
                         <TextBlock Style="{StaticResource Figure}" Typography.NumeralAlignment="Tabular">
-                            <Run x:Name="FpsValue" Text="—" /><Run Text=" FPS" FontSize="15" FontWeight="Medium"
+                            <Run x:Name="FpsValue" Text="—" /><Run Text=" FPS" FontSize="15" FontFamily="{StaticResource JakartaMedium}" FontWeight="Medium"
                                  Foreground="{StaticResource DimTextBrush}" />
                         </TextBlock>
                     </StackPanel>
@@ -276,7 +291,7 @@
                         <TextBlock x:Name="StepHint" Style="{StaticResource Caption}" FontSize="11" Visibility="Collapsed" />
                     </StackPanel>
                     <Button x:Name="StepDown" Grid.Column="1" Style="{StaticResource Chevron}" Content="‹" Tag="-1" Click="OnStep" IsEnabled="False" />
-                    <TextBlock x:Name="StepValue" Grid.Column="2" Text="—" FontSize="15" FontWeight="SemiBold"
+                    <TextBlock x:Name="StepValue" Grid.Column="2" Text="—" FontSize="15" FontFamily="{StaticResource JakartaSemiBold}" FontWeight="SemiBold"
                                Foreground="{StaticResource AccentTextBrush}" TextAlignment="Center" VerticalAlignment="Center"
                                Typography.NumeralAlignment="Tabular" />
                     <Button x:Name="StepUp" Grid.Column="3" Style="{StaticResource Chevron}" Content="›" Tag="1" Click="OnStep" IsEnabled="False" />

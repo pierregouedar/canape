@@ -71,6 +71,8 @@
          unplated) for the Game Bar menu and the taskbar. -->
     <Content Include="Assets\*.png" />
     <Content Include="Properties\Default.rd.xml" />
+    <!-- The shell's embedded font, shared rather than copied. -->
+    <Content Include="..\..\crates\canape-shell\ui\fonts\*.ttf" Link="Assets\Fonts\%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
     <!-- UI strings, one folder per language (see widget/README.md). -->

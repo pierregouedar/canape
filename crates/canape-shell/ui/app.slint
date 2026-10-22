@@ -13,6 +13,13 @@ import { PerformancePage } from "performance.slint";
 import { Library, LibraryPage } from "library.slint";
 import { HardwarePage } from "hardware.slint";
 
+// Plus Jakarta Sans, embedded (OFL, see fonts/OFL.txt). Scripts it lacks,
+// such as Cyrillic or CJK, fall back to the system fonts.
+import "fonts/PlusJakartaSans-Regular.ttf";
+import "fonts/PlusJakartaSans-Medium.ttf";
+import "fonts/PlusJakartaSans-SemiBold.ttf";
+import "fonts/PlusJakartaSans-Bold.ttf";
+
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
 export { Library, GameView } from "library.slint";
@@ -71,6 +78,7 @@ component Reading inherits HorizontalLayout {
 export component AppWindow inherits Window {
     title: "Canapé";
     background: Theme.background;
+    default-font-family: "Plus Jakarta Sans";
     // The Ally's 1080p panel at 150 % scaling: 1280x720 logical pixels.
     preferred-width: 1280px;
     preferred-height: 720px;
