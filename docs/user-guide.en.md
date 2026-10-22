@@ -383,14 +383,14 @@ Opened from the **Bench** tile of the Performance page; **B** goes back. The ben
 
 <img src="images/en/bench-running.png" alt="Bench running" width="720">
 
-While the bench runs, the mode, TDP and auto TDP are locked ("a bench is running: cancel it first"); the line becomes **Cancel**, which stops the bench and keeps the steps already measured. On the right: the current step, its power, a progress bar and the time left. At the end, or when cancelled, the service restores the previous state.
+While the bench runs, the mode, TDP and auto TDP are locked ("a bench is running: cancel it first"); the line becomes **Cancel**, which stops the bench and keeps the steps already measured (without replacing the previous complete results for the same game). On the right: the current step, its power, a progress bar and the time left. At the end, or when cancelled, the service restores the previous state.
 
 **Results**: under the settings, for each step, the power, the average FPS, the lowest FPS (the worst second), FPS per watt and the maximum temperature; the sweet spot's column is highlighted. On the right, three recommendations, each with its power and frame rate:
 
 | Line | Meaning |
 |---|---|
 | **Sweet spot** | The lowest power within 5 % of the best result: above it, more watts bring almost nothing. |
-| **For N FPS** | The lowest power that holds the current auto TDP target, on average. "—" if the target was not reached. |
+| **For N FPS** | The lowest power that holds the current auto TDP target, on average. "—" if the target was not reached, or if a cancelled run did not go low enough to tell. |
 | **Most efficient** | The most frames per watt: the most battery-friendly setting. |
 
 On a recommendation, **A** sets the TDP (manual limit at that value, auto TDP off) and **X** saves it in the game's profile (creates or replaces the profile: auto TDP on, target and ceiling taken from the measure). The exact computation is in [Auto TDP and bench](auto-tdp.en.md#the-bench).

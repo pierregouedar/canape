@@ -97,13 +97,18 @@ impl BenchReport {
             .min()
     }
 
-    /// Lowest wattage that holds `fps` on average.
+    /// Lowest wattage that holds `fps` on average. An incomplete run (it
+    /// goes from high to low) only answers when a lower wattage it measured
+    /// missed: otherwise the answer may lie below what it reached.
     pub fn watts_for(&self, fps: f32) -> Option<u32> {
-        self.points
+        let watts = self
+            .points
             .iter()
             .filter(|p| p.fps_avg >= fps)
             .map(|p| p.watts)
-            .min()
+            .min()?;
+        let lowest = self.points.iter().map(|p| p.watts).min()?;
+        (self.completed || watts > lowest).then_some(watts)
     }
 
     /// Best frames per watt: the most battery-friendly setting.
@@ -156,6 +161,23 @@ mod tests {
             ],
             completed: true,
         }
+    }
+
+    #[test]
+    fn an_incomplete_run_does_not_guess_below_what_it_measured() {
+        let mut report = BenchReport {
+            exe: None,
+            started_unix: 0,
+            plan: BenchPlan::default(),
+            points: vec![point(25, 82.0), point(22, 79.0), point(19, 75.0)],
+            completed: false,
+        };
+        // Everything measured holds 40 FPS: lower might too.
+        assert_eq!(report.watts_for(40.0), None);
+        // 19 W misses 78 FPS: 22 W is the answer.
+        assert_eq!(report.watts_for(78.0), Some(22));
+        report.completed = true;
+        assert_eq!(report.watts_for(40.0), Some(19));
     }
 
     #[test]

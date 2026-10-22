@@ -636,7 +636,16 @@ impl Handler {
 
     /// Keeps the report and gives the power back to what ran before.
     fn end_bench(&mut self, run: BenchRun) {
-        self.last_bench = Some(run.into_report());
+        let report = run.into_report();
+        // A cancelled run does not hide a complete one of the same game.
+        let keep_previous = !report.completed
+            && self
+                .last_bench
+                .as_ref()
+                .is_some_and(|last| last.completed && last.exe == report.exe);
+        if !keep_previous {
+            self.last_bench = Some(report);
+        }
         self.dirty = true;
         // Restored as global settings: with the profile still active, the
         // auto TDP part would be written into the profile.
@@ -1154,6 +1163,27 @@ mod tests {
         }
         assert!(h.status().bench.is_none());
         assert!(h.handle(Request::SetTdp { watts: 12 }) == Response::Ok);
+    }
+
+    #[test]
+    fn a_cancelled_run_keeps_the_last_complete_report() {
+        let mut h = handler_with(Some(60.0), Some(0.8));
+        h.tick();
+        h.handle(Request::StartBench { plan: short_plan() });
+        for _ in 0..9 {
+            h.tick();
+        }
+        h.handle(Request::StartBench { plan: short_plan() });
+        h.tick();
+        h.handle(Request::CancelBench);
+        let Response::Bench {
+            report: Some(report),
+        } = h.handle(Request::GetBenchReport)
+        else {
+            panic!("expected a report");
+        };
+        assert!(report.completed);
+        assert_eq!(report.points.len(), 3);
     }
 
     #[test]
