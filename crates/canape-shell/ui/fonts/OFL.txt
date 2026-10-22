@@ -1,7 +1,8 @@
 Copyright 2020 The Plus Jakarta Sans Project Authors (https://github.com/tokotype/PlusJakartaSans)
 
 These fonts are modified versions: the default digits are the tabular
-figures (the font's own tnum glyphs), so changing values keep their width.
+figures (the font's own tnum glyphs), so changing values keep their width,
+and the space is 60 units wider, for word spacing that reads at a distance.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
