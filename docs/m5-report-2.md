@@ -158,6 +158,9 @@ On `eb31756`, with a Steam Web API key added to `shell.json` (not in the reposit
 - The progress on the cover and in the header ("Installation… 0 %", a bar on the cover) was seen only on a second, accidental install (below). Among Us's own download was over before the shell was back in front.
 - **Problem: the focus jumps to the to-install shelf.** After a library refresh (`8 games found`), the focus went back to the first tile of "À installer" (Wallpaper Engine, A = Installer). A press meant for Among Us in Récents therefore started a Wallpaper Engine install. It was cancelled in Steam's dialog before any download.
 - **Problem: a cancelled install keeps showing.** After that cancel, the shell still showed "Installation… 0 %" for Wallpaper Engine.
+- Both fixed in `40ec6cc`, checked on the Ally: one A on a game to install only turns the button into "Confirmer" with "Appuyez de nouveau sur A pour installer" (no log line, no Steam dialog); moving to another tile and back gives "Installer" again. Among Us launched again from Récents with a single A (`steam://rungameid/945360`, 60 FPS in front). The hint at the bottom right still reads "Installer" while the button reads "Confirmer".
+
+![Install asks for a second A](images/ally/install-confirm.png)
 - To consider: on a handheld, the Steam desktop window and its mouse-sized dialog are awkward with the gamepad. Steam's Big Picture would suit the shell better.
 
 ![The to-install shelf after installing Among Us](images/ally/install-steam.png)
