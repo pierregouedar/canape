@@ -60,7 +60,7 @@ flowchart LR
     SHELL <-->|"JSON, one line per message<br/>named pipe canape"| SVC
     WIDGET <-->|"CreateFileFromAppW"| SVC
     CTL <--> SVC
-    SHELL -.->|"FrameMetrics_Start, once"| ADL
+    SHELL -.->|"FrameMetrics_Start"| ADL
     SVC -->|"DEVS / DSTS over IOCTL"| ATK
     SVC -->|"FPS, GPU activity"| ADL
     SVC --- STATE
@@ -703,7 +703,7 @@ The model is read from `HKLM\HARDWARE\DESCRIPTION\System\BIOS\SystemProductName`
 | `ADL2_Adapter_FrameMetrics_Get` | FPS only **after** a successful `Start` from the user session | OK |
 | `ADL2_New_QueryPMLogData_Get`, sensor 19 (GFX activity) | OK | OK |
 
-Hence the fix: at startup the shell calls `canape_hw::arm_frame_metrics()` (a single `FrameMetrics_Start`, an `adl: …` line in `shell.log`); counting is global to the driver, and the service then reads the frame rate. The adapter chosen is the existing integrated AMD iGPU, preferring a `present` one. Detailed diagnosis: [m4-report.md](m4-report.md).
+Hence the fix: at startup the shell opens `canape_hw::FrameMetrics::arm()` (a `FrameMetrics_Start`, an `adl: …` line in `shell.log`); counting is global to the driver, and the service then reads the frame rate. Measured on the Ally (M5, part 2): an exclusive-fullscreen game minimized, then left hidden behind the shell for about forty seconds, is no longer counted when it comes back; restarting the shell brought the frame rate back. So the shell watches the status (`frames.rs`): when a game has been in the foreground without a frame rate for 6 s, it calls `FrameMetrics_Start` again from a fresh ADL handle, at most once every 30 s. The adapter chosen is the existing integrated AMD iGPU, preferring a `present` one. Detailed diagnosis: [m4-report.md](m4-report.md).
 
 > [!WARNING]
 

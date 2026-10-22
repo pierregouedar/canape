@@ -16,6 +16,8 @@ mod buttons;
 mod clock;
 #[cfg(any(windows, test))]
 mod foreground;
+#[cfg(any(windows, test))]
+mod frames;
 #[cfg(windows)]
 mod gamepad;
 mod grid;
@@ -133,7 +135,7 @@ fn main() -> Result<(), slint::PlatformError> {
         gamepad::spawn(ui.as_weak());
         buttons::spawn(ui.as_weak());
         foreground::spawn(link.clone());
-        std::thread::spawn(|| log(&canape_hw::arm_frame_metrics()));
+        frames::spawn(link.clone());
     }
     ui.run()
 }

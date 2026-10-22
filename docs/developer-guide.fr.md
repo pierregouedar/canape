@@ -60,7 +60,7 @@ flowchart LR
     SHELL <-->|"JSON, une ligne par message<br/>named pipe canape"| SVC
     WIDGET <-->|"CreateFileFromAppW"| SVC
     CTL <--> SVC
-    SHELL -.->|"FrameMetrics_Start, une fois"| ADL
+    SHELL -.->|"FrameMetrics_Start"| ADL
     SVC -->|"DEVS / DSTS par IOCTL"| ATK
     SVC -->|"FPS, activité GPU"| ADL
     SVC --- STATE
@@ -703,7 +703,7 @@ Le modèle est lu dans `HKLM\HARDWARE\DESCRIPTION\System\BIOS\SystemProductName`
 | `ADL2_Adapter_FrameMetrics_Get` | FPS seulement **après** un `Start` réussi depuis la session utilisateur | OK |
 | `ADL2_New_QueryPMLogData_Get`, capteur 19 (activité GFX) | OK | OK |
 
-D'où la solution : au démarrage, le shell appelle `canape_hw::arm_frame_metrics()` (un seul `FrameMetrics_Start`, ligne `adl: …` dans `shell.log`) ; le comptage est global au pilote et le service lit ensuite les FPS. L'adaptateur choisi est l'iGPU AMD intégré qui existe, en préférant un adaptateur `present`. Diagnostic détaillé : [m4-report.md](m4-report.md).
+D'où la solution : au démarrage, le shell ouvre `canape_hw::FrameMetrics::arm()` (un `FrameMetrics_Start`, ligne `adl: …` dans `shell.log`) ; le comptage est global au pilote et le service lit ensuite les FPS. Mesuré sur l'Ally (M5, partie 2) : un jeu en plein écran exclusif réduit, puis resté caché derrière le shell une quarantaine de secondes, n'est plus compté quand il revient ; relancer le shell rétablissait les FPS. Le shell surveille donc le statut (`frames.rs`) : quand un jeu est au premier plan sans FPS depuis 6 s, il relance `FrameMetrics_Start` depuis une nouvelle poignée ADL, au plus une fois toutes les 30 s. L'adaptateur choisi est l'iGPU AMD intégré qui existe, en préférant un adaptateur `present`. Diagnostic détaillé : [m4-report.md](m4-report.md).
 
 > [!WARNING]
 

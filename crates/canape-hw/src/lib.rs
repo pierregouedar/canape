@@ -85,14 +85,29 @@ pub trait Device: Send {
     }
 }
 
-/// Starts the AMD driver's frame metrics. Must run in the user session (the
-/// shell): from the service's session 0 the driver refuses, but once started
-/// here it reports FPS to the service too. Returns a line for the log.
+/// The AMD driver's frame metrics, started from the user session (the
+/// shell): from the service's session 0 the driver refuses, but once
+/// started here it reports FPS to the service too.
 #[cfg(windows)]
-pub fn arm_frame_metrics() -> String {
-    match adl::Adl::open() {
-        Ok(adl) => adl.describe(),
-        Err(err) => format!("adl: {err}"),
+pub struct FrameMetrics(adl::Adl);
+
+#[cfg(windows)]
+impl FrameMetrics {
+    pub fn arm() -> std::result::Result<Self, String> {
+        adl::Adl::open().map(Self)
+    }
+
+    /// One line for the log.
+    pub fn describe(&self) -> String {
+        self.0.describe()
+    }
+
+    /// Starts them again from a fresh driver handle, as at startup. The
+    /// driver stops reporting a game that comes back from the background
+    /// after another fullscreen window covered it for a while.
+    pub fn rearm(&mut self) -> std::result::Result<(), String> {
+        self.0 = adl::Adl::open()?;
+        Ok(())
     }
 }
 
