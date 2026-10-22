@@ -5,7 +5,7 @@
 This page explains how Canapé sets the ROG Ally's power on its own: first in a few lines for players, then precisely, with the values from the code (`crates/canape-autotdp`, `crates/canape-service/src/handler.rs`, `crates/canape-core/src/bench.rs`).
 
 > [!IMPORTANT]
-> **Measured on the Ally**: auto TDP as of version `99cad07` (see [Measured results](#measured-results-on-the-ally)). **Not measured yet**: the later optimizations (single-stall filter, floor release, battery ceiling, temperature limit, learned watts), per-game profiles and the bench. They are covered by unit tests and a simulation, not by a real measurement.
+> **Measured on the Ally**: auto TDP as of version `99cad07` (see [Measured results](#measured-results-on-the-ally)). **Not measured yet**: the later optimizations (single-stall filter, floor release, battery ceiling, temperature limit, learned watts), per-game profiles (including their fan curves and frame rate limit) and the bench. They are covered by unit tests and a simulation, not by a real measurement.
 
 ## Contents
 
@@ -27,6 +27,7 @@ This page explains how Canapé sets the ROG Ally's power on its own: first in a 
   - [The "no game" guard](#the-no-game-guard)
   - [Starting point](#starting-point)
 - [Per-game profiles](#per-game-profiles)
+  - [Frame rate limit and auto TDP](#frame-rate-limit-and-auto-tdp)
 - [The bench](#the-bench)
 - [Persistence: `state.json`](#persistence-statejson)
 - [Measured results on the Ally](#measured-results-on-the-ally)
@@ -47,7 +48,7 @@ On top of that you can set a **battery ceiling** and a **temperature limit**, an
 
 **Quick recipe**
 
-1. In the game, cap the frame rate at the target (the game's limiter or vsync).
+1. Cap the frame rate at the target: the game's limiter, vsync, or the **frame rate limit** of the Hardware page.
 2. **Performance** page: turn auto TDP on, pick the target; keep 7 W – 25 W to begin with.
 3. On battery, pick a **maximum on battery** (15 W is a good start).
 4. Once per game: run a **bench** in a demanding scene, then **Save for the game** on the recommendation you like.
@@ -60,12 +61,12 @@ These are the settings you change in the shell or the widget (`AutoTdpSettings`)
 |---|---|---|---|
 | Enabled | no | On / Off | Picking a target also turns it on. |
 | Target FPS | 60 | 30, 40, 45, 60, 90, 120 | What auto TDP tries to hold. |
-| Minimum power | 7 W | 5 to 35 W, 1 W steps | Never below. |
-| Maximum power | 25 W | 5 to 35 W, 1 W steps | Never above. |
+| Minimum power | 7 W | the model's range, 1 W steps | Never below. |
+| Maximum power | 25 W | the model's range, 1 W steps | Never above. |
 | Maximum on battery | none | none, 10, 15, 20 W | A lower ceiling, only on battery. |
 | Temperature limit | none | none, 80, 85, 90 °C | Above it, power only goes down. |
 
-The service brings the minimum and maximum into the detected model's range, without changing the displayed values:
+The service brings the minimum, the maximum and the maximum on battery into the detected model's range: the adjusted values are the ones saved and shown in the shell and the widget. It also reports that range in its status (`tdp_min_watts`, `tdp_max_watts`), and the shell's − / + buttons, like the widget's ±1 W, stay within it (5 to 35 W in the shell when an older service does not report it):
 
 | Model | Code | TDP range |
 |---|---|---|
@@ -251,7 +252,7 @@ The value is brought between the minimum and the maximum and **applied at once**
 
 ## Per-game profiles
 
-A profile ties an executable name (compared case-insensitively) to auto TDP settings and, optionally, to **learned watts**.
+A profile ties an executable name (compared case-insensitively) to auto TDP settings and, optionally, to **learned watts**, **fan curves** and a **frame rate limit** (the last two saved from the shell's Hardware page).
 
 ```mermaid
 sequenceDiagram
@@ -267,12 +268,25 @@ sequenceDiagram
 ```
 
 - **Detection**: the service, in session 0, cannot see windows. The shell tells it which program is in the foreground (see the [user guide](user-guide.en.md#profiles)). After reconnecting to the service, the shell sends the last known program again.
-- **Activation**: when a game that has a profile comes to the foreground, the service remembers the global state (mode, TDP, auto TDP), then applies the profile's auto TDP starting from the learned watts. A profile whose auto TDP is off turns auto TDP off and keeps the current power.
-- **While the profile is active**: changing the target or another auto TDP option changes **the profile**, not the global settings.
-- **End**: when the game leaves the foreground (another program, or the game is closed), the service re-applies the remembered global state. So a mode or manual TDP picked while the profile was active only lasts as long as the game.
+- **Activation**: when a game that has a profile comes to the foreground, the service remembers the global state (mode, TDP, auto TDP, fan curves, frame rate limit), then applies the profile's auto TDP starting from the learned watts. A profile whose auto TDP is off turns auto TDP off and keeps the current power. Then come the profile's fan curves and frame rate limit; what the profile does not set follows the global settings. Only what differs is written.
+- **While the profile is active**: changing the target or another auto TDP option changes **the profile**, not the global settings. Fans and the frame rate limit follow the same rule only if the profile has its own (each one separately); otherwise the change is global and stays after the game.
+- **End**: when the game leaves the foreground (another program, or the game is closed), the service re-applies the remembered global state, fans and frame rate limit included. So a mode or manual TDP picked while the profile was active only lasts as long as the game.
 - **Learned watts**: once the power has not moved for 30 ticks with a game detected, it is saved in the active profile (and in `state.json`). The next session starts right there, instead of starting from the maximum again.
-- **Saving from the shell** (Profiles page): the current auto TDP settings, plus the current power as learned watts if auto TDP is on.
+- **Saving from the shell** (Profiles page): the current auto TDP settings, plus the current power as learned watts if auto TDP is on. The profile's fan curves and frame rate limit are kept.
+- **Saving from the Hardware page** (**Keep fans and limit for this game**): the current fan curves and frame rate limit, the rest of the profile unchanged (or, without a profile, a new one with the current auto TDP settings). Fans on the firmware's curves are saved as such: that game will use them even when a preset is in use elsewhere. No limit is saved as "follow the global limit".
 - **Deleting** the active profile hands back to the global state at once.
+
+### Frame rate limit and auto TDP
+
+The frame rate limit (Hardware page) is a cap in the AMD driver: the game cannot go above it. Auto TDP, for its part, regulates power to reach its **target**. The two must agree:
+
+| Limit vs. target | What happens |
+|---|---|
+| Limit **equal** to the target (for example 60 and 60) | Ideal: the game sits at its cap, and the [idle GPU rule](#the-frame-cap-and-the-idle-gpu-rule) takes back the watts it does not need. |
+| Limit **above** the target (90 and 60) | Auto TDP works as without a limit; the limit only cuts in when the game would run faster anyway, for example a light game at the minimum power. |
+| Limit **below** the target (40 and 60) | To avoid: the frame rate can never reach the target, auto TDP sees a deficit and raises power up to its maximum for nothing. |
+
+The shell recalls this under the limit: "With auto TDP, set its target at or below the limit." Neither the shell nor the service corrects a mismatch.
 
 ## The bench
 
@@ -359,12 +373,13 @@ The profile created by **Save for the game** contains:
 | Minimum power | the smallest of the current minimum, the lowest measured step and the recommended power |
 | Maximum on battery, temperature limit | the current ones |
 | Learned watts | the recommended power |
+| Fan curves, frame rate limit | those of the game's existing profile, if any |
 
 With the example above, **Save for the game** on the sweet spot gives: target 60 FPS, 7 to 19 W, starting at 19 W.
 
 ## Persistence: `state.json`
 
-The firmware cannot report the mode or the limits back. So the service keeps the last state in `%ProgramData%\Canape\state.json` and re-applies it when it starts (profiles and last bench, then mode or TDP, then auto TDP, then the charge limit).
+The firmware cannot report the mode or the limits back. So the service keeps the last state in `%ProgramData%\Canape\state.json` and re-applies it when it starts (profiles and last bench, then mode or TDP, then auto TDP, then fan curves and frame rate limit, then the charge limit and the controller mode).
 
 ```json
 {
@@ -383,10 +398,16 @@ The firmware cannot report the mode or the limits back. So the service keeps the
     {
       "exe": "eldenring.exe",
       "auto_tdp": { "enabled": true, "target_fps": 60, "min_watts": 7, "max_watts": 19, "battery_max_watts": 15, "max_temp_c": 85 },
-      "learned_watts": 16
+      "learned_watts": 16,
+      "fan_curves": { "cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "mid": null },
+      "fps_limit": 60
     }
   ],
-  "last_bench": null
+  "last_bench": null,
+  "accent": "#2563eb",
+  "fan_curves": { "cpu": null, "gpu": null, "mid": null },
+  "fps_limit": null,
+  "controller_mode": "gamepad"
 }
 ```
 
@@ -420,22 +441,20 @@ The optimizations in `fceaf22` target these two defects (a single stall sets no 
 ## Tuning tips
 
 > [!TIP]
-> **Cap the game's frame rate at the target.** An uncapped game hovers around the target; a capped game lets the idle GPU rule take back the watts it does not need.
+> **Cap the game's frame rate at the target.** An uncapped game hovers around the target; a capped game lets the idle GPU rule take back the watts it does not need. The game's own limiter, vsync or the Hardware page's frame rate limit all work; never a limit below the target (see [Frame rate limit and auto TDP](#frame-rate-limit-and-auto-tdp)).
 
 - **Picking the target**: one the game can hold at the maximum power. If the bench says "Target not reached in this run", lower the target. The Ally's screen runs at 120 Hz: 40 or 60 FPS divide it evenly.
 - **Minimum power**: 7 W suits most games. Raise it if a game stutters when the load jumps (climbing 2 W per 2 s takes visible time); lower it towards 5 W for very light games.
 - **Maximum power**: capping it lowers heat and noise. The bench's sweet spot is a good value: past it, watts buy almost nothing.
 - **On battery**: 15 W is a good balance; 10 W for light games.
-- **Temperature limit**: 85 °C leaves some margin. There is no hysteresis: power can climb again as soon as the temperature is back below the limit.
+- **Temperature limit**: 85 °C leaves some margin. Power climbs again only once the temperature is 3 °C below it.
 - **Profiles**: save the profile after a session where auto TDP settled; the next one will start at the learned watts.
 - **Bench**: in a demanding, steady scene (not a menu or a cutscene). Use 30 s per step for games whose frame rate varies a lot.
 - **Check the frame rate** on Home: if it stays at "—", auto TDP does nothing (see [troubleshooting](user-guide.en.md#common-problems)).
 
 ## Known limits
 
-- Everything after `99cad07` (filters, battery ceiling, temperature limit, profiles, learned watts, bench) has not been measured on the Ally yet.
+- Everything after `99cad07` (filters, battery ceiling, temperature limit, profiles, learned watts, bench) has not been measured on the Ally yet. The fan curves and the driver frame rate limit have not even been written to a real Ally yet.
 - The frame rate is the screen's as reported by the AMD driver, not a specific process's.
-- The battery ceiling is only applied on a tick where a game is detected: unplugging on the desktop brings power down to the ceiling on the first game tick.
-- No hysteresis on the temperature limit.
-- Any foreground program counts as a game for profiles and the bench.
+- A game profile cannot force "no frame rate limit" while a global limit is set: a profile saved with None follows the global limit.
 - The ETW fallback (PresentMon's approach) mentioned in [`architecture.md`](architecture.md) is not implemented: without ADL there is no frame rate, so no auto TDP.

@@ -10,8 +10,8 @@ All the project's documentation, in French and English. The milestone reports an
 
 | | 🇫🇷 Français | 🇬🇧 English | Pour qui · For whom |
 |---|---|---|---|
-| 📖 **Utilisation · Usage** | [Guide d'utilisation](user-guide.fr.md) | [User guide](user-guide.en.md) | Installer sur l'Ally, choisir l'accueil du FSE, la bibliothèque de jeux, chaque page du shell, le widget, les langues, le dépannage, la désinstallation · Installing on the Ally, picking the FSE home app, the game library, every shell page, the widget, languages, troubleshooting, uninstalling |
-| 🤖 **Auto TDP** | [Auto TDP et banc d'essai](auto-tdp.fr.md) | [Auto TDP and bench](auto-tdp.en.md) | L'algorithme pas à pas, ses valeurs par défaut, les profils par jeu, le banc d'essai, les mesures, les conseils de réglage · The algorithm step by step, its defaults, per-game profiles, the bench, measurements, tuning tips |
+| 📖 **Utilisation · Usage** | [Guide d'utilisation](user-guide.fr.md) | [User guide](user-guide.en.md) | Installer sur l'Ally, choisir l'accueil du FSE, la bibliothèque de jeux, chaque page du shell (dont Matériel : ventilateurs, limite de FPS, manette), le widget, les langues, le dépannage, la désinstallation · Installing on the Ally, picking the FSE home app, the game library, every shell page (Hardware included: fans, frame rate limit, controller), the widget, languages, troubleshooting, uninstalling |
+| 🤖 **Auto TDP** | [Auto TDP et banc d'essai](auto-tdp.fr.md) | [Auto TDP and bench](auto-tdp.en.md) | L'algorithme pas à pas, ses valeurs par défaut, les profils par jeu (ventilateurs et limite de FPS compris), la limite de FPS face à l'auto TDP, le banc d'essai, les mesures, les conseils de réglage · The algorithm step by step, its defaults, per-game profiles (fans and frame rate limit included), the frame rate limit with auto TDP, the bench, measurements, tuning tips |
 | 🛠️ **Développement · Development** | [Guide du développeur](developer-guide.fr.md) | [Developer guide](developer-guide.en.md) | Architecture, protocole IPC, compilation sous Linux et Windows, CI, empaquetage, widget, traductions, matériel, conventions · Architecture, IPC protocol, building on Linux and Windows, CI, packaging, widget, translations, hardware, conventions |
 
 ## Documents de référence · Reference documents
@@ -43,12 +43,14 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 |---|---|---|
 | [`fr/home.png`](images/fr/home.png) | Accueil | Français |
 | [`fr/performance.png`](images/fr/performance.png) | Performance | Français |
+| [`fr/hardware.png`](images/fr/hardware.png) | Matériel | Français |
 | [`fr/profiles.png`](images/fr/profiles.png) | Profils | Français |
 | [`fr/bench-results.png`](images/fr/bench-results.png) | Banc d'essai (résultats) | Français |
 | [`fr/bench-running.png`](images/fr/bench-running.png) | Banc d'essai en cours | Français |
 | [`fr/settings.png`](images/fr/settings.png) | Réglages (couleur d'accent) | Français |
 | [`en/home.png`](images/en/home.png) | Home | English |
 | [`en/performance.png`](images/en/performance.png) | Performance | English |
+| [`en/hardware.png`](images/en/hardware.png) | Hardware | English |
 | [`en/profiles.png`](images/en/profiles.png) | Profiles | English |
 | [`en/bench-results.png`](images/en/bench-results.png) | Bench (results) | English |
 | [`en/bench-running.png`](images/en/bench-running.png) | Bench running | English |

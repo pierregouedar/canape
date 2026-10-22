@@ -5,7 +5,7 @@
 Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil de l'expérience plein écran (FSE), l'utiliser à la manette, ajouter le widget Xbox Game Bar, puis dépanner et désinstaller.
 
 > [!IMPORTANT]
-> Canapé est un projet personnel en cours de développement. Ce qui a été **validé sur l'Ally** : l'installation, le démarrage en FSE, le service, les modes, le TDP manuel, l'auto TDP (version `99cad07`) et la première version du widget. Ce qui est **écrit et testé sans matériel, mais pas encore essayé sur l'Ally** : le shell à cinq pages en 13 langues, les profils par jeu, le banc d'essai, les dernières optimisations de l'auto TDP et la nouvelle version du widget. Les sections concernées le signalent.
+> Canapé est un projet personnel en cours de développement. Ce qui a été **validé sur l'Ally** : l'installation, le démarrage en FSE, le service, les modes, le TDP manuel, l'auto TDP (version `99cad07`) et la première version du widget. Ce qui est **écrit et testé sans matériel, mais pas encore essayé sur l'Ally** : le shell à sept pages en 13 langues, la bibliothèque de jeux, la page Matériel (ventilateurs, limite de FPS, mode de la manette), les profils par jeu, le banc d'essai, les dernières optimisations de l'auto TDP et la nouvelle version du widget. Les sections concernées le signalent.
 
 ## Sommaire
 
@@ -24,6 +24,7 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
   - [Bibliothèque](#bibliothèque)
   - [Accueil](#accueil)
   - [Performance](#performance)
+  - [Matériel](#matériel)
   - [Profils](#profils)
   - [Banc d'essai](#banc-dessai)
   - [Réglages](#réglages)
@@ -135,13 +136,13 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 ## Utiliser Canapé à la manette
 
 > [!NOTE]
-> Le shell à six pages décrit ici n'a pas encore été essayé sur l'Ally : seules sa version précédente (une page) et la navigation à la manette ont été validées. La bibliothèque de jeux, en particulier, n'a été testée que sous Linux, avec une fausse bibliothèque : la recherche des jeux, leurs jaquettes et leur lancement sous Windows restent à vérifier. Les captures sont rendues sous Linux avec le simulateur matériel et des valeurs fictives ; quelques textes peuvent différer légèrement de la version actuelle.
+> Le shell à sept pages décrit ici n'a pas encore été essayé sur l'Ally : seules sa version précédente (une page) et la navigation à la manette ont été validées. La bibliothèque de jeux, en particulier, n'a été testée que sous Linux, avec une fausse bibliothèque : la recherche des jeux, leurs jaquettes et leur lancement sous Windows restent à vérifier. Même chose pour la page Matériel, dont les écritures vers les ventilateurs, le pilote graphique et la manette n'ont jamais atteint une vraie Ally (voir [Matériel](#matériel)). Les captures sont rendues sous Linux avec le simulateur matériel et des valeurs fictives ; quelques textes peuvent différer légèrement de la version actuelle.
 
 ### Commandes
 
 | Bouton | Action |
 |---|---|
-| **LB / RB** | Page précédente / suivante (Bibliothèque → Accueil → Performance → Profils → Banc d'essai → Réglages, en boucle) |
+| **LB / RB** | Page précédente / suivante (Bibliothèque → Accueil → Performance → Matériel → Profils → Banc d'essai → Réglages, en boucle) |
 | **Croix** ou **stick gauche** | Passer au contrôle suivant (bas, droite) ou précédent (haut, gauche). Dans la bibliothèque, se déplacer dans la grille des jeux dans les quatre directions. Maintenu, le déplacement se répète après 0,4 s. |
 | **A** | Valider le contrôle sélectionné ; dans la bibliothèque, lancer le jeu |
 | **B** | Revenir à la bibliothèque |
@@ -213,7 +214,7 @@ La première page, celle sur laquelle Canapé s'ouvre : les jeux installés sur 
 
 Choisir un mode firmware désactive l'auto TDP.
 
-**TDP manuel** : − / + changent la limite de 1 W. Les boutons sont grisés dans un mode firmware (« Choisissez Manuel pour régler la puissance vous-même »). Changer le TDP à la main désactive l'auto TDP.
+**TDP manuel** : − / + changent la limite de 1 W, dans la plage du modèle détecté par le service (voir plus bas). Les boutons sont grisés dans un mode firmware (« Choisissez Manuel pour régler la puissance vous-même »). Changer le TDP à la main désactive l'auto TDP.
 
 **Auto TDP**
 
@@ -221,7 +222,7 @@ Choisir un mode firmware désactive l'auto TDP.
 |---|---|
 | Activé / Désactivé | Allume ou éteint l'auto TDP. |
 | Objectif d'images par seconde | 30, 40, 45, 60, 90 ou 120. Choisir un objectif **allume aussi** l'auto TDP. |
-| Puissance minimale / maximale | − / + par pas de 1 W. Le minimum ne peut pas dépasser le maximum. L'interface accepte 5 à 35 W ; le service se limite à la plage du modèle (5 à 30 W sur la ROG Ally). |
+| Puissance minimale / maximale | − / + par pas de 1 W. Le minimum ne peut pas dépasser le maximum. Les deux restent dans la plage du modèle que le service a détecté et communique : 5 à 30 W sur les ROG Ally et Ally X, 5 à 35 W sur les ROG Xbox Ally. Sans cette information (service plus ancien), le shell se rabat sur 5 à 35 W et le service ramène quand même les valeurs dans la plage du modèle. |
 | Maximum sur batterie | Aucune, 10, 15 ou 20 W : plafond appliqué seulement sur batterie. |
 | Limite de température | Aucune, 80, 85 ou 90 °C : au-delà, la puissance ne fait que baisser. |
 
@@ -232,14 +233,67 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 > [!TIP]
 > Quand un profil de jeu est actif, ces réglages modifient **le profil**, pas les réglages généraux.
 
+### Matériel
+
+<img src="images/fr/hardware.png" alt="Page Matériel" width="720">
+
+> [!NOTE]
+
+**Ventilateurs**
+
+| Tuile | Courbe (la même pour les ventilateurs CPU et GPU) |
+|---|---|
+| Automatique | La courbe propre au firmware pour le mode d'alimentation en cours. Canapé retire ses courbes. |
+| Silencieux | Ventilateurs arrêtés jusqu'à 45 °C, puis une montée lente : 26 % à 75 °C, 45 % dès 95 °C. |
+| Équilibré | De 10 % à 40 °C jusqu'à 75 % dès 92 °C, proche du comportement équilibré d'ASUS. |
+| Maximum | 35 % dès 30 °C, pleine vitesse dès 80 °C : bruyant, mais le plus frais. |
+
+- Sous les tuiles : la vitesse des ventilateurs CPU et GPU, en tr/min, et la température CPU. « — » quand le firmware ne donne pas de mesure.
+- À droite : la courbe du ventilateur CPU, de 20 à 110 °C en largeur et de 0 à 100 % en hauteur. En Automatique, le cadre indique seulement « La courbe propre au mode d'alimentation ».
+- Un préréglage **résiste aux changements de mode** : le firmware remet ses propres courbes à chaque changement de mode, et le service réécrit le préréglage juste après.
+- **Automatique** réécrit le mode d'alimentation en cours : c'est ainsi que le firmware reprend ses courbes. En Manuel, le service remet ensuite votre TDP.
+- **Sécurité** : chaque courbe est vérifiée avant d'atteindre le firmware. Le ventilateur ne doit jamais ralentir quand la température monte, et il doit tourner à au moins 25 % dès 80 °C, 30 % dès 90 °C et 40 % dès 100 °C, juste sous le mode Silencieux d'ASUS. Une courbe qui laisserait les ventilateurs arrêtés à chaud est refusée. L'APU se bride de lui-même à sa limite de température, mais une courbe trop discrète rend la console chaude en main.
+- **Personnalisé** : quand les courbes en place ne correspondent à aucun préréglage (réglées avec `canape-ctl`, ou un préréglage différent par ventilateur), aucune tuile n'est sélectionnée et la page affiche « Courbes personnalisées définies par un autre client. »
+
+**Limite de FPS**
+
+Aucune, 30, 40, 45, 60, 90 ou 120. Le pilote graphique AMD maintient tous les jeux à ce débit ou en dessous, sur secteur comme sur batterie : moins de chaleur, moins de bruit, plus d'autonomie. **Aucune** retire la limite.
+
+> [!TIP]
+> Avec l'auto TDP, réglez son objectif **au niveau de la limite ou en dessous**. L'auto TDP règle la puissance pour atteindre son objectif : avec une limite à 40 et un objectif à 60, l'objectif n'est jamais atteint et l'auto TDP monterait la puissance au maximum pour rien. Une limite égale à l'objectif est idéale : le jeu reste à son plafond et l'auto TDP rend les watts inutiles (voir [Auto TDP et banc d'essai](auto-tdp.fr.md#le-plafond-de-fps-et-la-règle-du-gpu-au-repos)).
+
+**Ce jeu**
+
+Le programme au premier plan (« Aucun jeu au premier plan » sinon) et le bouton **Garder ventilateurs et limite pour ce jeu**. Il enregistre les courbes et la limite de FPS en cours dans le profil de ce jeu :
+
+- Les autres réglages du profil (auto TDP, watts appris) sont conservés. S'il n'y a pas de profil, il est créé avec les réglages d'auto TDP en cours.
+- **Automatique** s'enregistre aussi : ce jeu tournera alors sur les courbes du firmware, même si un préréglage est utilisé le reste du temps.
+- **Aucune** s'enregistre comme « suivre la limite générale » : un profil ne peut pas imposer « pas de limite » quand une limite générale est réglée.
+- Quand le jeu passe au premier plan, ses courbes et sa limite s'appliquent ; quand il le quitte, celles des réglages généraux reviennent.
+- Pendant le jeu, choisir un préréglage ou une limite modifie **son profil** si ce profil a ses propres ventilateurs (ou sa propre limite) ; sinon, le changement est général et reste après le jeu. Un profil créé depuis la page Profils ou le banc d'essai n'a ni l'un ni l'autre : il suit les ventilateurs et la limite généraux.
+
+**Manette**
+
+| Tuile | Mode de la manette intégrée |
+|---|---|
+| Manette de jeu | Manette Xbox (XInput), pour les jeux. |
+| Clavier | Les sticks et les boutons envoient des touches, pour les jeux qui ne connaissent que le clavier. |
+| Souris | Mode bureau : le stick droit déplace le pointeur. |
+
+Le mode est général (pas par jeu), mémorisé et réappliqué au démarrage du service. Canapé ne le relit pas dans la manette : aucune tuile n'est sélectionnée tant que Canapé ne l'a pas réglé une fois. Seules les manettes des ROG Ally et Ally X sont connues ; sur les ROG Xbox Ally, la requête renvoie une erreur.
+
+> [!WARNING]
+> Canapé lit la manette en XInput. En mode Clavier ou Souris, la manette ne devrait plus se présenter comme une manette Xbox, et Canapé risque de ne plus lui répondre : revenez à **Manette de jeu** avec l'écran tactile, ou avec `canape-ctl` (voir [Dépannage](#canape-ctl--parler-au-service)).
+
 ### Profils
 
 <img src="images/fr/profiles.png" alt="Page Profils" width="720">
 
-Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages d'auto TDP. Quand ce programme passe au premier plan, le service applique le profil ; quand il le quitte, les réglages généraux reviennent.
+Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages d'auto TDP et, si vous les avez enregistrés depuis la page [Matériel](#matériel), à des courbes de ventilateurs et une limite de FPS. Quand ce programme passe au premier plan, le service applique le profil ; quand il le quitte, les réglages généraux reviennent.
 
 - **Jeu en cours** (à gauche) : le programme au premier plan, les réglages qui seront enregistrés (objectif, puissance, maximum sur batterie, limite de température) et le bouton **Enregistrer comme profil** (ou **Mettre à jour le profil**). Le bouton est grisé tant qu'aucun jeu n'est détecté.
   - Si l'auto TDP est actif, la puissance actuelle est aussi enregistrée comme **watts appris** : la prochaine session du jeu démarre directement à cette valeur.
+  - Les courbes de ventilateurs et la limite de FPS déjà présentes dans le profil sont conservées. Cette page ne les affiche pas.
 - **Profils** (à droite) : la liste triée par nom, avec l'objectif, la plage de puissance et les watts appris. Le profil utilisé est surligné (« Utilisé »). **Supprimer** demande une confirmation : un premier appui sur A affiche « Confirmer », un second supprime. Quitter le bouton annule.
 
 > [!NOTE]
@@ -316,13 +370,13 @@ Le widget donne les réglages rapides sans quitter le jeu. Toute la logique rest
 | Tuiles | TDP, FPS, température (légende « Bridé » en jaune quand la limite de température retient la puissance), batterie (légende « Secteur » en vert sur le chargeur). |
 | Banc d'essai | Palier, puissance et temps restant pendant un banc d'essai (lancé depuis le shell). |
 | Modes | Silencieux, Performance, Turbo. |
-| ±1 W | Actif seulement quand le TDP est connu ; grisé en mode firmware (« Fixé par le mode du firmware »). |
+| ±1 W | Actif seulement quand le TDP est connu ; grisé en mode firmware (« Fixé par le mode du firmware »). Reste dans la plage du modèle communiquée par le service. |
 | Auto TDP | Activé / désactivé et objectif 30, 40 ou 60 FPS. Les autres réglages (minimum, maximum, batterie, température) sont conservés tels quels. |
 
-Le widget n'a ni mode Manuel, ni bouton de banc d'essai, ni gestion des profils : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar, et le widget suit la couleur d'accent choisie dans le shell.
+Le widget n'a ni mode Manuel, ni bouton de banc d'essai, ni gestion des profils, ni réglage des ventilateurs, de la limite de FPS ou de la manette : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar, et le widget suit la couleur d'accent choisie dans le shell.
 
 > [!NOTE]
-> La **première version** du widget a été validée sur l'Ally (M3) via Win+G sur le bureau. La **version actuelle** (13 langues, nouveau style, ±1 W désactivé en mode firmware) n'a pas encore été compilée. L'ouverture depuis le bouton Xbox dans le FSE, avec Canapé comme accueil, n'a pas encore été testée.
+> La **première version** du widget a été validée sur l'Ally (M3) via Win+G sur le bureau. La **version actuelle** (13 langues, nouveau style, ±1 W désactivé en mode firmware et borné par la plage du modèle) n'a pas encore été compilée. L'ouverture depuis le bouton Xbox dans le FSE, avec Canapé comme accueil, n'a pas encore été testée.
 
 ## Langues
 
@@ -352,7 +406,7 @@ Canapé est traduit en 13 langues :
 - Les messages d'erreur renvoyés par le service restent en anglais, précédés d'un texte traduit.
 
 
-Ces programmes écrivent les mêmes limites de puissance dans le firmware : si deux d'entre eux tournent, le dernier qui écrit gagne, et l'auto TDP de Canapé peut être annulé sans prévenir.
+Ces programmes écrivent les mêmes limites de puissance dans le firmware, et certains aussi les courbes de ventilateurs, la limite de FPS du pilote ou le mode de la manette : si deux d'entre eux tournent, le dernier qui écrit gagne, et l'auto TDP ou le préréglage de ventilateurs de Canapé peuvent être annulés sans prévenir.
 
 Toutes les 5 secondes, le service cherche ces processus et affiche un avertissement jaune dans le shell (et dans le widget) :
 
@@ -375,7 +429,7 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | Fichier | Contenu |
 |---|---|
 | `%ProgramData%\Canape\service.log` | Journal du service : modèle détecté, état d'ADL au démarrage, chaque commande qui modifie l'état et sa réponse (`SetTdp { watts: 12 } -> Ok`), programmes en conflit, erreurs. |
-| `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, limite de charge, profils, dernier banc d'essai. |
+| `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS, limite de charge, mode de la manette, profils, dernier banc d'essai. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Journal du shell : démarrages (avec leurs arguments), langue choisie, état d'ADL, erreurs du service. |
 | `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell (langue). |
 | `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |
@@ -407,6 +461,9 @@ Exemples (écrits ici sous forme lisible ; échappez les guillemets dans PowerSh
 | `{"type":"set_tdp","watts":12}` | TDP manuel (désactive l'auto TDP) |
 | `{"type":"set_auto_tdp","settings":{"enabled":true,"target_fps":60,"min_watts":7,"max_watts":25}}` | Auto TDP |
 | `{"type":"set_battery_charge_limit","percent":80}` | Limite de charge de la batterie (40 à 100 %) |
+| `{"type":"reset_fan_curves"}` | Ventilateurs rendus aux courbes du firmware (Automatique) |
+| `{"type":"set_fps_limit","fps":null}` | Retire la limite de FPS (ou `"fps":40` pour une limite, de 30 à 120) |
+| `{"type":"set_controller_mode","mode":"gamepad"}` | Manette remise en mode manette de jeu (`wasd`, `mouse`) |
 | `{"type":"list_profiles"}` | Profils enregistrés |
 | `{"type":"get_bench_report"}` | Dernier banc d'essai |
 | `{"type":"cancel_bench"}` | Annule le banc d'essai en cours |
@@ -423,6 +480,9 @@ Le code de sortie vaut 0 si le service a répondu sans erreur, 1 sinon. La liste
 | Le TDP affiche « Auto » et −/+ sont grisés | Un mode firmware (Silencieux, Performance, Turbo) est actif : le firmware ne communique pas ses limites. Choisissez **Manuel**. |
 | L'auto TDP ne bouge pas | Il n'agit que si un jeu tourne : au moins 5 FPS **et** au moins 15 % d'activité GPU. Sur le bureau ou dans un menu immobile, il garde la valeur actuelle. |
 | La puissance change toute seule | Un autre outil pilote le matériel (avertissement jaune), ou un profil de jeu vient de s'appliquer (« Profil utilisé » sur l'Accueil). |
+| Les ventilateurs ou la limite de FPS changent tout seuls | Un profil de jeu avec ses propres ventilateurs ou sa propre limite vient de s'appliquer ou de se terminer, ou un autre outil les a réécrits (avertissement jaune). |
+| « Erreur du service : GPU driver refused: ADL2_FPS_Settings_Set… (session 0) » sur la limite de FPS | Le pilote AMD refuse la limite depuis le service. Ce cas n'a pas encore été essayé : notez le message (il figure aussi dans `service.log`) et signalez-le. |
+| La manette ne fait plus bouger dans Canapé après avoir choisi Clavier ou Souris | Normal : la manette ne se comporte plus comme une manette Xbox. Touchez **Manette de jeu** sur l'écran, ou envoyez `{"type":"set_controller_mode","mode":"gamepad"}` avec `canape-ctl`. |
 | Canapé n'est pas proposé dans Paramètres → Jeux | Relancez `install-dev.ps1 -SetAsHomeApp`. Vérifiez que le paquet est installé : `Get-AppxPackage -Name Canape`. |
 | `Developer Mode is off` | Activez le mode développeur (voir [plus haut](#1-activer-le-mode-développeur)). |
 | `makeappx.exe not found` | Installez le Windows SDK avec les Build Tools. |
@@ -433,7 +493,7 @@ Pour repartir de zéro côté réglages : arrêtez le service, supprimez `%Progr
 
 ## Désinstaller
 
-Il n'y a pas encore de script de désinstallation. Dans un Terminal administrateur :
+Il n'y a pas encore de script de désinstallation. D'abord, sur la page **Matériel**, remettez les ventilateurs en **Automatique**, la limite de FPS sur **Aucune** et la manette en **Manette de jeu** : une fois le service parti, plus rien ne les annulera. Ensuite, dans un Terminal administrateur :
 
 1. **Choisir un autre accueil** dans Paramètres → Jeux → Expérience plein écran (voir [Revenir à Winhanced ou à l'app Xbox](#revenir-à-winhanced-ou-à-lapp-xbox)).
 2. **Retirer le service** :

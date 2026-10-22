@@ -5,7 +5,7 @@
 Cette page explique comment Canapé règle tout seul la puissance de la ROG Ally : d'abord en quelques lignes pour les joueurs, puis précisément, avec les valeurs du code (`crates/canape-autotdp`, `crates/canape-service/src/handler.rs`, `crates/canape-core/src/bench.rs`).
 
 > [!IMPORTANT]
-> **Ce qui a été mesuré sur l'Ally** : l'auto TDP de la version `99cad07` (voir [Résultats mesurés](#résultats-mesurés-sur-lally)). **Ce qui ne l'a pas encore été** : les optimisations suivantes (filtre de l'à-coup isolé, libération du plancher, plafond sur batterie, limite de température, watts appris), les profils par jeu et le banc d'essai. Ils sont couverts par des tests unitaires et une simulation, pas par une mesure réelle.
+> **Ce qui a été mesuré sur l'Ally** : l'auto TDP de la version `99cad07` (voir [Résultats mesurés](#résultats-mesurés-sur-lally)). **Ce qui ne l'a pas encore été** : les optimisations suivantes (filtre de l'à-coup isolé, libération du plancher, plafond sur batterie, limite de température, watts appris), les profils par jeu (y compris leurs courbes de ventilateurs et leur limite de FPS) et le banc d'essai. Ils sont couverts par des tests unitaires et une simulation, pas par une mesure réelle.
 
 ## Sommaire
 
@@ -27,6 +27,7 @@ Cette page explique comment Canapé règle tout seul la puissance de la ROG Ally
   - [Garde « pas de jeu »](#garde--pas-de-jeu-)
   - [Point de départ](#point-de-départ)
 - [Profils par jeu](#profils-par-jeu)
+  - [Limite de FPS et auto TDP](#limite-de-fps-et-auto-tdp)
 - [Le banc d'essai](#le-banc-dessai)
 - [Persistance : `state.json`](#persistance--statejson)
 - [Résultats mesurés sur l'Ally](#résultats-mesurés-sur-lally)
@@ -47,7 +48,7 @@ Par-dessus, vous pouvez fixer un **plafond sur batterie** et une **limite de tem
 
 **Recette rapide**
 
-1. Dans le jeu, limitez les FPS à l'objectif (limiteur du jeu ou synchronisation verticale).
+1. Limitez les FPS à l'objectif : limiteur du jeu, synchronisation verticale ou **limite de FPS** de la page Matériel.
 2. Page **Performance** : activez l'auto TDP, choisissez l'objectif ; gardez 7 W – 25 W au début.
 3. Sur batterie, choisissez un **maximum sur batterie** (15 W est un bon départ).
 4. Une fois par jeu : lancez un **banc d'essai** dans une scène exigeante, puis **Profil du jeu** sur la recommandation qui vous convient.
@@ -60,12 +61,12 @@ Ces réglages sont ceux que vous changez dans le shell ou le widget (`AutoTdpSet
 |---|---|---|---|
 | Activé | non | Activé / Désactivé | Choisir un objectif l'active aussi. |
 | Objectif FPS | 60 | 30, 40, 45, 60, 90, 120 | Ce que l'auto TDP cherche à tenir. |
-| Puissance minimale | 7 W | 5 à 35 W, pas de 1 W | Jamais en dessous. |
-| Puissance maximale | 25 W | 5 à 35 W, pas de 1 W | Jamais au-dessus. |
+| Puissance minimale | 7 W | la plage du modèle, pas de 1 W | Jamais en dessous. |
+| Puissance maximale | 25 W | la plage du modèle, pas de 1 W | Jamais au-dessus. |
 | Maximum sur batterie | aucun | aucun, 10, 15, 20 W | Plafond plus bas, seulement sur batterie. |
 | Limite de température | aucune | aucune, 80, 85, 90 °C | Au-delà, la puissance ne fait que baisser. |
 
-Le service ramène le minimum et le maximum dans la plage du modèle détecté, sans modifier les valeurs affichées :
+Le service ramène le minimum, le maximum et le maximum sur batterie dans la plage du modèle détecté : ce sont les valeurs corrigées qui sont enregistrées et affichées dans le shell et le widget. Il communique aussi cette plage dans son statut (`tdp_min_watts`, `tdp_max_watts`), et les boutons − / + du shell, comme le ±1 W du widget, restent dedans (5 à 35 W dans le shell quand un service plus ancien ne la communique pas) :
 
 | Modèle | Code | Plage de TDP |
 |---|---|---|
@@ -251,7 +252,7 @@ La valeur est ramenée entre le minimum et le maximum et **appliquée tout de su
 
 ## Profils par jeu
 
-Un profil associe un nom d'exécutable (comparé sans tenir compte de la casse) à des réglages d'auto TDP et, éventuellement, à des **watts appris**.
+Un profil associe un nom d'exécutable (comparé sans tenir compte de la casse) à des réglages d'auto TDP et, éventuellement, à des **watts appris**, des **courbes de ventilateurs** et une **limite de FPS** (ces deux dernières enregistrées depuis la page Matériel du shell).
 
 ```mermaid
 sequenceDiagram
@@ -267,12 +268,25 @@ sequenceDiagram
 ```
 
 - **Détection** : le service, en session 0, ne voit pas les fenêtres. Le shell lui signale le programme au premier plan (voir le [guide d'utilisation](user-guide.fr.md#profils)). Après une reconnexion au service, le shell renvoie le dernier programme connu.
-- **Activation** : quand un jeu qui a un profil arrive au premier plan, le service mémorise l'état général (mode, TDP, auto TDP), puis applique l'auto TDP du profil en partant des watts appris. Un profil dont l'auto TDP est désactivé coupe l'auto TDP et garde la puissance actuelle.
-- **Pendant le profil** : changer l'objectif ou une autre option de l'auto TDP modifie **le profil**, pas les réglages généraux.
-- **Fin** : quand le jeu quitte le premier plan (autre programme, ou jeu fermé), le service réapplique l'état général mémorisé. Un mode ou un TDP manuel choisi pendant le profil ne dure donc que le temps du jeu.
+- **Activation** : quand un jeu qui a un profil arrive au premier plan, le service mémorise l'état général (mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS), puis applique l'auto TDP du profil en partant des watts appris. Un profil dont l'auto TDP est désactivé coupe l'auto TDP et garde la puissance actuelle. Viennent ensuite les courbes de ventilateurs et la limite de FPS du profil ; ce que le profil ne fixe pas suit les réglages généraux. Seul ce qui change est écrit.
+- **Pendant le profil** : changer l'objectif ou une autre option de l'auto TDP modifie **le profil**, pas les réglages généraux. Les ventilateurs et la limite de FPS suivent la même règle seulement si le profil a les siens (chacun séparément) ; sinon, le changement est général et reste après le jeu.
+- **Fin** : quand le jeu quitte le premier plan (autre programme, ou jeu fermé), le service réapplique l'état général mémorisé, ventilateurs et limite de FPS compris. Un mode ou un TDP manuel choisi pendant le profil ne dure donc que le temps du jeu.
 - **Watts appris** : quand la puissance n'a pas bougé pendant 30 ticks avec un jeu détecté, elle est enregistrée dans le profil actif (et dans `state.json`). La prochaine session commence directement là, sans repartir du maximum.
-- **Enregistrer depuis le shell** (page Profils) : les réglages d'auto TDP en cours, plus la puissance actuelle comme watts appris si l'auto TDP est actif.
+- **Enregistrer depuis le shell** (page Profils) : les réglages d'auto TDP en cours, plus la puissance actuelle comme watts appris si l'auto TDP est actif. Les courbes de ventilateurs et la limite de FPS du profil sont conservées.
+- **Enregistrer depuis la page Matériel** (**Garder ventilateurs et limite pour ce jeu**) : les courbes de ventilateurs et la limite de FPS en cours, le reste du profil inchangé (ou, sans profil, un nouveau avec les réglages d'auto TDP en cours). Des ventilateurs sur les courbes du firmware sont enregistrés tels quels : ce jeu les retrouvera même si un préréglage est utilisé ailleurs. L'absence de limite s'enregistre comme « suivre la limite générale ».
 - **Supprimer** le profil actif rend aussitôt la main à l'état général.
+
+### Limite de FPS et auto TDP
+
+La limite de FPS (page Matériel) est un plafond posé dans le pilote AMD : le jeu ne peut pas aller au-delà. L'auto TDP, lui, règle la puissance pour atteindre son **objectif**. Les deux doivent s'accorder :
+
+| Limite et objectif | Ce qui se passe |
+|---|---|
+| Limite **égale** à l'objectif (par exemple 60 et 60) | L'idéal : le jeu reste à son plafond, et la [règle du GPU au repos](#le-plafond-de-fps-et-la-règle-du-gpu-au-repos) rend les watts inutiles. |
+| Limite **au-dessus** de l'objectif (90 et 60) | L'auto TDP fonctionne comme sans limite ; la limite n'intervient que si le jeu irait plus vite de toute façon, par exemple un jeu léger à la puissance minimale. |
+| Limite **sous** l'objectif (40 et 60) | À éviter : les FPS ne peuvent jamais atteindre l'objectif, l'auto TDP voit un manque et monte la puissance jusqu'à son maximum pour rien. |
+
+Le shell le rappelle sous la limite : « Avec l'auto TDP, réglez son objectif au niveau de la limite ou en dessous. » Ni le shell ni le service ne corrigent un désaccord.
 
 ## Le banc d'essai
 
@@ -359,12 +373,13 @@ Le profil créé par **Profil du jeu** contient :
 | Puissance minimale | la plus petite du minimum actuel, du plus bas palier mesuré et de la puissance recommandée |
 | Maximum sur batterie, limite de température | ceux en cours |
 | Watts appris | la puissance recommandée |
+| Courbes de ventilateurs, limite de FPS | celles du profil existant du jeu, s'il y en a un |
 
 Avec l'exemple ci-dessus, **Profil du jeu** sur le meilleur compromis donne : objectif 60 FPS, 7 à 19 W, départ à 19 W.
 
 ## Persistance : `state.json`
 
-Le firmware ne sait pas relire le mode ni les limites. Le service garde donc le dernier état dans `%ProgramData%\Canape\state.json` et le réapplique à son démarrage (profils et dernier banc d'essai, puis mode ou TDP, puis auto TDP, puis limite de charge).
+Le firmware ne sait pas relire le mode ni les limites. Le service garde donc le dernier état dans `%ProgramData%\Canape\state.json` et le réapplique à son démarrage (profils et dernier banc d'essai, puis mode ou TDP, puis auto TDP, puis courbes de ventilateurs et limite de FPS, puis limite de charge et mode de la manette).
 
 ```json
 {
@@ -383,10 +398,16 @@ Le firmware ne sait pas relire le mode ni les limites. Le service garde donc le 
     {
       "exe": "eldenring.exe",
       "auto_tdp": { "enabled": true, "target_fps": 60, "min_watts": 7, "max_watts": 19, "battery_max_watts": 15, "max_temp_c": 85 },
-      "learned_watts": 16
+      "learned_watts": 16,
+      "fan_curves": { "cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "mid": null },
+      "fps_limit": 60
     }
   ],
-  "last_bench": null
+  "last_bench": null,
+  "accent": "#2563eb",
+  "fan_curves": { "cpu": null, "gpu": null, "mid": null },
+  "fps_limit": null,
+  "controller_mode": "gamepad"
 }
 ```
 
@@ -420,22 +441,20 @@ Les optimisations de `fceaf22` visent ces deux défauts (à-coup isolé sans pla
 ## Conseils de réglage
 
 > [!TIP]
-> **Limitez les FPS du jeu à l'objectif.** Un jeu non limité oscille autour de l'objectif ; un jeu limité permet à la règle du GPU au repos de rendre les watts inutiles.
+> **Limitez les FPS du jeu à l'objectif.** Un jeu non limité oscille autour de l'objectif ; un jeu limité permet à la règle du GPU au repos de rendre les watts inutiles. Le limiteur du jeu, la synchronisation verticale ou la limite de FPS de la page Matériel conviennent ; jamais une limite sous l'objectif (voir [Limite de FPS et auto TDP](#limite-de-fps-et-auto-tdp)).
 
 - **Choisir l'objectif** : un objectif que le jeu peut tenir à la puissance maximale. Si le banc d'essai affiche « Objectif non atteint pendant cet essai », baissez l'objectif. L'écran de l'Ally est en 120 Hz : 40 ou 60 FPS se divisent bien.
 - **Puissance minimale** : 7 W convient à la plupart des jeux. Remontez-la si un jeu saccade quand la charge augmente d'un coup (le temps de remonter de 2 W par 2 s se voit) ; baissez-la vers 5 W pour les jeux très légers.
 - **Puissance maximale** : la limiter réduit la chaleur et le bruit. Le meilleur compromis du banc d'essai est une bonne valeur : au-delà, les watts ne servent presque plus.
 - **Sur batterie** : 15 W est un bon équilibre ; 10 W pour les jeux légers.
-- **Limite de température** : 85 °C laisse de la marge. Il n'y a pas d'hystérésis : la puissance peut remonter dès que la température repasse sous la limite.
+- **Limite de température** : 85 °C laisse de la marge. La puissance ne remonte qu'une fois la température redescendue 3 °C sous la limite.
 - **Profils** : enregistrez le profil après une session où l'auto TDP s'est stabilisé ; la suivante démarrera aux watts appris.
 - **Banc d'essai** : dans une scène exigeante et stable (pas un menu ni une cinématique). Prenez 30 s par palier pour les jeux dont les FPS varient beaucoup.
 - **Vérifiez les FPS** sur l'Accueil : s'ils restent à « — », l'auto TDP ne fait rien (voir le [dépannage](user-guide.fr.md#problèmes-courants)).
 
 ## Limites connues
 
-- Tout ce qui suit `99cad07` (filtres, plafond sur batterie, limite de température, profils, watts appris, banc d'essai) n'a pas encore été mesuré sur l'Ally.
+- Tout ce qui suit `99cad07` (filtres, plafond sur batterie, limite de température, profils, watts appris, banc d'essai) n'a pas encore été mesuré sur l'Ally. Les courbes de ventilateurs et la limite de FPS du pilote n'ont même jamais été écrites sur une vraie Ally.
 - Les FPS sont ceux de l'écran rapportés par le pilote AMD, pas ceux d'un processus précis.
-- Le plafond sur batterie n'est appliqué que lors d'un tick où un jeu est détecté : si l'on débranche sur le bureau, la puissance descend au plafond au premier tick de jeu.
-- Pas d'hystérésis sur la limite de température.
-- N'importe quel programme au premier plan compte comme un jeu pour les profils et le banc d'essai.
+- Un profil de jeu ne peut pas imposer « aucune limite de FPS » quand une limite globale est fixée : un profil enregistré avec Aucune suit la limite globale.
 - Le secours par ETW (principe de PresentMon) évoqué dans [`architecture.md`](architecture.md) n'est pas implémenté : sans ADL, pas de FPS, donc pas d'auto TDP.

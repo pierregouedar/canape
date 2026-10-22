@@ -68,9 +68,11 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 |---|---|---|
 | Mode de performance, limites de puissance (sPPT, SPL, fPPT), limite de charge, température CPU | Firmware ASUS via `\\.\ATKACPI` (IOCTL `0x0022240C`, méthodes DEVS/DSTS) | M2 |
 | Batterie (pourcentage) | `GetSystemPowerStatus` | M2 |
-| Courbes de ventilateurs | ATKACPI `0x00110024`/`0x00110025` (8 températures + 8 % de PWM) | M6 |
+| Courbes et vitesses des ventilateurs | ATKACPI `0x00110024`/`0x00110025` (8 températures + 8 % de PWM, `0x00110032` pour un ventilateur central), vitesses `0x00110013`/`0x00110014` | M6 : code écrit (service et page Matériel), à valider sur l'Ally |
+| Limite de FPS | AMD ADL (`ADL2_FPS_Settings_Set`), depuis le service | M6 : code écrit, à valider sur l'Ally (session 0 non essayée) |
+| Mode de la manette | HID ASUS (VID `0x0B05`, rapport `0x5A`, commande `0xD1 0x01`) | M6 : code écrit, à valider sur l'Ally |
 | Fréquence de l'écran | `ChangeDisplaySettingsEx` sur l'écran interne | M6 |
-| Mode de la manette, boutons spéciaux | HID ASUS (VID `0x0B05`, rapport `0x5A`) | M6 |
+| Boutons spéciaux | HID ASUS (VID `0x0B05`, rapport `0x5A`) | M6 |
 
 
 
@@ -83,7 +85,7 @@ Boucle d'environ une seconde dans le service :
    - FPS sous la cible (au-delà d'une marge) → on monte le TDP ;
    - FPS au-dessus de la cible avec de la marge → on baisse le TDP par petits pas ;
    - un délai minimal entre deux changements évite les oscillations.
-3. **Action** : nouvelle limite de puissance via `canape-hw`, bornée par le modèle (par exemple 7 à 30 W).
+3. **Action** : nouvelle limite de puissance via `canape-hw`, bornée par le modèle (par exemple 5 à 30 W sur la ROG Ally).
 
 L'algorithme est une fonction pure, testée sans matériel. Les paramètres (cible, bornes, pas) sont réglables par profil de jeu.
 
@@ -109,8 +111,8 @@ Le service mémorise les derniers réglages appliqués (`%ProgramData%\Canape\st
 | M2.5 ✅ | État persistant et réappliqué au démarrage, journal des écritures, détection des programmes concurrents, rendu logiciel, manette en XInput direct, CI Windows |
 | M3 ✅ | Widget Game Bar (C# UWP) relié au service par le pipe (voir `m3-report.md`) |
 | M4 ✅ | Auto TDP en conditions réelles : FPS et charge GPU via AMD ADL (voir `m4-report.md`) |
-| M5 🚧 | Interface en 5 pages et 13 langues, profils par jeu, TDP appris, bench, plafond batterie, limite de température |
-| M6 | Bibliothèque de jeux, ventilateurs, fréquence de l'écran, manette (HID) |
+| M5 🚧 | Interface en 7 pages et 13 langues, profils par jeu, TDP appris, bench, plafond batterie, limite de température : code écrit, essais sur l'Ally à faire (vérifications automatisées : `packaging/m5-check.ps1`) |
+| M6 🚧 | Bibliothèque de jeux, ventilateurs, limite de FPS et mode de la manette (HID) : code écrit dans le service et le shell (page Matériel, profils par jeu), testé seulement avec le simulateur, à valider sur l'Ally avec les essais M5. Restent la fréquence de l'écran et les boutons spéciaux |
 
 ## Questions ouvertes
 

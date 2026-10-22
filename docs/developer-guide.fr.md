@@ -10,6 +10,7 @@ Ce guide décrit l'architecture de Canapé, le protocole entre ses composants, l
   - [Processus, sessions et niveaux d'intégrité](#processus-sessions-et-niveaux-dintégrité)
   - [Crates](#crates)
   - [La bibliothèque de jeux](#la-bibliothèque-de-jeux)
+  - [La page Matériel](#la-page-matériel)
   - [Le service de l'intérieur](#le-service-de-lintérieur)
 - [Protocole IPC](#protocole-ipc)
   - [Transport](#transport)
@@ -114,7 +115,7 @@ flowchart BT
 | `canape-ipc` | bibliothèque | Une `Connection` qui envoie et reçoit des lignes JSON ; named pipe sous Windows, socket Unix ailleurs ; ACL du pipe | `lib.rs`, `windows.rs`, `unix.rs`, `acl.rs` |
 | `canape-service` | binaire | Service Windows : état, auto TDP, profils, banc d'essai, détection des conflits, serveur IPC, persistance | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
 | `canape-library` | bibliothèque | Jeux installés : recherche Steam, Epic, GOG et Xbox, fusion et tri, décodage des jaquettes, lancement, fichiers de cache. Analyseurs purs testés sous Linux ; les parties Windows (registre, lecteurs, `ShellExecuteW`) derrière `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
-| `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : 6 pages, la bibliothèque de jeux en premier, graphes de puissance et de GPU en direct, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `library.rs`, `grid.rs`, `ui/*.slint`, `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
+| `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : 7 pages (Bibliothèque, Accueil, Performance, Matériel, Profils, Banc d'essai, Réglages), graphes de puissance et de GPU en direct, préréglages et courbe des ventilateurs, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `library.rs`, `grid.rs`, `hardware.rs`, `ui/*.slint` (un fichier par grande page : `library.slint`, `hardware.slint` ; les autres dans `pages.slint`), `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
 | `canape-ctl` | binaire | Envoie une requête JSON, ou `watch` pour suivre le statut ; `--pretty` indente le JSON | `main.rs` |
 
 Le shell dépend de `canape-hw` sous Windows uniquement pour `arm_frame_metrics()` (démarrer le comptage des images du pilote AMD depuis la session utilisateur) ; il n'écrit jamais dans le firmware.
@@ -140,6 +141,24 @@ Le shell dépend de `canape-hw` sous Windows uniquement pour `arm_frame_metrics(
 > **Pas encore essayé sous Windows.** Tout ce qui précède compile pour `x86_64-pc-windows-msvc` et les analyseurs sont testés sous Linux sur des fixtures (`crates/canape-library/tests/fixtures`), mais la lecture du registre, Steam / Epic / GOG sur une vraie machine, `ShellExecuteW` depuis le FSE et toute la partie Xbox (écrite d'après les formats documentés, sans jeu Xbox pour essayer) restent à vérifier sur l'Ally. Limite connue : les jeux de l'app Xbox installés hors d'un dossier `XboxGames` (dans `WindowsApps`) ne sont pas trouvés.
 
 **Fausse bibliothèque pour le développement** : dans un build de debug, `CANAPE_LIBRARY_FIXTURE=<dossier>` remplace les vraies boutiques par `<dossier>/steam` (un dossier Steam), `<dossier>/epic` (manifestes), `<dossier>/gog.json` (un tableau JSON de `{"key": …, "values": {"gameName": …, "exe": …}}`, comme le registre) et `<dossier>/xbox` (un dossier `XboxGames`). Rien n'est lancé (le lancement est seulement affiché), et les fichiers de cache deviennent `library-fixture.json` et `recent-fixture.json`. Les builds release ignorent la variable.
+
+### La page Matériel
+
+La page 3 (`ui/hardware.slint`) ne fait qu'envoyer des requêtes : le service valide et écrit, et la page se redessine au statut suivant.
+
+| Contrôle | Callback (`main.rs`) | Requête |
+|---|---|---|
+| Tuiles des ventilateurs | `set-fan-preset(key)` | `""` (Automatique) : `reset_fan_curves` ; `silent`, `balanced`, `max-cooling` : un `set_fan_curve` par ventilateur, CPU puis GPU, avec `FanPreset::curve()` (`canape-core/src/fan.rs`) |
+| Pastilles de la limite de FPS | `set-fps-limit(fps)` | `set_fps_limit`, `0` → `null` (Aucune) ; pastilles 30, 40, 45, 60, 90, 120 |
+| Garder ventilateurs et limite pour ce jeu | `save-hardware-profile()` | `save_profile` pour `status.foreground` : le profil existant (ou un nouveau avec `status.auto_tdp`) avec `fan_curves: Some(status.fan_curves)` (un ensemble vide veut dire « les courbes du firmware » pour ce jeu) et `fps_limit: status.fps_limit` |
+| Tuiles de la manette | `set-controller(mode)` | `set_controller_mode` |
+
+- `hardware.rs` : `preset_name()` traduit `status.fan_curves` en tuile sélectionnée : `""` si vide (courbes du firmware), la clé d'un préréglage si chaque courbe personnalisée lui est égale, `custom` sinon. `curve_paths()` transforme la courbe du CPU en commandes `Path` de la ligne et de l'aire du cadre (viewbox 90 × 100 : une unité par °C de 20 à 110 °C, une par pour cent), prolongée à plat avant le premier point et après le dernier. Les deux sont couvertes par des tests unitaires.
+- `link.rs` (`status_view`) : `cpu_fan_rpm` / `gpu_fan_rpm` (−1 si inconnus), le nom du préréglage, les chemins de la courbe du CPU (vides sans courbe CPU personnalisée), `fps_limit` (0 pour aucune) et `controller_mode` (`""` tant que Canapé ne l'a pas réglé, donc aucune tuile sélectionnée). `tdp_floor()` / `tdp_ceiling()` lisent `tdp_min_watts` / `tdp_max_watts` (repli sur `MIN_WATTS` 5 et `MAX_WATTS` 35 dans `main.rs`) et bornent tous les réglages de puissance du shell.
+- La page Profils et le bouton **Profil du jeu** du banc d'essai conservent les `fan_curves` et `fps_limit` d'un profil existant.
+
+> [!WARNING]
+> Toutes les écritures derrière cette page sont **non testées sur l'appareil** (voir [Notes sur le matériel](#notes-sur-le-matériel)). La page et son câblage ne sont testés qu'avec `MockDevice`.
 
 ### Le service de l'intérieur
 
@@ -484,7 +503,7 @@ DISPLAY=:99 import -window root docs/images/fr/performance.png   # ImageMagick
 - Préparez l'état avec `canape-ctl` (profils, premier plan, accent, banc d'essai) avant de lancer le shell. Un banc d'essai court (`settle_secs` 1, `measure_secs` 2) remplit la page de résultats en 20 s environ.
 - Les graphes gardent la dernière minute **dans le shell** : laissez-le tourner au moins 60 s pendant que le TDP change (le simulateur consomme 90 % de la limite, avec un GPU fixe à 70 %), sinon les courbes sont plates ou courtes.
 - Le shell n'est à instance unique que sous Windows : sous Linux, un écran Xvfb par shell permet de capturer plusieurs pages à la fois.
-- Fichiers : `docs/images/<langue>/<page>.png` (`home`, `performance`, `profiles`, `bench-results`, `bench-running`, `settings`), `docs/images/accent-<couleur>.png` pour les variantes d'accent. Optimisez avec `pngquant` puis `optipng`.
+- Fichiers : `docs/images/<langue>/<page>.png` (`home`, `performance`, `hardware`, `profiles`, `bench-results`, `bench-running`, `settings` ; pas encore de `library`), `docs/images/accent-<couleur>.png` pour les variantes d'accent. Optimisez avec `pngquant` puis `optipng`.
 - Un `shell.json` ou un `state.json` resté dans `<tmp>/Canape/` change ce qui s'affiche : utilisez un `TMPDIR` dédié pour des captures reproductibles.
 
 ## Compiler et tester sous Windows
