@@ -21,6 +21,7 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
 - [Utiliser Canapé à la manette](#utiliser-canapé-à-la-manette)
   - [Commandes](#commandes)
   - [Éléments communs](#éléments-communs)
+  - [Bibliothèque](#bibliothèque)
   - [Accueil](#accueil)
   - [Performance](#performance)
   - [Profils](#profils)
@@ -134,24 +135,51 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 ## Utiliser Canapé à la manette
 
 > [!NOTE]
-> Le shell à cinq pages décrit ici n'a pas encore été essayé sur l'Ally : seules sa version précédente (une page) et la navigation à la manette ont été validées. Les captures sont rendues sous Linux avec le simulateur matériel et des valeurs fictives ; quelques textes peuvent différer légèrement de la version actuelle.
+> Le shell à six pages décrit ici n'a pas encore été essayé sur l'Ally : seules sa version précédente (une page) et la navigation à la manette ont été validées. La bibliothèque de jeux, en particulier, n'a été testée que sous Linux, avec une fausse bibliothèque : la recherche des jeux, leurs jaquettes et leur lancement sous Windows restent à vérifier. Les captures sont rendues sous Linux avec le simulateur matériel et des valeurs fictives ; quelques textes peuvent différer légèrement de la version actuelle.
 
 ### Commandes
 
 | Bouton | Action |
 |---|---|
-| **LB / RB** | Page précédente / suivante (Accueil → Performance → Profils → Banc d'essai → Réglages, en boucle) |
-| **Croix** ou **stick gauche** | Passer au contrôle suivant (bas, droite) ou précédent (haut, gauche). Maintenu, le déplacement se répète après 0,4 s. |
-| **A** | Valider le contrôle sélectionné |
-| **B** | Revenir à l'Accueil |
+| **LB / RB** | Page précédente / suivante (Bibliothèque → Accueil → Performance → Profils → Banc d'essai → Réglages, en boucle) |
+| **Croix** ou **stick gauche** | Passer au contrôle suivant (bas, droite) ou précédent (haut, gauche). Dans la bibliothèque, se déplacer dans la grille des jeux dans les quatre directions. Maintenu, le déplacement se répète après 0,4 s. |
+| **A** | Valider le contrôle sélectionné ; dans la bibliothèque, lancer le jeu |
+| **B** | Revenir à la bibliothèque |
 
-La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé depuis Canapé garde toute la manette. Le contrôle sélectionné est entouré de blanc. Au clavier (développement), les mêmes actions passent par Tab / Maj+Tab, Entrée, Échap et Page préc. / Page suiv.
+La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé depuis Canapé garde toute la manette. Le contrôle sélectionné est entouré de blanc. Au clavier (développement), les mêmes actions passent par Tab / Maj+Tab (les flèches dans la bibliothèque), Entrée, Échap et Page préc. / Page suiv.
 
 ### Éléments communs
 
 - **En haut** : les onglets (l'onglet courant est souligné de la couleur d'accent), la batterie (avec un éclair sur secteur) et la mention « Hors ligne » quand le service ne répond pas.
 - **En bas** : les aides de la manette et, à droite, le résultat de la dernière commande (« Profil enregistré », « Service injoignable », « Erreur du service : … »). Les messages d'erreur du service restent en anglais.
 - Une valeur inconnue s'affiche « — » (par exemple les FPS quand aucun jeu ne tourne).
+
+### Bibliothèque
+
+La première page, celle sur laquelle Canapé s'ouvre : les jeux installés sur la console, en jaquettes, les derniers joués en premier.
+
+| Zone | Contenu |
+|---|---|
+| **En haut à gauche** | Le jeu sélectionné : son titre, sa boutique (en toutes lettres : STEAM, EPIC, GOG, XBOX) et quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…). « Lancement… » après A. |
+| **Filtres** | Tous, Steam, Epic, GOG, Xbox, puis l'ordre : Récents (derniers joués d'abord, puis par nom) ou A–Z. |
+| **Grille** | Six jaquettes par rangée. La jaquette sélectionnée est agrandie et entourée de blanc. Sous Tous, chaque jaquette indique sa boutique en bas à gauche. Un jeu sans image affiche son titre sur une carte teintée de la couleur d'accent. |
+
+**Se déplacer** : la croix (ou le stick) se déplace dans la grille ; vers le bas depuis une rangée au-dessus d'une dernière rangée plus courte, on arrive sur le dernier jeu. Vers le haut depuis la première rangée, on atteint les filtres : gauche et droite en choisissent un, **A** l'applique, bas revient aux jeux. **A** sur un jeu le lance ; Canapé affiche « Lancement… » quelques secondes, puis place le jeu en tête de liste. La page défile d'elle-même pour garder la rangée sélectionnée en haut.
+
+**D'où viennent les jeux**
+
+| Boutique | Ce que lit Canapé | Lancement | Jaquettes |
+|---|---|---|---|
+| **Steam** | Les dossiers de bibliothèque (`steamapps\libraryfolders.vdf`) et le manifeste de chaque jeu (`appmanifest_*.acf`). Les outils (redistribuables Steamworks, Proton, SteamVR) sont écartés. | Par Steam (`steam://rungameid/…`) | Le cache de Steam : l'image choisie dans Steam, sinon le portrait 600×900, sinon l'image « hero » ou l'en-tête (affichés en entier, sur un fond flouté) |
+| **Epic Games** | Les manifestes du lanceur (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, moteurs et installations inachevées sont écartés. | Par le lanceur Epic | Aucune (carte titre) |
+| **GOG** | Le registre (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), où GOG Galaxy et les installateurs hors ligne inscrivent chaque jeu. Les DLC sont écartés. | L'exécutable du jeu directement, sans Galaxy | Aucune (carte titre) |
+| **App Xbox** | Les dossiers `XboxGames` de chaque lecteur (`Content\MicrosoftGame.config`). | Par Windows (`shell:AppsFolder\…`) | Le logo carré du jeu |
+
+- La date de dernière partie vient de Steam pour les jeux Steam, et de Canapé pour tout jeu lancé depuis Canapé.
+- Un jeu installé depuis deux boutiques n'apparaît qu'une fois : la copie jouée en dernier, sinon celle de Steam, puis GOG, Epic et Xbox.
+- La liste s'affiche tout de suite depuis la dernière recherche ; une nouvelle recherche tourne en arrière-plan à chaque démarrage, et de nouveau quand on revient à la bibliothèque après plus d'une minute ailleurs. Un jeu installé entre-temps apparaît alors.
+- Les jeux de l'app Xbox installés hors d'un dossier `XboxGames` ne sont pas trouvés.
+- Canapé lance les jeux lui-même, sans droits particuliers : comme n'importe quelle app de la session.
 
 ### Accueil
 
@@ -350,6 +378,8 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, limite de charge, profils, dernier banc d'essai. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Journal du shell : démarrages (avec leurs arguments), langue choisie, état d'ADL, erreurs du service. |
 | `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell (langue). |
+| `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |
+| `%LOCALAPPDATA%\Canape\recent.json` | Quand chaque jeu a été lancé depuis Canapé pour la dernière fois (pour l'ordre « Récents »). |
 
 Chaque ligne commence par l'heure en secondes Unix.
 

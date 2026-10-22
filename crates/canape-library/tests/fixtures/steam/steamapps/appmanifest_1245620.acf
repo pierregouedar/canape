@@ -1,0 +1,25 @@
+"AppState"
+{
+	"appid"		"1245620"
+	"universe"		"1"
+	"LauncherPath"		"C:\\Program Files (x86)\\Steam\\steam.exe"
+	"name"		"ELDEN RING"
+	"StateFlags"		"4"
+	"installdir"		"ELDEN RING"
+	"LastUpdated"		"1790000000"
+	"LastPlayed"		"1792500000"
+	"SizeOnDisk"		"50310212345"
+	"buildid"		"15209817"
+	"InstalledDepots"
+	{
+		"1245621"
+		{
+			"manifest"		"4419311306358713812"
+			"size"		"50310212345"
+		}
+	}
+	"UserConfig"
+	{
+		"language"		"french"
+	}
+}

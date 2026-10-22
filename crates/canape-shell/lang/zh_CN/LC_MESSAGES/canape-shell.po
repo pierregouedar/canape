@@ -309,8 +309,8 @@ msgstr "为 ROG Ally 打造的轻量主机风格主页。硬件由 Canapé 服�
 msgid "Service connected"
 msgstr "服务已连接"
 
-msgid "Back to Home"
-msgstr "返回主页"
+msgid "Back to the library"
+msgstr "返回游戏库"
 
 msgid "Move (D-pad or left stick)"
 msgstr "移动（方向键或左摇杆）"
@@ -369,3 +369,53 @@ msgstr "在滑块上按 A 即可调整。"
 
 msgid "Move with the D-pad or the stick, then press A to finish."
 msgstr "用十字键或摇杆调整，按 A 完成。"
+
+# Library page
+
+msgid "Library"
+msgstr "游戏库"
+
+msgid "Play"
+msgstr "开始游戏"
+
+msgid "All"
+msgstr "全部"
+
+msgid "Recent"
+msgstr "最近"
+
+msgid "A–Z"
+msgstr "按名称"
+
+msgid "Played today"
+msgstr "今天玩过"
+
+msgid "Played yesterday"
+msgstr "昨天玩过"
+
+msgid "Played in the last 7 days"
+msgstr "最近 7 天玩过"
+
+msgid "Played in the last 30 days"
+msgstr "最近 30 天玩过"
+
+msgid "Played more than a month ago"
+msgstr "一个多月前玩过"
+
+msgid "Launching…"
+msgstr "正在启动…"
+
+msgid "Could not launch {}"
+msgstr "无法启动 {}"
+
+msgid "Looking for games…"
+msgstr "正在查找游戏…"
+
+msgid "No games found"
+msgstr "未找到游戏"
+
+msgid "No games from this store"
+msgstr "此商店没有游戏"
+
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
+msgstr "Canapé 会显示通过 Steam、Epic Games Launcher、GOG Galaxy 和 Xbox 应用安装的游戏。"

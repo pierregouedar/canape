@@ -1,0 +1,26 @@
+[package]
+name = "canape-library"
+description = "Installed games (Steam, Epic, GOG, Xbox): scanning, covers, launching"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+# Cover decoding: Steam caches JPEG, Xbox games ship PNG logos. Both are
+# pure Rust and already in the lock file through Slint's build tools.
+png = "0.18"
+zune-jpeg = "0.5"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Com",
+    "Win32_System_Registry",
+    "Win32_System_Time",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }

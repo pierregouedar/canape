@@ -1,0 +1,8 @@
+{
+	"DisplayName": "Fortnite - Save the World",
+	"CatalogNamespace": "fn",
+	"CatalogItemId": "09176f4ff7564bbbb499bbe20bd6348f",
+	"AppName": "Fortnite_StW",
+	"MainGameAppName": "Fortnite",
+	"AppCategories": ["public", "games", "addons"]
+}

@@ -21,6 +21,7 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
 - [Using Canapé with the gamepad](#using-canapé-with-the-gamepad)
   - [Controls](#controls)
   - [Shared elements](#shared-elements)
+  - [Library](#library)
   - [Home](#home)
   - [Performance](#performance)
   - [Profiles](#profiles)
@@ -134,24 +135,51 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 ## Using Canapé with the gamepad
 
 > [!NOTE]
-> The five-page shell described here has not been tried on the Ally yet: only its previous (single-page) version and gamepad navigation were validated. Screenshots are rendered on Linux with the hardware simulator and made-up values; a few texts may differ slightly from the current version.
+> The six-page shell described here has not been tried on the Ally yet: only its previous (single-page) version and gamepad navigation were validated. The game library in particular was only tested on Linux, with a fake library: finding the games, their covers and launching them on Windows are still to be checked. Screenshots are rendered on Linux with the hardware simulator and made-up values; a few texts may differ slightly from the current version.
 
 ### Controls
 
 | Button | Action |
 |---|---|
-| **LB / RB** | Previous / next page (Home → Performance → Profiles → Bench → Settings, wrapping around) |
-| **D-pad** or **left stick** | Move to the next control (down, right) or the previous one (up, left). Held, the move repeats after 0.4 s. |
-| **A** | Select the focused control |
-| **B** | Back to Home |
+| **LB / RB** | Previous / next page (Library → Home → Performance → Profiles → Bench → Settings, wrapping around) |
+| **D-pad** or **left stick** | Move to the next control (down, right) or the previous one (up, left). In the library, moves in the grid of games in all four directions. Held, the move repeats after 0.4 s. |
+| **A** | Select the focused control; in the library, launch the game |
+| **B** | Back to the library |
 
-The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. The focused control has a white outline. On a keyboard (development), the same actions are Tab / Shift+Tab, Enter, Esc and Page Up / Page Down.
+The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. The focused control has a white outline. On a keyboard (development), the same actions are Tab / Shift+Tab (the arrow keys in the library), Enter, Esc and Page Up / Page Down.
 
 ### Shared elements
 
 - **Top**: the tabs (the current one is underlined in the accent colour), the battery (with a bolt when plugged in) and the word "Offline" when the service does not answer.
 - **Bottom**: gamepad hints and, on the right, the outcome of the last command ("Profile saved", "Service unreachable", "Service error: …"). Error messages from the service stay in English.
 - An unknown value shows as "—" (for example the frame rate when no game is running).
+
+### Library
+
+The first page, the one Canapé opens on: the games installed on the console, as covers, the most recently played first.
+
+| Area | Contents |
+|---|---|
+| **Top left** | The selected game: its title, its store (as a word: STEAM, EPIC, GOG, XBOX) and when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…). "Launching…" after A. |
+| **Filters** | All, Steam, Epic, GOG, Xbox, then the order: Recent (last played first, then by name) or A–Z. |
+| **Grid** | Six covers per row. The selected one is larger, with a white outline. Under All, each cover shows its store at the bottom left. A game without art shows its title on a card tinted with the accent colour. |
+
+**Moving around**: the D-pad (or the stick) moves in the grid; down from a row above a shorter last row lands on the last game. Up from the first row reaches the filters: left and right pick one, **A** applies it, down goes back to the games. **A** on a game launches it; Canapé shows "Launching…" for a few seconds, then puts the game first in the list. The page scrolls by itself to keep the selected row at the top.
+
+**Where the games come from**
+
+| Store | What Canapé reads | Launch | Covers |
+|---|---|---|---|
+| **Steam** | The library folders (`steamapps\libraryfolders.vdf`) and each game's manifest (`appmanifest_*.acf`). Tools (Steamworks redistributables, Proton, SteamVR) are left out. | Through Steam (`steam://rungameid/…`) | Steam's own cache: the art you picked in Steam, else the 600×900 portrait, else the hero or header image (shown whole, on a blurred backdrop) |
+| **Epic Games** | The launcher's manifests (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, engines and unfinished installs are left out. | Through the Epic launcher | None (title card) |
+| **GOG** | The registry (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), where GOG Galaxy and the offline installers register each game. DLC are left out. | The game's executable directly, without Galaxy | None (title card) |
+| **Xbox app** | The `XboxGames` folders of every drive (`Content\MicrosoftGame.config`). | Through Windows (`shell:AppsFolder\…`) | The game's square logo |
+
+- The last played time comes from Steam for Steam games, and from Canapé for every game launched from it.
+- A game installed from two stores shows once: the copy played last, else the Steam one, then GOG, Epic and Xbox.
+- The list shows at once from the last scan; a new scan runs in the background at every start, and again when you come back to the library after a minute away. A game installed meanwhile appears then.
+- Xbox app games installed outside an `XboxGames` folder are not found.
+- Canapé launches games itself, without rights: like every app of the session.
 
 ### Home
 
@@ -350,6 +378,8 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, charge limit, profiles, last bench. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Shell log: launches (with their arguments), chosen language, ADL state, service errors. |
 | `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences (language). |
+| `%LOCALAPPDATA%\Canape\library.json` | The games of the last scan, shown at once on the next start. Can be deleted: the next scan writes it again. |
+| `%LOCALAPPDATA%\Canape\recent.json` | When each game was last launched from Canapé (for the "Recent" order). |
 
 Every line starts with the time in Unix seconds.
 

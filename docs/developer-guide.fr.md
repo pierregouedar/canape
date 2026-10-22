@@ -9,6 +9,7 @@ Ce guide décrit l'architecture de Canapé, le protocole entre ses composants, l
 - [Architecture](#architecture)
   - [Processus, sessions et niveaux d'intégrité](#processus-sessions-et-niveaux-dintégrité)
   - [Crates](#crates)
+  - [La bibliothèque de jeux](#la-bibliothèque-de-jeux)
   - [Le service de l'intérieur](#le-service-de-lintérieur)
 - [Protocole IPC](#protocole-ipc)
   - [Transport](#transport)
@@ -88,6 +89,7 @@ flowchart BT
     hw["canape-hw<br/>trait Device, ATKACPI, ADL, simulateur"]
     ipc["canape-ipc<br/>pipe Windows, socket Unix"]
     service["canape-service"]
+    library["canape-library<br/>Steam, Epic, GOG, Xbox"]
     shell["canape-shell"]
     ctl["canape-ctl"]
     hw --> core
@@ -98,6 +100,7 @@ flowchart BT
     service --> ipc
     shell --> core
     shell --> ipc
+    shell --> library
     shell -.->|"Windows seulement"| hw
     ctl --> core
     ctl --> ipc
@@ -110,10 +113,33 @@ flowchart BT
 | `canape-hw` | bibliothèque | Trait `Device` ; backend Ally (Windows) au-dessus d'ATKACPI, d'ADL et de l'interface HID de la manette ; `MockDevice` pour le reste | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs` |
 | `canape-ipc` | bibliothèque | Une `Connection` qui envoie et reçoit des lignes JSON ; named pipe sous Windows, socket Unix ailleurs ; ACL du pipe | `lib.rs`, `windows.rs`, `unix.rs`, `acl.rs` |
 | `canape-service` | binaire | Service Windows : état, auto TDP, profils, banc d'essai, détection des conflits, serveur IPC, persistance | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
-| `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : 5 pages, graphes de puissance et de GPU en direct, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `ui/*.slint`, `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
+| `canape-library` | bibliothèque | Jeux installés : recherche Steam, Epic, GOG et Xbox, fusion et tri, décodage des jaquettes, lancement, fichiers de cache. Analyseurs purs testés sous Linux ; les parties Windows (registre, lecteurs, `ShellExecuteW`) derrière `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
+| `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : 6 pages, la bibliothèque de jeux en premier, graphes de puissance et de GPU en direct, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `library.rs`, `grid.rs`, `ui/*.slint`, `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
 | `canape-ctl` | binaire | Envoie une requête JSON, ou `watch` pour suivre le statut ; `--pretty` indente le JSON | `main.rs` |
 
 Le shell dépend de `canape-hw` sous Windows uniquement pour `arm_frame_metrics()` (démarrer le comptage des images du pilote AMD depuis la session utilisateur) ; il n'écrit jamais dans le firmware.
+
+### La bibliothèque de jeux
+
+`canape-library` trouve les jeux installés et `canape-shell` les affiche (`library.rs`, `ui/library.slint`). Rien ne passe par le service : chercher et lancer ne demandent aucun droit, et un jeu lancé depuis le shell doit tourner sous l'utilisateur, en medium IL, jamais élevé.
+
+| Boutique | Où | Analyse | Lancement | Jaquettes |
+|---|---|---|---|---|
+| Steam | `HKCU\Software\Valve\Steam\SteamPath`, sinon `C:\Program Files (x86)\Steam` ; `steamapps\libraryfolders.vdf` puis chaque `appmanifest_*.acf` ; `userdata\*\config\localconfig.vdf` | `vdf.rs` : format texte KeyValues, tolérant (commentaires, `[$WIN32]`, jetons sans guillemets, fichiers tronqués). Installé = bit 4 de `StateFlags`. Outils écartés par appid et par nom (228980, Proton, Steam Linux Runtime, SteamVR) | `steam://rungameid/<appid>` | `userdata\*\config\grid\<appid>p.*`, puis `appcache\librarycache\<appid>_library_600x900.jpg` (ancienne disposition) ou `<appid>\[<hash>\]library_600x900.jpg` (actuelle), puis `library_hero.jpg`, `header.jpg` |
+| Epic | `%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests\*.item` (JSON) | `epic.rs` : `AppCategories` doit contenir `games` ; DLC (`MainGameAppName` ≠ `AppName`) et `bIsIncompleteInstall` écartés | `com.epicgames.launcher://apps/<ns>%3A<item>%3A<app>?action=launch&silent=true` | aucune |
+| GOG | `HKLM\SOFTWARE\WOW6432Node\GOG.com\Games\<id>` | `gog.rs` : `gameName`, `exe`, `launchParam`, `workingDir` / `path` ; clés avec `dependsOn` (DLC) écartées | l'`exe` directement (dossier de travail `workingDir`, sinon `path`), sinon `goggalaxy://openGameView/<id>` | aucune |
+| Xbox | `<lecteur>:\.GamingRoot` (sinon `<lecteur>:\XboxGames`), puis `<jeu>\Content\MicrosoftGame.config` et `appxmanifest.xml` | `xbox.rs` + `xml.rs` (attributs du premier élément trouvé). Nom de famille du paquet = `Name` + `_` + identifiant de l'éditeur, calculé (SHA-256 de l'éditeur en UTF-16LE, 8 octets, base 32 façon Crockford), vérifié contre `8wekyb3d8bbwe` et le `Canape_84zrj1c9kn010` de l'Ally | `shell:AppsFolder\<PFN>!<AppId>` | `Square480x480Logo` (ou sa variante `.scale-NNN`), `Square150x150Logo`, `StoreLogo` |
+
+- **Fusion** (`merge`) : les lancements enregistrés par Canapé (`recent.json`) relèvent `last_played` ; une entrée par id, puis une par titre entre boutiques (lettres et chiffres, en minuscules : `HADES™` = `Hades`), en gardant la copie jouée en dernier, sinon Steam > GOG > Epic > Xbox ; tri par dernière partie puis par titre (`Sort::Recent`) ou par titre (`Sort::Title`).
+- **Démarrage** : `library.json` (la dernière recherche brute) s'affiche avant l'ouverture de la fenêtre, puis un thread cherche en arrière-plan, réécrit le cache et poste le résultat à la boucle d'événements. Revenir sur la page relance une recherche au-delà de 60 s.
+- **Jaquettes** : décodées sur un thread dédié (`zune-jpeg`, `png`, pur Rust) directement à la taille de la tuile en pixels physiques (filtre boîte), coins arrondis inclus dans l'image (le rendu logiciel ne découpe pas les images selon un rectangle arrondi). Seules les rangées visibles et une rangée de chaque côté sont demandées ; les jaquettes plus loin d'une rangée encore sont libérées. Les images paysage ou carrées s'affichent en entier sur une copie floutée et assombrie d'elles-mêmes. Mesuré sous Linux (release, 50 jeux, 1280×720 à l'échelle 1, mémoire privée `RssAnon`) : 2,7 Mo sans jeux, 6,9 Mo sur la bibliothèque avec ses 18 premières jaquettes, 10,8 Mo après avoir défilé jusqu'au bout et être revenu (glibc avec `MALLOC_ARENA_MAX=1` ; avec ses réglages par défaut, elle garde les tampons de décodage libérés : 9,1 / 14 Mo). Une jaquette coûte largeur × hauteur × 4 octets : environ 210 Ko en 1280×720, 470 Ko sur l'Ally à 150 %. À mesurer sous Windows.
+- **Navigation** : la grille est un seul `FocusScope` avec un index sélectionné ; les déplacements sont calculés en Rust (`grid.rs`, `Library.grid-move`). Tant que la bibliothèque a le focus, `gamepad.rs` envoie les flèches au lieu de Tab / Maj+Tab (`library::arrow_navigation()`), avec la même répétition. Vers le haut depuis la première rangée, on atteint la barre de filtres.
+- **Lancement** : `canape_library::launch` appelle `ShellExecuteW` (COM initialisé sur le thread appelant) sur un thread éphémère, enregistre le lancement dans `recent.json`, affiche « Lancement… » 5 s, puis retrie.
+
+> [!WARNING]
+> **Pas encore essayé sous Windows.** Tout ce qui précède compile pour `x86_64-pc-windows-msvc` et les analyseurs sont testés sous Linux sur des fixtures (`crates/canape-library/tests/fixtures`), mais la lecture du registre, Steam / Epic / GOG sur une vraie machine, `ShellExecuteW` depuis le FSE et toute la partie Xbox (écrite d'après les formats documentés, sans jeu Xbox pour essayer) restent à vérifier sur l'Ally. Limite connue : les jeux de l'app Xbox installés hors d'un dossier `XboxGames` (dans `WindowsApps`) ne sont pas trouvés.
+
+**Fausse bibliothèque pour le développement** : dans un build de debug, `CANAPE_LIBRARY_FIXTURE=<dossier>` remplace les vraies boutiques par `<dossier>/steam` (un dossier Steam), `<dossier>/epic` (manifestes), `<dossier>/gog.json` (un tableau JSON de `{"key": …, "values": {"gameName": …, "exe": …}}`, comme le registre) et `<dossier>/xbox` (un dossier `XboxGames`). Rien n'est lancé (le lancement est seulement affiché), et les fichiers de cache deviennent `library-fixture.json` et `recent-fixture.json`. Les builds release ignorent la variable.
 
 ### Le service de l'intérieur
 
@@ -434,7 +460,8 @@ Hors Windows, les journaux et l'état vont dans `<tmp>/Canape/` (`service.log`, 
 | `CANAPE_MOCK_FPS` | service (simulateur) | FPS simulés, par exemple `60`. Sans elle, `fps` vaut `null` et l'auto TDP ne bouge pas. Sert aussi sous Windows quand le simulateur est utilisé. |
 | `CANAPE_SOCKET` | service, shell, `canape-ctl` (hors Windows) | Chemin du socket Unix. |
 | `CANAPE_WINDOWED` | shell | Présente (n'importe quelle valeur) : fenêtre au lieu du plein écran. |
-| `CANAPE_PAGE` | shell | Page ouverte au démarrage : 0 Accueil, 1 Performance, 2 Profils, 3 Banc d'essai, 4 Réglages. |
+| `CANAPE_PAGE` | shell | Page ouverte au démarrage : 0 Bibliothèque, 1 Accueil, 2 Performance, 3 Profils, 4 Banc d'essai, 5 Réglages. |
+| `CANAPE_LIBRARY_FIXTURE` | shell (builds de debug) | Une fausse bibliothèque à la place des boutiques installées : voir [La bibliothèque de jeux](#la-bibliothèque-de-jeux). |
 | `LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG` | shell (hors Windows) | Langue en mode Automatique, dans cet ordre de priorité. |
 | `TMPDIR` | tous (hors Windows) | Dossier temporaire, donc emplacement de `Canape/`. |
 
@@ -447,7 +474,7 @@ export TMPDIR=$(mktemp -d) CANAPE_SOCKET=/tmp/doc.sock   # state.json et shell.j
 Xvfb :99 -screen 0 1280x720x24 &
 CANAPE_MOCK_FPS=60 ./target/debug/canape-service --console &
 ./target/debug/canape-ctl '{"type":"foreground_app","exe":"eldenring.exe"}'   # plus profils, accent, banc d'essai court…
-DISPLAY=:99 CANAPE_WINDOWED=1 CANAPE_PAGE=1 LANG=fr_FR.UTF-8 ./target/debug/canape-shell &
+DISPLAY=:99 CANAPE_WINDOWED=1 CANAPE_PAGE=2 LANG=fr_FR.UTF-8 ./target/debug/canape-shell &
 for w in 15 18 22 17 12 9 13 19 …; do ./target/debug/canape-ctl "{\"type\":\"set_tdp\",\"watts\":$w}"; sleep 2.5; done
 DISPLAY=:99 import -window root docs/images/fr/performance.png   # ImageMagick
 ```

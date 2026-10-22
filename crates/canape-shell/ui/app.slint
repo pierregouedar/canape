@@ -1,15 +1,17 @@
 // Canapé home screen: a tab bar, the current page, and the gamepad hints.
 // LB / RB arrive as PageUp / PageDown (see nav.rs) and switch pages; B
-// (Escape) goes back to Home. Every user-visible string goes through @tr:
+// (Escape) goes back to the library, the landing page. Every user-visible string goes through @tr:
 // catalogs in lang/<code>/LC_MESSAGES/canape-shell.po.
 
 import { Theme } from "theme.slint";
 import { App, Notice } from "state.slint";
 import { BatteryIcon, Bolt, Hint, Logo, PadGlyph } from "widgets.slint";
 import { BenchPage, HomePage, PerformancePage, ProfilesPage, SettingsPage } from "pages.slint";
+import { Library, LibraryPage } from "library.slint";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
+export { Library, GameView } from "library.slint";
 
 // A page name; the current one sits on a lighter pill with a short accent
 // bar (Pierre preferred it to a plain underline).
@@ -23,8 +25,9 @@ component Tab inherits Rectangle {
     animate background { duration: 120ms; }
 
     HorizontalLayout {
-        padding-left: 18px;
-        padding-right: 18px;
+        // Six tabs must fit in every language (Russian is the widest).
+        padding-left: 14px;
+        padding-right: 14px;
         Text {
             text: root.label;
             color: root.selected ? Theme.text : ta.has-hover ? Theme.text.with-alpha(0.85) : Theme.dim;
@@ -58,9 +61,12 @@ export component AppWindow inherits Window {
     preferred-width: 1280px;
     preferred-height: 720px;
 
-    // 0 Home, 1 Performance, 2 Profiles, 3 Bench, 4 Settings.
+    // 0 Library, 1 Home, 2 Performance, 3 Profiles, 4 Bench, 5 Settings.
     in-out property <int> page: 0;
-    property <int> pages: 5;
+    property <int> pages: 6;
+    changed page => {
+        Library.shown(root.page == 0);
+    }
 
     FocusScope {
         // Only sees the keys the focused control did not take.
@@ -131,7 +137,7 @@ export component AppWindow inherits Window {
                     HorizontalLayout {
                         padding: 4px;
                         spacing: 2px;
-                        for label[i] in [@tr("Home"), @tr("Performance"), @tr("Profiles"), @tr("Bench"), @tr("Settings")]: Tab {
+                        for label[i] in [@tr("Library"), @tr("Home"), @tr("Performance"), @tr("Profiles"), @tr("Bench"), @tr("Settings")]: Tab {
                             label: label;
                             selected: root.page == i;
                             clicked => {
@@ -189,11 +195,12 @@ export component AppWindow inherits Window {
 
             Rectangle {
                 vertical-stretch: 1;
-                if root.page == 0: HomePage { }
-                if root.page == 1: PerformancePage { }
-                if root.page == 2: ProfilesPage { }
-                if root.page == 3: BenchPage { }
-                if root.page == 4: SettingsPage { }
+                if root.page == 0: LibraryPage { }
+                if root.page == 1: HomePage { }
+                if root.page == 2: PerformancePage { }
+                if root.page == 3: ProfilesPage { }
+                if root.page == 4: BenchPage { }
+                if root.page == 5: SettingsPage { }
             }
 
             HorizontalLayout {
@@ -201,7 +208,7 @@ export component AppWindow inherits Window {
                 spacing: 26px;
                 Hint {
                     glyph: "A";
-                    text: @tr("Select");
+                    text: root.page == 0 ? @tr("Play") : @tr("Select");
                 }
 
                 Hint {

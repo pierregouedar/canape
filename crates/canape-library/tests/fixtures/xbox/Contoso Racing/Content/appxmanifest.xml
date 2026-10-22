@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10">
+  <Identity Name="Contoso.Racing" Publisher="CN=Contoso, O=Contoso, C=US" Version="1.0.12.0" ProcessorArchitecture="x64"/>
+  <Properties><DisplayName>ms-resource:ApplicationDisplayName</DisplayName></Properties>
+  <Applications>
+    <Application Id="RacingApp" Executable="Racing.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="ms-resource:ApplicationDisplayName" Square150x150Logo="GraphicsLogo\Square150x150Logo.png" Square44x44Logo="GraphicsLogo\Square44x44Logo.png" Description="Racing" BackgroundColor="#000000"/>
+    </Application>
+  </Applications>
+</Package>

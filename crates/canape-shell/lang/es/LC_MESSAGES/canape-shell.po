@@ -309,8 +309,8 @@ msgstr "Un inicio ligero, estilo consola, para la ROG Ally. El hardware lo contr
 msgid "Service connected"
 msgstr "Servicio conectado"
 
-msgid "Back to Home"
-msgstr "Volver al inicio"
+msgid "Back to the library"
+msgstr "Volver a la biblioteca"
 
 msgid "Move (D-pad or left stick)"
 msgstr "Moverse (cruceta o stick izquierdo)"
@@ -369,3 +369,53 @@ msgstr "Pulsa A sobre un control deslizante para ajustarlo."
 
 msgid "Move with the D-pad or the stick, then press A to finish."
 msgstr "Ajusta con la cruceta o el stick y pulsa A para terminar."
+
+# Library page
+
+msgid "Library"
+msgstr "Biblioteca"
+
+msgid "Play"
+msgstr "Jugar"
+
+msgid "All"
+msgstr "Todos"
+
+msgid "Recent"
+msgstr "Recientes"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Played today"
+msgstr "Jugado hoy"
+
+msgid "Played yesterday"
+msgstr "Jugado ayer"
+
+msgid "Played in the last 7 days"
+msgstr "Jugado en los últimos 7 días"
+
+msgid "Played in the last 30 days"
+msgstr "Jugado en los últimos 30 días"
+
+msgid "Played more than a month ago"
+msgstr "Jugado hace más de un mes"
+
+msgid "Launching…"
+msgstr "Iniciando…"
+
+msgid "Could not launch {}"
+msgstr "No se pudo iniciar {}"
+
+msgid "Looking for games…"
+msgstr "Buscando juegos…"
+
+msgid "No games found"
+msgstr "No se encontraron juegos"
+
+msgid "No games from this store"
+msgstr "No hay juegos de esta tienda"
+
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
+msgstr "Canapé muestra los juegos instalados con Steam, Epic Games Launcher, GOG Galaxy y la app de Xbox."

@@ -525,6 +525,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "canape-library"
+version = "0.1.0"
+dependencies = [
+ "png",
+ "serde",
+ "serde_json",
+ "windows-sys 0.61.2",
+ "zune-jpeg",
+]
+
+[[package]]
 name = "canape-service"
 version = "0.1.0"
 dependencies = [
@@ -545,6 +556,7 @@ dependencies = [
  "canape-core",
  "canape-hw",
  "canape-ipc",
+ "canape-library",
  "serde",
  "serde_json",
  "slint",

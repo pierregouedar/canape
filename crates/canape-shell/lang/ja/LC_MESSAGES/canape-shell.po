@@ -309,8 +309,8 @@ msgstr "ROG Ally 向けの軽量なコンソール風ホーム。ハードウェ
 msgid "Service connected"
 msgstr "サービス接続済み"
 
-msgid "Back to Home"
-msgstr "ホームに戻る"
+msgid "Back to the library"
+msgstr "ライブラリに戻る"
 
 msgid "Move (D-pad or left stick)"
 msgstr "移動 (十字キーまたは左スティック)"
@@ -369,3 +369,53 @@ msgstr "スライダーで A を押すと調整できます。"
 
 msgid "Move with the D-pad or the stick, then press A to finish."
 msgstr "十字キーかスティックで調整し、A で確定します。"
+
+# Library page
+
+msgid "Library"
+msgstr "ライブラリ"
+
+msgid "Play"
+msgstr "プレイ"
+
+msgid "All"
+msgstr "すべて"
+
+msgid "Recent"
+msgstr "最近"
+
+msgid "A–Z"
+msgstr "名前順"
+
+msgid "Played today"
+msgstr "今日プレイ"
+
+msgid "Played yesterday"
+msgstr "昨日プレイ"
+
+msgid "Played in the last 7 days"
+msgstr "7日以内にプレイ"
+
+msgid "Played in the last 30 days"
+msgstr "30日以内にプレイ"
+
+msgid "Played more than a month ago"
+msgstr "1か月以上前にプレイ"
+
+msgid "Launching…"
+msgstr "起動中…"
+
+msgid "Could not launch {}"
+msgstr "{} を起動できませんでした"
+
+msgid "Looking for games…"
+msgstr "ゲームを検索中…"
+
+msgid "No games found"
+msgstr "ゲームが見つかりません"
+
+msgid "No games from this store"
+msgstr "このストアのゲームはありません"
+
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
+msgstr "Canapé は Steam、Epic Games Launcher、GOG Galaxy、Xbox アプリでインストールしたゲームを表示します。"

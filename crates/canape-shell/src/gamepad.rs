@@ -30,15 +30,14 @@ fn read_pad() -> Option<Pad> {
             let pad = state.Gamepad;
             let pressed = |flag| pad.wButtons & flag != 0;
             let (x, y) = (i32::from(pad.sThumbLX), i32::from(pad.sThumbLY));
+            // The stick counts along its main axis only: a slightly
+            // diagonal push still moves one way in the library grid.
+            let horizontal = x.abs() > y.abs();
             Pad {
-                forward: pressed(XINPUT_GAMEPAD_DPAD_DOWN)
-                    || pressed(XINPUT_GAMEPAD_DPAD_RIGHT)
-                    || y < -STICK_THRESHOLD
-                    || x > STICK_THRESHOLD,
-                backward: pressed(XINPUT_GAMEPAD_DPAD_UP)
-                    || pressed(XINPUT_GAMEPAD_DPAD_LEFT)
-                    || y > STICK_THRESHOLD
-                    || x < -STICK_THRESHOLD,
+                up: pressed(XINPUT_GAMEPAD_DPAD_UP) || (!horizontal && y > STICK_THRESHOLD),
+                down: pressed(XINPUT_GAMEPAD_DPAD_DOWN) || (!horizontal && y < -STICK_THRESHOLD),
+                left: pressed(XINPUT_GAMEPAD_DPAD_LEFT) || (horizontal && x < -STICK_THRESHOLD),
+                right: pressed(XINPUT_GAMEPAD_DPAD_RIGHT) || (horizontal && x > STICK_THRESHOLD),
                 confirm: pressed(XINPUT_GAMEPAD_A),
                 back: pressed(XINPUT_GAMEPAD_B),
                 page_prev: pressed(XINPUT_GAMEPAD_LEFT_SHOULDER),
@@ -59,7 +58,7 @@ pub fn spawn(ui: Weak<AppWindow>) {
             }
             match read_pad() {
                 Some(pad) => {
-                    for key in nav.update(pad, Instant::now()) {
+                    for key in nav.update(pad, Instant::now(), crate::library::arrow_navigation()) {
                         press(&ui, key);
                     }
                     thread::sleep(POLL);

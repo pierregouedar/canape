@@ -309,8 +309,8 @@ msgstr "Een licht startscherm in consolestijl voor de ROG Ally. De hardware word
 msgid "Service connected"
 msgstr "Service verbonden"
 
-msgid "Back to Home"
-msgstr "Terug naar start"
+msgid "Back to the library"
+msgstr "Terug naar de bibliotheek"
 
 msgid "Move (D-pad or left stick)"
 msgstr "Bewegen (D-pad of linkerstick)"
@@ -369,3 +369,53 @@ msgstr "Druk op A op een schuifregelaar om hem in te stellen."
 
 msgid "Move with the D-pad or the stick, then press A to finish."
 msgstr "Stel in met de D-pad of de stick en druk op A om af te ronden."
+
+# Library page
+
+msgid "Library"
+msgstr "Bibliotheek"
+
+msgid "Play"
+msgstr "Spelen"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "Recent"
+msgstr "Recent"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Played today"
+msgstr "Vandaag gespeeld"
+
+msgid "Played yesterday"
+msgstr "Gisteren gespeeld"
+
+msgid "Played in the last 7 days"
+msgstr "De afgelopen 7 dagen gespeeld"
+
+msgid "Played in the last 30 days"
+msgstr "De afgelopen 30 dagen gespeeld"
+
+msgid "Played more than a month ago"
+msgstr "Meer dan een maand geleden gespeeld"
+
+msgid "Launching…"
+msgstr "Starten…"
+
+msgid "Could not launch {}"
+msgstr "Kan {} niet starten"
+
+msgid "Looking for games…"
+msgstr "Games zoeken…"
+
+msgid "No games found"
+msgstr "Geen games gevonden"
+
+msgid "No games from this store"
+msgstr "Geen games uit deze winkel"
+
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
+msgstr "Canapé toont de games die met Steam, de Epic Games Launcher, GOG Galaxy en de Xbox-app zijn geïnstalleerd."

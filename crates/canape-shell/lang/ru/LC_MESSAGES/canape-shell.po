@@ -309,8 +309,8 @@ msgstr "Лёгкий главный экран в стиле консоли дл
 msgid "Service connected"
 msgstr "Служба подключена"
 
-msgid "Back to Home"
-msgstr "На главную"
+msgid "Back to the library"
+msgstr "В библиотеку"
 
 msgid "Move (D-pad or left stick)"
 msgstr "Перемещение (крестовина или левый стик)"
@@ -369,3 +369,53 @@ msgstr "Нажмите A на ползунке, чтобы настроить е
 
 msgid "Move with the D-pad or the stick, then press A to finish."
 msgstr "Настройте крестовиной или стиком, затем нажмите A, чтобы завершить."
+
+# Library page
+
+msgid "Library"
+msgstr "Библиотека"
+
+msgid "Play"
+msgstr "Играть"
+
+msgid "All"
+msgstr "Все"
+
+msgid "Recent"
+msgstr "Недавние"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Played today"
+msgstr "Запускалась сегодня"
+
+msgid "Played yesterday"
+msgstr "Запускалась вчера"
+
+msgid "Played in the last 7 days"
+msgstr "Запускалась за последние 7 дней"
+
+msgid "Played in the last 30 days"
+msgstr "Запускалась за последние 30 дней"
+
+msgid "Played more than a month ago"
+msgstr "Запускалась больше месяца назад"
+
+msgid "Launching…"
+msgstr "Запуск…"
+
+msgid "Could not launch {}"
+msgstr "Не удалось запустить {}"
+
+msgid "Looking for games…"
+msgstr "Поиск игр…"
+
+msgid "No games found"
+msgstr "Игры не найдены"
+
+msgid "No games from this store"
+msgstr "Нет игр из этого магазина"
+
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
+msgstr "Canapé показывает игры, установленные через Steam, Epic Games Launcher, GOG Galaxy и приложение Xbox."

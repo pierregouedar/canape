@@ -24,8 +24,8 @@ struct Shared {
     report: Mutex<Option<BenchReport>>,
     /// Last foreground program seen by the shell, resent after a reconnection.
     foreground: Mutex<Option<String>>,
-    /// Executables that have a profile, for the foreground detection.
-    profile_exes: Mutex<Vec<String>>,
+    /// Last profile list from the service.
+    profiles: Mutex<Vec<Profile>>,
     history: Mutex<History>,
     accent: Mutex<AccentState>,
 }
@@ -95,8 +95,7 @@ impl Link {
                 let background = is_background(&request);
                 let notice = match send(&mut conn, &request) {
                     Ok(Response::Profiles { profiles }) => {
-                        *state.profile_exes.lock().unwrap() =
-                            profiles.iter().map(|p| p.exe.clone()).collect();
+                        *state.profiles.lock().unwrap() = profiles.clone();
                         show_profiles(&ui, &profiles);
                         continue;
                     }
@@ -170,12 +169,18 @@ impl Link {
     /// True when `exe` has a game profile.
     #[cfg(windows)]
     pub fn has_profile(&self, exe: &str) -> bool {
+        self.profile(exe).is_some()
+    }
+
+    /// The saved profile of `exe`, if any.
+    pub fn profile(&self, exe: &str) -> Option<Profile> {
         self.shared
-            .profile_exes
+            .profiles
             .lock()
             .unwrap()
             .iter()
-            .any(|known| known.eq_ignore_ascii_case(exe))
+            .find(|p| p.matches(exe))
+            .cloned()
     }
 
     /// Reports the foreground program to the service, now and after every

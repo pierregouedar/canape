@@ -309,8 +309,8 @@ msgstr "ROG Ally를 위한 가벼운 콘솔 스타일 홈. 하드웨어는 Canap
 msgid "Service connected"
 msgstr "서비스 연결됨"
 
-msgid "Back to Home"
-msgstr "홈으로"
+msgid "Back to the library"
+msgstr "라이브러리로"
 
 msgid "Move (D-pad or left stick)"
 msgstr "이동 (방향 패드 또는 왼쪽 스틱)"
@@ -369,3 +369,53 @@ msgstr "슬라이더에서 A를 눌러 조정하세요."
 
 msgid "Move with the D-pad or the stick, then press A to finish."
 msgstr "방향 패드나 스틱으로 조정한 다음 A를 눌러 마치세요."
+
+# Library page
+
+msgid "Library"
+msgstr "라이브러리"
+
+msgid "Play"
+msgstr "플레이"
+
+msgid "All"
+msgstr "전체"
+
+msgid "Recent"
+msgstr "최근"
+
+msgid "A–Z"
+msgstr "이름순"
+
+msgid "Played today"
+msgstr "오늘 플레이"
+
+msgid "Played yesterday"
+msgstr "어제 플레이"
+
+msgid "Played in the last 7 days"
+msgstr "최근 7일 내 플레이"
+
+msgid "Played in the last 30 days"
+msgstr "최근 30일 내 플레이"
+
+msgid "Played more than a month ago"
+msgstr "한 달 이상 전에 플레이"
+
+msgid "Launching…"
+msgstr "실행 중…"
+
+msgid "Could not launch {}"
+msgstr "{}을(를) 실행할 수 없습니다"
+
+msgid "Looking for games…"
+msgstr "게임 찾는 중…"
+
+msgid "No games found"
+msgstr "게임이 없습니다"
+
+msgid "No games from this store"
+msgstr "이 스토어의 게임이 없습니다"
+
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
+msgstr "Canapé는 Steam, Epic Games Launcher, GOG Galaxy, Xbox 앱으로 설치한 게임을 보여 줍니다."

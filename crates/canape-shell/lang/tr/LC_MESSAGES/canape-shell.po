@@ -309,8 +309,8 @@ msgstr "ROG Ally için hafif, konsol tarzı bir ana ekran. Donanımı Canapé hi
 msgid "Service connected"
 msgstr "Hizmet bağlı"
 
-msgid "Back to Home"
-msgstr "Ana sayfaya dön"
+msgid "Back to the library"
+msgstr "Kitaplığa dön"
 
 msgid "Move (D-pad or left stick)"
 msgstr "Hareket (yön tuşları veya sol çubuk)"
@@ -369,3 +369,53 @@ msgstr "Ayarlamak için bir kaydırıcıda A'ya basın."
 
 msgid "Move with the D-pad or the stick, then press A to finish."
 msgstr "Yön tuşları veya çubukla ayarlayın, bitirmek için A'ya basın."
+
+# Library page
+
+msgid "Library"
+msgstr "Kitaplık"
+
+msgid "Play"
+msgstr "Oyna"
+
+msgid "All"
+msgstr "Tümü"
+
+msgid "Recent"
+msgstr "Son oynanan"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Played today"
+msgstr "Bugün oynandı"
+
+msgid "Played yesterday"
+msgstr "Dün oynandı"
+
+msgid "Played in the last 7 days"
+msgstr "Son 7 günde oynandı"
+
+msgid "Played in the last 30 days"
+msgstr "Son 30 günde oynandı"
+
+msgid "Played more than a month ago"
+msgstr "Bir aydan uzun süre önce oynandı"
+
+msgid "Launching…"
+msgstr "Başlatılıyor…"
+
+msgid "Could not launch {}"
+msgstr "{} başlatılamadı"
+
+msgid "Looking for games…"
+msgstr "Oyunlar aranıyor…"
+
+msgid "No games found"
+msgstr "Oyun bulunamadı"
+
+msgid "No games from this store"
+msgstr "Bu mağazadan oyun yok"
+
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
+msgstr "Canapé; Steam, Epic Games Launcher, GOG Galaxy ve Xbox uygulamasıyla yüklenen oyunları gösterir."

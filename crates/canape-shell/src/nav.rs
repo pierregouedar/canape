@@ -1,8 +1,11 @@
 //! Gamepad state → navigation keys, with auto-repeat while a direction is
 //! held. Pure logic; the XInput polling lives in `gamepad.rs`.
 //!
-//! D-pad / stick → Tab / Shift+Tab, A → Return, B → Escape, and the bumpers
-//! LB / RB → PageUp / PageDown, which the window turns into page changes.
+//! A → Return, B → Escape, and the bumpers LB / RB → PageUp / PageDown,
+//! which the window turns into page changes. The D-pad and the stick send
+//! Tab / Shift+Tab (down or right / up or left), which every page
+//! understands; while the library grid has the focus they send the arrow
+//! keys instead, to move in two dimensions.
 
 use std::time::{Duration, Instant};
 
@@ -14,8 +17,10 @@ const REPEAT_EVERY: Duration = Duration::from_millis(120);
 /// What the pad is doing at one instant.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Pad {
-    pub forward: bool,
-    pub backward: bool,
+    pub up: bool,
+    pub down: bool,
+    pub left: bool,
+    pub right: bool,
     pub confirm: bool,
     pub back: bool,
     /// LB: previous page.
@@ -24,16 +29,31 @@ pub struct Pad {
     pub page_next: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Direction {
-    Forward,
-    Backward,
+/// The key a held direction sends, if any. Opposite directions cancel
+/// out; with arrows, vertical wins over horizontal on a diagonal.
+fn direction(pad: Pad, arrows: bool) -> Option<Key> {
+    let axis = |minus: bool, plus: bool, keys: (Key, Key)| match (minus, plus) {
+        (true, false) => Some(keys.0),
+        (false, true) => Some(keys.1),
+        _ => None,
+    };
+    if arrows {
+        axis(pad.up, pad.down, (Key::UpArrow, Key::DownArrow))
+            .or_else(|| axis(pad.left, pad.right, (Key::LeftArrow, Key::RightArrow)))
+    } else {
+        axis(
+            pad.up || pad.left,
+            pad.down || pad.right,
+            (Key::Backtab, Key::Tab),
+        )
+    }
 }
 
 #[derive(Default)]
 pub struct Navigator {
     previous: Pad,
-    held: Option<(Direction, Instant, Instant)>,
+    /// Key being repeated, since when, last sent when.
+    held: Option<(Key, Instant, Instant)>,
 }
 
 impl Navigator {
@@ -42,8 +62,9 @@ impl Navigator {
         *self = Self::default();
     }
 
-    /// Keys to send for the pad state observed at `now`.
-    pub fn update(&mut self, pad: Pad, now: Instant) -> Vec<Key> {
+    /// Keys to send for the pad state observed at `now`; `arrows` when the
+    /// focused control moves with the arrow keys.
+    pub fn update(&mut self, pad: Pad, now: Instant, arrows: bool) -> Vec<Key> {
         let mut keys = Vec::new();
         if pad.confirm && !self.previous.confirm {
             keys.push(Key::Return);
@@ -58,34 +79,25 @@ impl Navigator {
             keys.push(Key::PageDown);
         }
 
-        let direction = match (pad.forward, pad.backward) {
-            (true, false) => Some(Direction::Forward),
-            (false, true) => Some(Direction::Backward),
-            _ => None,
-        };
-        let fire = match (direction, self.held) {
+        let fire = match (direction(pad, arrows), self.held) {
             (None, _) => {
                 self.held = None;
                 None
             }
-            (Some(dir), Some((held, since, last))) if held == dir => {
+            (Some(key), Some((held, since, last))) if held == key => {
                 let repeat = now - since >= REPEAT_DELAY && now - last >= REPEAT_EVERY;
                 if repeat {
-                    self.held = Some((dir, since, now));
+                    self.held = Some((key, since, now));
                 }
-                repeat.then_some(dir)
+                repeat.then_some(key)
             }
-            (Some(dir), _) => {
-                self.held = Some((dir, now, now));
-                Some(dir)
+            // A new direction, or the same one now meaning another key.
+            (Some(key), _) => {
+                self.held = Some((key, now, now));
+                Some(key)
             }
         };
-        if let Some(dir) = fire {
-            keys.push(match dir {
-                Direction::Forward => Key::Tab,
-                Direction::Backward => Key::Backtab,
-            });
-        }
+        keys.extend(fire);
         self.previous = pad;
         keys
     }
@@ -95,9 +107,11 @@ impl Navigator {
 mod tests {
     use super::*;
 
-    const FORWARD: Pad = Pad {
-        forward: true,
-        backward: false,
+    const DOWN: Pad = Pad {
+        up: false,
+        down: true,
+        left: false,
+        right: false,
         confirm: false,
         back: false,
         page_prev: false,
@@ -112,10 +126,10 @@ mod tests {
             confirm: true,
             ..Pad::default()
         };
-        assert_eq!(nav.update(pressed, t), vec![Key::Return]);
-        assert!(nav.update(pressed, t + REPEAT_DELAY * 2).is_empty());
-        assert!(nav.update(Pad::default(), t).is_empty());
-        assert_eq!(nav.update(pressed, t), vec![Key::Return]);
+        assert_eq!(nav.update(pressed, t, false), vec![Key::Return]);
+        assert!(nav.update(pressed, t + REPEAT_DELAY * 2, false).is_empty());
+        assert!(nav.update(Pad::default(), t, false).is_empty());
+        assert_eq!(nav.update(pressed, t, true), vec![Key::Return]);
     }
 
     #[test]
@@ -126,38 +140,41 @@ mod tests {
             page_next: true,
             ..Pad::default()
         };
-        assert_eq!(nav.update(rb, t), vec![Key::PageDown]);
-        assert!(nav.update(rb, t + REPEAT_DELAY * 2).is_empty());
+        assert_eq!(nav.update(rb, t, false), vec![Key::PageDown]);
+        assert!(nav.update(rb, t + REPEAT_DELAY * 2, false).is_empty());
         let both = Pad {
             page_prev: true,
             ..rb
         };
-        assert_eq!(nav.update(both, t), vec![Key::PageUp]);
-        nav.update(Pad::default(), t);
+        assert_eq!(nav.update(both, t, false), vec![Key::PageUp]);
+        nav.update(Pad::default(), t, false);
         let b_and_lb = Pad {
             back: true,
             page_prev: true,
             ..Pad::default()
         };
-        assert_eq!(nav.update(b_and_lb, t), vec![Key::Escape, Key::PageUp]);
+        assert_eq!(
+            nav.update(b_and_lb, t, false),
+            vec![Key::Escape, Key::PageUp]
+        );
     }
 
     #[test]
     fn held_direction_repeats_after_a_delay() {
         let mut nav = Navigator::default();
         let t = Instant::now();
-        assert_eq!(nav.update(FORWARD, t), vec![Key::Tab]);
+        assert_eq!(nav.update(DOWN, t, false), vec![Key::Tab]);
         assert!(
-            nav.update(FORWARD, t + Duration::from_millis(200))
+            nav.update(DOWN, t + Duration::from_millis(200), false)
                 .is_empty()
         );
-        assert_eq!(nav.update(FORWARD, t + REPEAT_DELAY), vec![Key::Tab]);
+        assert_eq!(nav.update(DOWN, t + REPEAT_DELAY, false), vec![Key::Tab]);
         assert!(
-            nav.update(FORWARD, t + REPEAT_DELAY + Duration::from_millis(50))
+            nav.update(DOWN, t + REPEAT_DELAY + Duration::from_millis(50), false)
                 .is_empty()
         );
         assert_eq!(
-            nav.update(FORWARD, t + REPEAT_DELAY + REPEAT_EVERY),
+            nav.update(DOWN, t + REPEAT_DELAY + REPEAT_EVERY, false),
             vec![Key::Tab]
         );
     }
@@ -166,21 +183,80 @@ mod tests {
     fn release_then_press_moves_again_at_once() {
         let mut nav = Navigator::default();
         let t = Instant::now();
-        nav.update(FORWARD, t);
-        nav.update(Pad::default(), t);
-        let backward = Pad {
-            backward: true,
+        nav.update(DOWN, t, false);
+        nav.update(Pad::default(), t, false);
+        let up = Pad {
+            up: true,
             ..Pad::default()
         };
-        assert_eq!(nav.update(backward, t), vec![Key::Backtab]);
+        assert_eq!(nav.update(up, t, false), vec![Key::Backtab]);
     }
 
     #[test]
     fn reset_forgets_held_buttons() {
         let mut nav = Navigator::default();
         let t = Instant::now();
-        nav.update(FORWARD, t);
+        nav.update(DOWN, t, false);
         nav.reset();
-        assert_eq!(nav.update(FORWARD, t), vec![Key::Tab]);
+        assert_eq!(nav.update(DOWN, t, false), vec![Key::Tab]);
+    }
+
+    #[test]
+    fn tab_mode_folds_four_directions_into_two() {
+        let t = Instant::now();
+        let key = |pad: Pad| Navigator::default().update(pad, t, false);
+        let right = Pad {
+            right: true,
+            ..Pad::default()
+        };
+        let left = Pad {
+            left: true,
+            ..Pad::default()
+        };
+        assert_eq!(key(right), vec![Key::Tab]);
+        assert_eq!(key(left), vec![Key::Backtab]);
+        // Down and left at once: forward and backward cancel out.
+        assert!(key(Pad { left: true, ..DOWN }).is_empty());
+    }
+
+    #[test]
+    fn arrow_mode_sends_each_direction() {
+        let t = Instant::now();
+        let key = |pad: Pad| Navigator::default().update(pad, t, true);
+        let pad = |up, down, left, right| Pad {
+            up,
+            down,
+            left,
+            right,
+            ..Pad::default()
+        };
+        assert_eq!(key(pad(true, false, false, false)), vec![Key::UpArrow]);
+        assert_eq!(key(pad(false, true, false, false)), vec![Key::DownArrow]);
+        assert_eq!(key(pad(false, false, true, false)), vec![Key::LeftArrow]);
+        assert_eq!(key(pad(false, false, false, true)), vec![Key::RightArrow]);
+        // Diagonal: vertical wins; up and down cancel, leaving horizontal.
+        assert_eq!(key(pad(false, true, false, true)), vec![Key::DownArrow]);
+        assert_eq!(key(pad(true, true, true, false)), vec![Key::LeftArrow]);
+        assert!(key(pad(true, true, true, true)).is_empty());
+    }
+
+    #[test]
+    fn arrows_repeat_and_mode_switch_is_a_new_press() {
+        let mut nav = Navigator::default();
+        let t = Instant::now();
+        let right = Pad {
+            right: true,
+            ..Pad::default()
+        };
+        assert_eq!(nav.update(right, t, true), vec![Key::RightArrow]);
+        assert_eq!(
+            nav.update(right, t + REPEAT_DELAY, true),
+            vec![Key::RightArrow]
+        );
+        // The focus left the grid while the direction is held: Tab at once.
+        assert_eq!(
+            nav.update(right, t + REPEAT_DELAY + Duration::from_millis(10), false),
+            vec![Key::Tab]
+        );
     }
 }

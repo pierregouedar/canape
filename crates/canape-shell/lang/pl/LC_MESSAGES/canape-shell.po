@@ -309,8 +309,8 @@ msgstr "Lekki ekran główny w stylu konsoli dla ROG Ally. Sprzętem steruje us�
 msgid "Service connected"
 msgstr "Usługa połączona"
 
-msgid "Back to Home"
-msgstr "Powrót do startu"
+msgid "Back to the library"
+msgstr "Powrót do biblioteki"
 
 msgid "Move (D-pad or left stick)"
 msgstr "Ruch (krzyżak lub lewa gałka)"
@@ -369,3 +369,53 @@ msgstr "Naciśnij A na suwaku, aby go ustawić."
 
 msgid "Move with the D-pad or the stick, then press A to finish."
 msgstr "Ustaw krzyżakiem lub gałką, a potem naciśnij A, aby zakończyć."
+
+# Library page
+
+msgid "Library"
+msgstr "Biblioteka"
+
+msgid "Play"
+msgstr "Graj"
+
+msgid "All"
+msgstr "Wszystkie"
+
+msgid "Recent"
+msgstr "Ostatnie"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Played today"
+msgstr "Grano dzisiaj"
+
+msgid "Played yesterday"
+msgstr "Grano wczoraj"
+
+msgid "Played in the last 7 days"
+msgstr "Grano w ciągu 7 dni"
+
+msgid "Played in the last 30 days"
+msgstr "Grano w ciągu 30 dni"
+
+msgid "Played more than a month ago"
+msgstr "Grano ponad miesiąc temu"
+
+msgid "Launching…"
+msgstr "Uruchamianie…"
+
+msgid "Could not launch {}"
+msgstr "Nie udało się uruchomić: {}"
+
+msgid "Looking for games…"
+msgstr "Szukanie gier…"
+
+msgid "No games found"
+msgstr "Nie znaleziono gier"
+
+msgid "No games from this store"
+msgstr "Brak gier z tego sklepu"
+
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
+msgstr "Canapé pokazuje gry zainstalowane przez Steam, Epic Games Launcher, GOG Galaxy i aplikację Xbox."

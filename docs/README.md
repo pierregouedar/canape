@@ -10,7 +10,7 @@ All the project's documentation, in French and English. The milestone reports an
 
 | | 🇫🇷 Français | 🇬🇧 English | Pour qui · For whom |
 |---|---|---|---|
-| 📖 **Utilisation · Usage** | [Guide d'utilisation](user-guide.fr.md) | [User guide](user-guide.en.md) | Installer sur l'Ally, choisir l'accueil du FSE, chaque page du shell, le widget, les langues, le dépannage, la désinstallation · Installing on the Ally, picking the FSE home app, every shell page, the widget, languages, troubleshooting, uninstalling |
+| 📖 **Utilisation · Usage** | [Guide d'utilisation](user-guide.fr.md) | [User guide](user-guide.en.md) | Installer sur l'Ally, choisir l'accueil du FSE, la bibliothèque de jeux, chaque page du shell, le widget, les langues, le dépannage, la désinstallation · Installing on the Ally, picking the FSE home app, the game library, every shell page, the widget, languages, troubleshooting, uninstalling |
 | 🤖 **Auto TDP** | [Auto TDP et banc d'essai](auto-tdp.fr.md) | [Auto TDP and bench](auto-tdp.en.md) | L'algorithme pas à pas, ses valeurs par défaut, les profils par jeu, le banc d'essai, les mesures, les conseils de réglage · The algorithm step by step, its defaults, per-game profiles, the bench, measurements, tuning tips |
 | 🛠️ **Développement · Development** | [Guide du développeur](developer-guide.fr.md) | [Developer guide](developer-guide.en.md) | Architecture, protocole IPC, compilation sous Linux et Windows, CI, empaquetage, widget, traductions, matériel, conventions · Architecture, IPC protocol, building on Linux and Windows, CI, packaging, widget, translations, hardware, conventions |
 

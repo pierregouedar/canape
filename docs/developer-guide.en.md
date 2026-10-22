@@ -9,6 +9,7 @@ This guide describes Canapé's architecture, the protocol between its components
 - [Architecture](#architecture)
   - [Processes, sessions and integrity levels](#processes-sessions-and-integrity-levels)
   - [Crates](#crates)
+  - [The game library](#the-game-library)
   - [Inside the service](#inside-the-service)
 - [IPC protocol](#ipc-protocol)
   - [Transport](#transport)
@@ -88,6 +89,7 @@ flowchart BT
     hw["canape-hw<br/>Device trait, ATKACPI, ADL, simulator"]
     ipc["canape-ipc<br/>Windows pipe, Unix socket"]
     service["canape-service"]
+    library["canape-library<br/>Steam, Epic, GOG, Xbox"]
     shell["canape-shell"]
     ctl["canape-ctl"]
     hw --> core
@@ -98,6 +100,7 @@ flowchart BT
     service --> ipc
     shell --> core
     shell --> ipc
+    shell --> library
     shell -.->|"Windows only"| hw
     ctl --> core
     ctl --> ipc
@@ -110,10 +113,33 @@ flowchart BT
 | `canape-hw` | library | `Device` trait; Ally backend (Windows) on top of ATKACPI, ADL and the controller's HID interface; `MockDevice` for everything else | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs` |
 | `canape-ipc` | library | A `Connection` that sends and receives JSON lines; named pipe on Windows, Unix socket elsewhere; the pipe's ACL | `lib.rs`, `windows.rs`, `unix.rs`, `acl.rs` |
 | `canape-service` | binary | Windows service: state, auto TDP, profiles, bench, conflict detection, IPC server, persistence | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
-| `canape-shell` | binary | Slint home app (software rendering): 5 pages, live power and GPU graphs, accent colour picker, XInput gamepad, foreground tracking, 13 languages | `main.rs`, `link.rs`, `ui/*.slint`, `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
+| `canape-library` | library | Installed games: Steam, Epic, GOG and Xbox scanning, merging and sorting, cover decoding, launching, the cache files. Pure parsers tested on Linux; the Windows parts (registry, drives, `ShellExecuteW`) behind `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
+| `canape-shell` | binary | Slint home app (software rendering): 6 pages starting with the game library, live power and GPU graphs, accent colour picker, XInput gamepad, foreground tracking, 13 languages | `main.rs`, `link.rs`, `library.rs`, `grid.rs`, `ui/*.slint`, `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
 | `canape-ctl` | binary | Sends one JSON request, or `watch` to follow the status; `--pretty` indents the JSON | `main.rs` |
 
 The shell depends on `canape-hw` on Windows only for `arm_frame_metrics()` (starting the AMD driver's frame counting from the user session); it never writes to the firmware.
+
+### The game library
+
+`canape-library` finds the installed games and `canape-shell` shows them (`library.rs`, `ui/library.slint`). Nothing goes through the service: scanning and launching need no rights, and a game launched from the shell must run as the user, at medium integrity, never elevated.
+
+| Store | Where | Parser | Launch | Covers |
+|---|---|---|---|---|
+| Steam | `HKCU\Software\Valve\Steam\SteamPath`, else `C:\Program Files (x86)\Steam`; `steamapps\libraryfolders.vdf` then every `appmanifest_*.acf`; `userdata\*\config\localconfig.vdf` | `vdf.rs`: KeyValues text format, tolerant (comments, `[$WIN32]`, bare tokens, truncated files). Installed = `StateFlags` bit 4. Tools excluded by appid and name (228980, Proton, Steam Linux Runtime, SteamVR) | `steam://rungameid/<appid>` | `userdata\*\config\grid\<appid>p.*`, then `appcache\librarycache\<appid>_library_600x900.jpg` (old layout) or `<appid>\[<hash>\]library_600x900.jpg` (current), then `library_hero.jpg`, `header.jpg` |
+| Epic | `%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests\*.item` (JSON) | `epic.rs`: `AppCategories` must contain `games`; DLC (`MainGameAppName` ≠ `AppName`) and `bIsIncompleteInstall` excluded | `com.epicgames.launcher://apps/<ns>%3A<item>%3A<app>?action=launch&silent=true` | none |
+| GOG | `HKLM\SOFTWARE\WOW6432Node\GOG.com\Games\<id>` | `gog.rs`: `gameName`, `exe`, `launchParam`, `workingDir` / `path`; keys with `dependsOn` (DLC) excluded | the `exe` directly (working folder `workingDir`, else `path`), else `goggalaxy://openGameView/<id>` | none |
+| Xbox | `<drive>:\.GamingRoot` (else `<drive>:\XboxGames`), then `<game>\Content\MicrosoftGame.config` and `appxmanifest.xml` | `xbox.rs` + `xml.rs` (attributes of the first matching element). Package family name = `Name` + `_` + publisher id, computed (SHA-256 of the UTF-16LE publisher, 8 bytes, Crockford-like base 32), checked against `8wekyb3d8bbwe` and the Ally's `Canape_84zrj1c9kn010` | `shell:AppsFolder\<PFN>!<AppId>` | `Square480x480Logo` (or its `.scale-NNN` variant), `Square150x150Logo`, `StoreLogo` |
+
+- **Merging** (`merge`): the launch times saved by Canapé (`recent.json`) raise `last_played`; one entry per id, then one per title across stores (letters and digits, lower case: `HADES™` = `Hades`), keeping the copy played last, else Steam > GOG > Epic > Xbox; sorted last played first then by title (`Sort::Recent`) or by title (`Sort::Title`).
+- **Startup**: `library.json` (the last raw scan) is shown before the window opens, then a background thread scans, rewrites the cache and posts the result to the event loop. Coming back to the page rescans after 60 s.
+- **Covers**: decoded on a worker thread (`zune-jpeg`, `png`, pure Rust) straight to the tile's size in physical pixels (box filter), with rounded corners baked in (the software renderer does not clip images to a rounded rectangle). Only the visible rows and one row on each side are requested; covers more than one further row away are dropped. Landscape or square art is shown whole on a blurred, darkened copy of itself. Measured on Linux (release, 50 games, 1280×720 at scale 1, private memory `RssAnon`): 2.7 MB without games, 6.9 MB on the library with its 18 first covers, 10.8 MB after scrolling to the end and back (glibc with `MALLOC_ARENA_MAX=1`; with its defaults it keeps freed decoding buffers, 9.1 / 14 MB). A cover costs width × height × 4 bytes: about 210 KB at 1280×720, 470 KB on the Ally at 150 %. To measure on Windows.
+- **Navigation**: the grid is one `FocusScope` with a selected index; the moves are computed in Rust (`grid.rs`, `Library.grid-move`). While the library has the focus, `gamepad.rs` sends the arrow keys instead of Tab / Shift+Tab (`library::arrow_navigation()`), with the same repeat. Up from the first row reaches the filter bar.
+- **Launching**: `canape_library::launch` calls `ShellExecuteW` (COM initialised on the calling thread) on a short-lived thread, records the launch in `recent.json`, shows "Launching…" for 5 s, then re-sorts.
+
+> [!WARNING]
+> **Not tried on Windows yet.** Everything above compiles for `x86_64-pc-windows-msvc` and the parsers are tested on Linux against fixtures (`crates/canape-library/tests/fixtures`), but registry reads, Steam / Epic / GOG on a real machine, `ShellExecuteW` from the FSE and the whole Xbox part (written from the documented formats, without an Xbox game to try) are still to be checked on the Ally. Known limit: Xbox app games installed outside an `XboxGames` folder (in `WindowsApps`) are not found.
+
+**Fake library for development**: in a debug build, `CANAPE_LIBRARY_FIXTURE=<dir>` replaces the real stores with `<dir>/steam` (a Steam folder), `<dir>/epic` (manifests), `<dir>/gog.json` (a JSON array of `{"key": …, "values": {"gameName": …, "exe": …}}`, like the registry) and `<dir>/xbox` (an `XboxGames` folder). Nothing is launched (the launch only shows), and the cache files become `library-fixture.json` and `recent-fixture.json`. Release builds ignore the variable.
 
 ### Inside the service
 
@@ -434,7 +460,8 @@ Off Windows, logs and state go to `<tmp>/Canape/` (`service.log`, `state.json`, 
 | `CANAPE_MOCK_FPS` | service (simulator) | Simulated frame rate, for example `60`. Without it, `fps` is `null` and auto TDP does not move. Also applies on Windows when the simulator is in use. |
 | `CANAPE_SOCKET` | service, shell, `canape-ctl` (off Windows) | Unix socket path. |
 | `CANAPE_WINDOWED` | shell | Present (any value): a window instead of full screen. |
-| `CANAPE_PAGE` | shell | Page shown at startup: 0 Home, 1 Performance, 2 Profiles, 3 Bench, 4 Settings. |
+| `CANAPE_PAGE` | shell | Page shown at startup: 0 Library, 1 Home, 2 Performance, 3 Profiles, 4 Bench, 5 Settings. |
+| `CANAPE_LIBRARY_FIXTURE` | shell (debug builds) | A fake library instead of the installed stores: see [The game library](#the-game-library). |
 | `LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG` | shell (off Windows) | Language in Automatic mode, in this order of priority. |
 | `TMPDIR` | all (off Windows) | Temporary folder, hence where `Canape/` lives. |
 
@@ -447,7 +474,7 @@ export TMPDIR=$(mktemp -d) CANAPE_SOCKET=/tmp/doc.sock   # clean state.json and 
 Xvfb :99 -screen 0 1280x720x24 &
 CANAPE_MOCK_FPS=60 ./target/debug/canape-service --console &
 ./target/debug/canape-ctl '{"type":"foreground_app","exe":"eldenring.exe"}'   # plus profiles, accent, a short bench…
-DISPLAY=:99 CANAPE_WINDOWED=1 CANAPE_PAGE=1 LANG=fr_FR.UTF-8 ./target/debug/canape-shell &
+DISPLAY=:99 CANAPE_WINDOWED=1 CANAPE_PAGE=2 LANG=fr_FR.UTF-8 ./target/debug/canape-shell &
 for w in 15 18 22 17 12 9 13 19 …; do ./target/debug/canape-ctl "{\"type\":\"set_tdp\",\"watts\":$w}"; sleep 2.5; done
 DISPLAY=:99 import -window root docs/images/fr/performance.png   # ImageMagick
 ```

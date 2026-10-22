@@ -78,7 +78,7 @@ pub fn profile_for(
             ..current
         },
         learned_watts: Some(rec.watts),
-        ..Default::default()
+        ..Profile::default()
     }
 }
 

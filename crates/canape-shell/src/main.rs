@@ -14,9 +14,11 @@ mod accent;
 mod foreground;
 #[cfg(windows)]
 mod gamepad;
+mod grid;
 mod history;
 mod i18n;
 mod instance;
+mod library;
 mod link;
 #[cfg(any(windows, test))]
 mod nav;
@@ -93,9 +95,11 @@ fn main() -> Result<(), slint::PlatformError> {
         accent::show(&ui, color, None);
     }
     if let Ok(page) = std::env::var("CANAPE_PAGE") {
-        // Development aid: open a given page (0 = home).
+        // Development aid: open a given page (0 = library, 1 = home).
         ui.set_page(page.parse().unwrap_or(0));
     }
+    library::set_shown(ui.get_page() == 0);
+    library::start(&ui);
 
     let link = Link::start(ui.as_weak(), accent);
     connect(&ui, &link);
@@ -209,12 +213,14 @@ fn connect(ui: &AppWindow, link: &Link) {
             let status = link.status();
             if let Some(exe) = status.foreground {
                 let learned_watts = status.tdp_watts.filter(|_| status.auto_tdp.enabled);
+                // Keep what this screen does not edit (fan curves, FPS limit).
+                let existing = link.profile(&exe).unwrap_or_default();
                 link.send(Request::SaveProfile {
                     profile: canape_core::Profile {
                         exe,
                         auto_tdp: status.auto_tdp,
                         learned_watts,
-                        ..Default::default()
+                        ..existing
                     },
                 });
             }
@@ -270,7 +276,12 @@ fn connect(ui: &AppWindow, link: &Link) {
                 watts: point.watts,
                 fps: point.fps_avg,
             };
-            let profile = report::profile_for(&report, rec, &exe, status.auto_tdp);
+            let profile = canape_core::Profile {
+                // Keep the fan curves and FPS limit of an existing profile.
+                fan_curves: link.profile(&exe).and_then(|p| p.fan_curves),
+                fps_limit: link.profile(&exe).and_then(|p| p.fps_limit),
+                ..report::profile_for(&report, rec, &exe, status.auto_tdp)
+            };
             link.send(Request::SaveProfile { profile });
         }
     });
