@@ -405,8 +405,8 @@ mod tests {
             folders,
             [
                 PathBuf::from(r"C:\Steam"),
-                PathBuf::from(r"C:\Program Files (x86)\Steam"),
-                PathBuf::from(r"D:\SteamLibrary"),
+                PathBuf::from(r"Q:\Fixture\Steam"),
+                PathBuf::from(r"Q:\Fixture\SteamLibrary"),
             ]
         );
         let old = "\"LibraryFolders\" { \"TimeNextStatsReport\" \"1\" \"1\" \"E:\\\\Games\" }";

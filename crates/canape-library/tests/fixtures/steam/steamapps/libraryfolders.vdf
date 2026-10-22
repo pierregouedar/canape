@@ -2,7 +2,7 @@
 {
 	"0"
 	{
-		"path"		"C:\\Program Files (x86)\\Steam"
+		"path"		"Q:\\Fixture\\Steam"
 		"label"		""
 		"contentid"		"6086484470435373563"
 		"totalsize"		"0"
@@ -16,7 +16,7 @@
 	}
 	"1"
 	{
-		"path"		"D:\\SteamLibrary"
+		"path"		"Q:\\Fixture\\SteamLibrary"
 		"label"		""
 		"apps"
 		{
