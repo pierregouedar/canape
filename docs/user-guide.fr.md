@@ -421,17 +421,19 @@ Le widget donne les réglages rapides sans quitter le jeu. Toute la logique rest
 
 | Zone | Détail |
 |---|---|
-| En-tête | État de la connexion en texte (« Connexion… », « Service non connecté »), jeu au premier plan (sans `.exe`), « Profil » en couleur d'accent quand un profil est appliqué. |
-| Tuiles | TDP, FPS, température (légende « Bridé » en jaune quand la limite de température retient la puissance), batterie (légende « Secteur » en vert sur le chargeur). |
+| En-tête | Le jeu au premier plan (sans `.exe`) et « profil du jeu » quand son profil s'applique ; sinon l'état de la connexion (« Connexion… », « Service non connecté »). |
+| Chiffres | La consommation (une décimale) et les images par seconde. |
+| Graphe | La dernière minute : la consommation en couleur d'accent, la limite en pointillés gris. |
 | Banc d'essai | Palier, puissance et temps restant pendant un banc d'essai (lancé depuis le shell). |
-| Modes | Silencieux, Performance, Turbo. |
-| ±1 W | Actif seulement quand le TDP est connu ; grisé en mode firmware (« Fixé par le mode du firmware »). Reste dans la plage du modèle communiquée par le service. |
-| Auto TDP | Activé / désactivé et objectif 30, 40 ou 60 FPS. Les autres réglages (minimum, maximum, batterie, température) sont conservés tels quels. |
+| Mode | Quatre tuiles : Silencieux, Performance, Turbo, Auto. La tuile choisie est blanche. Un mode firmware coupe l'auto TDP. |
+| ‹ valeur › | En auto TDP, l'**objectif** (30, 40, 45, 60, 90, 120 FPS) ; sinon la **limite de puissance** ±1 W, grisée en mode firmware (« Fixé par le mode du firmware ») et bornée par la plage du modèle. |
+| Puissance | La plage de l'auto TDP (ou la limite manuelle) sur l'échelle du modèle, avec un trait sur la consommation du moment. Lecture seule : la plage se règle dans le shell. |
+| Pied | Température CPU (« Bridé » en ambre quand la limite de température retient la puissance), activité GPU, batterie. |
 
-Le widget n'a ni mode Manuel, ni bouton de banc d'essai, ni gestion des profils, ni réglage des ventilateurs, de la limite de FPS ou de la manette : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar, et le widget suit la couleur d'accent choisie dans le shell.
+Le widget n'a ni bouton de banc d'essai, ni gestion des profils, ni réglage de la plage de puissance, des ventilateurs, de la limite de FPS ou de la manette : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar, et le widget suit la couleur d'accent choisie dans le shell. Taille par défaut 400 × 600, redimensionnable.
 
 > [!NOTE]
-> La **première version** du widget a été validée sur l'Ally (M3) via Win+G sur le bureau. La **version actuelle** (13 langues, nouveau style, ±1 W désactivé en mode firmware et borné par la plage du modèle) n'a pas encore été compilée. L'ouverture depuis le bouton Xbox dans le FSE, avec Canapé comme accueil, n'a pas encore été testée.
+> La **première version** du widget a été validée sur l'Ally (M3) via Win+G sur le bureau. La **version actuelle** (nouvelle mise en page avec tuiles de mode, objectif et barre de puissance, 13 langues) n'a pas encore été compilée. L'ouverture depuis le bouton Xbox dans le FSE, avec Canapé comme accueil, n'a pas encore été testée.
 
 ## Langues
 

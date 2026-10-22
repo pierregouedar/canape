@@ -419,19 +419,21 @@ The widget gives you the quick settings without leaving the game. All the logic 
 
 **Contents**
 
-| Area | Details |
+| Area | Detail |
 |---|---|
-| Header | Connection state as text ("Connecting…", "Service not connected"), foreground game (without `.exe`), "Profile" in the accent colour when a profile is applied. |
-| Tiles | TDP, FPS, temperature (caption "Throttled" in yellow when the temperature limit is holding power down), battery (caption "Plugged in" in green on the charger). |
+| Header | The foreground game (without `.exe`) and "game profile" when its profile applies; otherwise the connection state ("Connecting…", "Service not connected"). |
+| Figures | The power draw (one decimal) and the frame rate. |
+| Graph | The last minute: the draw in the accent colour, the limit dashed in grey. |
 | Bench | Step, power and time left while a bench runs (started from the shell). |
-| Modes | Silent, Performance, Turbo. |
-| ±1 W | Only active when the TDP is known; disabled in a firmware mode ("Set by the firmware mode"). Stays within the model's range reported by the service. |
-| Auto TDP | On / off and target 30, 40 or 60 FPS. The other settings (minimum, maximum, battery, temperature) are kept as they are. |
+| Mode | Four tiles: Silent, Performance, Turbo, Auto. The chosen tile is white. A firmware mode turns auto TDP off. |
+| ‹ value › | Under auto TDP, the **target** (30, 40, 45, 60, 90, 120 FPS); otherwise the **power limit** ±1 W, greyed out in a firmware mode ("Set by the firmware mode") and kept within the model's range. |
+| Power | The auto TDP range (or the manual limit) on the model's scale, with a mark on the current draw. Read-only: the range is set in the shell. |
+| Footer | CPU temperature ("Throttled" in amber when the temperature limit holds power back), GPU activity, battery. |
 
-The widget has no Manual mode, no bench button, no profile management and no fan, frame rate limit or controller settings: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell.
+The widget has no bench button, no profile management, and no setting for the power range, the fans, the frame rate limit or the controller: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell. Default size 400 × 600, resizable.
 
 > [!NOTE]
-> The **first version** of the widget was validated on the Ally (M3) through Win+G on the desktop. The **current version** (13 languages, new look, ±1 W disabled in firmware modes and bounded by the model's range) has not been built yet. Opening it from the Xbox button in the FSE, with Canapé as the home app, has not been tested yet.
+> The **first version** of the widget was validated on the Ally (M3) through Win+G on the desktop. The **current version** (new layout with mode tiles, target and power bar, 13 languages) has not been built yet. Opening it from the Xbox button in the FSE, with Canapé as the home app, has not been tested yet.
 
 ## Languages
 

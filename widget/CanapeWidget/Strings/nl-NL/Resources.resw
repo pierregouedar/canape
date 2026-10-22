@@ -15,16 +15,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="FpsCaption.Text" xml:space="preserve">
-    <value>FPS</value>
+    <value>Framerate</value>
   </data>
   <data name="PowerCaption.Text" xml:space="preserve">
-    <value>APU-vermogen</value>
-  </data>
-  <data name="GpuCaption.Text" xml:space="preserve">
-    <value>GPU</value>
-  </data>
-  <data name="PowerLimit" xml:space="preserve">
-    <value>Limiet {0}</value>
+    <value>Verbruik</value>
   </data>
   <data name="ModeHeader.Text" xml:space="preserve">
     <value>Modus</value>
@@ -38,18 +32,6 @@
   <data name="ModeTurbo.Text" xml:space="preserve">
     <value>Turbo</value>
   </data>
-  <data name="TdpHeader.Text" xml:space="preserve">
-    <value>Handmatige TDP</value>
-  </data>
-  <data name="TdpMinus.Content" xml:space="preserve">
-    <value>−1 W</value>
-  </data>
-  <data name="TdpPlus.Content" xml:space="preserve">
-    <value>+1 W</value>
-  </data>
-  <data name="AutoHeader.Text" xml:space="preserve">
-    <value>Auto-TDP</value>
-  </data>
   <data name="Connecting" xml:space="preserve">
     <value>Verbinden…</value>
   </data>
@@ -60,22 +42,13 @@
     <value>Geen game op de voorgrond</value>
   </data>
   <data name="ProfileChip" xml:space="preserve">
-    <value>Profiel</value>
+    <value>spelprofiel</value>
   </data>
   <data name="ProfileNamed" xml:space="preserve">
     <value>Profiel: {0}</value>
   </data>
-  <data name="CaptionTemp" xml:space="preserve">
-    <value>Temp.</value>
-  </data>
   <data name="CaptionThrottled" xml:space="preserve">
     <value>Begrensd</value>
-  </data>
-  <data name="CaptionBattery" xml:space="preserve">
-    <value>Accu</value>
-  </data>
-  <data name="CaptionPluggedIn" xml:space="preserve">
-    <value>Netstroom</value>
   </data>
   <data name="FormatWatts" xml:space="preserve">
     <value>{0} W</value>
@@ -94,12 +67,6 @@
   </data>
   <data name="TdpHintFirmware" xml:space="preserve">
     <value>Vastgelegd door de firmwaremodus</value>
-  </data>
-  <data name="AutoOn" xml:space="preserve">
-    <value>Aan</value>
-  </data>
-  <data name="AutoOff" xml:space="preserve">
-    <value>Uit</value>
   </data>
   <data name="AutoRangeBattery" xml:space="preserve">
     <value>{0} op accu</value>
@@ -133,5 +100,26 @@
   </data>
   <data name="WidgetDescription" xml:space="preserve">
     <value>TDP, prestatiemodus en auto-TDP</value>
+  </data>
+  <data name="PowerHeader.Text" xml:space="preserve">
+    <value>Vermogen</value>
+  </data>
+  <data name="TargetLabel" xml:space="preserve">
+    <value>Doel</value>
+  </data>
+  <data name="PowerLimitLabel" xml:space="preserve">
+    <value>Vermogenslimiet</value>
+  </data>
+  <data name="UnitWatts" xml:space="preserve">
+    <value>W</value>
+  </data>
+  <data name="ModeAuto.Text" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="FormatFps" xml:space="preserve">
+    <value>{0} FPS</value>
+  </data>
+  <data name="FooterGpu" xml:space="preserve">
+    <value>GPU {0}</value>
   </data>
 </root>

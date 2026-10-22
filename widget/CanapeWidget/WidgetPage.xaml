@@ -10,40 +10,39 @@
     <Page.Resources>
         <ResourceDictionary>
             <!-- Lightweight styling of the stock Button / ToggleButton templates.
-                 Unchecked choices are transparent inside a "Track" (segmented
-                 control); checked ones take the accent. The accent brushes are
-                 recoloured in code (WidgetPage.ApplyAccent) from Status.accent. -->
+                 Mode tiles are dark; the chosen one turns white with dark text.
+                 The accent is kept for values and the graph (WidgetPage.ApplyAccent). -->
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Default">
-                    <SolidColorBrush x:Key="ButtonBackground" Color="#14FFFFFF" />
-                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#21FFFFFF" />
-                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#0DFFFFFF" />
-                    <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#08FFFFFF" />
-                    <SolidColorBrush x:Key="ButtonForeground" Color="#EBFFFFFF" />
-                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FFFFFFFF" />
-                    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#B3FFFFFF" />
+                    <SolidColorBrush x:Key="ButtonBackground" Color="#1F2127" />
+                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#2A2D34" />
+                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#181A1F" />
+                    <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#141519" />
+                    <SolidColorBrush x:Key="ButtonForeground" Color="#ECEEF2" />
+                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#B7BCC5" />
                     <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#4DFFFFFF" />
                     <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
                     <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
                     <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
                     <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="Transparent" />
 
-                    <SolidColorBrush x:Key="ToggleButtonBackground" Color="Transparent" />
-                    <SolidColorBrush x:Key="ToggleButtonBackgroundPointerOver" Color="#14FFFFFF" />
-                    <SolidColorBrush x:Key="ToggleButtonBackgroundPressed" Color="#0AFFFFFF" />
-                    <SolidColorBrush x:Key="ToggleButtonBackgroundDisabled" Color="Transparent" />
-                    <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#2563EB" />
-                    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#4079EE" />
-                    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#1F54C8" />
-                    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedDisabled" Color="#592563EB" />
-                    <SolidColorBrush x:Key="ToggleButtonForeground" Color="#C7FFFFFF" />
-                    <SolidColorBrush x:Key="ToggleButtonForegroundPointerOver" Color="#FFFFFFFF" />
-                    <SolidColorBrush x:Key="ToggleButtonForegroundPressed" Color="#B3FFFFFF" />
+                    <SolidColorBrush x:Key="ToggleButtonBackground" Color="#1F2127" />
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundPointerOver" Color="#2A2D34" />
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundPressed" Color="#181A1F" />
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundDisabled" Color="#141519" />
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#F4F5F7" />
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#DADDE2" />
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedDisabled" Color="#66F4F5F7" />
+                    <SolidColorBrush x:Key="ToggleButtonForeground" Color="#C9CED6" />
+                    <SolidColorBrush x:Key="ToggleButtonForegroundPointerOver" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ToggleButtonForegroundPressed" Color="#B7BCC5" />
                     <SolidColorBrush x:Key="ToggleButtonForegroundDisabled" Color="#4DFFFFFF" />
-                    <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="#FFFFFFFF" />
-                    <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="#FFFFFFFF" />
-                    <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="#E6FFFFFF" />
-                    <SolidColorBrush x:Key="ToggleButtonForegroundCheckedDisabled" Color="#99FFFFFF" />
+                    <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="#0B0C0F" />
+                    <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="#0B0C0F" />
+                    <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="#0B0C0F" />
+                    <SolidColorBrush x:Key="ToggleButtonForegroundCheckedDisabled" Color="#990B0C0F" />
                     <SolidColorBrush x:Key="ToggleButtonBorderBrush" Color="Transparent" />
                     <SolidColorBrush x:Key="ToggleButtonBorderBrushPointerOver" Color="Transparent" />
                     <SolidColorBrush x:Key="ToggleButtonBorderBrushPressed" Color="Transparent" />
@@ -57,324 +56,266 @@
 
             <!-- Opaque here; WidgetPage applies Game Bar's requested opacity to it.
                  Same colour as Palette.Panel. -->
-            <SolidColorBrush x:Key="PanelBackground" Color="#1A1B1F" />
+            <SolidColorBrush x:Key="PanelBackground" Color="#121317" />
 
-            <!-- Accent family, recoloured in code; #2563EB until a status says otherwise. -->
-            <SolidColorBrush x:Key="AccentBrush" Color="#2563EB" />
-            <SolidColorBrush x:Key="AccentFillBrush" Color="#382563EB" />
-            <SolidColorBrush x:Key="AccentTextBrush" Color="#7EA2F3" />
+            <!-- Accent family, recoloured in code from Status.accent. -->
+            <SolidColorBrush x:Key="AccentBrush" Color="#FF3D5E" />
+            <SolidColorBrush x:Key="AccentTextBrush" Color="#FF6F88" />
 
-            <SolidColorBrush x:Key="SurfaceBrush" Color="#0DFFFFFF" />
-            <SolidColorBrush x:Key="HairlineBrush" Color="#12FFFFFF" />
-            <SolidColorBrush x:Key="ReferenceBrush" Color="#66FFFFFF" />
+            <SolidColorBrush x:Key="TextBrush" Color="#ECEEF2" />
+            <SolidColorBrush x:Key="SoftTextBrush" Color="#C9CED6" />
+            <SolidColorBrush x:Key="DimTextBrush" Color="#8B919B" />
+            <SolidColorBrush x:Key="TrackBrush" Color="#26282E" />
+            <SolidColorBrush x:Key="KnobBrush" Color="#F4F5F7" />
+            <SolidColorBrush x:Key="ReferenceBrush" Color="#6B7280" />
             <SolidColorBrush x:Key="WarningBrush" Color="#FBBF24" />
             <SolidColorBrush x:Key="ErrorBrush" Color="#FCA5A5" />
 
-            <Style x:Key="Tile" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource HairlineBrush}" />
-                <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="8" />
-                <Setter Property="Padding" Value="10,8,10,8" />
-            </Style>
-
-            <!-- Background of a group of choices (segmented control). -->
-            <Style x:Key="Track" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource HairlineBrush}" />
-                <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="8" />
-                <Setter Property="Padding" Value="2" />
-            </Style>
-
             <Style x:Key="Caption" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="11" />
-                <Setter Property="Opacity" Value="0.6" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Foreground" Value="{StaticResource DimTextBrush}" />
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
                 <Setter Property="TextWrapping" Value="NoWrap" />
-            </Style>
-
-            <Style x:Key="MetricValue" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="20" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-                <Setter Property="TextWrapping" Value="NoWrap" />
-                <Setter Property="Text" Value="—" />
-            </Style>
-
-            <Style x:Key="StatValue" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="15" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-                <Setter Property="TextWrapping" Value="NoWrap" />
-                <Setter Property="Text" Value="—" />
             </Style>
 
             <Style x:Key="SectionHeader" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Opacity" Value="0.75" />
+                <Setter Property="Foreground" Value="{StaticResource SoftTextBrush}" />
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
                 <Setter Property="TextWrapping" Value="NoWrap" />
-                <Setter Property="VerticalAlignment" Value="Bottom" />
             </Style>
 
-            <Style x:Key="SectionHint" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="11" />
-                <Setter Property="Opacity" Value="0.55" />
+            <Style x:Key="Figure" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="34" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="LineHeight" Value="36" />
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
                 <Setter Property="TextWrapping" Value="NoWrap" />
-                <Setter Property="HorizontalAlignment" Value="Right" />
-                <Setter Property="VerticalAlignment" Value="Bottom" />
             </Style>
 
-            <Style x:Key="Choice" TargetType="ToggleButton">
+            <!-- A mode tile: an icon over a short name. -->
+            <Style x:Key="ModeTile" TargetType="ToggleButton">
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="MinHeight" Value="32" />
-                <Setter Property="Padding" Value="6,0" />
+                <Setter Property="Height" Value="58" />
+                <Setter Property="Padding" Value="4,0" />
                 <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="CornerRadius" Value="6" />
-                <Setter Property="FontSize" Value="13" />
+                <Setter Property="CornerRadius" Value="10" />
             </Style>
 
-            <Style x:Key="Action" TargetType="Button">
-                <Setter Property="HorizontalContentAlignment" Value="Center" />
-                <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="MinWidth" Value="58" />
-                <Setter Property="MinHeight" Value="34" />
-                <Setter Property="Padding" Value="8,0" />
-                <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="CornerRadius" Value="6" />
-                <Setter Property="FontSize" Value="13" />
-            </Style>
-
-            <!-- Sparkline strokes; Data is built in code (LiveGraph). -->
-            <Style x:Key="GraphLine" TargetType="Path">
-                <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
-                <Setter Property="StrokeThickness" Value="1.5" />
+            <Style x:Key="ModeIcon" TargetType="Path">
+                <Setter Property="StrokeThickness" Value="2" />
                 <Setter Property="StrokeLineJoin" Value="Round" />
                 <Setter Property="StrokeStartLineCap" Value="Round" />
                 <Setter Property="StrokeEndLineCap" Value="Round" />
+                <Setter Property="Stroke" Value="{StaticResource SoftTextBrush}" />
+            </Style>
+
+            <Style x:Key="ModeName" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                <Setter Property="TextWrapping" Value="NoWrap" />
+            </Style>
+
+            <!-- ‹ and › around a value. -->
+            <Style x:Key="Chevron" TargetType="Button">
+                <Setter Property="Width" Value="36" />
+                <Setter Property="Height" Value="36" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="FontSize" Value="18" />
+                <Setter Property="FontWeight" Value="SemiBold" />
             </Style>
         </ResourceDictionary>
     </Page.Resources>
 
     <Grid x:Name="Root" Background="{StaticResource PanelBackground}">
-        <!-- 340x360 by default; a little more air, bigger numbers and taller
-             graphs from 420x420. -->
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="SizeStates">
-                <VisualState x:Name="Compact">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="0" />
-                    </VisualState.StateTriggers>
-                </VisualState>
-                <VisualState x:Name="Roomy">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="420" MinWindowHeight="420" />
-                    </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="Body.Padding" Value="16" />
-                        <Setter Target="Body.Spacing" Value="14" />
-                        <Setter Target="GameText.FontSize" Value="17" />
-                        <Setter Target="PowerText.FontSize" Value="26" />
-                        <Setter Target="GpuText.FontSize" Value="26" />
-                        <Setter Target="PowerPlot.Height" Value="44" />
-                        <Setter Target="GpuPlot.Height" Value="44" />
-                        <Setter Target="FpsText.FontSize" Value="18" />
-                        <Setter Target="TempText.FontSize" Value="18" />
-                        <Setter Target="BatteryText.FontSize" Value="18" />
-                        <Setter Target="TdpText.FontSize" Value="18" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
-
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel x:Name="Body" Padding="12" Spacing="12">
+            <Grid Padding="18,16,18,18" RowSpacing="18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-                <!-- Header: foreground game (or link state) and the profile applied. -->
-                <Grid ColumnSpacing="10">
+                <!-- Foreground game (or link state), and whether its profile applies. -->
+                <Grid Grid.Row="0" ColumnSpacing="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="GameText" FontSize="15" FontWeight="SemiBold"
-                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" />
-                    <TextBlock x:Name="ProfileText" Grid.Column="1" FontSize="12" FontWeight="SemiBold" MaxWidth="160"
-                               Foreground="{StaticResource AccentTextBrush}" Visibility="Collapsed"
-                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" />
+                    <TextBlock x:Name="GameText" FontSize="17" FontWeight="Bold"
+                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Bottom" />
+                    <TextBlock x:Name="ProfileText" Grid.Column="1" Style="{StaticResource Caption}" MaxWidth="160"
+                               VerticalAlignment="Bottom" Margin="0,0,0,2" Visibility="Collapsed" />
                 </Grid>
 
-                <!-- Live power draw against the limit, and GPU activity, over the last minute. -->
-                <Grid ColumnSpacing="8">
+                <!-- Live power draw and frame rate. -->
+                <Grid Grid.Row="1" ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource Tile}">
-                        <StackPanel>
-                            <TextBlock x:Uid="PowerCaption" Style="{StaticResource Caption}" />
-                            <Grid ColumnSpacing="6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="PowerText" Style="{StaticResource MetricValue}" Typography.NumeralAlignment="Tabular" />
-                                <TextBlock x:Name="PowerLimitText" Grid.Column="1" Style="{StaticResource SectionHint}"
-                                           Margin="0,0,0,3" Typography.NumeralAlignment="Tabular" />
-                            </Grid>
-                            <Canvas x:Name="PowerPlot" Height="30" Margin="0,6,0,0">
-                                <Path x:Name="PowerArea" Fill="{StaticResource AccentFillBrush}" />
-                                <Path x:Name="PowerLimitLine" Stroke="{StaticResource ReferenceBrush}" StrokeThickness="1" StrokeDashArray="3,3" />
-                                <Path x:Name="PowerLine" Style="{StaticResource GraphLine}" />
-                            </Canvas>
-                        </StackPanel>
-                    </Border>
-                    <Border Grid.Column="1" Style="{StaticResource Tile}">
-                        <StackPanel>
-                            <TextBlock x:Uid="GpuCaption" Style="{StaticResource Caption}" />
-                            <TextBlock x:Name="GpuText" Style="{StaticResource MetricValue}" Typography.NumeralAlignment="Tabular" />
-                            <Canvas x:Name="GpuPlot" Height="30" Margin="0,6,0,0">
-                                <Path x:Name="GpuArea" Fill="{StaticResource AccentFillBrush}" />
-                                <Path x:Name="GpuLine" Style="{StaticResource GraphLine}" />
-                            </Canvas>
-                        </StackPanel>
-                    </Border>
+                    <StackPanel Spacing="2">
+                        <TextBlock x:Uid="PowerCaption" Style="{StaticResource Caption}" />
+                        <TextBlock Style="{StaticResource Figure}" Typography.NumeralAlignment="Tabular">
+                            <Run x:Name="PowerValue" Text="—" /><Run x:Name="PowerUnit" FontSize="15" FontWeight="Medium"
+                                 Foreground="{StaticResource DimTextBrush}" />
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock x:Uid="FpsCaption" Style="{StaticResource Caption}" />
+                        <TextBlock Style="{StaticResource Figure}" Typography.NumeralAlignment="Tabular">
+                            <Run x:Name="FpsValue" Text="—" /><Run Text=" FPS" FontSize="15" FontWeight="Medium"
+                                 Foreground="{StaticResource DimTextBrush}" />
+                        </TextBlock>
+                    </StackPanel>
                 </Grid>
 
-                <!-- FPS, temperature, battery. The temperature caption turns into
-                     "Throttled" (warning text) when auto TDP holds power because of
-                     the temperature; the battery glyph shows the charge and a plug
-                     on the charger. -->
-                <Border Style="{StaticResource Tile}" Padding="0,8,0,8">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                            <ColumnDefinition Width="1" />
-                            <ColumnDefinition />
-                            <ColumnDefinition Width="1" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Padding="10,0">
-                            <TextBlock x:Uid="FpsCaption" Style="{StaticResource Caption}" />
-                            <TextBlock x:Name="FpsText" Style="{StaticResource StatValue}" Typography.NumeralAlignment="Tabular" />
-                        </StackPanel>
-                        <Rectangle Grid.Column="1" Fill="{StaticResource HairlineBrush}" Margin="0,2" />
-                        <StackPanel Grid.Column="2" Padding="10,0">
-                            <TextBlock x:Name="TempCaption" Style="{StaticResource Caption}" />
-                            <TextBlock x:Name="TempText" Style="{StaticResource StatValue}" Typography.NumeralAlignment="Tabular" />
-                        </StackPanel>
-                        <Rectangle Grid.Column="3" Fill="{StaticResource HairlineBrush}" Margin="0,2" />
-                        <StackPanel Grid.Column="4" Padding="10,0">
-                            <TextBlock x:Name="BatteryCaption" Style="{StaticResource Caption}" />
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock x:Name="BatteryText" Style="{StaticResource StatValue}" Typography.NumeralAlignment="Tabular" />
-                                <TextBlock x:Name="BatteryGlyph" FontFamily="Segoe MDL2 Assets" FontSize="14" Opacity="0.8"
-                                           VerticalAlignment="Center" Visibility="Collapsed" />
-                            </StackPanel>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                <!-- The last minute: power draw, and the limit dashed. -->
+                <Grid Grid.Row="2" Height="56">
+                    <Rectangle Height="1" VerticalAlignment="Bottom" Fill="{StaticResource TrackBrush}" />
+                    <Canvas x:Name="PowerPlot">
+                        <Path x:Name="PowerLimitLine" Stroke="{StaticResource ReferenceBrush}" StrokeThickness="1.5" StrokeDashArray="2,2" />
+                        <Path x:Name="PowerLine" Stroke="{StaticResource AccentBrush}" StrokeThickness="2"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                    </Canvas>
+                </Grid>
 
                 <!-- Bench progress (started from the shell; read-only here). -->
-                <Border x:Name="BenchCard" Style="{StaticResource Tile}" Visibility="Collapsed">
-                    <StackPanel Spacing="8">
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock x:Name="BenchStepText" FontSize="12" FontWeight="SemiBold"
-                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                            <TextBlock x:Name="BenchLeftText" Grid.Column="1" FontSize="12" Opacity="0.6"
-                                       Typography.NumeralAlignment="Tabular" />
-                        </Grid>
-                        <ProgressBar x:Name="BenchBar" Minimum="0" Maximum="1" Value="0"
-                                     Foreground="{StaticResource AccentBrush}" Background="#1AFFFFFF" />
-                    </StackPanel>
-                </Border>
-
-                <StackPanel Spacing="6">
-                    <TextBlock x:Uid="ModeHeader" Style="{StaticResource SectionHeader}" />
-                    <Border Style="{StaticResource Track}">
-                        <Grid ColumnSpacing="2">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-                            <ToggleButton x:Name="SilentButton" Grid.Column="0" Style="{StaticResource Choice}" Tag="silent" Click="OnMode">
-                                <TextBlock x:Uid="ModeSilent" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                            </ToggleButton>
-                            <ToggleButton x:Name="PerformanceButton" Grid.Column="1" Style="{StaticResource Choice}" Tag="performance" Click="OnMode">
-                                <TextBlock x:Uid="ModePerformance" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                            </ToggleButton>
-                            <ToggleButton x:Name="TurboButton" Grid.Column="2" Style="{StaticResource Choice}" Tag="turbo" Click="OnMode">
-                                <TextBlock x:Uid="ModeTurbo" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                            </ToggleButton>
-                        </Grid>
-                    </Border>
+                <StackPanel x:Name="BenchCard" Grid.Row="3" Spacing="8" Visibility="Collapsed">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="BenchStepText" Style="{StaticResource SectionHeader}" />
+                        <TextBlock x:Name="BenchLeftText" Grid.Column="1" Style="{StaticResource Caption}"
+                                   Typography.NumeralAlignment="Tabular" />
+                    </Grid>
+                    <ProgressBar x:Name="BenchBar" Minimum="0" Maximum="1" Value="0"
+                                 Foreground="{StaticResource AccentBrush}" Background="{StaticResource TrackBrush}" />
                 </StackPanel>
 
-                <!-- Manual TDP: −1 W, current limit, +1 W on one row. -->
-                <Grid ColumnSpacing="8">
+                <!-- Modes: the three firmware modes and auto TDP. -->
+                <StackPanel Grid.Row="4" Spacing="8">
+                    <TextBlock x:Uid="ModeHeader" Style="{StaticResource SectionHeader}" />
+                    <Grid ColumnSpacing="6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <ToggleButton x:Name="SilentButton" Grid.Column="0" Style="{StaticResource ModeTile}" Tag="silent" Click="OnMode">
+                            <StackPanel Spacing="5">
+                                <Viewbox Width="18" Height="18">
+                                    <Grid Width="24" Height="24">
+                                        <Path x:Name="SilentIcon" Style="{StaticResource ModeIcon}" Data="M4,14 C8,14 10,12 12,8 C14,12 16,14 20,14 M4,18 L20,18" />
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock x:Uid="ModeSilent" Style="{StaticResource ModeName}" />
+                            </StackPanel>
+                        </ToggleButton>
+                        <ToggleButton x:Name="PerformanceButton" Grid.Column="1" Style="{StaticResource ModeTile}" Tag="performance" Click="OnMode">
+                            <StackPanel Spacing="5">
+                                <Viewbox Width="18" Height="18">
+                                    <Grid Width="24" Height="24">
+                                        <Path x:Name="PerformanceIcon" Style="{StaticResource ModeIcon}" Data="M12,4 A8,8 0 1 1 11.99,4 M12,8 L12,12 L15,14" />
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock x:Uid="ModePerformance" Style="{StaticResource ModeName}" />
+                            </StackPanel>
+                        </ToggleButton>
+                        <ToggleButton x:Name="TurboButton" Grid.Column="2" Style="{StaticResource ModeTile}" Tag="turbo" Click="OnMode">
+                            <StackPanel Spacing="5">
+                                <Viewbox Width="18" Height="18">
+                                    <Grid Width="24" Height="24">
+                                        <Path x:Name="TurboIcon" Style="{StaticResource ModeIcon}" Data="M13,3 L5,14 L11,14 L10,21 L18,10 L12,10 Z" />
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock x:Uid="ModeTurbo" Style="{StaticResource ModeName}" />
+                            </StackPanel>
+                        </ToggleButton>
+                        <ToggleButton x:Name="AutoButton" Grid.Column="3" Style="{StaticResource ModeTile}" Click="OnAuto">
+                            <StackPanel Spacing="5">
+                                <Viewbox Width="18" Height="18">
+                                    <Grid Width="24" Height="24">
+                                        <Path x:Name="AutoIcon" Style="{StaticResource ModeIcon}" Data="M3,17 L8,11 L12,14 L17,7 L21,11 M3,21 L21,21" />
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock x:Uid="ModeAuto" Style="{StaticResource ModeName}" />
+                            </StackPanel>
+                        </ToggleButton>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Auto TDP: the target frame rate. Otherwise the power limit, ±1 W. -->
+                <Grid Grid.Row="5" Height="44" ColumnSpacing="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="84" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Spacing="1">
-                        <TextBlock x:Uid="TdpHeader" Style="{StaticResource SectionHeader}" />
-                        <TextBlock x:Name="TdpHint" Style="{StaticResource Caption}" Visibility="Collapsed" />
+                        <TextBlock x:Name="StepLabel" FontSize="14" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                        <TextBlock x:Name="StepHint" Style="{StaticResource Caption}" FontSize="11" Visibility="Collapsed" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                        <Button x:Name="TdpMinusButton" x:Uid="TdpMinus" Style="{StaticResource Action}" Tag="-1" Click="OnTdp" IsEnabled="False" />
-                        <TextBlock x:Name="TdpText" Style="{StaticResource StatValue}" MinWidth="48" TextAlignment="Center"
-                                   VerticalAlignment="Center" Typography.NumeralAlignment="Tabular" />
-                        <Button x:Name="TdpPlusButton" x:Uid="TdpPlus" Style="{StaticResource Action}" Tag="1" Click="OnTdp" IsEnabled="False" />
-                    </StackPanel>
+                    <Button x:Name="StepDown" Grid.Column="1" Style="{StaticResource Chevron}" Content="‹" Tag="-1" Click="OnStep" IsEnabled="False" />
+                    <TextBlock x:Name="StepValue" Grid.Column="2" Text="—" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{StaticResource AccentTextBrush}" TextAlignment="Center" VerticalAlignment="Center"
+                               Typography.NumeralAlignment="Tabular" />
+                    <Button x:Name="StepUp" Grid.Column="3" Style="{StaticResource Chevron}" Content="›" Tag="1" Click="OnStep" IsEnabled="False" />
                 </Grid>
 
-                <StackPanel Spacing="6">
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock x:Uid="AutoHeader" Style="{StaticResource SectionHeader}" />
-                        <TextBlock x:Name="AutoRangeText" Grid.Column="1" Style="{StaticResource SectionHint}"
+                <!-- Power: the range on the model's scale, and the live draw. -->
+                <StackPanel Grid.Row="6" Spacing="10">
+                    <Grid>
+                        <TextBlock x:Uid="PowerHeader" Style="{StaticResource SectionHeader}" />
+                        <TextBlock x:Name="RangeText" Style="{StaticResource Caption}" HorizontalAlignment="Right"
                                    Typography.NumeralAlignment="Tabular" />
                     </Grid>
-                    <Grid ColumnSpacing="6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*" />
-                            <ColumnDefinition Width="2.6*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Style="{StaticResource Track}">
-                            <ToggleButton x:Name="AutoButton" Style="{StaticResource Choice}" Click="OnAutoToggle">
-                                <TextBlock x:Name="AutoText" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                            </ToggleButton>
-                        </Border>
-                        <Border Grid.Column="1" Style="{StaticResource Track}">
-                            <Grid ColumnSpacing="2">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition />
-                                    <ColumnDefinition />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <ToggleButton x:Name="Fps30Button" Grid.Column="0" Style="{StaticResource Choice}" Content="30" Tag="30" Click="OnTarget" />
-                                <ToggleButton x:Name="Fps40Button" Grid.Column="1" Style="{StaticResource Choice}" Content="40" Tag="40" Click="OnTarget" />
-                                <ToggleButton x:Name="Fps60Button" Grid.Column="2" Style="{StaticResource Choice}" Content="60" Tag="60" Click="OnTarget" />
-                            </Grid>
-                        </Border>
-                    </Grid>
+                    <Canvas x:Name="RangePlot" Height="40" SizeChanged="OnRangeSize">
+                        <Rectangle x:Name="RangeTrack" Canvas.Top="10" Height="4" RadiusX="2" RadiusY="2" Fill="{StaticResource TrackBrush}" />
+                        <Rectangle x:Name="RangeFill" Canvas.Top="10" Height="4" RadiusX="2" RadiusY="2" Fill="{StaticResource AccentBrush}" />
+                        <Ellipse x:Name="LowKnob" Canvas.Top="4" Width="16" Height="16" Fill="{StaticResource KnobBrush}" />
+                        <Ellipse x:Name="HighKnob" Canvas.Top="4" Width="16" Height="16" Fill="{StaticResource KnobBrush}" />
+                        <Rectangle x:Name="LiveMark" Canvas.Top="5" Width="2" Height="14" RadiusX="1" RadiusY="1"
+                                   Fill="{StaticResource KnobBrush}" />
+                        <TextBlock x:Name="LiveText" Canvas.Top="24" FontSize="11" Foreground="{StaticResource SoftTextBrush}"
+                                   Typography.NumeralAlignment="Tabular" />
+                    </Canvas>
                 </StackPanel>
 
-                <TextBlock x:Name="ConflictText" FontSize="12" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" Visibility="Collapsed" />
-                <TextBlock x:Name="MessageText" FontSize="12" Foreground="{StaticResource ErrorBrush}" TextWrapping="Wrap" Visibility="Collapsed" />
-            </StackPanel>
+                <StackPanel Grid.Row="7" Spacing="6" VerticalAlignment="Top">
+                    <TextBlock x:Name="ConflictText" FontSize="12" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" Visibility="Collapsed" />
+                    <TextBlock x:Name="MessageText" FontSize="12" Foreground="{StaticResource ErrorBrush}" TextWrapping="Wrap" Visibility="Collapsed" />
+                </StackPanel>
+
+                <!-- Temperature, GPU activity, battery. -->
+                <StackPanel Grid.Row="8" Orientation="Horizontal" Spacing="6">
+                    <TextBlock x:Name="FooterText" Style="{StaticResource Caption}" VerticalAlignment="Center"
+                               Typography.NumeralAlignment="Tabular" />
+                    <TextBlock x:Name="BatteryGlyph" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                               Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" Visibility="Collapsed" />
+                    <TextBlock x:Name="BatteryText" Style="{StaticResource Caption}" VerticalAlignment="Center"
+                               Typography.NumeralAlignment="Tabular" />
+                </StackPanel>
+            </Grid>
         </ScrollViewer>
     </Grid>
 </Page>

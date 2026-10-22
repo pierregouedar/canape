@@ -11,14 +11,21 @@ Réglages rapides en jeu : TDP, mode, auto TDP, FPS, température, batterie. Tou
 
 ## Interface
 
-- En-tête : jeu au premier plan (`foreground`, sans `.exe`), ou l'état de la connexion en texte (« Connexion… », « Service non connecté ») ; à droite, « Profil » en texte d'accent quand un profil est appliqué (`active_profile`).
-- Deux cartes avec graphe de la dernière minute (60 points, un par statut poussé chaque seconde) : **puissance APU** (`power_watts`) avec la limite TDP (`tdp_watts`) en chiffres et en ligne pointillée de référence, et **GPU** (`gpu_util`, échelle fixe 0–100 %). Une valeur `null` coupe la courbe. Les graphes (`LiveGraph.cs`) reconstruisent trois petits `Path` par statut, rien entre deux statuts, et ne sont pas redessinés quand la Game Bar masque le widget. L'historique est vidé à la déconnexion.
-- Bandeau FPS / température / batterie. La légende de la température devient « Bridé » en texte ambre quand l'auto TDP retient la puissance à cause de la température (`thermal_limited`) ; la batterie montre un glyphe Segoe MDL2 (niveau, ou prise en charge) et la légende « Secteur » sur le chargeur (`on_battery: false`).
-- Carte de progression du bench quand le statut contient `bench` (palier, puissance, temps restant). Le bench se lance depuis le shell : aucune commande de bench dans le widget.
-- Modes (contrôle segmenté), TDP manuel (−1 W, valeur, +1 W sur une ligne), auto TDP (on/off et cible 30/40/60 FPS). **±1 W n'est actif que si `tdp_watts` est connu** : en mode firmware (silencieux, performance, turbo) le TDP est inconnu et les boutons sont grisés avec la mention « Fixé par le mode du firmware ». `set_auto_tdp` renvoie l'objet `auto_tdp` courant en entier (dont `battery_max_watts` et `max_temp_c`) en ne changeant que `enabled` et `target_fps`.
-- Style : panneau sombre (`#1A1B1F`) dont l'opacité suit le réglage de transparence de la Game Bar (`XboxGameBarWidget.RequestedOpacity`), cartes à filet fin, choix groupés dans des pistes arrondies (états de `ToggleButton` via les ressources « lightweight styling » de `WidgetPage.xaml`), chiffres tabulaires. Aucune pastille ni point de couleur : l'état passe par le texte et les glyphes.
-- Accent : `Status.accent` (`#rrggbb`, choisi dans le shell et poussé par le service), `#2563EB` par défaut. `WidgetPage.ApplyAccent` recolore sur place les pinceaux d'accent (sélection, courbes, barre du bench, texte « Profil ») dès qu'il change. `Palette.cs` calcule le texte sur l'accent (blanc ou encre, au meilleur contraste WCAG) et une variante éclaircie lisible sur le panneau (4,5:1).
-- Lisible en 340×360 (défile un peu si le bench est affiché) ; à partir de 420×420 l'espacement, les chiffres et les graphes grandissent (`AdaptiveTrigger`), jusqu'à 480×480.
+Même langage visuel que la page Performance du shell : panneau sombre, chiffres tabulaires, couleur d'accent réservée aux valeurs et au graphe.
+
+- En-tête : jeu au premier plan (`foreground`, sans `.exe`) ou l'état de la connexion (« Connexion… », « Service non connecté ») ; à droite, « profil du jeu » quand son profil s'applique (`active_profile`), ou « Profil : <nom> » quand c'est celui d'un autre programme.
+- Deux grands chiffres : **consommation** (`power_watts`, une décimale) et **images par seconde** (`fps`).
+- Graphe de la dernière minute (60 points, un par statut poussé chaque seconde) : la consommation en couleur d'accent, la limite (`tdp_watts`) en pointillés gris. Une valeur `null` coupe la courbe. `LiveGraph.cs` reconstruit deux petits `Path` par statut, rien entre deux statuts, et ne redessine pas quand la Game Bar masque le widget. L'historique est vidé à la déconnexion.
+- Carte de progression du banc d'essai quand le statut contient `bench` (palier, puissance, temps restant). Le banc d'essai se lance depuis le shell.
+- **Mode** : quatre tuiles avec icône, Silencieux, Performance, Turbo et Auto. La tuile choisie est blanche, texte et icône sombres. Auto envoie `set_auto_tdp` (activé) ; un mode firmware envoie `set_performance_mode`, qui coupe l'auto TDP côté service.
+- **Ligne ‹ valeur ›** : en auto TDP, « Objectif » passe d'un cran à l'autre (30, 40, 45, 60, 90, 120 FPS, comme le shell) ; sinon « Limite de puissance » ±1 W, **actif seulement quand `tdp_watts` est connu** (en mode firmware, la mention « Fixé par le mode du firmware » s'affiche et les chevrons sont grisés), borné par la plage du modèle (`tdp_min_watts`, `tdp_max_watts`). `set_auto_tdp` renvoie l'objet `auto_tdp` courant en entier (dont `battery_max_watts` et `max_temp_c`) en ne changeant que `enabled` et `target_fps`.
+- **Puissance** : une barre à l'échelle du modèle (5 à 35 W si le service ne la donne pas) avec la plage de l'auto TDP (deux poignées ; le plafond sur batterie remplace le maximum sur batterie) ou la limite manuelle (une poignée), et un trait sur la consommation du moment avec sa valeur. Lecture seule : la plage se règle dans le shell.
+- Pied : température CPU (précédée de « Bridé » en ambre quand la limite de température retient la puissance, `thermal_limited`), activité GPU, glyphe Segoe MDL2 de la batterie (niveau, ou prise en charge) et pourcentage.
+- Avertissement en ambre quand un autre programme pilote le matériel, erreur de la dernière commande en rouge clair.
+- Panneau `#121317` dont l'opacité suit le réglage de transparence de la Game Bar (`XboxGameBarWidget.RequestedOpacity`).
+- Accent : `Status.accent` (`#rrggbb`, choisi dans le shell et poussé par le service), `#FF3D5E` par défaut comme le shell. `WidgetPage.ApplyAccent` recolore sur place les pinceaux d'accent ; `Palette.cs` en tire une variante lisible en texte sur le panneau (4,5:1).
+- Taille : 400 × 600 par défaut, de 340 × 460 à 480 × 760 (défile si la fenêtre est plus petite que le contenu).
+- Pas de lien « Ouvrir Canapé » : le shell n'enregistre pas de protocole que le widget pourrait lancer.
 
 ## Langues
 
@@ -28,7 +35,7 @@ Langues fournies : en-US (langue par défaut, `DefaultLanguage` du projet, repli
 
 ### Ajouter une langue
 
-1. Copier `Strings/en-US/Resources.resw` dans `Strings/<balise BCP-47>/Resources.resw` (par ex. `Strings/sv-SE/`) et traduire chaque `<value>`. Garder toutes les clés et les marqueurs `{0}`, `{1}`, `{2}` ; les `<comment>` de la version anglaise décrivent chaque chaîne. Rester court pour les boutons et les légendes de tuiles (environ 10 caractères à 340 px de large).
+1. Copier `Strings/en-US/Resources.resw` dans `Strings/<balise BCP-47>/Resources.resw` (par ex. `Strings/sv-SE/`) et traduire chaque `<value>`. Garder toutes les clés et les marqueurs `{0}`, `{1}`, `{2}` ; les `<comment>` de la version anglaise décrivent chaque chaîne. Rester court pour les noms des tuiles de mode (environ 10 caractères : quatre tuiles sur 340 px de large).
 2. Ajouter `<PRIResource Include="Strings\<balise>\Resources.resw" />` dans `CanapeWidget.csproj`.
 3. Rien à changer dans le manifeste : `<Resource Language="x-generate" />` est remplacé à la compilation par toutes les langues trouvées.
 4. Recompiler (`packaging\build-widget.ps1`) puis tester : Paramètres Windows > Heure et langue > Langue, mettre la langue en tête, relancer la Game Bar.

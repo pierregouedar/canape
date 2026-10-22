@@ -14,7 +14,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace CanapeWidget
 {
-    /// <summary>Quick settings in Game Bar, mirroring the shell's home screen.</summary>
+    /// <summary>Quick settings in Game Bar, mirroring the shell's Performance page.</summary>
     public sealed partial class WidgetPage : Page
     {
         private const string Dash = "\u2014";
@@ -24,22 +24,33 @@ namespace CanapeWidget
         // The service pushes a status once per second: 60 samples = the last minute.
         private const int HistoryLength = 60;
 
+        // Stops of the auto TDP target, as on the shell's Performance page.
+        private static readonly int[] TargetStops = { 30, 40, 45, 60, 90, 120 };
+
+        // The power bar's scale when the service does not report the model's range.
+        private const int DefaultFloorWatts = 5;
+        private const int DefaultCeilingWatts = 35;
+
         private readonly ResourceLoader strings = ResourceLoader.GetForCurrentView();
         private readonly CanapeLink link = new CanapeLink();
         private readonly LiveGraph powerGraph;
-        private readonly LiveGraph gpuGraph;
         private CancellationTokenSource follow;
         private JsonObject lastStatus;
         private XboxGameBarWidget widget;
         private Color? appliedAccent;
         // Graphs are not redrawn while Game Bar hides the widget.
         private bool graphsStale;
+        // The power bar, in watts: its scale, the knobs (NaN hides one) and the live draw.
+        private double rangeFloor = DefaultFloorWatts;
+        private double rangeCeiling = DefaultCeilingWatts;
+        private double rangeLow = double.NaN;
+        private double rangeHigh = double.NaN;
+        private double livePower = double.NaN;
 
         public WidgetPage()
         {
             InitializeComponent();
-            powerGraph = new LiveGraph(PowerPlot, PowerLine, PowerArea, PowerLimitLine, HistoryLength) { MinimumScale = 10 };
-            gpuGraph = new LiveGraph(GpuPlot, GpuLine, GpuArea, null, HistoryLength) { FixedMax = 1 };
+            powerGraph = new LiveGraph(PowerPlot, PowerLine, null, PowerLimitLine, HistoryLength) { MinimumScale = 10 };
             link.StatusReceived += status => OnUi(() => OnStatus(status));
             link.Disconnected += problem => OnUi(() => ShowDisconnected(problem));
             ApplyAccent(null);
@@ -110,7 +121,7 @@ namespace CanapeWidget
 
         /// <summary>
         /// Recolours the accent brushes in place (Status.accent, "#rrggbb", or
-        /// the default blue): every element using them follows at once.
+        /// the default): the graph, the values and the power bar follow at once.
         /// </summary>
         private void ApplyAccent(string text)
         {
@@ -125,21 +136,8 @@ namespace CanapeWidget
             }
             appliedAccent = accent;
 
-            var onAccent = Palette.OnAccent(accent);
             SetBrush(Resources, "AccentBrush", accent);
-            SetBrush(Resources, "AccentFillBrush", Palette.WithAlpha(accent, 0x38));
             SetBrush(Resources, "AccentTextBrush", Palette.TextOnPanel(accent));
-
-            object value;
-            var theme = Resources.ThemeDictionaries.TryGetValue("Default", out value) ? value as ResourceDictionary : null;
-            SetBrush(theme, "ToggleButtonBackgroundChecked", accent);
-            SetBrush(theme, "ToggleButtonBackgroundCheckedPointerOver", Palette.Mix(accent, Palette.White, 0.12));
-            SetBrush(theme, "ToggleButtonBackgroundCheckedPressed", Palette.Mix(accent, Palette.Ink, 0.15));
-            SetBrush(theme, "ToggleButtonBackgroundCheckedDisabled", Palette.WithAlpha(accent, 0x59));
-            SetBrush(theme, "ToggleButtonForegroundChecked", onAccent);
-            SetBrush(theme, "ToggleButtonForegroundCheckedPointerOver", onAccent);
-            SetBrush(theme, "ToggleButtonForegroundCheckedPressed", Palette.WithAlpha(onAccent, 0xE6));
-            SetBrush(theme, "ToggleButtonForegroundCheckedDisabled", Palette.WithAlpha(onAccent, 0x99));
         }
 
         private static void SetBrush(ResourceDictionary dictionary, string key, Color color)
@@ -273,32 +271,32 @@ namespace CanapeWidget
         private void ClearValues()
         {
             ProfileText.Visibility = Visibility.Collapsed;
-            PowerText.Text = Dash;
-            PowerLimitText.Text = "";
-            GpuText.Text = Dash;
+            PowerValue.Text = Dash;
+            PowerUnit.Text = "";
+            FpsValue.Text = Dash;
             powerGraph.Clear();
-            gpuGraph.Clear();
-            TdpText.Text = Dash;
-            FpsText.Text = Dash;
-            TempText.Text = Dash;
-            BatteryText.Text = Dash;
-            BatteryGlyph.Visibility = Visibility.Collapsed;
-            TempCaption.Text = S("CaptionTemp");
-            BatteryCaption.Text = S("CaptionBattery");
-            Warn(TempCaption, false);
-            Warn(TempText, false);
             BenchCard.Visibility = Visibility.Collapsed;
             ConflictText.Visibility = Visibility.Collapsed;
-            ShowHint(TdpHint, "");
-            AutoRangeText.Text = "";
-            AutoText.Text = S("AutoOff");
-            foreach (var button in new[] { SilentButton, PerformanceButton, TurboButton, AutoButton, Fps30Button, Fps40Button, Fps60Button })
+            foreach (var button in new[] { SilentButton, PerformanceButton, TurboButton, AutoButton })
             {
                 button.IsChecked = false;
                 button.IsEnabled = false;
             }
-            TdpMinusButton.IsEnabled = false;
-            TdpPlusButton.IsEnabled = false;
+            ShowModeIcons();
+            StepLabel.Text = S("PowerLimitLabel");
+            StepValue.Text = Dash;
+            ShowHint(StepHint, "");
+            StepDown.IsEnabled = false;
+            StepUp.IsEnabled = false;
+            RangeText.Text = "";
+            rangeLow = double.NaN;
+            rangeHigh = double.NaN;
+            livePower = double.NaN;
+            ShowRange();
+            FooterText.Text = "";
+            Warn(FooterText, false);
+            BatteryText.Text = "";
+            BatteryGlyph.Visibility = Visibility.Collapsed;
         }
 
         private void ShowMessage(string message)
@@ -313,18 +311,76 @@ namespace CanapeWidget
             hint.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        /// <summary>Warning text colour, or back to the style's look (captions are dimmed).</summary>
+        /// <summary>Warning text colour, or back to the style's dimmed look.</summary>
         private void Warn(TextBlock text, bool warning)
         {
             if (warning)
             {
                 text.Foreground = (Brush)Resources["WarningBrush"];
-                text.Opacity = 1;
             }
             else
             {
                 text.ClearValue(TextBlock.ForegroundProperty);
-                text.ClearValue(OpacityProperty);
+            }
+        }
+
+        /// <summary>A chosen tile is white: its icon turns dark like its name.</summary>
+        private void ShowModeIcons()
+        {
+            var ink = new SolidColorBrush(Palette.Ink);
+            var soft = (Brush)Resources["SoftTextBrush"];
+            SilentIcon.Stroke = SilentButton.IsChecked == true ? ink : soft;
+            PerformanceIcon.Stroke = PerformanceButton.IsChecked == true ? ink : soft;
+            TurboIcon.Stroke = TurboButton.IsChecked == true ? ink : soft;
+            AutoIcon.Stroke = AutoButton.IsChecked == true ? ink : soft;
+        }
+
+        private string Watts(double watts)
+        {
+            return watts.ToString("0.0", CultureInfo.CurrentCulture);
+        }
+
+        // ---- Power bar ----------------------------------------------------
+
+        private void OnRangeSize(object sender, SizeChangedEventArgs e)
+        {
+            ShowRange();
+        }
+
+        /// <summary>Places the track, the knobs and the live mark on the model's scale.</summary>
+        private void ShowRange()
+        {
+            var width = RangePlot.ActualWidth;
+            if (width <= 0)
+            {
+                return;
+            }
+            Func<double, double> x = w => width * Math.Min(Math.Max((w - rangeFloor) / Math.Max(rangeCeiling - rangeFloor, 1), 0), 1);
+            RangeTrack.Width = width;
+
+            var hasHigh = !double.IsNaN(rangeHigh);
+            var hasLow = !double.IsNaN(rangeLow);
+            var from = hasLow ? x(rangeLow) : 0;
+            var to = hasHigh ? x(rangeHigh) : 0;
+            RangeFill.Visibility = hasHigh ? Visibility.Visible : Visibility.Collapsed;
+            Canvas.SetLeft(RangeFill, from);
+            RangeFill.Width = Math.Max(to - from, 0);
+            LowKnob.Visibility = hasLow ? Visibility.Visible : Visibility.Collapsed;
+            Canvas.SetLeft(LowKnob, from - LowKnob.Width / 2);
+            HighKnob.Visibility = hasHigh ? Visibility.Visible : Visibility.Collapsed;
+            Canvas.SetLeft(HighKnob, to - HighKnob.Width / 2);
+
+            var live = !double.IsNaN(livePower);
+            LiveMark.Visibility = live ? Visibility.Visible : Visibility.Collapsed;
+            LiveText.Visibility = LiveMark.Visibility;
+            if (live)
+            {
+                var at = x(livePower);
+                Canvas.SetLeft(LiveMark, at - LiveMark.Width / 2);
+                LiveText.Text = Watts(livePower) + " " + S("UnitWatts");
+                LiveText.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+                var textWidth = LiveText.DesiredSize.Width;
+                Canvas.SetLeft(LiveText, Math.Min(Math.Max(at - textWidth / 2, 0), Math.Max(width - textWidth, 0)));
             }
         }
 
@@ -351,9 +407,7 @@ namespace CanapeWidget
         /// <summary>A status push: one more sample in the graphs, then the display.</summary>
         private void OnStatus(JsonObject status)
         {
-            var gpu = Number(status, "gpu_util");
             powerGraph.Add(Number(status, "power_watts"), Number(status, "tdp_watts"));
-            gpuGraph.Add(gpu.HasValue ? Math.Min(Math.Max(gpu.Value, 0), 1) : (double?)null, null);
             Show(status);
             RenderGraphs();
         }
@@ -368,7 +422,6 @@ namespace CanapeWidget
             }
             graphsStale = false;
             powerGraph.Render();
-            gpuGraph.Render();
         }
 
         /// <summary>Text only: also replayed by RestoreChecks, so it adds no graph sample.</summary>
@@ -391,34 +444,14 @@ namespace CanapeWidget
                     : F("ProfileNamed", GameName(profile));
             }
 
-            // Live power against the limit, GPU activity.
+            // Live power draw and frame rate.
             var mode = Text(status, "performance_mode");
             var tdp = Integer(status, "tdp_watts");
             var power = Number(status, "power_watts");
-            PowerText.Text = power.HasValue ? F("FormatWatts", (int)Math.Round(Math.Max(power.Value, 0))) : Dash;
-            PowerLimitText.Text = tdp.HasValue ? F("PowerLimit", F("FormatWatts", tdp.Value)) : "";
-            var gpu = Number(status, "gpu_util");
-            GpuText.Text = gpu.HasValue ? F("FormatPercent", (int)Math.Round(Math.Min(Math.Max(gpu.Value, 0), 1) * 100)) : Dash;
-
+            PowerValue.Text = power.HasValue ? Watts(Math.Max(power.Value, 0)) : Dash;
+            PowerUnit.Text = power.HasValue ? " " + S("UnitWatts") : "";
             var fps = Integer(status, "fps");
-            FpsText.Text = fps.HasValue ? fps.Value.ToString(CultureInfo.CurrentCulture) : Dash;
-
-            var temp = Integer(status, "cpu_temp_c");
-            TempText.Text = temp.HasValue ? F("FormatCelsius", temp.Value) : Dash;
-            var throttled = Flag(status, "thermal_limited") == true;
-            TempCaption.Text = S(throttled ? "CaptionThrottled" : "CaptionTemp");
-            Warn(TempCaption, throttled);
-            Warn(TempText, throttled);
-
-            var battery = Integer(status, "battery_percent");
-            var onBattery = Flag(status, "on_battery");
-            BatteryText.Text = battery.HasValue ? F("FormatPercent", battery.Value) : Dash;
-            BatteryCaption.Text = S(onBattery == false ? "CaptionPluggedIn" : "CaptionBattery");
-            BatteryGlyph.Visibility = battery.HasValue ? Visibility.Visible : Visibility.Collapsed;
-            if (battery.HasValue)
-            {
-                BatteryGlyph.Text = BatteryGlyphFor(battery.Value, onBattery == false);
-            }
+            FpsValue.Text = fps.HasValue ? fps.Value.ToString(CultureInfo.CurrentCulture) : Dash;
 
             // Bench run (driven from the shell).
             var bench = Child(status, "bench");
@@ -435,46 +468,87 @@ namespace CanapeWidget
                 BenchBar.Value = Math.Min(Math.Max(step - 1, 0), steps);
             }
 
-            // Modes.
+            // Modes: auto TDP, or the firmware mode in use.
+            var auto = Child(status, "auto_tdp");
+            var autoOn = Flag(auto, "enabled") == true;
             foreach (var button in new[] { SilentButton, PerformanceButton, TurboButton })
             {
                 button.IsEnabled = true;
-                button.IsChecked = mode == (string)button.Tag;
+                button.IsChecked = !autoOn && mode == (string)button.Tag;
             }
+            AutoButton.IsEnabled = auto != null;
+            AutoButton.IsChecked = autoOn;
+            ShowModeIcons();
 
-            // ±1 W only from a known wattage: in a firmware mode (silent,
-            // performance, turbo) the service reports no TDP.
-            TdpText.Text = tdp.HasValue ? F("FormatWatts", tdp.Value) : Dash;
-            TdpMinusButton.IsEnabled = tdp.HasValue && tdp.Value > 1;
-            TdpPlusButton.IsEnabled = tdp.HasValue;
-            ShowHint(TdpHint, !tdp.HasValue && mode != null && mode != "manual" ? S("TdpHintFirmware") : "");
-
-            // Auto TDP.
-            var auto = Child(status, "auto_tdp");
-            var enabled = Flag(auto, "enabled") == true;
-            var target = Integer(auto, "target_fps") ?? 0;
-            AutoText.Text = S(enabled ? "AutoOn" : "AutoOff");
-            AutoButton.IsChecked = enabled;
-            foreach (var button in new[] { Fps30Button, Fps40Button, Fps60Button })
+            // Auto TDP steps its target; otherwise ±1 W, only from a known
+            // wattage: in a firmware mode the service reports no TDP.
+            if (autoOn)
             {
-                button.IsChecked = enabled && target == int.Parse((string)button.Tag, CultureInfo.InvariantCulture);
-            }
-            foreach (var button in new[] { AutoButton, Fps30Button, Fps40Button, Fps60Button })
-            {
-                button.IsEnabled = auto != null;
-            }
-            var min = Integer(auto, "min_watts");
-            var max = Integer(auto, "max_watts");
-            var batteryMax = Integer(auto, "battery_max_watts");
-            if (min.HasValue && max.HasValue)
-            {
-                AutoRangeText.Text = onBattery == true && batteryMax.HasValue && batteryMax.Value < max.Value
-                    ? F("AutoRangeBattery", F("FormatWatts", min.Value + "–" + batteryMax.Value))
-                    : F("FormatWatts", min.Value + "–" + max.Value);
+                var target = Integer(auto, "target_fps") ?? 0;
+                StepLabel.Text = S("TargetLabel");
+                StepValue.Text = F("FormatFps", target);
+                ShowHint(StepHint, "");
+                StepDown.IsEnabled = target > TargetStops[0];
+                StepUp.IsEnabled = target < TargetStops[TargetStops.Length - 1];
             }
             else
             {
-                AutoRangeText.Text = "";
+                StepLabel.Text = S("PowerLimitLabel");
+                StepValue.Text = tdp.HasValue ? F("FormatWatts", tdp.Value) : Dash;
+                ShowHint(StepHint, !tdp.HasValue && mode != null && mode != "manual" ? S("TdpHintFirmware") : "");
+                StepDown.IsEnabled = tdp.HasValue && tdp.Value > 1;
+                StepUp.IsEnabled = tdp.HasValue;
+            }
+
+            // Power bar: the auto TDP range, or the manual limit.
+            var onBattery = Flag(status, "on_battery");
+            rangeFloor = Integer(status, "tdp_min_watts") ?? DefaultFloorWatts;
+            rangeCeiling = Integer(status, "tdp_max_watts") ?? DefaultCeilingWatts;
+            var min = Integer(auto, "min_watts");
+            var max = Integer(auto, "max_watts");
+            var batteryMax = Integer(auto, "battery_max_watts");
+            if (autoOn && min.HasValue && max.HasValue)
+            {
+                var high = onBattery == true && batteryMax.HasValue && batteryMax.Value < max.Value ? batteryMax.Value : max.Value;
+                rangeLow = min.Value;
+                rangeHigh = high;
+                RangeText.Text = high < max.Value
+                    ? F("AutoRangeBattery", F("FormatWatts", min.Value + " – " + high))
+                    : F("FormatWatts", min.Value + " – " + max.Value);
+            }
+            else if (!autoOn && tdp.HasValue)
+            {
+                rangeLow = double.NaN;
+                rangeHigh = tdp.Value;
+                RangeText.Text = F("FormatWatts", tdp.Value);
+            }
+            else
+            {
+                rangeLow = double.NaN;
+                rangeHigh = double.NaN;
+                RangeText.Text = "";
+            }
+            livePower = power.HasValue ? Math.Max(power.Value, 0) : double.NaN;
+            ShowRange();
+
+            // Footer: temperature (or the thermal limit), GPU activity, battery.
+            var temp = Integer(status, "cpu_temp_c");
+            var throttled = Flag(status, "thermal_limited") == true;
+            var gpu = Number(status, "gpu_util");
+            var parts = new[]
+            {
+                throttled ? S("CaptionThrottled") : null,
+                temp.HasValue ? F("FormatCelsius", temp.Value) : null,
+                gpu.HasValue ? F("FooterGpu", F("FormatPercent", (int)Math.Round(Math.Min(Math.Max(gpu.Value, 0), 1) * 100))) : null,
+            };
+            FooterText.Text = string.Join(" · ", parts.Where(p => p != null));
+            Warn(FooterText, throttled);
+            var battery = Integer(status, "battery_percent");
+            BatteryText.Text = battery.HasValue ? F("FormatPercent", battery.Value) : "";
+            BatteryGlyph.Visibility = battery.HasValue ? Visibility.Visible : Visibility.Collapsed;
+            if (battery.HasValue)
+            {
+                BatteryGlyph.Text = BatteryGlyphFor(battery.Value, onBattery == false);
             }
 
             var conflicts = status.GetNamedArray("conflicts", new JsonArray())
@@ -519,15 +593,26 @@ namespace CanapeWidget
             Send(request);
         }
 
-        private void OnTdp(object sender, RoutedEventArgs e)
+        /// <summary>‹ or ›: the next target stop under auto TDP, else ±1 W.</summary>
+        private void OnStep(object sender, RoutedEventArgs e)
         {
+            var delta = int.Parse((string)((FrameworkElement)sender).Tag, CultureInfo.InvariantCulture);
+            var auto = AutoTdp();
+            if (Flag(auto, "enabled") == true)
+            {
+                var target = Integer(auto, "target_fps") ?? 60;
+                var next = delta > 0
+                    ? TargetStops.Where(t => t > target).DefaultIfEmpty(TargetStops[TargetStops.Length - 1]).First()
+                    : TargetStops.Where(t => t < target).DefaultIfEmpty(TargetStops[0]).Last();
+                SendAutoTdp(true, next);
+                return;
+            }
             var current = Integer(lastStatus, "tdp_watts");
             if (!current.HasValue)
             {
                 // Firmware mode: no wattage to step from (buttons are disabled anyway).
                 return;
             }
-            var delta = int.Parse((string)((FrameworkElement)sender).Tag, CultureInfo.InvariantCulture);
             var watts = current.Value + delta;
             // The model's range, when the service reports it.
             var min = Integer(lastStatus, "tdp_min_watts") ?? 1;
@@ -574,17 +659,14 @@ namespace CanapeWidget
             Send(request);
         }
 
-        private void OnAutoToggle(object sender, RoutedEventArgs e)
+        private void OnAuto(object sender, RoutedEventArgs e)
         {
             var enabled = Flag(AutoTdp(), "enabled") == true;
             RestoreChecks();
-            SendAutoTdp(!enabled, null);
-        }
-
-        private void OnTarget(object sender, RoutedEventArgs e)
-        {
-            RestoreChecks();
-            SendAutoTdp(true, double.Parse((string)((FrameworkElement)sender).Tag, CultureInfo.InvariantCulture));
+            if (!enabled)
+            {
+                SendAutoTdp(true, null);
+            }
         }
     }
 }

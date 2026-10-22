@@ -15,20 +15,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="FpsCaption.Text" xml:space="preserve">
-    <value>FPS</value>
-    <comment>Tile caption: frames per second</comment>
+    <value>Frame rate</value>
+    <comment>Caption over the live frame rate</comment>
   </data>
   <data name="PowerCaption.Text" xml:space="preserve">
-    <value>APU power</value>
-    <comment>Graph card caption: power the APU draws right now (short)</comment>
-  </data>
-  <data name="GpuCaption.Text" xml:space="preserve">
-    <value>GPU</value>
-    <comment>Graph card caption: GPU activity</comment>
-  </data>
-  <data name="PowerLimit" xml:space="preserve">
-    <value>Limit {0}</value>
-    <comment>Next to the live power: the TDP limit; {0} = watts with unit (short)</comment>
+    <value>Power draw</value>
+    <comment>Caption over the live power draw</comment>
   </data>
   <data name="ModeHeader.Text" xml:space="preserve">
     <value>Mode</value>
@@ -46,22 +38,6 @@
     <value>Turbo</value>
     <comment>ASUS 'Turbo' mode button</comment>
   </data>
-  <data name="TdpHeader.Text" xml:space="preserve">
-    <value>Manual TDP</value>
-    <comment>Section header: set the power limit by hand</comment>
-  </data>
-  <data name="TdpMinus.Content" xml:space="preserve">
-    <value>−1 W</value>
-    <comment>Button: lower the power limit by one watt</comment>
-  </data>
-  <data name="TdpPlus.Content" xml:space="preserve">
-    <value>+1 W</value>
-    <comment>Button: raise the power limit by one watt</comment>
-  </data>
-  <data name="AutoHeader.Text" xml:space="preserve">
-    <value>Auto TDP</value>
-    <comment>Section header: automatic power limit driven by a target frame rate</comment>
-  </data>
   <data name="Connecting" xml:space="preserve">
     <value>Connecting…</value>
     <comment>Header while the first status is awaited</comment>
@@ -75,28 +51,16 @@
     <comment>Header when no game is in the foreground</comment>
   </data>
   <data name="ProfileChip" xml:space="preserve">
-    <value>Profile</value>
-    <comment>Header label (accent text): a per-game profile is applied to the foreground game</comment>
+    <value>game profile</value>
+    <comment>Next to the game name: its own profile applies</comment>
   </data>
   <data name="ProfileNamed" xml:space="preserve">
     <value>Profile: {0}</value>
     <comment>Header label (accent text): profile of another program is applied; {0} = program name</comment>
   </data>
-  <data name="CaptionTemp" xml:space="preserve">
-    <value>Temp</value>
-    <comment>Tile caption: CPU temperature (short)</comment>
-  </data>
   <data name="CaptionThrottled" xml:space="preserve">
     <value>Throttled</value>
     <comment>Tile caption replacing the temperature one when power is held down by the temperature limit (short)</comment>
-  </data>
-  <data name="CaptionBattery" xml:space="preserve">
-    <value>Battery</value>
-    <comment>Tile caption: battery level, running on battery</comment>
-  </data>
-  <data name="CaptionPluggedIn" xml:space="preserve">
-    <value>Plugged in</value>
-    <comment>Tile caption: battery level, charger connected (short)</comment>
   </data>
   <data name="FormatWatts" xml:space="preserve">
     <value>{0} W</value>
@@ -121,14 +85,6 @@
   <data name="TdpHintFirmware" xml:space="preserve">
     <value>Set by the firmware mode</value>
     <comment>Why the +/- buttons are disabled: the ASUS mode sets the power, the wattage is unknown</comment>
-  </data>
-  <data name="AutoOn" xml:space="preserve">
-    <value>On</value>
-    <comment>Auto TDP toggle, enabled (short)</comment>
-  </data>
-  <data name="AutoOff" xml:space="preserve">
-    <value>Off</value>
-    <comment>Auto TDP toggle, disabled (short)</comment>
   </data>
   <data name="AutoRangeBattery" xml:space="preserve">
     <value>{0} on battery</value>
@@ -173,5 +129,33 @@
   <data name="WidgetDescription" xml:space="preserve">
     <value>TDP, performance mode and auto TDP</value>
     <comment>Description in the Game Bar widget store/menu</comment>
+  </data>
+  <data name="PowerHeader.Text" xml:space="preserve">
+    <value>Power</value>
+    <comment>Header of the power bar (auto TDP range or manual limit)</comment>
+  </data>
+  <data name="TargetLabel" xml:space="preserve">
+    <value>Target</value>
+    <comment>Row label under auto TDP: the target frame rate, changed with ‹ ›</comment>
+  </data>
+  <data name="PowerLimitLabel" xml:space="preserve">
+    <value>Power limit</value>
+    <comment>Row label without auto TDP: the power limit, changed with ‹ ›</comment>
+  </data>
+  <data name="UnitWatts" xml:space="preserve">
+    <value>W</value>
+    <comment>Unit after a power value, e.g. 13.2 W</comment>
+  </data>
+  <data name="ModeAuto.Text" xml:space="preserve">
+    <value>Auto</value>
+    <comment>Mode tile: auto TDP (short, about 10 characters)</comment>
+  </data>
+  <data name="FormatFps" xml:space="preserve">
+    <value>{0} FPS</value>
+    <comment>A frame rate, e.g. 60 FPS</comment>
+  </data>
+  <data name="FooterGpu" xml:space="preserve">
+    <value>GPU {0}</value>
+    <comment>Footer: GPU activity, {0} is a percentage</comment>
   </data>
 </root>
