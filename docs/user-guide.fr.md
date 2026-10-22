@@ -278,10 +278,10 @@ Quatre rangées, parcourues comme la page Performance : haut et bas changent de 
 | Tuile | Courbe (la même pour les ventilateurs CPU et GPU) |
 |---|---|
 | Automatique | La courbe propre au firmware pour le mode d'alimentation en cours. Canapé retire ses courbes. |
-| Silencieux | Ventilateurs arrêtés jusqu'à 45 °C, puis une montée lente : 26 % à 75 °C, 45 % dès 95 °C. |
 | Équilibré | De 10 % à 40 °C jusqu'à 75 % dès 92 °C, proche du comportement équilibré d'ASUS. |
 | Maximum | 35 % dès 30 °C, pleine vitesse dès 80 °C : bruyant, mais le plus frais. |
 
+- Il n'y a pas de préréglage silencieux : sur l'Ally, le firmware fait tourner les ventilateurs vers 5300 tr/min avec une courbe basse sous charge (mesuré en M5, partie 2), plus fort qu'avec Équilibré. Pour du silence, utilisez **Automatique** avec le mode d'alimentation **Silencieux** : le firmware y reste vers 3200 / 2800 tr/min.
 - La courbe du ventilateur CPU va de 20 à 110 °C en largeur et de 0 à 100 % en hauteur. En Automatique, elle laisse place à « La courbe propre au mode d'alimentation ».
 - Un préréglage **résiste aux changements de mode** : le firmware remet ses propres courbes à chaque changement de mode, et le service réécrit le préréglage juste après.
 - **Automatique** réécrit le mode d'alimentation en cours : c'est ainsi que le firmware reprend ses courbes. En Manuel, le service remet ensuite votre TDP.

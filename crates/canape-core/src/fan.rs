@@ -137,8 +137,6 @@ impl FanCurve {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FanPreset {
-    /// Fans off while cool, just above the safety floor when hot.
-    Silent,
     /// Close to ASUS's own balanced behaviour.
     Balanced,
     /// Runs early and hard: noisy, coolest.
@@ -146,21 +144,11 @@ pub enum FanPreset {
 }
 
 impl FanPreset {
-    pub const ALL: [FanPreset; 3] = [Self::Silent, Self::Balanced, Self::MaxCooling];
+    pub const ALL: [FanPreset; 2] = [Self::Balanced, Self::MaxCooling];
 
     /// The same curve serves the CPU and the GPU fan.
     pub fn curve(self) -> FanCurve {
         FanCurve(match self {
-            Self::Silent => [
-                (30, 0),
-                (45, 0),
-                (55, 10),
-                (62, 15),
-                (68, 20),
-                (75, 26),
-                (85, 34),
-                (95, 45),
-            ],
             Self::Balanced => [
                 (40, 10),
                 (50, 18),
@@ -355,10 +343,10 @@ mod tests {
     fn curves_serialize_as_pairs() {
         let mut curves = FanCurves::default();
         assert!(curves.is_empty());
-        curves.set(Fan::Gpu, Some(FanPreset::Silent.curve()));
+        curves.set(Fan::Gpu, Some(FanPreset::Balanced.curve()));
         let json = serde_json::to_string(&curves).unwrap();
         assert!(
-            json.starts_with(r#"{"cpu":null,"gpu":[[30,0],[45,0],"#),
+            json.starts_with(r#"{"cpu":null,"gpu":[[40,10],[50,18],"#),
             "{json}"
         );
         assert_eq!(serde_json::from_str::<FanCurves>(&json).unwrap(), curves);

@@ -1231,7 +1231,7 @@ mod tests {
     #[test]
     fn fan_curves_are_validated_shown_and_survive_a_mode_change() {
         let mut h = handler();
-        let mut bad = FanPreset::Silent.curve();
+        let mut bad = FanPreset::Balanced.curve();
         bad.0[7] = (95, 0);
         assert!(matches!(
             h.handle(Request::SetFanCurve {
@@ -1241,7 +1241,7 @@ mod tests {
             Response::Error { .. }
         ));
         assert!(matches!(
-            h.handle(set_curve(Fan::Mid, FanPreset::Silent)),
+            h.handle(set_curve(Fan::Mid, FanPreset::Balanced)),
             Response::Error { .. }
         ));
         assert_eq!(
@@ -1263,7 +1263,7 @@ mod tests {
             panic!("expected fan curves");
         };
         assert!(custom.cpu.is_some());
-        assert_eq!(defaults.cpu, Some(FanPreset::Silent.curve()));
+        assert_eq!(defaults.cpu, Some(FanPreset::Balanced.curve()));
         assert_eq!(defaults.mid, None);
     }
 
@@ -1309,7 +1309,7 @@ mod tests {
     #[test]
     fn new_settings_round_trip_through_state() {
         let mut h = handler();
-        h.handle(set_curve(Fan::Cpu, FanPreset::Silent));
+        h.handle(set_curve(Fan::Cpu, FanPreset::Balanced));
         h.handle(Request::SetFpsLimit { fps: Some(45) });
         h.handle(Request::SetControllerMode {
             mode: ControllerMode::Wasd,
@@ -1327,7 +1327,7 @@ mod tests {
         assert_eq!(restored.saved(), saved);
         assert_eq!(
             restored.status().fan_curves.cpu,
-            Some(FanPreset::Silent.curve())
+            Some(FanPreset::Balanced.curve())
         );
 
         // A state.json from before these settings still loads.

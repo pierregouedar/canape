@@ -67,8 +67,8 @@ export component HardwarePage inherits Rectangle {
     in-out property <int> controller-col: root.controller-index >= 0 ? root.controller-index : 0;
     in-out property <int> refresh-col: root.refresh-index >= 0 ? root.refresh-index : 0;
     property <bool> active: fs.has-focus;
-    property <[string]> fan-presets: ["", "silent", "balanced", "max-cooling"];
-    property <int> fan-index: !App.status.connected ? -1 : App.status.fan-preset == "" ? 0 : App.status.fan-preset == "silent" ? 1 : App.status.fan-preset == "balanced" ? 2 : App.status.fan-preset == "max-cooling" ? 3 : -1;
+    property <[string]> fan-presets: ["", "balanced", "max-cooling"];
+    property <int> fan-index: !App.status.connected ? -1 : App.status.fan-preset == "" ? 0 : App.status.fan-preset == "balanced" ? 1 : App.status.fan-preset == "max-cooling" ? 2 : -1;
     property <[string]> controllers: ["gamepad", "wasd", "mouse"];
     property <int> controller-index: App.status.controller == "gamepad" ? 0 : App.status.controller == "wasd" ? 1 : App.status.controller == "mouse" ? 2 : -1;
     property <[int]> fps-stops: [0, 30, 40, 45, 60, 90, 120];
@@ -82,7 +82,7 @@ export component HardwarePage inherits Rectangle {
     }
     function side(d: int) {
         if root.focus-row == 0 {
-            root.fan-col = clamp(root.fan-col + d, 0, 3);
+            root.fan-col = clamp(root.fan-col + d, 0, 2);
         } else if root.focus-row == 1 {
             App.set-fps-limit(root.fps-stops[clamp(root.fps-index + d, 0, 6)]);
         } else if root.focus-row == 2 {
@@ -174,11 +174,11 @@ export component HardwarePage inherits Rectangle {
 
                     HorizontalLayout {
                         spacing: 12px;
-                        for icon[i] in ["cycle", "silent", "balanced", "wind"]: IconTile {
+                        for icon[i] in ["cycle", "balanced", "wind"]: IconTile {
                             horizontal-stretch: 1;
                             preferred-width: 10px;
                             icon: icon;
-                            label: i == 0 ? @tr("Automatic") : i == 1 ? @tr("Silent") : i == 2 ? @tr("Balanced") : @tr("Maximum");
+                            label: i == 0 ? @tr("Automatic") : i == 1 ? @tr("Balanced") : @tr("Maximum");
                             selected: root.fan-index == i;
                             focused: root.active && root.focus-row == 0 && root.fan-col == i;
                             clicked => {

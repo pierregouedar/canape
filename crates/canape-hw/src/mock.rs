@@ -57,9 +57,10 @@ impl MockDevice {
 /// Stand-ins for the firmware's per-mode curves.
 fn mode_curve(mode: PerformanceMode) -> FanCurve {
     match mode {
-        PerformanceMode::Silent => FanPreset::Silent.curve(),
         PerformanceMode::Turbo => FanPreset::MaxCooling.curve(),
-        PerformanceMode::Performance | PerformanceMode::Manual => FanPreset::Balanced.curve(),
+        PerformanceMode::Silent | PerformanceMode::Performance | PerformanceMode::Manual => {
+            FanPreset::Balanced.curve()
+        }
     }
 }
 

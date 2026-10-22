@@ -278,10 +278,10 @@ Four rows, used like the Performance page: up and down change row, left and righ
 | Tile | Curve (CPU and GPU fans alike) |
 |---|---|
 | Automatic | The firmware's own curve for the current power mode. Canapé removes its curves. |
-| Silent | Fans stopped up to 45 °C, then a slow rise: 26 % at 75 °C, 45 % from 95 °C. |
 | Balanced | From 10 % at 40 °C to 75 % from 92 °C, close to ASUS's balanced behaviour. |
 | Maximum | 35 % from 30 °C, full speed from 80 °C: loud, but the coolest. |
 
+- There is no quiet preset: on the Ally, the firmware runs the fans at about 5300 rpm under load with a low curve (measured in M5, part 2), louder than with Balanced. For quiet, use **Automatic** with the **Silent** power mode: the firmware stays at about 3200 / 2800 rpm there.
 - The CPU fan's curve runs from 20 to 110 °C across and from 0 to 100 % up. With Automatic, it gives way to "The power mode's own curve".
 - A preset **survives power mode changes**: the firmware puts its own curves back at every mode change, and the service writes the preset again right after.
 - **Automatic** writes the current power mode again: that is how the firmware takes its curves back. In Manual, the service then puts your TDP back.

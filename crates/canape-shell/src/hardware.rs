@@ -20,7 +20,6 @@ pub fn preset_name(curves: &FanCurves) -> &'static str {
 
 pub fn preset_key(preset: FanPreset) -> &'static str {
     match preset {
-        FanPreset::Silent => "silent",
         FanPreset::Balanced => "balanced",
         FanPreset::MaxCooling => "max-cooling",
     }
@@ -62,10 +61,10 @@ mod tests {
     fn presets_are_recognised() {
         let mut curves = FanCurves::default();
         assert_eq!(preset_name(&curves), "");
-        curves.set(Fan::Cpu, Some(FanPreset::Silent.curve()));
-        curves.set(Fan::Gpu, Some(FanPreset::Silent.curve()));
-        assert_eq!(preset_name(&curves), "silent");
+        curves.set(Fan::Cpu, Some(FanPreset::Balanced.curve()));
         curves.set(Fan::Gpu, Some(FanPreset::Balanced.curve()));
+        assert_eq!(preset_name(&curves), "balanced");
+        curves.set(Fan::Gpu, Some(FanPreset::MaxCooling.curve()));
         assert_eq!(preset_name(&curves), "custom");
         for preset in FanPreset::ALL {
             assert_eq!(preset_from_key(preset_key(preset)), Some(preset));
