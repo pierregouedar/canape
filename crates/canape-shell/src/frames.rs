@@ -1,10 +1,10 @@
-//! Keeps the AMD driver's frame metrics running. They are started at
-//! startup; a game that comes back from the background after another
-//! fullscreen window covered it for a while is no longer reported. Starting
-//! them again from the running shell does not help, but a new process that
-//! starts them and exits does (as at startup), so the shell runs a copy of
-//! itself with [`ARM_ARG`]. Without a frame rate, auto TDP and the bench
-//! have nothing to work on.
+//! Keeps the AMD driver's frame metrics running. A game that comes back
+//! from the background after another fullscreen window covered it for a
+//! while is no longer reported, and starting the metrics again does nothing
+//! while the process that first started them is alive. So the shell never
+//! starts them itself: a copy of it run with [`ARM_ARG`] starts them and
+//! exits, at startup and whenever a game has no frame rate. Without a frame
+//! rate, auto TDP and the bench have nothing to work on.
 
 use std::time::{Duration, Instant};
 
@@ -66,26 +66,32 @@ pub fn arm() {
     }
 }
 
+/// Runs a copy of the shell that starts the metrics and exits.
+#[cfg(windows)]
+fn arm_from_new_process() {
+    let started = std::env::current_exe()
+        .and_then(|exe| std::process::Command::new(exe).arg(ARM_ARG).spawn());
+    match started {
+        Ok(mut child) => {
+            let _ = child.wait();
+        }
+        Err(err) => crate::log(&format!("adl: {ARM_ARG}: {err}")),
+    }
+}
+
 /// Starts the metrics, then watches the service's status from a thread.
 #[cfg(windows)]
 pub fn spawn(link: crate::link::Link) {
     std::thread::spawn(move || {
-        arm();
+        arm_from_new_process();
         let mut watch = Watch::default();
         loop {
             std::thread::sleep(POLL);
             let status = link.status();
             let game = status.foreground.as_deref();
             if watch.update(game, status.fps.is_some(), Instant::now()) {
-                let started = std::env::current_exe()
-                    .and_then(|exe| std::process::Command::new(exe).arg(ARM_ARG).spawn());
-                match started {
-                    Ok(mut child) => {
-                        let _ = child.wait();
-                        crate::log("adl: frame metrics started again from a new process");
-                    }
-                    Err(err) => crate::log(&format!("adl: restart: {err}")),
-                }
+                crate::log("adl: no frame rate for the game: starting the metrics again");
+                arm_from_new_process();
             }
         }
     });
