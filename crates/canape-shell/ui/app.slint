@@ -6,7 +6,8 @@
 import { Theme } from "theme.slint";
 import { App, Notice } from "state.slint";
 import { BatteryIcon, Bolt, Hint, Logo, PadGlyph } from "widgets.slint";
-import { BenchPage, HomePage, PerformancePage, ProfilesPage, SettingsPage } from "pages.slint";
+import { BenchPage, HomePage, ProfilesPage, SettingsPage } from "pages.slint";
+import { PerformancePage } from "performance.slint";
 import { Library, LibraryPage } from "library.slint";
 import { HardwarePage } from "hardware.slint";
 
@@ -68,6 +69,10 @@ export component AppWindow inherits Window {
     property <int> pages: 7;
     changed page => {
         Library.shown(root.page == 0);
+        // A destroyed page does not always report losing the focus.
+        if root.page != 2 {
+            App.arrow-focus(false);
+        }
     }
 
     FocusScope {
@@ -199,7 +204,13 @@ export component AppWindow inherits Window {
                 vertical-stretch: 1;
                 if root.page == 0: LibraryPage { }
                 if root.page == 1: HomePage { }
-                if root.page == 2: PerformancePage { }
+                if root.page == 2: PerformancePage {
+                    width: parent.width;
+                    height: parent.height;
+                    open-bench => {
+                        root.page = 5;
+                    }
+                }
                 if root.page == 3: HardwarePage { }
                 if root.page == 4: ProfilesPage { }
                 if root.page == 5: BenchPage { }

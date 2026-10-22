@@ -117,44 +117,17 @@ msgstr "Kapalı"
 msgid "Firmware mode"
 msgstr "Firmware modu"
 
-msgid "Power mode"
-msgstr "Güç modu"
-
-msgid "Quiet, cool"
-msgstr "Sessiz ve serin"
-
 msgid "Balanced"
 msgstr "Dengeli"
 
-msgid "Maximum power"
-msgstr "Azami güç"
-
-msgid "Your own limit"
-msgstr "Kendi sınırınız"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "Gücü kendiniz ayarlamak için Manuel'i seçin."
-
-msgid "Changing it turns auto TDP off."
-msgstr "Değiştirmek otomatik TDP'yi kapatır."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "Kare hızını olabildiğince az güçle hedefte tutar."
-
 msgid "Target frame rate"
 msgstr "Hedef kare hızı"
-
-msgid "Minimum power"
-msgstr "Asgari güç"
 
 msgid "Maximum on battery"
 msgstr "Pilde azami"
 
 msgid "None"
 msgstr "Yok"
-
-msgid "Temperature limit: above it, power only goes down"
-msgstr "Sıcaklık sınırı: üzerinde güç yalnızca düşer"
 
 msgid "Auto TDP off"
 msgstr "Otomatik TDP kapalı"
@@ -576,3 +549,27 @@ msgstr "Epic Games'e giriş yap"
 
 msgid "Install"
 msgstr "Kur"
+
+msgid "Mode"
+msgstr "Mod"
+
+msgid "Power range"
+msgstr "Güç aralığı"
+
+msgid "Temperature"
+msgstr "Sıcaklık"
+
+msgid "Update"
+msgstr "Güncelle"
+
+msgid "Save"
+msgstr "Kaydet"
+
+msgid "limit {}"
+msgstr "sınır {}"
+
+msgid "target {}"
+msgstr "hedef {}"
+
+msgid "W"
+msgstr "W"

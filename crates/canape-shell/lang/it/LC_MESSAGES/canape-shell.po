@@ -117,44 +117,17 @@ msgstr "Disattivo"
 msgid "Firmware mode"
 msgstr "Modalità firmware"
 
-msgid "Power mode"
-msgstr "Modalità di potenza"
-
-msgid "Quiet, cool"
-msgstr "Silenzioso e fresco"
-
 msgid "Balanced"
 msgstr "Bilanciato"
 
-msgid "Maximum power"
-msgstr "Potenza massima"
-
-msgid "Your own limit"
-msgstr "Il tuo limite"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "Scegli Manuale per impostare tu la potenza."
-
-msgid "Changing it turns auto TDP off."
-msgstr "Modificarlo disattiva il TDP automatico."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "Mantiene il frame rate sull'obiettivo con la minor potenza possibile."
-
 msgid "Target frame rate"
 msgstr "Frame rate obiettivo"
-
-msgid "Minimum power"
-msgstr "Potenza minima"
 
 msgid "Maximum on battery"
 msgstr "Massimo a batteria"
 
 msgid "None"
 msgstr "Nessuno"
-
-msgid "Temperature limit: above it, power only goes down"
-msgstr "Limite di temperatura: oltre, la potenza può solo scendere"
 
 msgid "Auto TDP off"
 msgstr "TDP automatico disattivo"
@@ -576,3 +549,27 @@ msgstr "Accedi a Epic Games"
 
 msgid "Install"
 msgstr "Installa"
+
+msgid "Mode"
+msgstr "Modalità"
+
+msgid "Power range"
+msgstr "Intervallo di potenza"
+
+msgid "Temperature"
+msgstr "Temperatura"
+
+msgid "Update"
+msgstr "Aggiorna"
+
+msgid "Save"
+msgstr "Salva"
+
+msgid "limit {}"
+msgstr "limite {}"
+
+msgid "target {}"
+msgstr "obiettivo {}"
+
+msgid "W"
+msgstr "W"

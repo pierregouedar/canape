@@ -502,30 +502,39 @@ export component BatteryIcon inherits Rectangle {
 }
 
 // A gamepad button, as drawn in the hints: round for A / B, a pill for LB / RB.
+// A gamepad button as Windows draws it: a thin circle with the letter, in
+// the text colour (Segoe Fluent Icons U+F093 A, U+F094 B, U+F095 Y,
+// U+F096 X). Bumpers and other labels get a rounded outline.
 export component PadGlyph inherits Rectangle {
     in property <string> text;
     in property <bool> round: true;
-    height: 26px;
-    min-width: 26px;
-    border-radius: root.round ? 13px : 8px;
-    background: Theme.surface-high;
-    border-width: 1px;
-    border-color: #3a4560;
+    in property <color> ink: Theme.text.mix(Theme.dim, 0.7);
+    property <string> system: root.text == "A" ? "\u{F093}" : root.text == "B" ? "\u{F094}" : root.text == "Y" ? "\u{F095}" : root.text == "X" ? "\u{F096}" : "";
+    property <bool> use-font: Theme.system-glyphs && root.round && root.system != "";
+    height: 22px;
+    width: root.round ? 22px : max(22px, label.preferred-width + 12px);
+    border-radius: root.round ? 11px : 6px;
+    border-width: root.use-font ? 0 : 1.5px;
+    border-color: root.ink;
 
-    HorizontalLayout {
-        padding-left: root.round ? 0 : 8px;
-        padding-right: root.round ? 0 : 8px;
-        Text {
-            text: root.text;
-            color: Theme.text;
-            font-size: 13px;
-            font-weight: 700;
-            horizontal-alignment: center;
-            vertical-alignment: center;
-        }
+    if root.use-font: Text {
+        text: root.system;
+        font-family: "Segoe Fluent Icons";
+        font-size: 22px;
+        color: root.ink;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    label := Text {
+        visible: !root.use-font;
+        text: root.text;
+        color: root.ink;
+        font-size: root.round ? 11px : 10px;
+        font-weight: 600;
+        horizontal-alignment: center;
+        vertical-alignment: center;
     }
 }
-
 export component Hint inherits HorizontalLayout {
     in property <string> glyph;
     in property <bool> round: true;

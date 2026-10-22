@@ -117,44 +117,17 @@ msgstr "꺼짐"
 msgid "Firmware mode"
 msgstr "펌웨어 모드"
 
-msgid "Power mode"
-msgstr "전력 모드"
-
-msgid "Quiet, cool"
-msgstr "조용하고 시원하게"
-
 msgid "Balanced"
 msgstr "균형"
 
-msgid "Maximum power"
-msgstr "최대 전력"
-
-msgid "Your own limit"
-msgstr "직접 설정"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "전력을 직접 설정하려면 수동을 선택하세요."
-
-msgid "Changing it turns auto TDP off."
-msgstr "변경하면 자동 TDP가 꺼집니다."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "가능한 한 적은 전력으로 프레임 속도를 목표에 맞춥니다."
-
 msgid "Target frame rate"
 msgstr "목표 프레임 속도"
-
-msgid "Minimum power"
-msgstr "최소 전력"
 
 msgid "Maximum on battery"
 msgstr "배터리 사용 시 최대"
 
 msgid "None"
 msgstr "없음"
-
-msgid "Temperature limit: above it, power only goes down"
-msgstr "온도 제한: 이를 넘으면 전력은 내려가기만 합니다"
 
 msgid "Auto TDP off"
 msgstr "자동 TDP 꺼짐"
@@ -576,3 +549,27 @@ msgstr "Epic Games 로그인"
 
 msgid "Install"
 msgstr "설치"
+
+msgid "Mode"
+msgstr "모드"
+
+msgid "Power range"
+msgstr "전력 범위"
+
+msgid "Temperature"
+msgstr "온도"
+
+msgid "Update"
+msgstr "업데이트"
+
+msgid "Save"
+msgstr "저장"
+
+msgid "limit {}"
+msgstr "제한 {}"
+
+msgid "target {}"
+msgstr "목표 {}"
+
+msgid "W"
+msgstr "W"

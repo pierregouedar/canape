@@ -117,44 +117,17 @@ msgstr "オフ"
 msgid "Firmware mode"
 msgstr "ファームウェアモード"
 
-msgid "Power mode"
-msgstr "電力モード"
-
-msgid "Quiet, cool"
-msgstr "静かで低温"
-
 msgid "Balanced"
 msgstr "バランス"
 
-msgid "Maximum power"
-msgstr "最大電力"
-
-msgid "Your own limit"
-msgstr "自分で設定"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "電力を自分で設定するには「手動」を選んでください。"
-
-msgid "Changing it turns auto TDP off."
-msgstr "変更すると自動 TDP はオフになります。"
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "できるだけ少ない電力でフレームレートを目標に保ちます。"
-
 msgid "Target frame rate"
 msgstr "目標フレームレート"
-
-msgid "Minimum power"
-msgstr "最小電力"
 
 msgid "Maximum on battery"
 msgstr "バッテリー時の上限"
 
 msgid "None"
 msgstr "なし"
-
-msgid "Temperature limit: above it, power only goes down"
-msgstr "温度制限: これを超えると電力は下がる一方になります"
 
 msgid "Auto TDP off"
 msgstr "自動 TDP オフ"
@@ -576,3 +549,27 @@ msgstr "Epic Games にサインイン"
 
 msgid "Install"
 msgstr "インストール"
+
+msgid "Mode"
+msgstr "モード"
+
+msgid "Power range"
+msgstr "電力範囲"
+
+msgid "Temperature"
+msgstr "温度"
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "limit {}"
+msgstr "上限 {}"
+
+msgid "target {}"
+msgstr "目標 {}"
+
+msgid "W"
+msgstr "W"

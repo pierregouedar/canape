@@ -117,44 +117,17 @@ msgstr "Uit"
 msgid "Firmware mode"
 msgstr "Firmwaremodus"
 
-msgid "Power mode"
-msgstr "Vermogensmodus"
-
-msgid "Quiet, cool"
-msgstr "Stil en koel"
-
 msgid "Balanced"
 msgstr "Gebalanceerd"
 
-msgid "Maximum power"
-msgstr "Maximaal vermogen"
-
-msgid "Your own limit"
-msgstr "Eigen limiet"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "Kies Handmatig om het vermogen zelf in te stellen."
-
-msgid "Changing it turns auto TDP off."
-msgstr "Wijzigen zet auto-TDP uit."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "Houdt de framerate op het doel met zo min mogelijk vermogen."
-
 msgid "Target frame rate"
 msgstr "Doel-framerate"
-
-msgid "Minimum power"
-msgstr "Minimaal vermogen"
 
 msgid "Maximum on battery"
 msgstr "Maximum op batterij"
 
 msgid "None"
 msgstr "Geen"
-
-msgid "Temperature limit: above it, power only goes down"
-msgstr "Temperatuurlimiet: daarboven gaat het vermogen alleen omlaag"
 
 msgid "Auto TDP off"
 msgstr "Auto-TDP uit"
@@ -576,3 +549,27 @@ msgstr "Aanmelden bij Epic Games"
 
 msgid "Install"
 msgstr "Installeren"
+
+msgid "Mode"
+msgstr "Modus"
+
+msgid "Power range"
+msgstr "Vermogensbereik"
+
+msgid "Temperature"
+msgstr "Temperatuur"
+
+msgid "Update"
+msgstr "Bijwerken"
+
+msgid "Save"
+msgstr "Opslaan"
+
+msgid "limit {}"
+msgstr "limiet {}"
+
+msgid "target {}"
+msgstr "doel {}"
+
+msgid "W"
+msgstr "W"

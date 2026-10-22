@@ -14,15 +14,21 @@ export global Theme {
     in-out property <float> accent-hue: 350;
     in-out property <float> accent-saturation: 0.76;
     in-out property <float> accent-value: 1;
+    // Windows' own gamepad glyphs (Segoe Fluent Icons) are available: set
+    // by the Rust side on Windows; elsewhere the glyphs are drawn.
+    in-out property <bool> system-glyphs: false;
+    // Selected tiles: a lighter grey and an accent bar, white being kept
+    // for the focus.
+    out property <color> selected: #2f323a;
 
-    out property <brush> background: @linear-gradient(160deg, #121826 0%, #0a0d14 55%, #07090e 100%);
-    out property <color> surface: #141a26;
-    out property <color> surface-high: #1c2433;
-    out property <color> surface-focus: #26304a;
-    out property <color> stroke: #252e40;
-    out property <color> text: #eef2f8;
-    out property <color> dim: #93a0b5;
-    out property <color> faint: #5d687c;
+    out property <brush> background: #0b0c0f;
+    out property <color> surface: #121418;
+    out property <color> surface-high: #1a1c22;
+    out property <color> surface-focus: #262930;
+    out property <color> stroke: #2a2d34;
+    out property <color> text: #eceef2;
+    out property <color> dim: #8b919b;
+    out property <color> faint: #5d626b;
     out property <color> accent-soft: root.accent.with-alpha(0.18);
     // Dark tint for large highlighted panels.
     out property <color> accent-tint: root.accent.mix(root.surface, 0.12);
@@ -30,9 +36,9 @@ export global Theme {
     // dark accent still reads on the dark panels.
     out property <color> accent-line: root.accent.mix(#ffffff, 0.7);
     // Second series in graphs (GPU activity), neutral next to any accent.
-    out property <color> graph: #9fb4d6;
+    out property <color> graph: #a3aab5;
     // Reference lines in graphs (the power limit).
-    out property <color> reference: #b7c0cf;
+    out property <color> reference: #6b7280;
     out property <color> focus: #ffffff;
     out property <color> good: #34d399;
     out property <color> warn: #fbbf24;

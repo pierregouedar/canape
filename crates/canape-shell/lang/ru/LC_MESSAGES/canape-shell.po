@@ -117,44 +117,17 @@ msgstr "Выкл."
 msgid "Firmware mode"
 msgstr "Режим прошивки"
 
-msgid "Power mode"
-msgstr "Режим питания"
-
-msgid "Quiet, cool"
-msgstr "Тихо и прохладно"
-
 msgid "Balanced"
 msgstr "Сбалансированный"
 
-msgid "Maximum power"
-msgstr "Максимальная мощность"
-
-msgid "Your own limit"
-msgstr "Свой предел"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "Выберите «Ручной», чтобы задать мощность самостоятельно."
-
-msgid "Changing it turns auto TDP off."
-msgstr "Изменение отключает авто TDP."
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "Держит целевую частоту кадров при минимально возможной мощности."
-
 msgid "Target frame rate"
 msgstr "Целевая частота кадров"
-
-msgid "Minimum power"
-msgstr "Минимальная мощность"
 
 msgid "Maximum on battery"
 msgstr "Максимум от батареи"
 
 msgid "None"
 msgstr "Нет"
-
-msgid "Temperature limit: above it, power only goes down"
-msgstr "Предел температуры: выше него мощность только снижается"
 
 msgid "Auto TDP off"
 msgstr "Авто TDP выключен"
@@ -576,3 +549,27 @@ msgstr "Войти в Epic Games"
 
 msgid "Install"
 msgstr "Установить"
+
+msgid "Mode"
+msgstr "Режим"
+
+msgid "Power range"
+msgstr "Диапазон мощности"
+
+msgid "Temperature"
+msgstr "Температура"
+
+msgid "Update"
+msgstr "Обновить"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "limit {}"
+msgstr "предел {}"
+
+msgid "target {}"
+msgstr "цель {}"
+
+msgid "W"
+msgstr "Вт"

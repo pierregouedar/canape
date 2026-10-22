@@ -262,30 +262,19 @@ Les jeux Epic qui s'installent par une autre boutique (Ubisoft, EA) sont écart�
 
 <sub>La même page en russe : [ru/performance.png](images/ru/performance.png).</sub>
 
-**Mode de puissance**
+**Se déplacer** : la page est faite de rangées. Haut et bas passent d'une rangée à l'autre (celles qui ne s'appliquent pas au mode en cours sont sautées), gauche et droite se déplacent dans une rangée de tuiles ou changent tout de suite la valeur de la rangée, **A** choisit une tuile. La rangée qui a le focus est entourée de blanc.
 
-| Tuile | Effet |
+| Rangée | Contenu |
 |---|---|
-| Silencieux | Mode firmware ASUS silencieux. Le firmware fixe ses limites, que Canapé ne peut pas lire : le TDP s'affiche « Auto ». |
-| Performance | Mode firmware équilibré. |
-| Turbo | Mode firmware turbo. |
-| Manuel | Limite manuelle : garde la puissance actuelle si elle est connue, sinon part de **15 W**. |
+| **Mode** | Silencieux, Performance et Turbo sont les modes firmware ASUS : le firmware fixe ses limites, que Canapé ne peut pas lire. **Manuel** garde la puissance actuelle si elle est connue, sinon part de **15 W**. **Auto TDP** allume l'auto TDP. Le mode en cours a une tuile plus claire et un trait d'accent. Choisir un mode firmware ou Manuel désactive l'auto TDP. |
+| **Objectif d'images par seconde** (auto TDP) | Une réglette de crans : 30, 40, 45, 60, 90, 120 FPS. Gauche et droite passent au cran voisin. |
+| **Plage de puissance** (auto TDP) | Une barre à l'échelle du modèle (5 à 30 W sur les ROG Ally et Ally X, 5 à 35 W sur les ROG Xbox Ally ; 5 à 35 W si le service ne le dit pas) avec deux poignées : haut et bas choisissent le minimum ou le maximum, gauche et droite le déplacent de 1 W. Le minimum ne peut pas dépasser le maximum. Un trait blanc montre ce que l'APU consomme en ce moment. |
+| **Limite de puissance** (Manuel) | La même barre avec une seule poignée : gauche et droite changent la limite de 1 W. |
+| **Autres réglages** | Des tuiles : **Sur batterie** (aucun, 10, 15, 20 W, plafond appliqué seulement sur batterie), **Température** (aucune, 80, 85, 90 °C : au-delà, la puissance ne fait que baisser), **Écran** (les fréquences proposées par l'écran), **Ce jeu** (enregistre ou met à jour le profil du jeu au premier plan), **Banc d'essai** (ouvre la page Banc d'essai). A passe à la valeur suivante. |
 
-Choisir un mode firmware désactive l'auto TDP.
+À droite : la consommation face à la limite, les images par seconde face à l'objectif, et le graphe de la dernière minute (consommation et limite).
 
-**TDP manuel** : − / + changent la limite de 1 W, dans la plage du modèle détecté par le service (voir plus bas). Les boutons sont grisés dans un mode firmware (« Choisissez Manuel pour régler la puissance vous-même »). Changer le TDP à la main désactive l'auto TDP.
-
-**Auto TDP**
-
-| Contrôle | Effet |
-|---|---|
-| Activé / Désactivé | Allume ou éteint l'auto TDP. |
-| Objectif d'images par seconde | 30, 40, 45, 60, 90 ou 120. Choisir un objectif **allume aussi** l'auto TDP. |
-| Puissance minimale / maximale | − / + par pas de 1 W. Le minimum ne peut pas dépasser le maximum. Les deux restent dans la plage du modèle que le service a détecté et communique : 5 à 30 W sur les ROG Ally et Ally X, 5 à 35 W sur les ROG Xbox Ally. Sans cette information (service plus ancien), le shell se rabat sur 5 à 35 W et le service ramène quand même les valeurs dans la plage du modèle. |
-| Maximum sur batterie | Aucune, 10, 15 ou 20 W : plafond appliqué seulement sur batterie. |
-| Limite de température | Aucune, 80, 85 ou 90 °C : au-delà, la puissance ne fait que baisser. |
-
-À droite, le même graphe que sur l'Accueil montre en direct la consommation face à la limite : on y voit l'auto TDP descendre ou remonter la puissance.
+Tant que cette page a le focus, la croix envoie des flèches au lieu de passer d'un contrôle à l'autre.
 
 Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md).
 

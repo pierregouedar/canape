@@ -1,0 +1,626 @@
+// Performance page: rows the D-pad moves through. Up and down change row;
+// left and right move along a row of tiles or change the row's value; A
+// picks. Rows that do not apply to the current mode are skipped:
+//   0 mode tiles, 1 target frame rate (auto TDP), 2 minimum power (auto
+//   TDP) or the power limit (manual), 3 maximum power (auto TDP), 4 other
+//   settings.
+// The gamepad sends arrow keys while this page has the focus (arrows.rs).
+
+import { Theme } from "theme.slint";
+import { App } from "state.slint";
+import { Graph } from "widgets.slint";
+
+component Section inherits Text {
+    color: Theme.text.mix(Theme.dim, 0.6);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+// The focus: a white outline around the row.
+component RowFrame inherits Rectangle {
+    in property <bool> focused;
+    in property <bool> enabled: true;
+    border-radius: 14px;
+    background: root.focused ? Theme.surface : transparent;
+    border-width: root.focused ? 2px : 0;
+    border-color: Theme.focus;
+    opacity: root.enabled ? 1 : 0.4;
+    animate background { duration: 120ms; }
+}
+
+component ModeIcon inherits Path {
+    in property <int> kind;
+    width: 22px;
+    height: 22px;
+    viewbox-width: 24;
+    viewbox-height: 24;
+    fill: transparent;
+    stroke-width: 2px;
+    stroke-line-join: round;
+    commands: root.kind == 0 ? "M4 14 C8 14 10 12 12 8 C14 12 16 14 20 14 M4 18 L20 18"
+        : root.kind == 1 ? "M12 4 A8 8 0 1 1 11.99 4 M12 8 L12 12 L15 14"
+        : root.kind == 2 ? "M13 3 L5 14 L11 14 L10 21 L18 10 L12 10 Z"
+        : root.kind == 3 ? "M6 4 L18 4 M6 20 L18 20 M12 4 L12 20"
+        : "M3 17 L8 11 L12 14 L17 7 L21 11 M3 21 L21 21";
+}
+
+component ModeTile inherits Rectangle {
+    in property <int> kind;
+    in property <string> label;
+    in property <bool> selected;
+    in property <bool> focused;
+    callback clicked();
+    height: 88px;
+    border-radius: 12px;
+    background: root.selected ? Theme.selected : Theme.surface-high;
+    animate background { duration: 140ms; }
+
+    VerticalLayout {
+        padding: 12px;
+        alignment: space-between;
+        // In a row aligned to the start: a fixed-width child would cap the
+        // tile's width.
+        HorizontalLayout {
+            alignment: start;
+            Rectangle {
+                width: 34px;
+                height: 34px;
+                border-radius: 9px;
+                background: Theme.surface-focus;
+                ModeIcon {
+                    kind: root.kind;
+                    stroke: root.selected ? Theme.accent-line : Theme.text.mix(Theme.dim, 0.6);
+                }
+            }
+        }
+
+        Text {
+            text: root.label;
+            color: Theme.text;
+            font-size: 16px;
+            font-weight: 600;
+            overflow: elide;
+        }
+    }
+
+    if root.selected: Rectangle {
+        y: parent.height - 3px;
+        height: 3px;
+        x: 12px;
+        width: parent.width - 24px;
+        border-radius: 1.5px;
+        background: Theme.accent;
+    }
+    if root.focused: Rectangle {
+        border-radius: 12px;
+        border-width: 2px;
+        border-color: Theme.focus;
+    }
+
+    TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+// A setting shown as a small tile: its name, then its value.
+component ValueTile inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+    in property <bool> focused;
+    callback clicked();
+    height: 68px;
+    border-radius: 12px;
+    background: root.focused ? Theme.surface-focus : Theme.surface-high;
+    border-width: root.focused ? 2px : 0;
+    border-color: Theme.focus;
+    animate background { duration: 120ms; }
+
+    VerticalLayout {
+        padding-left: 14px;
+        padding-right: 14px;
+        alignment: center;
+        spacing: 4px;
+        Text {
+            text: root.label;
+            color: Theme.dim;
+            font-size: 13px;
+            overflow: elide;
+        }
+
+        Text {
+            text: root.value;
+            color: Theme.text;
+            font-size: 18px;
+            font-weight: 600;
+            overflow: elide;
+        }
+    }
+
+    TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+// Target frame rate on a ruler of fixed stops.
+component Ruler inherits Rectangle {
+    in property <int> selected;
+    callback pick(int);
+    property <[int]> stops: [30, 40, 45, 60, 90, 120];
+    property <length> pad: 30px;
+    property <length> span: (self.width - 2 * self.pad) / (self.stops.length - 1);
+    height: 54px;
+
+    Rectangle {
+        x: root.pad;
+        y: 13px;
+        width: parent.width - 2 * root.pad;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.surface-focus;
+    }
+
+    if root.selected >= 0: Rectangle {
+        x: root.pad;
+        y: 13px;
+        width: root.selected * root.span;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.accent;
+        animate width { duration: 160ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+    }
+
+    for fps[i] in root.stops: Rectangle {
+        x: root.pad + i * root.span - 30px;
+        width: 60px;
+        height: 54px;
+        property <bool> on: i == root.selected;
+
+        Rectangle {
+            x: (parent.width - self.width) / 2;
+            y: parent.on ? 4px : 10px;
+            width: parent.on ? 22px : 10px;
+            height: self.width;
+            border-radius: self.width / 2;
+            background: parent.on ? Theme.focus : i < root.selected ? Theme.accent : Theme.stroke;
+            border-width: parent.on ? 4px : 0;
+            border-color: Theme.accent.with-alpha(0.35);
+            animate width, y { duration: 160ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+        }
+
+        Text {
+            y: 34px;
+            width: parent.width;
+            text: App.fps-value(fps);
+            color: parent.on ? Theme.text : Theme.dim;
+            font-size: 14px;
+            font-weight: parent.on ? 700 : 500;
+            horizontal-alignment: center;
+        }
+
+        TouchArea {
+            clicked => {
+                root.pick(i);
+            }
+        }
+    }
+}
+
+// The power range on the model's scale: the minimum and maximum of auto
+// TDP (or one limit in manual mode), and what the APU draws now.
+component PowerBar inherits Rectangle {
+    in property <bool> two-knobs;
+    in property <int> low;
+    in property <int> high;
+    // Which knob has the focus: 0 none, 1 low, 2 high.
+    in property <int> active;
+    property <int> floor: App.status.tdp-floor > 0 ? App.status.tdp-floor : 5;
+    property <int> ceiling: App.status.tdp-ceiling > root.floor ? App.status.tdp-ceiling : 35;
+    property <float> scale: 1 / (root.ceiling - root.floor);
+    property <length> knob-low: self.width * clamp((root.low - root.floor) * root.scale, 0, 1);
+    property <length> knob-high: self.width * clamp((root.high - root.floor) * root.scale, 0, 1);
+    property <float> live: App.status.power-tenths / 10;
+    height: 52px;
+
+    Rectangle {
+        y: 20px;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.surface-focus;
+    }
+
+    Rectangle {
+        x: root.two-knobs ? root.knob-low : 0;
+        y: 20px;
+        width: root.two-knobs ? root.knob-high - root.knob-low : root.knob-high;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.accent;
+        animate x, width { duration: 160ms; easing: ease-out; }
+    }
+
+    if root.two-knobs: Rectangle {
+        x: root.knob-low - self.width / 2;
+        width: root.active == 1 ? 24px : 20px;
+        height: self.width;
+        y: 22px - self.height / 2;
+        border-radius: self.width / 2;
+        background: Theme.focus;
+        border-width: root.active == 1 ? 4px : 0;
+        border-color: Theme.accent.with-alpha(0.35);
+        animate x { duration: 160ms; easing: ease-out; }
+    }
+
+    Rectangle {
+        x: root.knob-high - self.width / 2;
+        width: root.active == 2 ? 24px : 20px;
+        height: self.width;
+        y: 22px - self.height / 2;
+        border-radius: self.width / 2;
+        background: Theme.focus;
+        border-width: root.active == 2 ? 4px : 0;
+        border-color: Theme.accent.with-alpha(0.35);
+        animate x { duration: 160ms; easing: ease-out; }
+    }
+
+    // What the APU draws now.
+    if App.status.connected && App.status.power-tenths >= 0: Rectangle {
+        x: root.width * clamp((root.live - root.floor) * root.scale, 0, 1) - 1px;
+        y: 14px;
+        width: 2px;
+        height: 16px;
+        border-radius: 1px;
+        background: Theme.text;
+        animate x { duration: 300ms; easing: ease-out; }
+        Text {
+            x: -40px;
+            y: 20px;
+            width: 82px;
+            text: App.watts-tenths(App.status.power-tenths);
+            color: Theme.text.mix(Theme.dim, 0.5);
+            font-size: 12px;
+            horizontal-alignment: center;
+        }
+    }
+}
+
+component Figure inherits VerticalLayout {
+    in property <string> label;
+    in property <string> value;
+    in property <string> unit;
+    in property <string> note;
+    spacing: 4px;
+    Text {
+        text: root.label;
+        color: Theme.dim;
+        font-size: 13px;
+    }
+
+    HorizontalLayout {
+        alignment: start;
+        spacing: 6px;
+        Text {
+            text: root.value;
+            color: Theme.text;
+            font-size: 48px;
+            font-weight: 600;
+            vertical-alignment: bottom;
+        }
+
+        Text {
+            text: root.unit;
+            color: Theme.dim;
+            font-size: 20px;
+            font-weight: 500;
+            vertical-alignment: bottom;
+        }
+    }
+
+    Text {
+        text: root.note;
+        color: Theme.dim;
+        font-size: 13px;
+    }
+}
+
+export component PerformancePage inherits Rectangle {
+    // Opens the bench page.
+    callback open-bench();
+    in-out property <int> focus-row: 0;
+    // Column in the rows of tiles.
+    in-out property <int> mode-col: root.mode-index;
+    in-out property <int> more-col: 0;
+
+    property <bool> auto: App.status.auto-tdp;
+    property <bool> manual: !root.auto && App.status.mode == "manual";
+    // 0 silent, 1 performance, 2 turbo, 3 manual, 4 auto TDP.
+    property <int> mode-index: root.auto ? 4 : App.status.mode == "silent" ? 0 : App.status.mode == "performance" ? 1 : App.status.mode == "turbo" ? 2 : App.status.mode == "manual" ? 3 : -1;
+    property <int> target-index: App.status.target-fps <= 30 ? 0 : App.status.target-fps <= 40 ? 1 : App.status.target-fps <= 45 ? 2 : App.status.target-fps <= 60 ? 3 : App.status.target-fps <= 90 ? 4 : 5;
+    property <[int]> target-stops: [30, 40, 45, 60, 90, 120];
+    property <bool> active: fs.has-focus;
+
+    pure function row-on(r: int) -> bool {
+        r == 0 || r == 4 || (r == 1 && root.auto) || (r == 2 && (root.auto || root.manual)) || (r == 3 && root.auto)
+    }
+    function step-row(d: int) {
+        if root.row-on(root.focus-row + d) {
+            root.focus-row = root.focus-row + d;
+        } else if root.row-on(root.focus-row + 2 * d) {
+            root.focus-row = root.focus-row + 2 * d;
+        } else if root.row-on(root.focus-row + 3 * d) {
+            root.focus-row = root.focus-row + 3 * d;
+        } else if root.row-on(root.focus-row + 4 * d) {
+            root.focus-row = root.focus-row + 4 * d;
+        }
+    }
+    function pick-mode(i: int) {
+        if i == 4 {
+            if !root.auto {
+                App.toggle-auto-tdp();
+            }
+        } else {
+            App.set-mode(i == 0 ? "silent" : i == 1 ? "performance" : i == 2 ? "turbo" : "manual");
+        }
+    }
+    function activate-more(i: int) {
+        if i == 0 {
+            App.set-battery-cap(App.status.battery-cap == 0 ? 10 : App.status.battery-cap <= 10 ? 15 : App.status.battery-cap <= 15 ? 20 : 0);
+        } else if i == 1 {
+            App.set-temp-limit(App.status.temp-limit == 0 ? 80 : App.status.temp-limit <= 80 ? 85 : App.status.temp-limit <= 85 ? 90 : 0);
+        } else if i == 2 {
+            App.cycle-refresh();
+        } else if i == 3 {
+            App.save-profile();
+        } else {
+            root.open-bench();
+        }
+    }
+    // Left (-1) or right (1) on the focused row.
+    function side(d: int) {
+        if root.focus-row == 0 {
+            root.mode-col = clamp(root.mode-col + d, 0, 4);
+        } else if root.focus-row == 1 {
+            App.set-target-fps(root.target-stops[clamp(root.target-index + d, 0, 5)]);
+        } else if root.focus-row == 2 {
+            if root.auto {
+                App.change-min-watts(d);
+            } else {
+                App.change-tdp(d);
+            }
+        } else if root.focus-row == 3 {
+            App.change-max-watts(d);
+        } else {
+            root.more-col = clamp(root.more-col + d, 0, 4);
+        }
+    }
+    changed auto => {
+        if !root.row-on(root.focus-row) {
+            root.focus-row = 0;
+        }
+    }
+    changed manual => {
+        if !root.row-on(root.focus-row) {
+            root.focus-row = 0;
+        }
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        focus-gained(reason) => {
+            App.arrow-focus(true);
+        }
+        focus-lost(reason) => {
+            App.arrow-focus(false);
+        }
+        key-pressed(event) => {
+            if !App.status.connected {
+                return reject;
+            }
+            if event.text == Key.UpArrow {
+                root.step-row(-1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.step-row(1);
+                return accept;
+            }
+            if event.text == Key.LeftArrow {
+                root.side(-1);
+                return accept;
+            }
+            if event.text == Key.RightArrow {
+                root.side(1);
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                if root.focus-row == 0 {
+                    root.pick-mode(root.mode-col);
+                } else if root.focus-row == 4 {
+                    root.activate-more(root.more-col);
+                }
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    HorizontalLayout {
+        width: parent.width;
+        height: parent.height;
+        spacing: 40px;
+
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 8px;
+
+            RowFrame {
+                focused: root.active && root.focus-row == 0;
+                VerticalLayout {
+                    padding: 14px;
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    spacing: 12px;
+                    HorizontalLayout {
+                        Section {
+                            text: @tr("Mode");
+                        }
+
+                        Text {
+                            horizontal-stretch: 1;
+                            text: App.status.active-profile != "" ? App.status.active-profile : "";
+                            color: Theme.dim;
+                            font-size: 13px;
+                            horizontal-alignment: right;
+                            overflow: elide;
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 10px;
+                        for name[i] in [App.mode-name("silent"), App.mode-name("performance"), App.mode-name("turbo"), App.mode-name("manual"), @tr("Auto TDP")]: ModeTile {
+                            horizontal-stretch: 1;
+                            preferred-width: 10px;
+                            kind: i;
+                            label: name;
+                            selected: root.mode-index == i;
+                            focused: root.active && root.focus-row == 0 && root.mode-col == i;
+                            clicked => {
+                                root.focus-row = 0;
+                                root.mode-col = i;
+                                root.pick-mode(i);
+                                fs.focus();
+                            }
+                        }
+                    }
+                }
+            }
+
+            RowFrame {
+                focused: root.active && root.focus-row == 1;
+                enabled: root.auto;
+                VerticalLayout {
+                    padding: 14px;
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    spacing: 6px;
+                    Section {
+                        text: @tr("Target frame rate");
+                    }
+
+                    Ruler {
+                        selected: root.auto ? root.target-index : -1;
+                        pick(i) => {
+                            root.focus-row = 1;
+                            App.set-target-fps(root.target-stops[i]);
+                            fs.focus();
+                        }
+                    }
+                }
+            }
+
+            RowFrame {
+                focused: root.active && (root.focus-row == 2 || root.focus-row == 3);
+                enabled: root.auto || root.manual;
+                VerticalLayout {
+                    padding: 14px;
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    spacing: 8px;
+                    HorizontalLayout {
+                        Section {
+                            text: root.manual ? @tr("Power limit") : @tr("Power range");
+                        }
+
+                        Text {
+                            horizontal-stretch: 1;
+                            text: root.manual ? App.known(App.status.tdp, App.watts(App.status.tdp)) : App.watts(App.status.min-watts) + " – " + App.watts(App.status.max-watts);
+                            color: Theme.text;
+                            font-size: 16px;
+                            font-weight: 600;
+                            horizontal-alignment: right;
+                        }
+                    }
+
+                    PowerBar {
+                        two-knobs: !root.manual;
+                        low: App.status.min-watts;
+                        high: root.manual ? max(App.status.tdp, 0) : App.status.max-watts;
+                        active: !root.active ? 0 : root.manual && root.focus-row == 2 ? 2 : root.focus-row == 2 ? 1 : root.focus-row == 3 ? 2 : 0;
+                    }
+                }
+            }
+
+            RowFrame {
+                focused: root.active && root.focus-row == 4;
+                HorizontalLayout {
+                    padding: 14px;
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    spacing: 10px;
+                    for label[i] in [@tr("On battery"), @tr("Temperature"), @tr("Screen"), @tr("This game"), @tr("Bench")]: ValueTile {
+                        horizontal-stretch: 1;
+                        preferred-width: 10px;
+                        label: label;
+                        value: i == 0 ? (App.status.battery-cap == 0 ? @tr("None") : App.watts(App.status.battery-cap))
+                            : i == 1 ? (App.status.temp-limit == 0 ? @tr("None") : App.celsius(App.status.temp-limit))
+                            : i == 2 ? (App.refresh-hz > 0 ? @tr("{} Hz", App.refresh-hz) : "—")
+                            : i == 3 ? (App.status.active-profile != "" ? @tr("Update") : @tr("Save"))
+                            : @tr("Start");
+                        focused: root.active && root.focus-row == 4 && root.more-col == i;
+                        clicked => {
+                            root.focus-row = 4;
+                            root.more-col = i;
+                            root.activate-more(i);
+                            fs.focus();
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
+            }
+        }
+
+        VerticalLayout {
+            width: 360px;
+            padding-top: 16px;
+            spacing: 26px;
+            HorizontalLayout {
+                spacing: 20px;
+                Figure {
+                    horizontal-stretch: 1;
+                    label: @tr("Power draw");
+                    value: App.known(App.status.power-tenths, App.tenths(App.status.power-tenths));
+                    unit: @tr("W");
+                    note: App.status.tdp >= 0 ? @tr("limit {}", App.watts(App.status.tdp)) : "";
+                }
+
+                Figure {
+                    horizontal-stretch: 1;
+                    label: @tr("Frame rate");
+                    value: App.known(App.status.fps, App.status.fps);
+                    unit: "FPS";
+                    note: root.auto ? @tr("target {}", App.status.target-fps) : "";
+                }
+            }
+
+            Graph {
+                height: 140px;
+                line: App.graphs.power-line;
+                area: App.graphs.power-area;
+                reference: App.graphs.limit-line;
+                tint: Theme.accent-line;
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
+            }
+        }
+    }
+}

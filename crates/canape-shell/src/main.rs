@@ -92,6 +92,8 @@ fn main() -> Result<(), slint::PlatformError> {
     ui.global::<App>()
         .set_language(settings.language.as_str().into());
     show_shell_settings(&ui, &settings);
+    // Windows draws the gamepad glyphs with its own icon font.
+    ui.global::<Theme>().set_system_glyphs(cfg!(windows));
     let accent = accent::normalize(&settings.accent);
     if accent != settings.accent {
         // A preset name from an earlier version, or an unreadable value.
@@ -380,6 +382,28 @@ fn connect(ui: &AppWindow, link: &Link) {
         }
     });
 
+    app.on_arrow_focus(library::set_page_arrows);
+    app.on_cycle_refresh({
+        let ui = ui.as_weak();
+        move || {
+            let (current, rates) = screen::state();
+            let Some(next) = rates
+                .iter()
+                .copied()
+                .find(|&hz| hz > current)
+                .or(rates.first().copied())
+            else {
+                return;
+            };
+            screen::set(next);
+            let mut settings = i18n::ShellSettings::load();
+            settings.refresh_hz = next;
+            if let Err(err) = settings.save() {
+                log(&format!("saving shell.json: {err}"));
+            }
+            link::show_screen(&ui);
+        }
+    });
     app.on_set_refresh({
         let ui = ui.as_weak();
         move |hz| {

@@ -262,30 +262,19 @@ Epic games that install through another store (Ubisoft, EA) are left out: Legend
 
 <sub>The same page in Russian: [ru/performance.png](images/ru/performance.png).</sub>
 
-**Power mode**
+**Moving around**: the page is made of rows. Up and down move from row to row (rows that do not apply to the current mode are skipped), left and right move along a row of tiles or change the row's value at once, **A** picks a tile. The focused row has a white outline.
 
-| Tile | Effect |
+| Row | Content |
 |---|---|
-| Silent | ASUS silent firmware mode. The firmware sets its own limits, which Canapé cannot read: the TDP shows as "Auto". |
-| Performance | Balanced firmware mode. |
-| Turbo | Turbo firmware mode. |
-| Manual | Manual limit: keeps the current power if known, otherwise starts from **15 W**. |
+| **Mode** | Silent, Performance and Turbo are the ASUS firmware modes: the firmware sets its own limits, which Canapé cannot read. **Manual** keeps the current power if known, otherwise starts from **15 W**. **Auto TDP** turns auto TDP on. The current mode has a lighter tile and an accent bar. Picking a firmware mode or Manual turns auto TDP off. |
+| **Target frame rate** (auto TDP) | A ruler of stops: 30, 40, 45, 60, 90, 120 FPS. Left and right move to the next stop. |
+| **Power range** (auto TDP) | One bar on the model's scale (5 to 30 W on the ROG Ally and Ally X, 5 to 35 W on the ROG Xbox Ally models; 5 to 35 W if the service does not say) with two knobs: up and down pick the minimum or the maximum, left and right move it by 1 W. The minimum cannot pass the maximum. A white mark shows what the APU draws now. |
+| **Power limit** (Manual) | The same bar with one knob: left and right change the limit by 1 W. |
+| **Other settings** | Tiles: **On battery** (none, 10, 15, 20 W, a ceiling applied only on battery), **Temperature** (none, 80, 85, 90 °C: above it, power only goes down), **Screen** (the refresh rates the screen offers), **This game** (saves or updates the foreground game's profile), **Bench** (opens the Bench page). A goes to the next value. |
 
-Picking a firmware mode turns auto TDP off.
+On the right: the power draw against the limit, the frame rate against the target, and the graph of the last minute (draw and limit).
 
-**Manual TDP**: − / + change the limit by 1 W, within the range of the model the service detected (see below). The buttons are disabled in a firmware mode ("Choose Manual to set the power yourself."). Changing the TDP by hand turns auto TDP off.
-
-**Auto TDP**
-
-| Control | Effect |
-|---|---|
-| On / Off | Turns auto TDP on or off. |
-| Target frame rate | 30, 40, 45, 60, 90 or 120. Picking a target **also turns** auto TDP on. |
-| Minimum / maximum power | − / + in 1 W steps. The minimum cannot pass the maximum. Both stay within the range of the model the service detected and reports: 5 to 30 W on the ROG Ally and Ally X, 5 to 35 W on the ROG Xbox Ally models. Without that information (older service), the shell falls back to 5 to 35 W and the service still brings the values into the model's range. |
-| Maximum on battery | None, 10, 15 or 20 W: a ceiling applied only on battery. |
-| Temperature limit | None, 80, 85 or 90 °C: above it, power only goes down. |
-
-On the right, the same graph as on Home shows the power draw against the limit live: you can watch auto TDP bring the power down or up.
+While this page has the focus, the D-pad sends arrow keys rather than moving from control to control.
 
 How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 

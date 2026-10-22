@@ -48,11 +48,19 @@ const OWNED_REFRESH: Duration = Duration::from_secs(10 * 60);
 /// library has the focus: the grid moves in two dimensions.
 static LIBRARY_FOCUSED: AtomicBool = AtomicBool::new(false);
 static LIBRARY_SHOWN: AtomicBool = AtomicBool::new(false);
+/// Another page that moves with the arrow keys has the focus.
+static PAGE_ARROWS: AtomicBool = AtomicBool::new(false);
 
 /// True when the D-pad should send arrow keys.
 #[cfg_attr(not(windows), allow(dead_code))]
 pub fn arrow_navigation() -> bool {
-    LIBRARY_SHOWN.load(Ordering::Relaxed) && LIBRARY_FOCUSED.load(Ordering::Relaxed)
+    (LIBRARY_SHOWN.load(Ordering::Relaxed) && LIBRARY_FOCUSED.load(Ordering::Relaxed))
+        || PAGE_ARROWS.load(Ordering::Relaxed)
+}
+
+/// A page that moves with the arrow keys gained or lost the focus.
+pub fn set_page_arrows(on: bool) {
+    PAGE_ARROWS.store(on, Ordering::Relaxed);
 }
 
 /// A cover to decode for the game `id`.

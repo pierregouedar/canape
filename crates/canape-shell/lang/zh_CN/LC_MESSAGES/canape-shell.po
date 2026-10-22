@@ -117,44 +117,17 @@ msgstr "关"
 msgid "Firmware mode"
 msgstr "固件模式"
 
-msgid "Power mode"
-msgstr "功耗模式"
-
-msgid "Quiet, cool"
-msgstr "安静凉爽"
-
 msgid "Balanced"
 msgstr "均衡"
 
-msgid "Maximum power"
-msgstr "最大功耗"
-
-msgid "Your own limit"
-msgstr "自定义上限"
-
-msgid "Choose Manual to set the power yourself."
-msgstr "选择“手动”即可自行设定功耗。"
-
-msgid "Changing it turns auto TDP off."
-msgstr "更改此项会关闭自动 TDP。"
-
-msgid "Keeps the frame rate on target with as little power as possible."
-msgstr "以尽可能低的功耗将帧率保持在目标值。"
-
 msgid "Target frame rate"
 msgstr "目标帧率"
-
-msgid "Minimum power"
-msgstr "最低功耗"
 
 msgid "Maximum on battery"
 msgstr "电池供电时上限"
 
 msgid "None"
 msgstr "无"
-
-msgid "Temperature limit: above it, power only goes down"
-msgstr "温度上限：超过后功耗只降不升"
 
 msgid "Auto TDP off"
 msgstr "自动 TDP 已关闭"
@@ -576,3 +549,27 @@ msgstr "登录 Epic Games"
 
 msgid "Install"
 msgstr "安装"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Power range"
+msgstr "功率范围"
+
+msgid "Temperature"
+msgstr "温度"
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "limit {}"
+msgstr "上限 {}"
+
+msgid "target {}"
+msgstr "目标 {}"
+
+msgid "W"
+msgstr "W"
