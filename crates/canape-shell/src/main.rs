@@ -403,6 +403,7 @@ fn connect(ui: &AppWindow, link: &Link) {
     app.on_arrow_focus(library::set_page_arrows);
     app.on_cycle_refresh({
         let ui = ui.as_weak();
+        let link = link.clone();
         move || {
             let (current, rates) = screen::state();
             let Some(next) = rates
@@ -413,25 +414,15 @@ fn connect(ui: &AppWindow, link: &Link) {
             else {
                 return;
             };
-            screen::set(next);
-            let mut settings = i18n::ShellSettings::load();
-            settings.refresh_hz = next;
-            if let Err(err) = settings.save() {
-                log(&format!("saving shell.json: {err}"));
-            }
+            screen::pick(next, link.status().foreground.is_some());
             link::show_screen(&ui);
         }
     });
     app.on_set_refresh({
         let ui = ui.as_weak();
+        let link = link.clone();
         move |hz| {
-            let hz = hz.max(0) as u32;
-            screen::set(hz);
-            let mut settings = i18n::ShellSettings::load();
-            settings.refresh_hz = hz;
-            if let Err(err) = settings.save() {
-                log(&format!("saving shell.json: {err}"));
-            }
+            screen::pick(hz.max(0) as u32, link.status().foreground.is_some());
             link::show_screen(&ui);
         }
     });

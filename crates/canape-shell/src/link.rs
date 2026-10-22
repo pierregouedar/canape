@@ -258,7 +258,7 @@ fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> 
                 let profiles = shared.profiles.lock().unwrap();
                 profiles.iter().find(|p| p.matches(exe))?.refresh_hz
             });
-            crate::screen::follow(profile_hz);
+            crate::screen::follow(status.foreground.as_deref(), profile_hz);
             if first || pushes % SCREEN_REFRESH_PUSHES == 0 {
                 show_screen(ui);
             }

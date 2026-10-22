@@ -320,7 +320,7 @@ The mode is global (not per game), remembered and re-applied when the service st
 
 **Screen**
 
-One tile per refresh rate the built-in screen offers at its current resolution (60 and 120 Hz on the ROG Ally); A applies the focused one. A lower rate saves battery in games capped at 30, 40 or 60 FPS. The choice is applied at once and remembered like a change made in Windows settings.
+One tile per refresh rate the built-in screen offers at its current resolution (60 and 120 Hz on the ROG Ally); A applies the focused one. A lower rate saves battery in games capped at 30, 40 or 60 FPS. The choice is applied at once. Without a game in the foreground it becomes the general rate, remembered like a change made in Windows settings. With a game in the foreground it only lasts for that session: **X** keeps it in the game's profile, and the screen goes back to the general rate when the game closes.
 
 - A game profile can hold its own rate (**X** on this page): it applies when the game comes to the foreground; when the game leaves, the screen goes back to the rate picked here, or to the one the profile replaced.
 - Canapé only switches when the profile changes: a rate picked in Windows settings meanwhile is left alone.
