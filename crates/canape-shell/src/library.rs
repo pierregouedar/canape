@@ -39,6 +39,8 @@ const LAUNCH_SHOWN: Duration = Duration::from_secs(5);
 const COVER_RADIUS: f32 = 10.0;
 /// Coming back to the page rescans if the last scan is older than this.
 const RESCAN_AFTER: Duration = Duration::from_secs(60);
+/// How long an install or store error stays in the header.
+const ERROR_SHOWN: Duration = Duration::from_secs(10);
 /// The owned lists are asked for again after this.
 const OWNED_REFRESH: Duration = Duration::from_secs(10 * 60);
 
@@ -115,6 +117,8 @@ struct State {
     installing: HashMap<String, f32>,
     /// Canapé's helper programs (Legendary).
     tools_dir: PathBuf,
+    /// Clears the install or store error after a while.
+    error_timer: Timer,
 }
 
 thread_local! {
@@ -360,6 +364,7 @@ impl State {
         if let Some(ui) = self.ui.upgrade() {
             ui.global::<Library>().set_install_error("".into());
         }
+        self.error_timer.stop();
         let (id, title, fixture, tools) = (
             game.id.clone(),
             game.title.clone(),
@@ -402,12 +407,22 @@ impl State {
                 crate::log(&format!("library: installing {id}: {message}"));
                 self.installing.remove(id);
                 self.show_progress(id);
-                if let Some(ui) = self.ui.upgrade() {
-                    ui.global::<Library>()
-                        .set_install_error(format!("{title}: {message}").into());
-                }
+                self.show_error(format!("{title}: {message}"));
             }
         }
+    }
+
+    /// Shows an install or store error in the header for a while.
+    fn show_error(&mut self, message: String) {
+        let Some(ui) = self.ui.upgrade() else { return };
+        ui.global::<Library>().set_install_error(message.into());
+        let ui = ui.as_weak();
+        self.error_timer
+            .start(TimerMode::SingleShot, ERROR_SHOWN, move || {
+                if let Some(ui) = ui.upgrade() {
+                    ui.global::<Library>().set_install_error("".into());
+                }
+            });
     }
 
     /// Updates the progress shown on `id`'s tile.
@@ -443,20 +458,25 @@ impl State {
             .unwrap_or_default();
         thread::spawn(move || {
             let settings = crate::i18n::ShellSettings::load();
-            let (owned, art, account) = if fixture {
-                (cache::load(&fixture_owned), HashMap::new(), None)
+            let mut owned = if fixture {
+                Owned {
+                    games: cache::load(&fixture_owned),
+                    ..Owned::default()
+                }
             } else {
                 fetch_owned(&settings, steam.as_deref(), tools.legendary.as_deref())
             };
-            if let Err(err) = cache::save(&owned_path, &owned) {
+            // A failed store keeps the last list rather than emptying it.
+            if owned.error.is_empty()
+                && let Err(err) = cache::save(&owned_path, &owned.games)
+            {
                 crate::log(&format!("library: saving owned games: {err}"));
             }
-            let mut with_covers = owned.clone();
-            online::attach(&mut with_covers, &covers);
-            post_owned(with_covers.clone(), art.clone(), account.clone(), false);
-            if !fixture && download_covers(&with_covers, &art, &covers) {
-                online::attach(&mut with_covers, &covers);
-                post_owned(with_covers, art, account, true);
+            online::attach(&mut owned.games, &covers);
+            post_owned(owned.clone(), false);
+            if !fixture && download_covers(&owned.games, &owned.art, &covers) {
+                online::attach(&mut owned.games, &covers);
+                post_owned(owned, true);
             }
         });
     }
@@ -504,8 +524,9 @@ fn fetch_owned(
     settings: &crate::i18n::ShellSettings,
     steam: Option<&Path>,
     legendary: Option<&Path>,
-) -> (Vec<Game>, HashMap<String, String>, Option<String>) {
+) -> Owned {
     let (mut owned, mut art, mut account) = (Vec::new(), HashMap::new(), None);
+    let mut errors = Vec::new();
     let key = settings.steam_api_key.trim();
     #[cfg(windows)]
     if !key.is_empty()
@@ -524,7 +545,10 @@ fn fetch_owned(
             });
         match result {
             Ok(games) => owned.extend(games),
-            Err(err) => crate::log(&format!("library: Steam owned games: {err}")),
+            Err(err) => {
+                crate::log(&format!("library: Steam owned games: {err}"));
+                errors.push(format!("Steam: {err}"));
+            }
         }
     }
     #[cfg(not(windows))]
@@ -542,33 +566,54 @@ fn fetch_owned(
                             owned.push(item.game);
                         }
                     }
-                    Err(err) => crate::log(&format!("library: Epic owned games: {err}")),
+                    Err(err) => {
+                        crate::log(&format!("library: Epic owned games: {err}"));
+                        errors.push(format!("Epic: {err}"));
+                    }
                 }
             }
             Ok(None) => {}
-            Err(err) => crate::log(&format!("library: Epic account: {err}")),
+            Err(err) => {
+                crate::log(&format!("library: Epic account: {err}"));
+                errors.push(format!("Epic: {err}"));
+            }
         }
     }
-    (owned, art, account)
+    Owned {
+        games: owned,
+        art,
+        account,
+        error: errors.join(" · "),
+    }
 }
 
-fn post_owned(
-    owned: Vec<Game>,
+/// What the stores answered.
+#[derive(Clone, Default)]
+struct Owned {
+    games: Vec<Game>,
+    /// Art links Epic gave, by game id.
     art: HashMap<String, String>,
+    /// Signed-in Epic account.
     account: Option<String>,
-    covers_only: bool,
-) {
+    /// Why a store could not be listed, "" when all went well.
+    error: String,
+}
+
+fn post_owned(owned: Owned, covers_only: bool) {
     let _ = slint::invoke_from_event_loop(move || {
         with_state(|state| {
-            state.owned = owned;
-            state.art = art;
+            state.owned = owned.games;
+            state.art = owned.art;
             if !covers_only {
                 state.owned_loading = false;
                 state.owned_at = Some(Instant::now());
+                if !owned.error.is_empty() {
+                    state.show_error(owned.error);
+                }
             }
             if let Some(ui) = state.ui.upgrade() {
                 ui.global::<Library>()
-                    .set_epic_account(account.unwrap_or_default().into());
+                    .set_epic_account(owned.account.unwrap_or_default().into());
             }
             state.show_accounts();
             if state.to_install {
@@ -589,9 +634,9 @@ fn epic_login() {
                 if let Some(ui) = state.ui.upgrade() {
                     let library = ui.global::<Library>();
                     library.set_epic_busy(on);
-                    if !error.is_empty() {
-                        library.set_install_error(error.into());
-                    }
+                }
+                if !error.is_empty() {
+                    state.show_error(error);
                 }
                 if !on {
                     state.refresh_owned(true);
@@ -775,13 +820,12 @@ pub fn start(ui: &AppWindow) {
         owned_path,
         installing: HashMap::new(),
         tools_dir,
+        error_timer: Timer::default(),
     };
     state.rebuild(None);
     state.scan();
     state.show_accounts();
     STATE.with(|s| *s.borrow_mut() = Some(state));
-    // Fills the "to install" list in the background.
-    with_state(|state| state.refresh_owned(false));
 
     library.on_grid_move(|index, count, cols, direction| {
         let (Ok(index), Ok(count), Ok(cols)) = (

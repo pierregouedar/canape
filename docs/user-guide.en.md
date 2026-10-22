@@ -5,7 +5,7 @@
 This guide explains how to install Canapé on a ROG Ally, make it the home app of the full-screen experience (FSE), use it with the gamepad, add the Xbox Game Bar widget, and then troubleshoot and uninstall it.
 
 > [!IMPORTANT]
-> Canapé is a personal project under development. **Validated on the Ally**: installation, FSE boot, the service, modes, manual TDP, auto TDP (version `99cad07`) and the first version of the widget. **Written and tested without hardware, but not tried on the Ally yet**: the seven-page shell in 13 languages, the game library, the Hardware page (fans, frame rate limit, controller mode), per-game profiles, the bench, the latest auto TDP optimizations and the new version of the widget. The sections concerned say so.
+> Canapé is a personal project under development. **Validated on the Ally**: installation, FSE boot, the service, modes, manual TDP, auto TDP (version `99cad07`) and the first version of the widget. **Written and tested without hardware, but not tried on the Ally yet**: the seven-page shell in 13 languages, the game library and installing Steam and Epic games, the Hardware page (fans, frame rate limit, controller mode), per-game profiles, the bench, the latest auto TDP optimizations and the new version of the widget. The sections concerned say so.
 
 ## Contents
 
@@ -22,6 +22,7 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
   - [Controls](#controls)
   - [Shared elements](#shared-elements)
   - [Library](#library)
+    - [Installing owned games](#installing-owned-games)
   - [Home](#home)
   - [Performance](#performance)
   - [Hardware](#hardware)
@@ -144,7 +145,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 |---|---|
 | **LB / RB** | Previous / next page (Library → Home → Performance → Hardware → Profiles → Bench → Settings, wrapping around) |
 | **D-pad** or **left stick** | Move to the next control (down, right) or the previous one (up, left). In the library, moves in the grid of games in all four directions. Held, the move repeats after 0.4 s. |
-| **A** | Select the focused control; in the library, launch the game |
+| **A** | Select the focused control; in the library, launch the game (install it in **To install** mode) |
 | **B** | Back to the library |
 
 The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. The focused control has a white outline. On a keyboard (development), the same actions are Tab / Shift+Tab (the arrow keys in the library), Enter, Esc and Page Up / Page Down.
@@ -161,12 +162,12 @@ The gamepad is only read while Canapé is in the foreground: a game launched fro
 
 <sub>A made-up library (`tools/fake-library.py`): titles and covers are generated.</sub>
 
-The first page, the one Canapé opens on: the games installed on the console, as covers, the most recently played first.
+The first page, the one Canapé opens on: the games installed on the console, as covers, the most recently played first. The **To install** mode shows the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)).
 
 | Area | Contents |
 |---|---|
-| **Top left** | The selected game: its title, its store (as a word: STEAM, EPIC, GOG, XBOX) and when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…). "Launching…" after A. |
-| **Filters** | All, Steam, Epic, GOG, Xbox, then the order: Recent (last played first, then by name) or A–Z. |
+| **Top left** | The selected game: its title, its store (as a word: STEAM, EPIC, GOG, XBOX) and when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…). "Launching…" after A. In To install mode: "Not installed: press A to install", then "Installing… N %", or the error of an install that failed. |
+| **Filters** | Installed or To install, then All, Steam, Epic, GOG, Xbox, then the order: Recent (last played first, then by name) or A–Z. |
 | **Grid** | Six covers per row. The selected one is larger, with a white outline. Under All, each cover shows its store at the bottom left. A game without art shows its title on a card tinted with the accent colour. |
 
 **Moving around**: the D-pad (or the stick) moves in the grid; down from a row above a shorter last row lands on the last game. Up from the first row reaches the filters: left and right pick one, **A** applies it, down goes back to the games. **A** on a game launches it; Canapé shows "Launching…" for a few seconds, then puts the game first in the list. The page scrolls by itself to keep the selected row at the top.
@@ -176,7 +177,7 @@ The first page, the one Canapé opens on: the games installed on the console, as
 | Store | What Canapé reads | Launch | Covers |
 |---|---|---|---|
 | **Steam** | The library folders (`steamapps\libraryfolders.vdf`) and each game's manifest (`appmanifest_*.acf`). Tools (Steamworks redistributables, Proton, SteamVR) are left out. | Through Steam (`steam://rungameid/…`) | Steam's own cache: the art you picked in Steam, else the 600×900 portrait, else the hero or header image (shown whole, on a blurred backdrop) |
-| **Epic Games** | The launcher's manifests (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, engines and unfinished installs are left out. | Through the Epic launcher | Downloaded (see below), else a title card |
+| **Epic Games** | The launcher's manifests (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, engines and unfinished installs are left out. Plus the games installed from Canapé with Legendary (see [below](#installing-owned-games)). | Through the Epic launcher; through Legendary, without the launcher, for the games installed with it | Downloaded (see below), else a title card |
 | **GOG** | The registry (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), where GOG Galaxy and the offline installers register each game. DLC are left out. | The game's executable directly, without Galaxy | Downloaded (see below), else a title card |
 | **Xbox app** | The `XboxGames` folders of every drive (`Content\MicrosoftGame.config`). | Through Windows (`shell:AppsFolder\…`) | The game's square logo |
 
@@ -197,6 +198,48 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 
 > [!NOTE]
 > Not tried on the Ally yet: the download goes through WinHTTP (built into Windows) and was only tested on Linux against recorded answers.
+
+#### Installing owned games
+
+<img src="images/en/library-install.png" alt="Library in To install mode, an install running" width="720">
+
+<sub>Made-up owned games (`tools/fake-library.py`); the install of Mosaic Run is simulated.</sub>
+
+> [!NOTE]
+> **Nothing in this part has been tried on the Ally yet**: not the Steam owned list through the Web API, not installing through Steam, not the Legendary download, not the Epic sign-in, not installing and launching Epic games through Legendary. Only the UI (on Linux, with the fake library and a simulated install) and the reading of Steam's, Epic's and GitHub's answers (against recorded answers) were tested.
+
+At the top of the library, **Installed / To install** switches to the list of games you own on Steam or Epic but have not installed on the console. The store filters and the order apply there too. **A** on a game installs it without opening Steam's interface or the Epic launcher; the hint at the bottom of the screen becomes "A Install". A game already installed, from any store (same id or same title), does not show in this list.
+
+**Steam: set up once**
+
+1. Create a free Steam Web API key on [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey).
+2. Put it in `%LOCALAPPDATA%\Canape\shell.json` as `"steam_api_key": "…"`.
+
+Canapé asks for the list of the account last signed in to Steam on this device (`config\loginusers.vdf` in Steam's folder): Steam must have been opened there at least once with your account. The key is only ever sent to Steam's API (`api.steampowered.com`). Tools (redistributables, Proton, SteamVR) are left out; free games you have already launched are in the list.
+
+**Epic: sign in once**
+
+1. Pick **Sign in to Epic Games** on the To install page (the button only shows when the list is empty) or **Epic sign-in** in [Settings](#settings).
+2. The first time, Canapé downloads **Legendary**, an open-source Epic client (GPL-3 licence) that stays a separate program, from its official releases on GitHub, into `%LOCALAPPDATA%\Canape\tools`. The file is checked against the SHA-256 digest GitHub publishes: without a digest, or if it does not match, nothing is saved and the error shows at the top of the library.
+3. Legendary opens its own Epic sign-in window, with a console next to it (without WebView2, Legendary asks for a code there instead). These windows are not made for the gamepad: the touch screen and the touch keyboard may be needed.
+4. Once the window is closed, Canapé asks for the list of games again. The button then reads "Epic: <account> (sign in again)".
+
+Epic games that install through another store (Ubisoft, EA) are left out: Legendary cannot install them.
+
+**When the list is refreshed**: only when you switch to To install, if the last request is more than 10 minutes old, and right after an Epic sign-in: Canapé asks nothing of the stores at startup. A store that cannot be listed (wrong Steam key, Epic session expired) shows its error in the header for 10 seconds and keeps the last list. The last list is kept in `owned.json` and shows at once. Covers are fetched like the [downloaded covers](#library), under the same **Download missing covers** setting; for Epic games, Canapé first tries the portrait art Epic provides.
+
+**What A does**
+
+| Store | Install | Progress | At the end |
+|---|---|---|---|
+| **Steam** | Canapé hands the install to Steam, which starts quietly in the notification area if it was not running. Steam only opens its small install window (folder, shortcuts): confirm it (not checked with the gamepad yet). Steam then downloads in the background. | Read every 2 s from the game's manifest. | The game moves to Installed and launches through Steam, like the others. |
+| **Epic** | Legendary installs the game silently, without a window or questions, into its default folder. | Read from Legendary's output. | The game moves to Installed and launches through Legendary: the Epic launcher is never opened. |
+
+- While installing, the cover shows a bar and "Installing… N %", and so does the header when the game is selected. You can keep moving around and install other games.
+- Canapé does not pick the folder nor check the free space: Steam offers them in its window, Legendary uses its default folder.
+- Steam: if the install window is not confirmed, Canapé gives up after 10 minutes ("Steam did not start the download"); an install cancelled in Steam midway gives "cancelled in Steam".
+- On failure, the header shows "<title>: <message>" in yellow, the message in English (`Steam is not installed`, `Legendary is not available`, `legendary: …` with Legendary's last line). It stays until the next install and is also in `shell.log`.
+- Games installed by Legendary are found in its configuration (`%USERPROFILE%\.config\legendary\installed.json`) as long as `legendary.exe` is in `%LOCALAPPDATA%\Canape\tools`.
 
 ### Home
 
@@ -362,7 +405,8 @@ Each card offers **Set as TDP** (manual limit at that value, auto TDP off) and *
 
 - **Language**: "Automatic" (the Windows language) or one of the 13 languages. The change is immediate and remembered. See [Languages](#languages).
 - **Accent colour**: three sliders, **Hue**, **Saturation** and **Brightness**, a preview with the `#RRGGBB` code and 8 **presets**. With the gamepad, A on a slider grabs it, the D-pad or the stick moves it, A again lets go. The whole UI follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the widget follows the accent colour**.
-- **Canapé**: version, service connection state, and two switches:
+- **Canapé**: version, service connection state, a row for installing games, and two switches:
+  - **Install games from Canapé** (see [Installing owned games](#installing-owned-games)): says whether a Steam API key is in `shell.json` (without checking that it is valid) and which Epic account is signed in ("Epic: not signed in." otherwise). The **Epic sign-in** button opens the Epic sign-in, downloading Legendary first if needed. Not tried on the Ally yet.
   - **Download missing covers** (see [Library](#library)): the line under it says where covers come from (Steam only, or Steam and SteamGridDB when a key is set).
   - **Use the Ally's buttons**: the **Armoury** button (right, under the screen) brings Canapé to the front from a game, or back to the library when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget is. Turn it off if Armoury Crate or another tool should handle them (both would react otherwise). Not tried on the Ally yet.
 
@@ -460,10 +504,13 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%ProgramData%\Canape\service.log` | Service log: detected model, ADL state at startup, every command that changes the state and its response (`SetTdp { watts: 12 } -> Ok`), conflicting programs, errors. |
 | `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, profiles, last bench. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Shell log: launches (with their arguments), chosen language, ADL state, service errors. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `refresh_hz`, `ally_buttons`. |
+| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `refresh_hz`, `ally_buttons`. |
 | `%LOCALAPPDATA%\Canape\covers\` | Downloaded covers (`<store>_<id>.jpg` / `.png`, `.miss` markers). |
 | `%LOCALAPPDATA%\Canape\library.json` | The games of the last scan, shown at once on the next start. Can be deleted: the next scan writes it again. |
 | `%LOCALAPPDATA%\Canape\recent.json` | When each game was last launched from Canapé (for the "Recent" order). |
+| `%LOCALAPPDATA%\Canape\owned.json` | The owned games from the last request to Steam and Epic, shown at once in To install mode. Can be deleted: the next request writes it again. |
+| `%LOCALAPPDATA%\Canape\tools\` | `legendary.exe`, downloaded at the first Epic sign-in. Without it, Canapé no longer lists owned Epic games nor the ones Legendary installed; the next Epic sign-in downloads it again. |
+| `%USERPROFILE%\.config\legendary\` | Legendary's configuration, written by Legendary itself: Epic sign-in, games it installed (`installed.json`). |
 
 Every line starts with the time in Unix seconds.
 
@@ -513,6 +560,7 @@ The exit code is 0 when the service answered without an error, 1 otherwise. The 
 | The fans or the frame rate limit change on their own | A game profile with its own fans or limit just kicked in or ended, or another tool rewrote them (yellow warning). |
 | "Service error: GPU driver refused: ADL2_FPS_Settings_Set… (session 0)" on the frame rate limit | The AMD driver refuses the limit from the service. This case has not been tried yet: note the message (it is also in `service.log`) and report it. |
 | The gamepad no longer moves around Canapé after picking Keyboard or Mouse | Expected: the controller no longer acts as an Xbox gamepad. Tap **Gamepad** on the touch screen, or send `{"type":"set_controller_mode","mode":"gamepad"}` with `canape-ctl`. |
+| The To install list stays empty, or a store is missing from it | Steam: no key or a rejected one, or no account in `loginusers.vdf`; Epic: not signed in. These errors do not show in the library: look for `library: Steam owned games` or `library: Epic` in `shell.log`. Restart Canapé (or sign in to Epic again) to ask for the list right away. |
 | Canapé is not offered in Settings → Gaming | Run `install-dev.ps1 -SetAsHomeApp` again. Check that the package is installed: `Get-AppxPackage -Name Canape`. |
 | `Developer Mode is off` | Turn on Developer Mode (see [above](#1-turn-on-developer-mode)). |
 | `makeappx.exe not found` | Install the Windows SDK with the Build Tools. |
@@ -546,4 +594,6 @@ There is no uninstall script yet. First, on the **Hardware** page, put the fans 
        Where-Object Subject -eq "CN=Canape Dev" | Remove-Item
    Remove-Item -Recurse "$HOME\dev\canape-cert"
    ```
+
+Games installed from Canapé stay on disk, and Legendary's configuration (Epic sign-in included) stays in `%USERPROFILE%\.config\legendary`.
 

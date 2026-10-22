@@ -10,6 +10,7 @@ This guide describes Canapé's architecture, the protocol between its components
   - [Processes, sessions and integrity levels](#processes-sessions-and-integrity-levels)
   - [Crates](#crates)
   - [The game library](#the-game-library)
+    - [Installing owned games](#installing-owned-games)
   - [The Hardware page](#the-hardware-page)
   - [Inside the service](#inside-the-service)
 - [IPC protocol](#ipc-protocol)
@@ -114,7 +115,7 @@ flowchart BT
 | `canape-hw` | library | `Device` trait; Ally backend (Windows) on top of ATKACPI, ADL and the controller's HID interface; `MockDevice` for everything else | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs` |
 | `canape-ipc` | library | A `Connection` that sends and receives JSON lines; named pipe on Windows, Unix socket elsewhere; the pipe's ACL | `lib.rs`, `windows.rs`, `unix.rs`, `acl.rs` |
 | `canape-service` | binary | Windows service: state, auto TDP, profiles, bench, conflict detection, IPC server, persistence | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
-| `canape-library` | library | Installed games: Steam, Epic, GOG and Xbox scanning, merging and sorting, cover decoding, launching, the cache files. Pure parsers tested on Linux; the Windows parts (registry, drives, `ShellExecuteW`) behind `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
+| `canape-library` | library | Installed games: Steam, Epic, GOG and Xbox scanning, merging and sorting, cover decoding, downloaded covers, launching, the cache files. Owned games and installing them (Steam, Epic through Legendary). Pure parsers tested on Linux; the Windows parts (registry, drives, `ShellExecuteW`, WinHTTP) behind `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `legendary.rs`, `install.rs`, `tools.rs`, `online.rs`, `http.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
 | `canape-shell` | binary | Slint home app (software rendering): 7 pages (Library, Home, Performance, Hardware, Profiles, Bench, Settings), live power and GPU graphs, fan presets and curve, accent colour picker, XInput gamepad, foreground tracking, 13 languages | `main.rs`, `link.rs`, `library.rs`, `grid.rs`, `hardware.rs`, `ui/*.slint` (one file per large page: `library.slint`, `hardware.slint`; the others in `pages.slint`), `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
 | `canape-ctl` | binary | Sends one JSON request, or `watch` to follow the status; `--pretty` indents the JSON | `main.rs` |
 
@@ -122,12 +123,13 @@ The shell depends on `canape-hw` on Windows only for `arm_frame_metrics()` (star
 
 ### The game library
 
-`canape-library` finds the installed games and `canape-shell` shows them (`library.rs`, `ui/library.slint`). Nothing goes through the service: scanning and launching need no rights, and a game launched from the shell must run as the user, at medium integrity, never elevated.
+`canape-library` finds the installed games (and the owned ones, see [Installing owned games](#installing-owned-games)) and `canape-shell` shows them (`library.rs`, `ui/library.slint`). Nothing goes through the service: scanning, launching and installing need no rights, and a game launched from the shell must run as the user, at medium integrity, never elevated.
 
 | Store | Where | Parser | Launch | Covers |
 |---|---|---|---|---|
 | Steam | `HKCU\Software\Valve\Steam\SteamPath`, else `C:\Program Files (x86)\Steam`; `steamapps\libraryfolders.vdf` then every `appmanifest_*.acf`; `userdata\*\config\localconfig.vdf` | `vdf.rs`: KeyValues text format, tolerant (comments, `[$WIN32]`, bare tokens, truncated files). Installed = `StateFlags` bit 4. Tools excluded by appid and name (228980, Proton, Steam Linux Runtime, SteamVR) | `steam://rungameid/<appid>` | `userdata\*\config\grid\<appid>p.*`, then `appcache\librarycache\<appid>_library_600x900.jpg` (old layout) or `<appid>\[<hash>\]library_600x900.jpg` (current), then `library_hero.jpg`, `header.jpg` |
 | Epic | `%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests\*.item` (JSON) | `epic.rs`: `AppCategories` must contain `games`; DLC (`MainGameAppName` ≠ `AppName`) and `bIsIncompleteInstall` excluded | `com.epicgames.launcher://apps/<ns>%3A<item>%3A<app>?action=launch&silent=true` | downloaded (`online.rs`) |
+| Epic through Legendary | `%USERPROFILE%\.config\legendary\installed.json`, only if `%LOCALAPPDATA%\Canape\tools\legendary.exe` exists (`Roots::legendary`) | `legendary.rs`: `parse_installed`, DLC (`is_dlc`) and empty titles excluded | `legendary.exe launch <app>`, working folder `install_path` | downloaded (`online.rs`) |
 | GOG | `HKLM\SOFTWARE\WOW6432Node\GOG.com\Games\<id>` | `gog.rs`: `gameName`, `exe`, `launchParam`, `workingDir` / `path`; keys with `dependsOn` (DLC) excluded | the `exe` directly (working folder `workingDir`, else `path`), else `goggalaxy://openGameView/<id>` | downloaded (`online.rs`) |
 | Xbox | `<drive>:\.GamingRoot` (else `<drive>:\XboxGames`), then `<game>\Content\MicrosoftGame.config` and `appxmanifest.xml` | `xbox.rs` + `xml.rs` (attributes of the first matching element). Package family name = `Name` + `_` + publisher id, computed (SHA-256 of the UTF-16LE publisher, 8 bytes, Crockford-like base 32), checked against `8wekyb3d8bbwe` and the Ally's `Canape_84zrj1c9kn010` | `shell:AppsFolder\<PFN>!<AppId>` | `Square480x480Logo` (or its `.scale-NNN` variant), `Square150x150Logo`, `StoreLogo` |
 
@@ -141,7 +143,36 @@ The shell depends on `canape-hw` on Windows only for `arm_frame_metrics()` (star
 > [!WARNING]
 > **Not tried on Windows yet.** Everything above compiles for `x86_64-pc-windows-msvc` and the parsers are tested on Linux against fixtures (`crates/canape-library/tests/fixtures`), but registry reads, Steam / Epic / GOG on a real machine, `ShellExecuteW` from the FSE and the whole Xbox part (written from the documented formats, without an Xbox game to try) are still to be checked on the Ally. Known limit: Xbox app games installed outside an `XboxGames` folder (in `WindowsApps`) are not found.
 
-**Fake library for development**: `python3 tools/fake-library.py <out>` builds one with 14 made-up games across the four stores, generated covers (ImageMagick), play times, and the Epic and GOG covers placed as if downloaded; it prints the two variables to set (`LOCALAPPDATA` and `CANAPE_LIBRARY_FIXTURE`). In a debug build, `CANAPE_LIBRARY_FIXTURE=<dir>` replaces the real stores with `<dir>/steam` (a Steam folder), `<dir>/epic` (manifests), `<dir>/gog.json` (a JSON array of `{"key": …, "values": {"gameName": …, "exe": …}}`, like the registry) and `<dir>/xbox` (an `XboxGames` folder). Nothing is launched (the launch only shows), and the cache files become `library-fixture.json` and `recent-fixture.json`. Release builds ignore the variable.
+**Fake library for development**: `python3 tools/fake-library.py <out>` builds one with 14 made-up games across the four stores, generated covers (ImageMagick), play times, and the Epic and GOG covers placed as if downloaded; it prints the two variables to set (`LOCALAPPDATA` and `CANAPE_LIBRARY_FIXTURE`). In a debug build, `CANAPE_LIBRARY_FIXTURE=<dir>` replaces the real stores with `<dir>/steam` (a Steam folder), `<dir>/epic` (manifests), `<dir>/gog.json` (a JSON array of `{"key": …, "values": {"gameName": …, "exe": …}}`, like the registry) and `<dir>/xbox` (an `XboxGames` folder). The script adds 7 owned but not installed games (4 Steam, 3 Epic) in `<dir>/owned.json`, in the cache format, with their covers in `covers-fixture`: that is the To install list. Nothing is launched (the launch only shows), and the cache files become `library-fixture.json`, `recent-fixture.json` and `owned-fixture.json`. Release builds ignore the variable.
+
+#### Installing owned games
+
+The library's **To install** mode lists the Steam and Epic games that are owned but not installed; A installs them without opening Steam's interface or the Epic launcher. The starting analysis is in [`game-install-study.md`](game-install-study.md) (French); GOG and Xbox are not covered yet.
+
+| Module | Role |
+|---|---|
+| `install.rs` | `Install` (`Steam { appid }` or `Epic { app }`, serialised with a `store` tag); `install::run`, blocking (run it on its own thread), which reports `Event`s: `Progress(0..1)`, `Done`, `Failed(message)`. The Legendary commands: `epic_account` (`status --json --offline`), `epic_owned` (`list --json`), `epic_login` (`auth`). |
+| `steam.rs` | `steam_id`: the `MostRecent` account of `config/loginusers.vdf`, else the latest `Timestamp`. `owned_url`: `IPlayerService/GetOwnedGames/v1` with `include_appinfo` and `include_played_free_games`. `parse_owned` (tools excluded as in the scan). `parse_download` / `download`: where an install stands according to its manifest, looked up in every library folder. |
+| `legendary.rs` | `config_dir`, `scan` / `parse_installed` (see the table above), `parse_list` (games managed by another store, `ThirdPartyManagedApp` or `ThirdPartyManagedProvider`, are excluded; the `https://` `DieselGameBoxTall` image becomes the cover link, requested at 600×900), `parse_progress`, `parse_account`. |
+| `tools.rs` | The Legendary download (see below). |
+| `lib.rs` | `Launch::Install { install }` for an owned game that is not installed (`launch` refuses it); `not_installed`: owned minus installed, by id or by normalised title. |
+| `online.rs` | `download_missing` takes the art links the stores gave (`art`: id → URL) and tries them before Steam's CDN and SteamGridDB. `Http::get_limited` sets a size limit other than `get`'s 8 MB. |
+| `canape-shell/src/library.rs` | `to_install` mode, `refresh_owned` / `fetch_owned`, `install` / `install_event`, `epic_login`. |
+| `ui/library.slint`, `ui/pages.slint`, `ui/app.slint` | Installed / To install switch (bar cursor: modes 0–1, filters 2–6, orders 7–8), progress bar on the tile, empty state with the Epic sign-in button, the Settings row, the "A Install" hint. |
+
+- **Owned list** (`refresh_owned`): never at startup; when switching to To install if the last list is more than 10 min old (`OWNED_REFRESH`), and forced after an Epic sign-in. On a thread: Steam if `steam_api_key` is set in `shell.json` (Windows only: local SteamID, `GetOwnedGames` over WinHTTP, `parse_owned`), then Epic if `legendary.exe` is there and an account is signed in. The result is written to `owned.json` (same format as `library.json`) and shown; missing covers are then downloaded with Epic's links, and the list is published again. Errors go to `shell.log` and to the header for 10 s (`show_error`, `ERROR_SHOWN`); after an error `owned.json` is not overwritten. In To install mode, `rebuild` shows `not_installed(owned, all)`, filtered and sorted as usual.
+- **Steam** (`run_steam`): `steam.exe -silent steam://install/<appid>` through `ShellExecuteW` (the bare URI if `steam.exe` is missing). `-silent` starts Steam in the notification area if it is not running; if it is, the URI goes to the client. The `appmanifest_<appid>.acf` manifest is then read every 2 s: `StateFlags` at 4, or bit 4 with `BytesDownloaded >= BytesToDownload > 0`, means installed; otherwise the share `BytesDownloaded / BytesToDownload` (0 while Steam prepares). No manifest after 10 min (`STEAM_START`, the user did not confirm): `Steam did not start the download`; a manifest that disappears after showing up: `cancelled in Steam`.
+- **Epic** (`run_legendary`): `legendary install <app> -y --skip-sdl` without a console (`CREATE_NO_WINDOW`), stdin closed, stdout ignored. Progress comes from the `= Progress: 12.34%` lines on stderr; on a non-zero exit code, the last other non-empty line becomes the error message.
+- **End**: `Event::Done` rescans; the installed game leaves the To install list since it has the same id (`steam:<appid>`, `epic:<app>`). `Event::Failed` writes `<title>: <message>` into `Library.install-error`, cleared when the next install starts.
+- **Epic sign-in** (`epic_login`): downloads Legendary if missing, runs `legendary auth` with its console visible (without WebView2, Legendary asks for a code there), waits for it to end, then forces the list. An error off Windows.
+- **Lightness**: nothing runs all the time. Legendary only runs for a list request (`status` then `list`, only when the To install list is refreshed), a sign-in or an install.
+
+**Legendary download** (`tools.rs`): `fetch_legendary` asks `api.github.com/repos/derrod/legendary/releases/latest` for the latest release and takes the `legendary.exe` asset. It refuses a link outside `https://github.com/derrod/legendary/releases/download/`, and an asset without a `sha256:` `digest` of 64 hex characters. The file (80 MB at most) is downloaded, its SHA-256 computed (`sha256.rs`) and compared; if it matches, it is written to `.part` then renamed in `%LOCALAPPDATA%\Canape\tools`. A file that does not match is never written (tested with a fake transport). Legendary (GPL-3) stays a separate program that Canapé runs: nothing is bundled in the repository or the install.
+
+**Development**: with `CANAPE_LIBRARY_FIXTURE`, the owned list comes from `<fixture>/owned.json`, the cache becomes `owned-fixture.json`, nothing goes online, and A simulates a one-minute install (120 steps of 0.5 s) then rescans. Since the fake game is not really installed, it stays in the list. The `library-install.png` screenshots show this simulated install.
+
+> [!WARNING]
+> **None of this has been tried on Windows.** The code compiles for `x86_64-pc-windows-msvc`; the parsers (`GetOwnedGames`, manifests mid-download, `legendary list` / `status`, its progress, the GitHub release) and the SHA-256 check are tested on Linux against recorded answers, and the UI with the fake library. Still to check on the Ally: the Steam Web API call, `steam.exe -silent steam://install` and its window with the gamepad, the `legendary.exe` download over WinHTTP, `legendary auth` / `install` / `launch` from the shell and the FSE.
 
 ### The Hardware page
 
@@ -507,7 +538,7 @@ DISPLAY=:99 import -window root docs/images/fr/performance.png   # ImageMagick
 - Set up the state with `canape-ctl` (profiles, foreground, accent, bench) before starting the shell. A short bench (`settle_secs` 1, `measure_secs` 2) fills the results page in about 20 s.
 - The graphs keep the last minute **in the shell**: leave it running at least 60 s while the TDP changes (the simulator draws 90 % of the limit, with a steady 70 % GPU), otherwise the curves are flat or short.
 - The shell is single-instance on Windows only: on Linux, run one Xvfb display per shell to take several pages at once.
-- Files: `docs/images/<language>/<page>.png` (`home`, `performance`, `hardware`, `profiles`, `bench-results`, `bench-running`, `settings`, `library` with `tools/fake-library.py`), `docs/images/accent-<colour>.png` for the accent variants. Optimise with `pngquant` then `optipng`.
+- Files: `docs/images/<language>/<page>.png` (`home`, `performance`, `hardware`, `profiles`, `bench-results`, `bench-running`, `settings`, `library` and `library-install` with `tools/fake-library.py`), `docs/images/accent-<colour>.png` for the accent variants. Optimise with `pngquant` then `optipng`.
 - A `shell.json` or `state.json` left in `<tmp>/Canape/` changes what shows: use a dedicated `TMPDIR` for reproducible screenshots.
 
 ## Building and testing on Windows
@@ -707,8 +738,9 @@ The widget's AppContainer SID is derived by Windows (`DeriveAppContainerSidFromA
 
 | Feature | Planned interface |
 |---|---|
-| Display refresh rate | `ChangeDisplaySettingsEx` on the internal display |
-| Special buttons, bindings | ASUS HID (report `0x5A`, `0xD1 0x02` commands) |
+| Button remapping (bindings) | ASUS HID (report `0x5A`, `0xD1 0x02` commands) |
+
+The refresh rate and the Armoury / Command Center buttons are done: see [The Hardware page](#the-hardware-page).
 
 ## Conventions
 

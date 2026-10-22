@@ -10,7 +10,7 @@ All the project's documentation, in French and English. The milestone reports an
 
 | | 🇫🇷 Français | 🇬🇧 English | Pour qui · For whom |
 |---|---|---|---|
-| 📖 **Utilisation · Usage** | [Guide d'utilisation](user-guide.fr.md) | [User guide](user-guide.en.md) | Installer sur l'Ally, choisir l'accueil du FSE, la bibliothèque de jeux, chaque page du shell (dont Matériel : ventilateurs, limite de FPS, manette), le widget, les langues, le dépannage, la désinstallation · Installing on the Ally, picking the FSE home app, the game library, every shell page (Hardware included: fans, frame rate limit, controller), the widget, languages, troubleshooting, uninstalling |
+| 📖 **Utilisation · Usage** | [Guide d'utilisation](user-guide.fr.md) | [User guide](user-guide.en.md) | Installer sur l'Ally, choisir l'accueil du FSE, la bibliothèque de jeux et l'installation des jeux Steam et Epic, chaque page du shell (dont Matériel : ventilateurs, limite de FPS, manette), le widget, les langues, le dépannage, la désinstallation · Installing on the Ally, picking the FSE home app, the game library and installing Steam and Epic games, every shell page (Hardware included: fans, frame rate limit, controller), the widget, languages, troubleshooting, uninstalling |
 | 🤖 **Auto TDP** | [Auto TDP et banc d'essai](auto-tdp.fr.md) | [Auto TDP and bench](auto-tdp.en.md) | L'algorithme pas à pas, ses valeurs par défaut, les profils par jeu (ventilateurs et limite de FPS compris), la limite de FPS face à l'auto TDP, le banc d'essai, les mesures, les conseils de réglage · The algorithm step by step, its defaults, per-game profiles (fans and frame rate limit included), the frame rate limit with auto TDP, the bench, measurements, tuning tips |
 | 🛠️ **Développement · Development** | [Guide du développeur](developer-guide.fr.md) | [Developer guide](developer-guide.en.md) | Architecture, protocole IPC, compilation sous Linux et Windows, CI, empaquetage, widget, traductions, matériel, conventions · Architecture, IPC protocol, building on Linux and Windows, CI, packaging, widget, translations, hardware, conventions |
 
@@ -18,7 +18,7 @@ All the project's documentation, in French and English. The milestone reports an
 
 | Document | Langue · Language | Contenu · Contents |
 |---|---|---|
-| [`game-install-study.md`](game-install-study.md) | 🇫🇷 | Étude : installer les jeux possédés depuis Canapé sans ouvrir les launchers (Steam, Epic via Legendary, GOG, Xbox), contraintes et proposition. · Study: installing owned games from Canapé without the store launchers. |
+| [`game-install-study.md`](game-install-study.md) | 🇫🇷 | Étude et état : installer les jeux possédés depuis Canapé sans ouvrir les launchers. Steam et Epic (via Legendary) sont codés, pas encore essayés sur l'Ally ; GOG et Xbox restent ouverts. · Study and status: installing owned games from Canapé without the store launchers. Steam and Epic (through Legendary) are coded, not tried on the Ally yet; GOG and Xbox are still open. |
 | [`architecture.md`](architecture.md) | 🇫🇷 | Document de conception initial : composants, démarrage en FSE, IPC, matériel, objectifs de légèreté, feuille de route. Sa feuille de route n'est plus à jour : voir l'[état d'avancement](../README.md#état-davancement). · Initial design document; its roadmap is out of date, see the [project status](../README.md#project-status). |
 | [`../packaging/README.md`](../packaging/README.md) | 🇫🇷 | Fichiers du paquet d'identité, script d'installation, pièges de Windows. · Identity package files, install script, Windows pitfalls. |
 | [`../widget/README.md`](../widget/README.md) | 🇫🇷 | Choix techniques du widget Game Bar, interface, ajout d'une langue, compilation. · Game Bar widget technical choices, UI, adding a language, building. |
@@ -43,21 +43,23 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 | Fichier · File | Page | Langue · Language |
 |---|---|---|
 | [`fr/library.png`](images/fr/library.png) | Bibliothèque (jeux inventés) | Français |
+| [`fr/library-install.png`](images/fr/library-install.png) | Bibliothèque, jeux à installer (installation simulée) | Français |
 | [`fr/home.png`](images/fr/home.png) | Accueil | Français |
 | [`fr/performance.png`](images/fr/performance.png) | Performance | Français |
 | [`fr/hardware.png`](images/fr/hardware.png) | Matériel | Français |
 | [`fr/profiles.png`](images/fr/profiles.png) | Profils | Français |
 | [`fr/bench-results.png`](images/fr/bench-results.png) | Banc d'essai (résultats) | Français |
 | [`fr/bench-running.png`](images/fr/bench-running.png) | Banc d'essai en cours | Français |
-| [`fr/settings.png`](images/fr/settings.png) | Réglages (couleur d'accent) | Français |
+| [`fr/settings.png`](images/fr/settings.png) | Réglages (couleur d'accent, installation des jeux) | Français |
 | [`en/library.png`](images/en/library.png) | Library (made-up games) | English |
+| [`en/library-install.png`](images/en/library-install.png) | Library, games to install (simulated install) | English |
 | [`en/home.png`](images/en/home.png) | Home | English |
 | [`en/performance.png`](images/en/performance.png) | Performance | English |
 | [`en/hardware.png`](images/en/hardware.png) | Hardware | English |
 | [`en/profiles.png`](images/en/profiles.png) | Profiles | English |
 | [`en/bench-results.png`](images/en/bench-results.png) | Bench (results) | English |
 | [`en/bench-running.png`](images/en/bench-running.png) | Bench running | English |
-| [`en/settings.png`](images/en/settings.png) | Settings (accent colour) | English |
+| [`en/settings.png`](images/en/settings.png) | Settings (accent colour, installing games) | English |
 | [`ja/home.png`](images/ja/home.png) | ホーム | 日本語 |
 | [`ru/performance.png`](images/ru/performance.png) | Производительность | Русский |
 | [`de/settings.png`](images/de/settings.png) | Einstellungen | Deutsch |

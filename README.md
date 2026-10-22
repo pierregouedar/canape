@@ -29,6 +29,7 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 | 🎮 **Accueil du FSE** | Choisi dans Paramètres → Jeux → Expérience plein écran ; lancé par Windows au démarrage. Une seule instance, plein écran immédiat. |
 | 🕹️ **100 % manette** | LB / RB pour changer de page, croix ou stick pour se déplacer, A pour valider, B pour revenir à la bibliothèque. |
 | 📚 **Bibliothèque de jeux** | Les jeux installés avec Steam, Epic Games, GOG et l'app Xbox, en jaquettes, les derniers joués en premier ; A pour lancer. Jaquettes manquantes téléchargées depuis Steam, ou SteamGridDB avec une clé gratuite. |
+| 📥 **Installer ses jeux** | Les jeux Steam et Epic possédés mais pas installés, dans le mode « À installer » de la bibliothèque ; A les installe sans ouvrir l'interface de Steam ni le lanceur Epic (Epic par Legendary, téléchargé à la demande), avec la progression sur la jaquette. |
 | ⚡ **Modes et TDP** | Modes firmware ASUS (Silencieux, Performance, Turbo) ou limite manuelle en watts (sPPT, SPL, fPPT écrits ensemble). |
 | 🤖 **Auto TDP** | Tient l'objectif FPS (30 à 120) avec le moins de watts possible : FPS et charge GPU lus dans le pilote AMD, plafond sur batterie, limite de température, anti-oscillation. |
 | 🌀 **Ventilateurs, limite de FPS, manette** | Préréglages de ventilateurs (Automatique, Silencieux, Équilibré, Maximum) avec un plancher de sécurité à chaud, limite de FPS du pilote AMD, mode de la manette (manette de jeu, clavier, souris). |
@@ -42,15 +43,17 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 
 ### Captures
 
-| Bibliothèque : Steam, Epic, GOG et Xbox | Accueil : consommation et limite, GPU |
+| Bibliothèque : Steam, Epic, GOG et Xbox | Bibliothèque : jeux à installer |
 |---|---|
-| <img src="docs/images/fr/library.png" alt="Bibliothèque" width="400"> | <img src="docs/images/fr/home.png" alt="Accueil" width="400"> |
-| **Performance : auto TDP et graphe** | **Matériel : ventilateurs, limite de FPS, manette** |
-| <img src="docs/images/fr/performance.png" alt="Performance" width="400"> | <img src="docs/images/fr/hardware.png" alt="Matériel" width="400"> |
-| **Profils par jeu** | **Banc d'essai : résultats et recommandations** |
-| <img src="docs/images/fr/profiles.png" alt="Profils" width="400"> | <img src="docs/images/fr/bench-results.png" alt="Résultats du banc d'essai" width="400"> |
-| **Banc d'essai en cours** | **Réglages : langue, couleur d'accent, jaquettes** |
-| <img src="docs/images/fr/bench-running.png" alt="Banc d'essai en cours" width="400"> | <img src="docs/images/fr/settings.png" alt="Réglages" width="400"> |
+| <img src="docs/images/fr/library.png" alt="Bibliothèque" width="400"> | <img src="docs/images/fr/library-install.png" alt="Bibliothèque, jeux à installer" width="400"> |
+| **Accueil : consommation et limite, GPU** | **Performance : auto TDP et graphe** |
+| <img src="docs/images/fr/home.png" alt="Accueil" width="400"> | <img src="docs/images/fr/performance.png" alt="Performance" width="400"> |
+| **Matériel : ventilateurs, limite de FPS, manette** | **Profils par jeu** |
+| <img src="docs/images/fr/hardware.png" alt="Matériel" width="400"> | <img src="docs/images/fr/profiles.png" alt="Profils" width="400"> |
+| **Banc d'essai : résultats et recommandations** | **Banc d'essai en cours** |
+| <img src="docs/images/fr/bench-results.png" alt="Résultats du banc d'essai" width="400"> | <img src="docs/images/fr/bench-running.png" alt="Banc d'essai en cours" width="400"> |
+| **Réglages : langue, couleur d'accent, installation des jeux, jaquettes** | |
+| <img src="docs/images/fr/settings.png" alt="Réglages" width="400"> | |
 | **Accent sarcelle** | **Accent ambre** |
 | <img src="docs/images/accent-teal.png" alt="Accueil avec l'accent sarcelle" width="400"> | <img src="docs/images/accent-amber.png" alt="Accueil avec l'accent ambre" width="400"> |
 
@@ -80,7 +83,7 @@ Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas e
 | M3 | Widget Game Bar relié au service ([rapport](docs/m3-report.md)) | ✅ première version · 🧪 nouvelle version 13 langues pas encore compilée |
 | M4 | Auto TDP réel : FPS et charge GPU via AMD ADL ([rapport](docs/m4-report.md)) | ✅ jusqu'à `99cad07` · 🧪 optimisations suivantes |
 | M5 | Profils par jeu, banc d'essai, shell 7 pages en 13 langues | 🧪 |
-| M6 | Bibliothèque de jeux, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | 🧪 bibliothèque, ventilateurs, limite de FPS, manette, fréquence de l'écran et boutons Armoury / Command Center (jamais essayés sur l'Ally) |
+| M6 | Bibliothèque de jeux, installation des jeux Steam et Epic, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | 🧪 bibliothèque, installation des jeux Steam et Epic, ventilateurs, limite de FPS, manette, fréquence de l'écran et boutons Armoury / Command Center (jamais essayés sur l'Ally) · ⏳ installation des jeux GOG ([étude](docs/game-install-study.md)) |
 
 ### Organisation du dépôt
 
@@ -91,7 +94,7 @@ Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas e
 | [`crates/canape-hw`](crates/canape-hw) | Trait `Device` : backend Ally (ATKACPI + ADL + HID de la manette) et simulateur |
 | [`crates/canape-ipc`](crates/canape-ipc) | Transport : named pipe sous Windows, socket Unix ailleurs |
 | [`crates/canape-service`](crates/canape-service) | Service privilégié : matériel, auto TDP, profils, banc d'essai, serveur IPC |
-| [`crates/canape-library`](crates/canape-library) | Bibliothèque de jeux : Steam, Epic, GOG, app Xbox, jaquettes, lancement |
+| [`crates/canape-library`](crates/canape-library) | Bibliothèque de jeux : Steam, Epic, GOG, app Xbox, jaquettes, lancement, installation des jeux possédés |
 | [`crates/canape-shell`](crates/canape-shell) | App d'accueil du FSE (Slint, rendu logiciel) |
 | [`crates/canape-ctl`](crates/canape-ctl) | Client en ligne de commande du service |
 | [`widget/`](widget) | Widget Xbox Game Bar (C# UWP) |
@@ -123,6 +126,7 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 | 🎮 **FSE home app** | Picked in Settings → Gaming → Full screen experience; launched by Windows at boot. Single instance, full screen right away. |
 | 🕹️ **Gamepad first** | LB / RB to change page, D-pad or stick to move, A to select, B to go back to the library. |
 | 📚 **Game library** | The games installed with Steam, Epic Games, GOG and the Xbox app, as covers, most recently played first; A to launch. Missing covers downloaded from Steam, or SteamGridDB with a free key. |
+| 📥 **Installing games** | The Steam and Epic games you own but have not installed, in the library's "To install" mode; A installs them without opening Steam's interface or the Epic launcher (Epic through Legendary, downloaded on demand), with the progress on the cover. |
 | ⚡ **Modes and TDP** | ASUS firmware modes (Silent, Performance, Turbo) or a manual limit in watts (sPPT, SPL and fPPT written together). |
 | 🤖 **Auto TDP** | Holds the FPS target (30 to 120) with the fewest watts: frame rate and GPU load read from the AMD driver, battery ceiling, temperature limit, anti-oscillation. |
 | 🌀 **Fans, frame rate limit, controller** | Fan presets (Automatic, Silent, Balanced, Maximum) with a safety floor when hot, AMD driver frame rate limit, controller mode (gamepad, keyboard, mouse). |
@@ -136,15 +140,17 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 
 ### Screenshots
 
-| Library: Steam, Epic, GOG and Xbox | Home: power draw vs. limit, GPU |
+| Library: Steam, Epic, GOG and Xbox | Library: games to install |
 |---|---|
-| <img src="docs/images/en/library.png" alt="Library" width="400"> | <img src="docs/images/en/home.png" alt="Home" width="400"> |
-| **Performance: auto TDP and graph** | **Hardware: fans, frame rate limit, controller** |
-| <img src="docs/images/en/performance.png" alt="Performance" width="400"> | <img src="docs/images/en/hardware.png" alt="Hardware" width="400"> |
-| **Per-game profiles** | **Bench: results and recommendations** |
-| <img src="docs/images/en/profiles.png" alt="Profiles" width="400"> | <img src="docs/images/en/bench-results.png" alt="Bench results" width="400"> |
-| **Bench running** | **Settings: language, accent colour, covers** |
-| <img src="docs/images/en/bench-running.png" alt="Bench running" width="400"> | <img src="docs/images/en/settings.png" alt="Settings" width="400"> |
+| <img src="docs/images/en/library.png" alt="Library" width="400"> | <img src="docs/images/en/library-install.png" alt="Library, games to install" width="400"> |
+| **Home: power draw vs. limit, GPU** | **Performance: auto TDP and graph** |
+| <img src="docs/images/en/home.png" alt="Home" width="400"> | <img src="docs/images/en/performance.png" alt="Performance" width="400"> |
+| **Hardware: fans, frame rate limit, controller** | **Per-game profiles** |
+| <img src="docs/images/en/hardware.png" alt="Hardware" width="400"> | <img src="docs/images/en/profiles.png" alt="Profiles" width="400"> |
+| **Bench: results and recommendations** | **Bench running** |
+| <img src="docs/images/en/bench-results.png" alt="Bench results" width="400"> | <img src="docs/images/en/bench-running.png" alt="Bench running" width="400"> |
+| **Settings: language, accent colour, installing games, covers** | |
+| <img src="docs/images/en/settings.png" alt="Settings" width="400"> | |
 | **Teal accent** | **Amber accent** |
 | <img src="docs/images/accent-teal.png" alt="Home with the teal accent" width="400"> | <img src="docs/images/accent-amber.png" alt="Home with the amber accent" width="400"> |
 
@@ -174,7 +180,7 @@ Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, n
 | M3 | Game Bar widget talking to the service ([report](docs/m3-report.md)) | ✅ first version · 🧪 new 13-language version not built yet |
 | M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `99cad07` · 🧪 later optimizations |
 | M5 | Per-game profiles, bench, 7-page shell in 13 languages | 🧪 |
-| M6 | Game library, fans, frame rate limit, controller mode, display refresh rate, special buttons | 🧪 library, fans, frame rate limit, controller, screen refresh rate and Armoury / Command Center buttons (never tried on the Ally) |
+| M6 | Game library, installing Steam and Epic games, fans, frame rate limit, controller mode, display refresh rate, special buttons | 🧪 library, installing Steam and Epic games, fans, frame rate limit, controller, screen refresh rate and Armoury / Command Center buttons (never tried on the Ally) · ⏳ installing GOG games ([study](docs/game-install-study.md), in French) |
 
 ### Repository map
 
@@ -185,7 +191,7 @@ Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, n
 | [`crates/canape-hw`](crates/canape-hw) | `Device` trait: Ally backend (ATKACPI + ADL + controller HID) and simulator |
 | [`crates/canape-ipc`](crates/canape-ipc) | Transport: named pipe on Windows, Unix socket elsewhere |
 | [`crates/canape-service`](crates/canape-service) | Privileged service: hardware, auto TDP, profiles, bench, IPC server |
-| [`crates/canape-library`](crates/canape-library) | Game library: Steam, Epic, GOG, Xbox app, covers, launching |
+| [`crates/canape-library`](crates/canape-library) | Game library: Steam, Epic, GOG, Xbox app, covers, launching, installing owned games |
 | [`crates/canape-shell`](crates/canape-shell) | FSE home app (Slint, software rendering) |
 | [`crates/canape-ctl`](crates/canape-ctl) | Command-line client for the service |
 | [`widget/`](widget) | Xbox Game Bar widget (C# UWP) |

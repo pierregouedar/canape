@@ -2,7 +2,20 @@
 
 Objectif : depuis la bibliothèque de Canapé, voir les jeux **possédés mais pas installés** et les installer à la manette, sans passer par l'interface de Steam, d'Epic, de GOG Galaxy ou de l'app Xbox.
 
-Résumé : c'est **possible pour Steam et Epic**, partiellement pour GOG, et **pas pour le Game Pass / l'app Xbox**. Rien n'est codé pour l'instant : deux choix (une clé d'API Steam, des outils tiers sous GPL) reviennent au propriétaire du projet.
+Résumé : c'est **possible pour Steam et Epic**, partiellement pour GOG, et **pas pour le Game Pass / l'app Xbox**.
+
+## État
+
+| Étape | État |
+|---|---|
+| 1. Steam | 🧪 Code écrit (`1c9239d`) : mode **À installer** dans la bibliothèque, liste par l'API Web (clé `steam_api_key` dans `shell.json`), installation par `steam.exe -silent steam://install/<appid>`, progression lue dans le manifeste. Testé sous Linux seulement, **pas encore essayé sur l'Ally**. |
+| 2. Epic | 🧪 Code écrit (`1c9239d`) : Legendary téléchargé à la demande dans `%LOCALAPPDATA%\Canape\tools` (vérifié contre le SHA-256 publié par GitHub), connexion depuis la bibliothèque ou les Réglages, liste, installation avec progression, lancement par `legendary launch`. **Pas encore essayé sur l'Ally.** |
+| 3. GOG | ⏳ Ouvert. |
+| 4. Xbox | ⏳ Ouvert. |
+
+Pas encore fait pour Steam et Epic : le choix du dossier d'installation et la vérification de l'espace libre (voir [Contraintes](#contraintes)). Steam propose le dossier dans sa fenêtre ; Legendary installe dans son dossier par défaut.
+
+Les deux choix laissés au propriétaire du projet ont été tranchés ainsi : une clé d'API Steam personnelle, renseignée à la main dans `shell.json` ; Legendary téléchargé à la demande, jamais embarqué. Le fonctionnement est décrit dans le [guide d'utilisation](user-guide.fr.md#installer-des-jeux-possédés) et le [guide du développeur](developer-guide.fr.md#installer-les-jeux-possédés). Le reste de ce document est l'analyse de départ.
 
 ## Par boutique
 
@@ -21,6 +34,8 @@ Résumé : c'est **possible pour Steam et Epic**, partiellement pour GOG, et **p
 - **Disque** : choix du dossier d'installation (le premier dossier de bibliothèque Steam, `C:\Games\Epic`, …) et de l'espace libre à vérifier avant de lancer.
 
 ## Proposition
+
+La proposition de départ ; les étapes 1 et 2 sont codées (voir [État](#état)).
 
 1. **Étape 1, Steam** (sans outil tiers) : un filtre **« À installer »** dans la bibliothèque, avec les jeux Steam possédés (clé d'API dans les Réglages), leurs jaquettes (déjà gérées par les jaquettes téléchargées), et **A** = installer. La progression vient des manifestes locaux ; le jeu bascule dans la bibliothèque à la fin.
 2. **Étape 2, Epic** : Legendary téléchargé à la demande. Connexion une fois depuis Canapé (fenêtre Epic), liste des jeux possédés, installation, puis lancement direct sans le lanceur Epic.

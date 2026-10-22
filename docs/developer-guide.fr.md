@@ -10,6 +10,7 @@ Ce guide décrit l'architecture de Canapé, le protocole entre ses composants, l
   - [Processus, sessions et niveaux d'intégrité](#processus-sessions-et-niveaux-dintégrité)
   - [Crates](#crates)
   - [La bibliothèque de jeux](#la-bibliothèque-de-jeux)
+    - [Installer les jeux possédés](#installer-les-jeux-possédés)
   - [La page Matériel](#la-page-matériel)
   - [Le service de l'intérieur](#le-service-de-lintérieur)
 - [Protocole IPC](#protocole-ipc)
@@ -114,7 +115,7 @@ flowchart BT
 | `canape-hw` | bibliothèque | Trait `Device` ; backend Ally (Windows) au-dessus d'ATKACPI, d'ADL et de l'interface HID de la manette ; `MockDevice` pour le reste | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs` |
 | `canape-ipc` | bibliothèque | Une `Connection` qui envoie et reçoit des lignes JSON ; named pipe sous Windows, socket Unix ailleurs ; ACL du pipe | `lib.rs`, `windows.rs`, `unix.rs`, `acl.rs` |
 | `canape-service` | binaire | Service Windows : état, auto TDP, profils, banc d'essai, détection des conflits, serveur IPC, persistance | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
-| `canape-library` | bibliothèque | Jeux installés : recherche Steam, Epic, GOG et Xbox, fusion et tri, décodage des jaquettes, lancement, fichiers de cache. Analyseurs purs testés sous Linux ; les parties Windows (registre, lecteurs, `ShellExecuteW`) derrière `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
+| `canape-library` | bibliothèque | Jeux installés : recherche Steam, Epic, GOG et Xbox, fusion et tri, décodage des jaquettes, jaquettes téléchargées, lancement, fichiers de cache. Jeux possédés et leur installation (Steam, Epic par Legendary). Analyseurs purs testés sous Linux ; les parties Windows (registre, lecteurs, `ShellExecuteW`, WinHTTP) derrière `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `legendary.rs`, `install.rs`, `tools.rs`, `online.rs`, `http.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
 | `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : 7 pages (Bibliothèque, Accueil, Performance, Matériel, Profils, Banc d'essai, Réglages), graphes de puissance et de GPU en direct, préréglages et courbe des ventilateurs, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `library.rs`, `grid.rs`, `hardware.rs`, `ui/*.slint` (un fichier par grande page : `library.slint`, `hardware.slint` ; les autres dans `pages.slint`), `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
 | `canape-ctl` | binaire | Envoie une requête JSON, ou `watch` pour suivre le statut ; `--pretty` indente le JSON | `main.rs` |
 
@@ -122,12 +123,13 @@ Le shell dépend de `canape-hw` sous Windows uniquement pour `arm_frame_metrics(
 
 ### La bibliothèque de jeux
 
-`canape-library` trouve les jeux installés et `canape-shell` les affiche (`library.rs`, `ui/library.slint`). Rien ne passe par le service : chercher et lancer ne demandent aucun droit, et un jeu lancé depuis le shell doit tourner sous l'utilisateur, en medium IL, jamais élevé.
+`canape-library` trouve les jeux installés (et les jeux possédés, voir [Installer les jeux possédés](#installer-les-jeux-possédés)) et `canape-shell` les affiche (`library.rs`, `ui/library.slint`). Rien ne passe par le service : chercher, lancer et installer ne demandent aucun droit, et un jeu lancé depuis le shell doit tourner sous l'utilisateur, en medium IL, jamais élevé.
 
 | Boutique | Où | Analyse | Lancement | Jaquettes |
 |---|---|---|---|---|
 | Steam | `HKCU\Software\Valve\Steam\SteamPath`, sinon `C:\Program Files (x86)\Steam` ; `steamapps\libraryfolders.vdf` puis chaque `appmanifest_*.acf` ; `userdata\*\config\localconfig.vdf` | `vdf.rs` : format texte KeyValues, tolérant (commentaires, `[$WIN32]`, jetons sans guillemets, fichiers tronqués). Installé = bit 4 de `StateFlags`. Outils écartés par appid et par nom (228980, Proton, Steam Linux Runtime, SteamVR) | `steam://rungameid/<appid>` | `userdata\*\config\grid\<appid>p.*`, puis `appcache\librarycache\<appid>_library_600x900.jpg` (ancienne disposition) ou `<appid>\[<hash>\]library_600x900.jpg` (actuelle), puis `library_hero.jpg`, `header.jpg` |
 | Epic | `%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests\*.item` (JSON) | `epic.rs` : `AppCategories` doit contenir `games` ; DLC (`MainGameAppName` ≠ `AppName`) et `bIsIncompleteInstall` écartés | `com.epicgames.launcher://apps/<ns>%3A<item>%3A<app>?action=launch&silent=true` | téléchargées (`online.rs`) |
+| Epic par Legendary | `%USERPROFILE%\.config\legendary\installed.json`, seulement si `%LOCALAPPDATA%\Canape\tools\legendary.exe` existe (`Roots::legendary`) | `legendary.rs` : `parse_installed`, DLC (`is_dlc`) et titres vides écartés | `legendary.exe launch <app>`, dossier de travail `install_path` | téléchargées (`online.rs`) |
 | GOG | `HKLM\SOFTWARE\WOW6432Node\GOG.com\Games\<id>` | `gog.rs` : `gameName`, `exe`, `launchParam`, `workingDir` / `path` ; clés avec `dependsOn` (DLC) écartées | l'`exe` directement (dossier de travail `workingDir`, sinon `path`), sinon `goggalaxy://openGameView/<id>` | téléchargées (`online.rs`) |
 | Xbox | `<lecteur>:\.GamingRoot` (sinon `<lecteur>:\XboxGames`), puis `<jeu>\Content\MicrosoftGame.config` et `appxmanifest.xml` | `xbox.rs` + `xml.rs` (attributs du premier élément trouvé). Nom de famille du paquet = `Name` + `_` + identifiant de l'éditeur, calculé (SHA-256 de l'éditeur en UTF-16LE, 8 octets, base 32 façon Crockford), vérifié contre `8wekyb3d8bbwe` et le `Canape_84zrj1c9kn010` de l'Ally | `shell:AppsFolder\<PFN>!<AppId>` | `Square480x480Logo` (ou sa variante `.scale-NNN`), `Square150x150Logo`, `StoreLogo` |
 
@@ -141,7 +143,36 @@ Le shell dépend de `canape-hw` sous Windows uniquement pour `arm_frame_metrics(
 > [!WARNING]
 > **Pas encore essayé sous Windows.** Tout ce qui précède compile pour `x86_64-pc-windows-msvc` et les analyseurs sont testés sous Linux sur des fixtures (`crates/canape-library/tests/fixtures`), mais la lecture du registre, Steam / Epic / GOG sur une vraie machine, `ShellExecuteW` depuis le FSE et toute la partie Xbox (écrite d'après les formats documentés, sans jeu Xbox pour essayer) restent à vérifier sur l'Ally. Limite connue : les jeux de l'app Xbox installés hors d'un dossier `XboxGames` (dans `WindowsApps`) ne sont pas trouvés.
 
-**Fausse bibliothèque pour le développement** : `python3 tools/fake-library.py <dossier>` en fabrique une avec 14 jeux inventés répartis sur les quatre boutiques, des jaquettes générées (ImageMagick), des dates de jeu, et les jaquettes Epic et GOG placées comme si elles avaient été téléchargées ; le script affiche les deux variables à définir (`LOCALAPPDATA` et `CANAPE_LIBRARY_FIXTURE`). Dans un build de debug, `CANAPE_LIBRARY_FIXTURE=<dossier>` remplace les vraies boutiques par `<dossier>/steam` (un dossier Steam), `<dossier>/epic` (manifestes), `<dossier>/gog.json` (un tableau JSON de `{"key": …, "values": {"gameName": …, "exe": …}}`, comme le registre) et `<dossier>/xbox` (un dossier `XboxGames`). Rien n'est lancé (le lancement est seulement affiché), et les fichiers de cache deviennent `library-fixture.json` et `recent-fixture.json`. Les builds release ignorent la variable.
+**Fausse bibliothèque pour le développement** : `python3 tools/fake-library.py <dossier>` en fabrique une avec 14 jeux inventés répartis sur les quatre boutiques, des jaquettes générées (ImageMagick), des dates de jeu, et les jaquettes Epic et GOG placées comme si elles avaient été téléchargées ; le script affiche les deux variables à définir (`LOCALAPPDATA` et `CANAPE_LIBRARY_FIXTURE`). Dans un build de debug, `CANAPE_LIBRARY_FIXTURE=<dossier>` remplace les vraies boutiques par `<dossier>/steam` (un dossier Steam), `<dossier>/epic` (manifestes), `<dossier>/gog.json` (un tableau JSON de `{"key": …, "values": {"gameName": …, "exe": …}}`, comme le registre) et `<dossier>/xbox` (un dossier `XboxGames`). Le script ajoute 7 jeux possédés mais pas installés (4 Steam, 3 Epic) dans `<dossier>/owned.json`, au format du cache, avec leurs jaquettes dans `covers-fixture` : c'est la liste du mode À installer. Rien n'est lancé (le lancement est seulement affiché), et les fichiers de cache deviennent `library-fixture.json`, `recent-fixture.json` et `owned-fixture.json`. Les builds release ignorent la variable.
+
+#### Installer les jeux possédés
+
+Le mode **À installer** de la bibliothèque liste les jeux Steam et Epic possédés mais pas installés ; A les installe sans ouvrir l'interface de Steam ni le lanceur Epic. L'analyse de départ est dans [`game-install-study.md`](game-install-study.md) ; GOG et Xbox n'y sont pas encore.
+
+| Module | Rôle |
+|---|---|
+| `install.rs` | `Install` (`Steam { appid }` ou `Epic { app }`, sérialisé avec une étiquette `store`) ; `install::run`, bloquant (à lancer sur son propre thread), qui rend des `Event` : `Progress(0..1)`, `Done`, `Failed(message)`. Les commandes Legendary : `epic_account` (`status --json --offline`), `epic_owned` (`list --json`), `epic_login` (`auth`). |
+| `steam.rs` | `steam_id` : le compte `MostRecent` de `config/loginusers.vdf`, sinon le `Timestamp` le plus récent. `owned_url` : `IPlayerService/GetOwnedGames/v1` avec `include_appinfo` et `include_played_free_games`. `parse_owned` (outils écartés comme pour la recherche). `parse_download` / `download` : l'état d'une installation d'après son manifeste, cherché dans tous les dossiers de bibliothèque. |
+| `legendary.rs` | `config_dir`, `scan` / `parse_installed` (voir le tableau plus haut), `parse_list` (les jeux gérés par une autre boutique, `ThirdPartyManagedApp` ou `ThirdPartyManagedProvider`, sont écartés ; l'image `DieselGameBoxTall` en `https://` devient le lien de jaquette, demandée en 600×900), `parse_progress`, `parse_account`. |
+| `tools.rs` | Le téléchargement de Legendary (voir plus bas). |
+| `lib.rs` | `Launch::Install { install }` pour un jeu possédé non installé (`launch` le refuse) ; `not_installed` : les possédés moins les installés, par id ou par titre normalisé. |
+| `online.rs` | `download_missing` reçoit les liens d'images donnés par les boutiques (`art` : id → URL) et les essaie avant le CDN Steam et SteamGridDB. `Http::get_limited` fixe une autre limite de taille que les 8 Mo de `get`. |
+| `canape-shell/src/library.rs` | Mode `to_install`, `refresh_owned` / `fetch_owned`, `install` / `install_event`, `epic_login`. |
+| `ui/library.slint`, `ui/pages.slint`, `ui/app.slint` | Sélecteur Installés / À installer (curseur de la barre : modes 0–1, filtres 2–6, ordres 7–8), barre de progression sur la tuile, état vide avec le bouton de connexion Epic, ligne des Réglages, aide « A Installer ». |
+
+- **Liste des possédés** (`refresh_owned`) : jamais au démarrage ; en passant au mode À installer si la dernière liste a plus de 10 min (`OWNED_REFRESH`), et forcée après une connexion Epic. Sur un thread : Steam si `steam_api_key` est renseignée dans `shell.json` (Windows uniquement : SteamID local, `GetOwnedGames` par WinHTTP, `parse_owned`), puis Epic si `legendary.exe` est présent et qu'un compte est connecté. Le résultat est écrit dans `owned.json` (même format que `library.json`) et affiché ; les jaquettes manquantes sont ensuite téléchargées avec les liens d'Epic, puis la liste est republiée. Les erreurs vont dans `shell.log` et dans l'en-tête pendant 10 s (`show_error`, `ERROR_SHOWN`) ; après une erreur, `owned.json` n'est pas écrasé. En mode À installer, `rebuild` affiche `not_installed(owned, all)`, filtré et trié comme d'habitude.
+- **Steam** (`run_steam`) : `steam.exe -silent steam://install/<appid>` par `ShellExecuteW` (l'URI seule si `steam.exe` manque). `-silent` démarre Steam dans la zone de notification s'il ne tourne pas ; s'il tourne, l'URI va au client. Le manifeste `appmanifest_<appid>.acf` est ensuite relu toutes les 2 s : `StateFlags` à 4, ou bit 4 avec `BytesDownloaded >= BytesToDownload > 0`, vaut installé ; sinon la part `BytesDownloaded / BytesToDownload` (0 tant que Steam prépare). Pas de manifeste au bout de 10 min (`STEAM_START`, l'utilisateur n'a pas confirmé) : `Steam did not start the download` ; un manifeste qui disparaît après être apparu : `cancelled in Steam`.
+- **Epic** (`run_legendary`) : `legendary install <app> -y --skip-sdl` sans console (`CREATE_NO_WINDOW`), stdin fermé, stdout ignoré. La progression vient des lignes `= Progress: 12.34%` de stderr ; si le code de sortie n'est pas 0, la dernière autre ligne non vide devient le message d'erreur.
+- **Fin** : `Event::Done` relance une recherche ; le jeu installé quitte la liste À installer puisqu'il porte le même id (`steam:<appid>`, `epic:<app>`). `Event::Failed` écrit `<titre>: <message>` dans `Library.install-error`, effacé au début de l'installation suivante.
+- **Connexion Epic** (`epic_login`) : télécharge Legendary s'il manque, lance `legendary auth` avec sa console visible (sans WebView2, Legendary y demande un code), attend la fin puis force la liste. Hors Windows, une erreur.
+- **Légèreté** : rien ne tourne en permanence. Legendary ne tourne que pour une demande de liste (`status` puis `list`, seulement quand la liste À installer est rafraîchie), une connexion ou une installation.
+
+**Téléchargement de Legendary** (`tools.rs`) : `fetch_legendary` demande la dernière publication à `api.github.com/repos/derrod/legendary/releases/latest` et prend l'asset `legendary.exe`. Il refuse un lien hors de `https://github.com/derrod/legendary/releases/download/`, et un asset sans `digest` `sha256:` de 64 caractères hexadécimaux. Le fichier (80 Mo au plus) est téléchargé, son SHA-256 calculé (`sha256.rs`) et comparé ; s'il correspond, il est écrit en `.part` puis renommé dans `%LOCALAPPDATA%\Canape\tools`. Un fichier qui ne correspond pas n'est jamais écrit (testé avec un faux transport). Legendary (GPL-3) reste un programme séparé que Canapé lance : rien n'est embarqué dans le dépôt ni dans l'installation.
+
+**Développement** : avec `CANAPE_LIBRARY_FIXTURE`, la liste des possédés vient de `<fixture>/owned.json`, le cache devient `owned-fixture.json`, rien ne va en ligne, et A simule une installation d'une minute (120 pas de 0,5 s) puis relance la recherche. Le faux jeu n'étant pas réellement installé, il reste dans la liste. Les captures `library-install.png` montrent cette installation simulée.
+
+> [!WARNING]
+> **Rien de tout cela n'a été essayé sous Windows.** Le code compile pour `x86_64-pc-windows-msvc` ; les analyseurs (`GetOwnedGames`, manifestes en cours de téléchargement, `legendary list` / `status`, sa progression, la publication GitHub) et la vérification du SHA-256 sont testés sous Linux sur des réponses enregistrées, et l'interface avec la fausse bibliothèque. Restent à vérifier sur l'Ally : l'appel à l'API Web Steam, `steam.exe -silent steam://install` et sa fenêtre à la manette, le téléchargement de `legendary.exe` par WinHTTP, `legendary auth` / `install` / `launch` depuis le shell et le FSE.
 
 ### La page Matériel
 
@@ -507,7 +538,7 @@ DISPLAY=:99 import -window root docs/images/fr/performance.png   # ImageMagick
 - Préparez l'état avec `canape-ctl` (profils, premier plan, accent, banc d'essai) avant de lancer le shell. Un banc d'essai court (`settle_secs` 1, `measure_secs` 2) remplit la page de résultats en 20 s environ.
 - Les graphes gardent la dernière minute **dans le shell** : laissez-le tourner au moins 60 s pendant que le TDP change (le simulateur consomme 90 % de la limite, avec un GPU fixe à 70 %), sinon les courbes sont plates ou courtes.
 - Le shell n'est à instance unique que sous Windows : sous Linux, un écran Xvfb par shell permet de capturer plusieurs pages à la fois.
-- Fichiers : `docs/images/<langue>/<page>.png` (`home`, `performance`, `hardware`, `profiles`, `bench-results`, `bench-running`, `settings`, `library` avec `tools/fake-library.py`), `docs/images/accent-<couleur>.png` pour les variantes d'accent. Optimisez avec `pngquant` puis `optipng`.
+- Fichiers : `docs/images/<langue>/<page>.png` (`home`, `performance`, `hardware`, `profiles`, `bench-results`, `bench-running`, `settings`, `library` et `library-install` avec `tools/fake-library.py`), `docs/images/accent-<couleur>.png` pour les variantes d'accent. Optimisez avec `pngquant` puis `optipng`.
 - Un `shell.json` ou un `state.json` resté dans `<tmp>/Canape/` change ce qui s'affiche : utilisez un `TMPDIR` dédié pour des captures reproductibles.
 
 ## Compiler et tester sous Windows
@@ -707,8 +738,9 @@ Le SID AppContainer du widget est dérivé par Windows (`DeriveAppContainerSidFr
 
 | Fonction | Interface prévue |
 |---|---|
-| Fréquence de l'écran | `ChangeDisplaySettingsEx` sur l'écran interne |
-| Boutons spéciaux, associations | HID ASUS (rapport `0x5A`, commandes `0xD1 0x02`) |
+| Réassignation des boutons | HID ASUS (rapport `0x5A`, commandes `0xD1 0x02`) |
+
+La fréquence de l'écran et les boutons Armoury / Command Center sont faits : voir [La page Matériel](#la-page-matériel).
 
 ## Conventions
 

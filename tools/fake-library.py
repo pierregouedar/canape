@@ -8,7 +8,9 @@
 Every game is made up and every cover is drawn here (ImageMagick `convert`),
 so the pictures can go in the documentation. The Epic and GOG games get
 their covers in `<out>/appdata/Canape/covers-fixture`, where the shell keeps
-downloaded covers: they show what the online covers look like.
+downloaded covers: they show what the online covers look like. Seven more
+games are owned but not installed (`<out>/library/owned.json`), for the
+library's "To install" mode; A there runs a pretend one-minute install.
 """
 
 import hashlib

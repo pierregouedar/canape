@@ -112,7 +112,7 @@ Le service mémorise les derniers réglages appliqués (`%ProgramData%\Canape\st
 | M3 ✅ | Widget Game Bar (C# UWP) relié au service par le pipe (voir `m3-report.md`) |
 | M4 ✅ | Auto TDP en conditions réelles : FPS et charge GPU via AMD ADL (voir `m4-report.md`) |
 | M5 🚧 | Interface en 7 pages et 13 langues, profils par jeu, TDP appris, bench, plafond batterie, limite de température : code écrit, essais sur l'Ally à faire (vérifications automatisées : `packaging/m5-check.ps1`) |
-| M6 🚧 | Bibliothèque de jeux, ventilateurs, limite de FPS et mode de la manette (HID) : code écrit dans le service et le shell (page Matériel, profils par jeu), testé seulement avec le simulateur, à valider sur l'Ally avec les essais M5. Fréquence de l'écran (globale et par jeu) et boutons Armoury / Command Center : code écrit, à valider aussi |
+| M6 🚧 | Bibliothèque de jeux, ventilateurs, limite de FPS et mode de la manette (HID) : code écrit dans le service et le shell (page Matériel, profils par jeu), testé seulement avec le simulateur, à valider sur l'Ally avec les essais M5. Fréquence de l'écran (globale et par jeu) et boutons Armoury / Command Center : code écrit, à valider aussi. Installation des jeux Steam et Epic possédés depuis la bibliothèque (voir `game-install-study.md`) : code écrit, à valider sur l'Ally |
 
 ## Questions ouvertes
 

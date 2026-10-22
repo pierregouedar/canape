@@ -5,7 +5,7 @@
 Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil de l'expérience plein écran (FSE), l'utiliser à la manette, ajouter le widget Xbox Game Bar, puis dépanner et désinstaller.
 
 > [!IMPORTANT]
-> Canapé est un projet personnel en cours de développement. Ce qui a été **validé sur l'Ally** : l'installation, le démarrage en FSE, le service, les modes, le TDP manuel, l'auto TDP (version `99cad07`) et la première version du widget. Ce qui est **écrit et testé sans matériel, mais pas encore essayé sur l'Ally** : le shell à sept pages en 13 langues, la bibliothèque de jeux, la page Matériel (ventilateurs, limite de FPS, mode de la manette), les profils par jeu, le banc d'essai, les dernières optimisations de l'auto TDP et la nouvelle version du widget. Les sections concernées le signalent.
+> Canapé est un projet personnel en cours de développement. Ce qui a été **validé sur l'Ally** : l'installation, le démarrage en FSE, le service, les modes, le TDP manuel, l'auto TDP (version `99cad07`) et la première version du widget. Ce qui est **écrit et testé sans matériel, mais pas encore essayé sur l'Ally** : le shell à sept pages en 13 langues, la bibliothèque de jeux et l'installation des jeux Steam et Epic, la page Matériel (ventilateurs, limite de FPS, mode de la manette), les profils par jeu, le banc d'essai, les dernières optimisations de l'auto TDP et la nouvelle version du widget. Les sections concernées le signalent.
 
 ## Sommaire
 
@@ -22,6 +22,7 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
   - [Commandes](#commandes)
   - [Éléments communs](#éléments-communs)
   - [Bibliothèque](#bibliothèque)
+    - [Installer des jeux possédés](#installer-des-jeux-possédés)
   - [Accueil](#accueil)
   - [Performance](#performance)
   - [Matériel](#matériel)
@@ -144,7 +145,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 |---|---|
 | **LB / RB** | Page précédente / suivante (Bibliothèque → Accueil → Performance → Matériel → Profils → Banc d'essai → Réglages, en boucle) |
 | **Croix** ou **stick gauche** | Passer au contrôle suivant (bas, droite) ou précédent (haut, gauche). Dans la bibliothèque, se déplacer dans la grille des jeux dans les quatre directions. Maintenu, le déplacement se répète après 0,4 s. |
-| **A** | Valider le contrôle sélectionné ; dans la bibliothèque, lancer le jeu |
+| **A** | Valider le contrôle sélectionné ; dans la bibliothèque, lancer le jeu (l'installer en mode **À installer**) |
 | **B** | Revenir à la bibliothèque |
 
 La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé depuis Canapé garde toute la manette. Le contrôle sélectionné est entouré de blanc. Au clavier (développement), les mêmes actions passent par Tab / Maj+Tab (les flèches dans la bibliothèque), Entrée, Échap et Page préc. / Page suiv.
@@ -161,12 +162,12 @@ La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé dep
 
 <sub>Une bibliothèque inventée (`tools/fake-library.py`) : titres et jaquettes sont générés.</sub>
 
-La première page, celle sur laquelle Canapé s'ouvre : les jeux installés sur la console, en jaquettes, les derniers joués en premier.
+La première page, celle sur laquelle Canapé s'ouvre : les jeux installés sur la console, en jaquettes, les derniers joués en premier. Le mode **À installer** montre les jeux Steam et Epic que vous possédez sans les avoir installés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)).
 
 | Zone | Contenu |
 |---|---|
-| **En haut à gauche** | Le jeu sélectionné : son titre, sa boutique (en toutes lettres : STEAM, EPIC, GOG, XBOX) et quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…). « Lancement… » après A. |
-| **Filtres** | Tous, Steam, Epic, GOG, Xbox, puis l'ordre : Récents (derniers joués d'abord, puis par nom) ou A–Z. |
+| **En haut à gauche** | Le jeu sélectionné : son titre, sa boutique (en toutes lettres : STEAM, EPIC, GOG, XBOX) et quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…). « Lancement… » après A. En mode À installer : « Pas installé : appuyez sur A pour l'installer », puis « Installation… N % », ou l'erreur d'une installation qui a échoué. |
+| **Filtres** | Installés ou À installer, puis Tous, Steam, Epic, GOG, Xbox, puis l'ordre : Récents (derniers joués d'abord, puis par nom) ou A–Z. |
 | **Grille** | Six jaquettes par rangée. La jaquette sélectionnée est agrandie et entourée de blanc. Sous Tous, chaque jaquette indique sa boutique en bas à gauche. Un jeu sans image affiche son titre sur une carte teintée de la couleur d'accent. |
 
 **Se déplacer** : la croix (ou le stick) se déplace dans la grille ; vers le bas depuis une rangée au-dessus d'une dernière rangée plus courte, on arrive sur le dernier jeu. Vers le haut depuis la première rangée, on atteint les filtres : gauche et droite en choisissent un, **A** l'applique, bas revient aux jeux. **A** sur un jeu le lance ; Canapé affiche « Lancement… » quelques secondes, puis place le jeu en tête de liste. La page défile d'elle-même pour garder la rangée sélectionnée en haut.
@@ -176,7 +177,7 @@ La première page, celle sur laquelle Canapé s'ouvre : les jeux installés sur 
 | Boutique | Ce que lit Canapé | Lancement | Jaquettes |
 |---|---|---|---|
 | **Steam** | Les dossiers de bibliothèque (`steamapps\libraryfolders.vdf`) et le manifeste de chaque jeu (`appmanifest_*.acf`). Les outils (redistribuables Steamworks, Proton, SteamVR) sont écartés. | Par Steam (`steam://rungameid/…`) | Le cache de Steam : l'image choisie dans Steam, sinon le portrait 600×900, sinon l'image « hero » ou l'en-tête (affichés en entier, sur un fond flouté) |
-| **Epic Games** | Les manifestes du lanceur (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, moteurs et installations inachevées sont écartés. | Par le lanceur Epic | Téléchargée (voir plus bas), sinon une carte titre |
+| **Epic Games** | Les manifestes du lanceur (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, moteurs et installations inachevées sont écartés. S'y ajoutent les jeux installés depuis Canapé avec Legendary (voir [plus bas](#installer-des-jeux-possédés)). | Par le lanceur Epic ; par Legendary, sans le lanceur, pour les jeux installés avec lui | Téléchargée (voir plus bas), sinon une carte titre |
 | **GOG** | Le registre (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), où GOG Galaxy et les installateurs hors ligne inscrivent chaque jeu. Les DLC sont écartés. | L'exécutable du jeu directement, sans Galaxy | Téléchargée (voir plus bas), sinon une carte titre |
 | **App Xbox** | Les dossiers `XboxGames` de chaque lecteur (`Content\MicrosoftGame.config`). | Par Windows (`shell:AppsFolder\…`) | Le logo carré du jeu |
 
@@ -197,6 +198,48 @@ Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutili
 
 > [!NOTE]
 > Pas encore essayé sur l'Ally : le téléchargement passe par WinHTTP (intégré à Windows) et n'a été testé que sous Linux, sur des réponses enregistrées.
+
+#### Installer des jeux possédés
+
+<img src="images/fr/library-install.png" alt="Bibliothèque en mode À installer, une installation en cours" width="720">
+
+<sub>Des jeux possédés inventés (`tools/fake-library.py`) ; l'installation de Mosaic Run est simulée.</sub>
+
+> [!NOTE]
+> **Rien de cette partie n'a encore été essayé sur l'Ally** : ni la liste des jeux Steam par l'API Web, ni l'installation par Steam, ni le téléchargement de Legendary, ni la connexion Epic, ni l'installation et le lancement des jeux Epic par Legendary. Seuls l'interface (sous Linux, avec la fausse bibliothèque et une installation simulée) et la lecture des réponses de Steam, d'Epic et de GitHub (sur des réponses enregistrées) ont été testées.
+
+En haut de la bibliothèque, **Installés / À installer** passe à la liste des jeux que vous possédez sur Steam ou sur Epic sans les avoir installés sur la console. Les filtres par boutique et l'ordre s'y appliquent aussi. **A** sur un jeu l'installe sans ouvrir l'interface de Steam ni le lanceur Epic ; l'aide en bas de l'écran devient « A Installer ». Un jeu déjà installé, depuis n'importe quelle boutique (même identifiant ou même titre), n'apparaît pas dans cette liste.
+
+**Steam : préparer une fois**
+
+1. Créez une clé d'API Web Steam gratuite sur [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey).
+2. Ajoutez-la dans `%LOCALAPPDATA%\Canape\shell.json` sous la forme `"steam_api_key": "…"`.
+
+Canapé demande la liste du compte connecté en dernier à Steam sur cet appareil (`config\loginusers.vdf` dans le dossier de Steam) : Steam doit donc y avoir été ouvert au moins une fois avec votre compte. La clé n'est envoyée qu'à l'API de Steam (`api.steampowered.com`). Les outils (redistribuables, Proton, SteamVR) sont écartés ; les jeux gratuits déjà lancés font partie de la liste.
+
+**Epic : se connecter une fois**
+
+1. Choisissez **Se connecter à Epic Games** sur la page À installer (le bouton n'apparaît que si la liste est vide) ou **Connexion Epic** dans les [Réglages](#réglages).
+2. La première fois, Canapé télécharge **Legendary**, un client Epic libre (licence GPL-3) qui reste un programme séparé, depuis ses publications officielles sur GitHub, dans `%LOCALAPPDATA%\Canape\tools`. Le fichier est vérifié avec l'empreinte SHA-256 que GitHub publie : sans empreinte, ou si elle ne correspond pas, rien n'est enregistré et l'erreur s'affiche en haut de la bibliothèque.
+3. Legendary ouvre sa propre fenêtre de connexion Epic, avec une console à côté (sans WebView2, Legendary y demande un code à la place). Ces fenêtres ne se pilotent pas à la manette : l'écran tactile et le clavier tactile peuvent être nécessaires.
+4. La fenêtre fermée, Canapé redemande la liste des jeux. Le bouton affiche ensuite « Epic : <compte> (se reconnecter) ».
+
+Les jeux Epic qui s'installent par une autre boutique (Ubisoft, EA) sont écartés : Legendary ne sait pas les installer.
+
+**Quand la liste est mise à jour** : seulement en passant à À installer, si la dernière demande date de plus de 10 minutes, et juste après une connexion Epic : Canapé ne sollicite pas les boutiques au démarrage. Une boutique impossible à lister (clé Steam erronée, session Epic expirée) affiche son erreur dans l'en-tête pendant 10 secondes et la dernière liste est gardée. La dernière liste est gardée dans `owned.json` et s'affiche tout de suite. Les jaquettes sont récupérées comme les [jaquettes téléchargées](#bibliothèque), avec le même réglage **Télécharger les jaquettes manquantes** ; pour les jeux Epic, Canapé essaie d'abord l'image portrait fournie par Epic.
+
+**Ce que fait A**
+
+| Boutique | Installation | Progression | À la fin |
+|---|---|---|---|
+| **Steam** | Canapé confie l'installation à Steam, qui démarre discrètement dans la zone de notification s'il ne tournait pas. Steam n'ouvre que sa petite fenêtre d'installation (dossier, raccourcis) : confirmez-la (pas encore vérifié à la manette). Steam télécharge ensuite en arrière-plan. | Lue toutes les 2 s dans le manifeste du jeu. | Le jeu passe dans Installés et se lance par Steam, comme les autres. |
+| **Epic** | Legendary installe le jeu en silence, sans fenêtre ni question, dans son dossier par défaut. | Lue dans ce qu'affiche Legendary. | Le jeu passe dans Installés et se lance par Legendary : le lanceur Epic n'est jamais ouvert. |
+
+- Pendant l'installation, la jaquette affiche une barre et « Installation… N % », comme l'en-tête quand le jeu est sélectionné. On peut continuer à naviguer et installer d'autres jeux.
+- Canapé ne choisit pas le dossier et ne vérifie pas l'espace libre : Steam le propose dans sa fenêtre, Legendary prend son dossier par défaut.
+- Steam : si la fenêtre d'installation n'est pas confirmée, Canapé abandonne au bout de 10 minutes (« Steam did not start the download ») ; une installation annulée dans Steam en cours de route donne « cancelled in Steam ».
+- En cas d'échec, l'en-tête affiche « <titre> : <message> » en jaune, le message restant en anglais (`Steam is not installed`, `Legendary is not available`, `legendary: …` avec la dernière ligne de Legendary). Il reste affiché jusqu'à la prochaine installation et figure aussi dans `shell.log`.
+- Les jeux installés par Legendary sont retrouvés dans sa configuration (`%USERPROFILE%\.config\legendary\installed.json`) tant que `legendary.exe` est présent dans `%LOCALAPPDATA%\Canape\tools`.
 
 ### Accueil
 
@@ -362,7 +405,8 @@ Chaque carte propose **Régler le TDP** (limite manuelle à cette valeur, auto T
 
 - **Langue** : « Automatique » (langue de Windows) ou l'une des 13 langues. Le changement est immédiat et mémorisé. Voir [Langues](#langues).
 - **Couleur d'accent** : trois curseurs **Teinte**, **Saturation** et **Luminosité**, un aperçu avec le code `#RRGGBB` et 8 **préréglages**. À la manette, A sur un curseur le saisit, la croix ou le stick le déplace, A à nouveau le relâche. Toute l'interface suit en direct ; la couleur est enregistrée dans `shell.json` et envoyée au service une fois le réglage terminé, et **le widget de la Game Bar suit la couleur d'accent**.
-- **Canapé** : version, état de la connexion au service, et deux interrupteurs :
+- **Canapé** : version, état de la connexion au service, une ligne pour l'installation des jeux et deux interrupteurs :
+  - **Installer des jeux depuis Canapé** (voir [Installer des jeux possédés](#installer-des-jeux-possédés)) : indique si une clé d'API Steam est présente dans `shell.json` (sans vérifier qu'elle est valide) et le compte Epic connecté (« Epic : non connecté. » sinon). Le bouton **Connexion Epic** ouvre la connexion Epic, en téléchargeant Legendary d'abord si besoin. Pas encore essayé sur l'Ally.
   - **Télécharger les jaquettes manquantes** (voir [Bibliothèque](#bibliothèque)) : la ligne en dessous indique d'où viennent les jaquettes (Steam seul, ou Steam et SteamGridDB quand une clé est renseignée).
   - **Utiliser les boutons de l'Ally** : le bouton **Armoury** (à droite, sous l'écran) ramène Canapé au premier plan depuis un jeu, ou revient à la bibliothèque si Canapé est déjà devant ; le bouton **Command Center** (à gauche) ouvre la Xbox Game Bar, où se trouve le widget Canapé. Désactivez-le si Armoury Crate ou un autre outil doit les gérer (sinon les deux réagissent). Pas encore essayé sur l'Ally.
 
@@ -460,10 +504,13 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | `%ProgramData%\Canape\service.log` | Journal du service : modèle détecté, état d'ADL au démarrage, chaque commande qui modifie l'état et sa réponse (`SetTdp { watts: 12 } -> Ok`), programmes en conflit, erreurs. |
 | `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS, limite de charge, mode de la manette, profils, dernier banc d'essai. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Journal du shell : démarrages (avec leurs arguments), langue choisie, état d'ADL, erreurs du service. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`, `refresh_hz`, `ally_buttons`. |
+| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `refresh_hz`, `ally_buttons`. |
 | `%LOCALAPPDATA%\Canape\covers\` | Jaquettes téléchargées (`<boutique>_<id>.jpg` / `.png`, marqueurs `.miss`). |
 | `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |
 | `%LOCALAPPDATA%\Canape\recent.json` | Quand chaque jeu a été lancé depuis Canapé pour la dernière fois (pour l'ordre « Récents »). |
+| `%LOCALAPPDATA%\Canape\owned.json` | Les jeux possédés de la dernière demande à Steam et à Epic, affichés tout de suite en mode À installer. Peut être supprimé : la demande suivante le réécrit. |
+| `%LOCALAPPDATA%\Canape\tools\` | `legendary.exe`, téléchargé à la première connexion Epic. Sans lui, Canapé ne liste plus les jeux Epic possédés ni ceux installés par Legendary ; la prochaine connexion Epic le télécharge de nouveau. |
+| `%USERPROFILE%\.config\legendary\` | Configuration de Legendary, écrite par Legendary lui-même : connexion Epic, jeux qu'il a installés (`installed.json`). |
 
 Chaque ligne commence par l'heure en secondes Unix.
 
@@ -513,6 +560,7 @@ Le code de sortie vaut 0 si le service a répondu sans erreur, 1 sinon. La liste
 | Les ventilateurs ou la limite de FPS changent tout seuls | Un profil de jeu avec ses propres ventilateurs ou sa propre limite vient de s'appliquer ou de se terminer, ou un autre outil les a réécrits (avertissement jaune). |
 | « Erreur du service : GPU driver refused: ADL2_FPS_Settings_Set… (session 0) » sur la limite de FPS | Le pilote AMD refuse la limite depuis le service. Ce cas n'a pas encore été essayé : notez le message (il figure aussi dans `service.log`) et signalez-le. |
 | La manette ne fait plus bouger dans Canapé après avoir choisi Clavier ou Souris | Normal : la manette ne se comporte plus comme une manette Xbox. Touchez **Manette de jeu** sur l'écran, ou envoyez `{"type":"set_controller_mode","mode":"gamepad"}` avec `canape-ctl`. |
+| La liste À installer reste vide, ou il y manque une boutique | Steam : clé absente ou refusée, ou aucun compte dans `loginusers.vdf` ; Epic : pas de connexion. Ces erreurs ne s'affichent pas dans la bibliothèque : cherchez `library: Steam owned games` ou `library: Epic` dans `shell.log`. Relancez Canapé (ou reconnectez-vous à Epic) pour redemander la liste tout de suite. |
 | Canapé n'est pas proposé dans Paramètres → Jeux | Relancez `install-dev.ps1 -SetAsHomeApp`. Vérifiez que le paquet est installé : `Get-AppxPackage -Name Canape`. |
 | `Developer Mode is off` | Activez le mode développeur (voir [plus haut](#1-activer-le-mode-développeur)). |
 | `makeappx.exe not found` | Installez le Windows SDK avec les Build Tools. |
@@ -546,4 +594,6 @@ Il n'y a pas encore de script de désinstallation. D'abord, sur la page **Matér
        Where-Object Subject -eq "CN=Canape Dev" | Remove-Item
    Remove-Item -Recurse "$HOME\dev\canape-cert"
    ```
+
+Les jeux installés depuis Canapé restent sur le disque, et la configuration de Legendary (connexion Epic comprise) reste dans `%USERPROFILE%\.config\legendary`.
 
