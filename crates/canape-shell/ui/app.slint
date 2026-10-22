@@ -12,6 +12,7 @@ import { SettingsPage } from "settings.slint";
 import { PerformancePage } from "performance.slint";
 import { Library, LibraryPage } from "library.slint";
 import { HardwarePage } from "hardware.slint";
+import { Reveal } from "kit.slint";
 
 // Plus Jakarta Sans, embedded (OFL, see fonts/OFL.txt). Scripts it lacks,
 // such as Cyrillic or CJK, fall back to the system fonts.
@@ -34,16 +35,21 @@ component Section inherits Rectangle {
     text := Text {
         text: root.label;
         color: root.selected ? Theme.focus : ta.has-hover ? Theme.text : Theme.dim;
+        animate color { duration: 160ms; }
         font-size: 16px;
         font-weight: root.selected ? 600 : 500;
         vertical-alignment: center;
     }
 
-    if root.selected: Rectangle {
+    // Grows from the middle when the section is picked.
+    Rectangle {
+        x: (parent.width - self.width) / 2;
         y: parent.height - 2px;
+        width: root.selected ? parent.width : 0;
         height: 2px;
         border-radius: 1px;
         background: Theme.accent;
+        animate width { duration: 220ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
     }
 
     ta := TouchArea {
@@ -87,6 +93,17 @@ export component AppWindow inherits Window {
     // sub-pages 4 Profiles (from Settings) and 5 Bench (from Performance).
     in-out property <int> page: 0;
     property <int> section: root.page == 4 ? 3 : root.page == 5 ? 1 : root.page;
+    // Where the next page slides in from: the side it comes from in the
+    // section order, below for a sub-page, above when leaving one.
+    property <length> enter-x;
+    property <length> enter-y;
+
+    function go(page: int) {
+        let to-section = page == 4 ? 3 : page == 5 ? 1 : page;
+        root.enter-x = to-section > root.section ? 32px : to-section < root.section ? -32px : 0;
+        root.enter-y = page >= 4 ? 24px : root.page >= 4 && to-section == root.section ? -24px : 0;
+        root.page = page;
+    }
     changed page => {
         Library.shown(root.page == 0);
         // Every page but the library moves with the arrow keys; the
@@ -109,15 +126,15 @@ export component AppWindow inherits Window {
         focus-on-tab-navigation: false;
         key-pressed(event) => {
             if event.text == Key.PageUp {
-                root.page = Math.mod(root.section + 3, 4);
+                root.go(Math.mod(root.section + 3, 4));
                 return accept;
             }
             if event.text == Key.PageDown {
-                root.page = Math.mod(root.section + 1, 4);
+                root.go(Math.mod(root.section + 1, 4));
                 return accept;
             }
             if event.text == Key.Escape && root.page != 0 {
-                root.page = root.page == 4 ? 3 : root.page == 5 ? 1 : 0;
+                root.go(root.page == 4 ? 3 : root.page == 5 ? 1 : 0);
                 return accept;
             }
             return reject;
@@ -125,12 +142,26 @@ export component AppWindow inherits Window {
 
         // The selected game's colour behind the library, fading out
         // towards the shelves.
-        if root.page == 0: Rectangle {
+        Rectangle {
+            opacity: root.page == 0 ? 1 : 0;
+            visible: self.opacity > 0;
+            animate opacity { duration: 220ms; }
+
             Image {
                 width: 100%;
                 height: 100%;
-                source: Library.backdrop;
+                source: Library.backdrop-a;
                 image-fit: fill;
+            }
+
+            Image {
+                width: 100%;
+                height: 100%;
+                source: Library.backdrop-b;
+                image-fit: fill;
+                opacity: Library.backdrop-b-front ? 1 : 0;
+                visible: self.opacity > 0;
+                animate opacity { duration: 320ms; easing: ease-in-out; }
             }
 
             Rectangle {
@@ -171,7 +202,7 @@ export component AppWindow inherits Window {
                         label: label;
                         selected: root.section == i;
                         clicked => {
-                            root.page = i;
+                            root.go(i);
                         }
                     }
                 }
@@ -225,47 +256,67 @@ export component AppWindow inherits Window {
             Rectangle {
                 vertical-stretch: 1;
                 // Runs under the hints: the next shelf peeks in at the bottom.
-                if root.page == 0: LibraryPage {
+                if root.page == 0: Reveal {
                     x: 48px;
                     y: 20px;
                     width: parent.width - 96px;
                     height: parent.height + 34px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    LibraryPage { }
                 }
-                if root.page == 1: PerformancePage {
+                if root.page == 1: Reveal {
                     x: 32px;
                     y: 28px;
                     width: parent.width - 80px;
                     height: parent.height - 28px;
-                    open-bench => {
-                        root.page = 5;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    PerformancePage {
+                        open-bench => {
+                            root.go(5);
+                        }
                     }
                 }
-                if root.page == 2: HardwarePage {
+                if root.page == 2: Reveal {
                     x: 32px;
                     y: 28px;
                     width: parent.width - 80px;
                     height: parent.height - 28px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    HardwarePage { }
                 }
-                if root.page == 3: SettingsPage {
+                if root.page == 3: Reveal {
                     x: 32px;
                     y: 28px;
                     width: parent.width - 80px;
                     height: parent.height - 28px;
-                    open-profiles => {
-                        root.page = 4;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    SettingsPage {
+                        open-profiles => {
+                            root.go(4);
+                        }
                     }
                 }
-                if root.page == 4: ProfilesPage {
+                if root.page == 4: Reveal {
                     x: 32px;
                     y: 28px;
                     width: parent.width - 80px;
                     height: parent.height - 28px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    ProfilesPage { }
                 }
-                if root.page == 5: BenchPage {
+                if root.page == 5: Reveal {
                     x: 32px;
                     y: 28px;
                     width: parent.width - 80px;
                     height: parent.height - 28px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    BenchPage { }
                 }
             }
 

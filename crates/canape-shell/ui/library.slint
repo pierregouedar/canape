@@ -7,6 +7,7 @@
 
 import { Theme } from "theme.slint";
 import { PadGlyph } from "widgets.slint";
+import { Reveal } from "kit.slint";
 
 export struct GameView {
     id: string,
@@ -49,8 +50,12 @@ export global Library {
     // The other shelf, peeking below: its size and first titles.
     in property <int> other-count;
     in property <[string]> other-titles;
-    // A glow in the selected game's colour, stretched over the window.
-    in property <image> backdrop;
+    // A glow in the selected game's colour, stretched over the window: two
+    // layers, the new colour goes into the hidden one, which then fades in
+    // over the other.
+    in property <image> backdrop-a;
+    in property <image> backdrop-b;
+    in property <bool> backdrop-b-front;
     // A Steam Web API key is set in shell.json.
     in property <bool> steam-key;
     // Signed-in Epic account (through Legendary), "" when none.
@@ -127,11 +132,14 @@ component Cover inherits Rectangle {
         background: root.game.art ? Theme.surface-high : Theme.accent.mix(Theme.surface, 0.3);
         animate opacity { duration: 160ms; }
 
+        // Fades in once decoded.
         if root.game.art: Image {
             width: 100%;
             height: 100%;
             source: root.game.cover;
             image-fit: fill;
+            opacity: root.game.cover.width > 0 ? 1 : 0;
+            animate opacity { duration: 200ms; }
         }
 
         // No art: the title at the bottom of a tinted card.
@@ -179,11 +187,14 @@ component Cover inherits Rectangle {
 // The main action: white, with the A button.
 component PrimaryButton inherits Rectangle {
     in property <string> label;
+    // Briefly darker after a press of A.
+    in property <bool> pressed;
     callback clicked();
     height: 48px;
     width: text.preferred-width + 60px;
     border-radius: 10px;
-    background: Theme.focus;
+    background: root.pressed || ta.pressed ? Theme.focus.darker(0.3) : Theme.focus;
+    animate background { duration: 90ms; }
 
     HorizontalLayout {
         padding-left: 14px;
@@ -206,7 +217,7 @@ component PrimaryButton inherits Rectangle {
         }
     }
 
-    TouchArea {
+    ta := TouchArea {
         clicked => {
             root.clicked();
         }
@@ -222,6 +233,10 @@ export component LibraryPage inherits Rectangle {
     property <bool> can-swap: root.to-install || Library.other-count > 0;
     property <int> sel: Library.selected;
     property <length> pitch: 132px;
+    // The side the next game's title slides in from.
+    property <length> hero-from: 0;
+    // A was just pressed: the button shows it for a moment.
+    property <bool> pressed;
     // Scrolled so that two games stay visible before the selected one.
     property <length> scroll: max(0, min((Library.selected - 2) * root.pitch, Library.games.length * root.pitch + 12px - root.width));
     changed sel => {
@@ -241,6 +256,7 @@ export component LibraryPage inherits Rectangle {
         Library.armed = "";
     }
     function act() {
+        root.pressed = true;
         if root.has-games && !root.current.installed && root.current.progress < 0 && Library.armed != root.current.id {
             Library.armed = root.current.id;
         } else if root.has-games {
@@ -267,10 +283,12 @@ export component LibraryPage inherits Rectangle {
         }
         key-pressed(event) => {
             if event.text == Key.LeftArrow {
+                root.hero-from = -16px;
                 Library.selected = max(0, Library.selected - 1);
                 return accept;
             }
             if event.text == Key.RightArrow {
+                root.hero-from = 16px;
                 Library.selected = min(Library.games.length - 1, Library.selected + 1);
                 return accept;
             }
@@ -292,49 +310,64 @@ export component LibraryPage inherits Rectangle {
         }
     }
 
-    // The selected game, or why there is none.
-    VerticalLayout {
+    Timer {
+        interval: 140ms;
+        running: root.pressed;
+        triggered => {
+            root.pressed = false;
+        }
+    }
+
+    // The selected game, or why there is none; a new model at each game,
+    // so its title fades in.
+    for key in [root.has-games ? root.current.id : ""]: Reveal {
         x: 0;
         y: 28px;
         width: 640px;
         height: 270px;
-        spacing: 14px;
-        alignment: start;
+        from-x: root.hero-from;
+        duration: 180ms;
 
-        Text {
-            text: root.has-games ? root.current.source.to-uppercase() : root.to-install ? @tr("To install").to-uppercase() : "";
-            color: Theme.dim;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-
-        Text {
-            text: root.has-games ? root.current.title : !root.to-install ? (!Library.ready ? @tr("Looking for games…") : @tr("No games found")) : Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
-            color: Theme.text;
-            font-size: 52px;
-            font-weight: 700;
-            letter-spacing: -1px;
-            overflow: elide;
-        }
-
-        Text {
-            text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : !root.has-games && root.to-install ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && Library.armed == root.current.id ? @tr("Press A again to install") : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
-            color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
-            font-size: 16px;
-            wrap: word-wrap;
-            max-height: 66px;
-            overflow: elide;
-        }
-
-        if root.has-games || root.to-install: HorizontalLayout {
-            padding-top: 10px;
+        VerticalLayout {
+            spacing: 14px;
             alignment: start;
-            PrimaryButton {
-                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : Library.armed == root.current.id ? @tr("Confirm") : @tr("Install");
-                clicked => {
-                    root.act();
-                    fs.focus();
+
+            Text {
+                text: root.has-games ? root.current.source.to-uppercase() : root.to-install ? @tr("To install").to-uppercase() : "";
+                color: Theme.dim;
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 1px;
+            }
+
+            Text {
+                text: root.has-games ? root.current.title : !root.to-install ? (!Library.ready ? @tr("Looking for games…") : @tr("No games found")) : Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
+                color: Theme.text;
+                font-size: 52px;
+                font-weight: 700;
+                letter-spacing: -1px;
+                overflow: elide;
+            }
+
+            Text {
+                text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : !root.has-games && root.to-install ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && Library.armed == root.current.id ? @tr("Press A again to install") : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
+                color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
+                font-size: 16px;
+                wrap: word-wrap;
+                max-height: 66px;
+                overflow: elide;
+            }
+
+            if root.has-games || root.to-install: HorizontalLayout {
+                padding-top: 10px;
+                alignment: start;
+                PrimaryButton {
+                    pressed: root.pressed;
+                    label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : Library.armed == root.current.id ? @tr("Confirm") : @tr("Install");
+                    clicked => {
+                        root.act();
+                        fs.focus();
+                    }
                 }
             }
         }

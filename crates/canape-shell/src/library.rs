@@ -136,6 +136,8 @@ struct State {
     tints: HashMap<String, [u8; 3]>,
     /// Game whose colour the backdrop shows, and that colour.
     backdrop: Option<(String, [u8; 3])>,
+    /// The backdrop's second layer is in front.
+    backdrop_b_front: bool,
 }
 
 thread_local! {
@@ -292,8 +294,20 @@ impl State {
         let (pixels, width, height) = backdrop::render(color);
         if let Some(ui) = self.ui.upgrade() {
             let buffer = SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(&pixels, width, height);
-            ui.global::<Library>()
-                .set_backdrop(Image::from_rgba8(buffer));
+            let image = Image::from_rgba8(buffer);
+            let library = ui.global::<Library>();
+            // The first colour shows at once; later ones fade in over it.
+            if self.backdrop.is_none() {
+                library.set_backdrop_a(image.clone());
+                library.set_backdrop_b(image);
+            } else if self.backdrop_b_front {
+                library.set_backdrop_a(image);
+                library.set_backdrop_b_front(false);
+            } else {
+                library.set_backdrop_b(image);
+                library.set_backdrop_b_front(true);
+            }
+            self.backdrop_b_front = library.get_backdrop_b_front();
         }
         self.backdrop = Some((id, color));
     }
@@ -876,6 +890,7 @@ pub fn start(ui: &AppWindow) {
         just_installed: None,
         tints: HashMap::new(),
         backdrop: None,
+        backdrop_b_front: false,
     };
     state.rebuild(None);
     state.scan();

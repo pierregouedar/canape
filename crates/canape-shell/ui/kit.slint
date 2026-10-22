@@ -594,3 +594,29 @@ export component ChoiceTile inherits Rectangle {
         }
     }
 }
+
+// Fades its content in when it appears, sliding it from `from-x` and
+// `from-y`. Elements created by `if` or `for` animate nothing on their
+// own: setting `shown` in init does.
+export component Reveal inherits Rectangle {
+    in property <length> from-x;
+    in property <length> from-y;
+    in property <duration> duration: 220ms;
+    property <float> shown: 0;
+    init => {
+        self.shown = 1;
+    }
+    animate shown {
+        duration: root.duration;
+        easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    Rectangle {
+        x: (1 - root.shown) * root.from-x;
+        y: (1 - root.shown) * root.from-y;
+        width: parent.width;
+        height: parent.height;
+        opacity: root.shown;
+        @children
+    }
+}
