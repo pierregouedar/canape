@@ -315,7 +315,7 @@ export component BenchPage inherits Rectangle {
                 padding-right: 16px;
                 spacing: 14px;
                 Text {
-                    text: @tr("Step {} of {}: {}", App.status.bench-step, App.status.bench-steps, App.watts(App.status.bench-watts));
+                    text: App.status.bench-step == 0 ? @tr("Waiting for the game") : @tr("Step {} of {}: {}", App.status.bench-step, App.status.bench-steps, App.watts(App.status.bench-watts));
                     color: Theme.text;
                     font-size: 28px;
                     font-weight: 600;
@@ -335,7 +335,7 @@ export component BenchPage inherits Rectangle {
                 }
 
                 Text {
-                    text: @tr("{} left. Keep the game in front; the power limit changes on its own.", App.duration(App.status.bench-seconds-left));
+                    text: App.status.bench-step == 0 ? @tr("Bring the game back to the front: the bench starts on its own.") : @tr("{} left. Keep the game in front; the power limit changes on its own.", App.duration(App.status.bench-seconds-left));
                     color: Theme.dim;
                     font-size: 14px;
                     wrap: word-wrap;

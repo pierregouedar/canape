@@ -432,3 +432,9 @@ msgstr "сейчас {} · изучено {}"
 
 msgid "{} · game profile"
 msgstr "{} · профиль игры"
+
+msgid "Waiting for the game"
+msgstr "Ожидание игры"
+
+msgid "Bring the game back to the front: the bench starts on its own."
+msgstr "Вернитесь в игру: тест начнётся сам."

@@ -432,3 +432,9 @@ msgstr "現在 {} · 学習値 {}"
 
 msgid "{} · game profile"
 msgstr "{} · ゲームプロファイル"
+
+msgid "Waiting for the game"
+msgstr "ゲームを待っています"
+
+msgid "Bring the game back to the front: the bench starts on its own."
+msgstr "ゲームに戻ると、ベンチが自動で始まります。"

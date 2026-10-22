@@ -432,3 +432,9 @@ msgstr "当前 {} · 已学习 {}"
 
 msgid "{} · game profile"
 msgstr "{} · 游戏配置"
+
+msgid "Waiting for the game"
+msgstr "正在等待游戏"
+
+msgid "Bring the game back to the front: the bench starts on its own."
+msgstr "回到游戏：测试会自动开始。"

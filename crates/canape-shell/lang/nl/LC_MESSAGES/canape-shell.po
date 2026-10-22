@@ -432,3 +432,9 @@ msgstr "{} nu · {} geleerd"
 
 msgid "{} · game profile"
 msgstr "{} · spelprofiel"
+
+msgid "Waiting for the game"
+msgstr "Wachten op de game"
+
+msgid "Bring the game back to the front: the bench starts on its own."
+msgstr "Ga terug naar de game: de test start vanzelf."

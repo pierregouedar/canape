@@ -3,8 +3,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use canape_autotdp::{Config, Controller};
 use canape_core::settings::FPS_LIMIT_RANGE;
 use canape_core::{
-    AutoTdpSettings, BenchPlan, BenchReport, ControllerMode, Fan, FanCurve, FanCurves,
-    PerformanceMode, Profile, Request, Response, Status, protocol,
+    AutoTdpSettings, BenchPlan, BenchProgress, BenchReport, ControllerMode, Fan, FanCurve,
+    FanCurves, PerformanceMode, Profile, Request, Response, Status, protocol,
 };
 use canape_hw::{Device, Telemetry};
 use serde::{Deserialize, Serialize};
@@ -13,6 +13,10 @@ use crate::bench_run::{BenchRun, Reading, Step};
 
 /// Below this frame rate nothing is being played (desktop, idle shell).
 const MIN_GAME_FPS: f32 = 5.0;
+/// A bench asked while the game is not in front (the shell is) waits this
+/// many ticks of frames before it starts, and gives up after `BENCH_WAIT_MAX`.
+const BENCH_WAIT_FRAMES: u32 = 3;
+const BENCH_WAIT_MAX: u32 = 120;
 /// Below this GPU activity nothing is being played either.
 const MIN_GAME_GPU: f32 = 0.15;
 
@@ -54,6 +58,9 @@ pub struct Handler {
     /// Global state to return to when the profiled game leaves the foreground.
     before_profile: Option<Saved>,
     bench: Option<BenchRun>,
+    /// A bench waiting for its game to come back to the front: the plan,
+    /// ticks waited and ticks in a row with frames.
+    pending_bench: Option<(BenchPlan, u32, u32)>,
     /// State to return to when the bench ends.
     before_bench: Option<Saved>,
     last_bench: Option<BenchReport>,
@@ -84,6 +91,7 @@ impl Handler {
             active_profile: None,
             before_profile: None,
             bench: None,
+            pending_bench: None,
             before_bench: None,
             last_bench: None,
             accent: None,
@@ -199,6 +207,7 @@ impl Handler {
                     self.end_bench(run);
                     Response::Ok
                 }
+                None if self.pending_bench.take().is_some() => Response::Ok,
                 None => Response::Error {
                     message: "no bench is running".into(),
                 },
@@ -260,6 +269,22 @@ impl Handler {
         self.fps = self.device.frame_rate();
         self.telemetry = self.device.telemetry().ok();
         let telemetry = self.telemetry.unwrap_or_default();
+
+        if let Some((plan, waited, frames)) = self.pending_bench.as_mut() {
+            *waited += 1;
+            *frames = if self.fps.is_some_and(|fps| fps >= MIN_GAME_FPS) {
+                *frames + 1
+            } else {
+                0
+            };
+            let (plan, waited, frames) = (*plan, *waited, *frames);
+            if frames >= BENCH_WAIT_FRAMES {
+                self.pending_bench = None;
+                let _ = self.start_bench(plan);
+            } else if waited >= BENCH_WAIT_MAX {
+                self.pending_bench = None;
+            }
+        }
 
         if let Some(run) = self.bench.as_mut() {
             let reading = Reading {
@@ -340,7 +365,14 @@ impl Handler {
                 .controller
                 .as_ref()
                 .is_some_and(Controller::thermal_limited),
-            bench: self.bench.as_ref().map(BenchRun::progress),
+            bench: self.bench.as_ref().map(BenchRun::progress).or_else(|| {
+                self.pending_bench.map(|(plan, _, _)| BenchProgress {
+                    step: 0,
+                    steps: plan.steps().len() as u32,
+                    watts: plan.from_watts,
+                    seconds_left: plan.total_secs(),
+                })
+            }),
             accent: self.accent.clone(),
             tdp_min_watts: Some(tdp_min),
             tdp_max_watts: Some(tdp_max),
@@ -442,7 +474,7 @@ impl Handler {
     }
 
     fn bench_running(&self) -> Option<Response> {
-        self.bench.is_some().then(|| Response::Error {
+        (self.bench.is_some() || self.pending_bench.is_some()).then(|| Response::Error {
             message: "a bench is running: cancel it first".into(),
         })
     }
@@ -570,6 +602,12 @@ impl Handler {
             return error;
         }
         if !self.fps.is_some_and(|fps| fps >= MIN_GAME_FPS) {
+            // Started from the shell, which hides the game: wait for it to
+            // come back to the front.
+            if self.foreground.is_some() {
+                self.pending_bench = Some((plan, 0, 0));
+                return Response::Ok;
+            }
             return Response::Error {
                 message: "no frame rate: start a game before the bench".into(),
             };
@@ -600,11 +638,13 @@ impl Handler {
     fn end_bench(&mut self, run: BenchRun) {
         self.last_bench = Some(run.into_report());
         self.dirty = true;
+        // Restored as global settings: with the profile still active, the
+        // auto TDP part would be written into the profile.
+        self.active_profile = None;
         if let Some(before) = self.before_bench.take() {
             self.apply_power_state(&before);
         }
         // The foreground game's profile, if any, takes over again.
-        self.active_profile = None;
         self.follow_foreground();
     }
 
@@ -1024,6 +1064,96 @@ mod tests {
         assert!(report.completed);
         assert_eq!(report.points.len(), 3);
         assert_eq!(h.saved().last_bench, Some(report));
+    }
+
+    fn short_plan() -> BenchPlan {
+        BenchPlan {
+            from_watts: 20,
+            to_watts: 10,
+            step_watts: 5,
+            settle_secs: 1,
+            measure_secs: 2,
+        }
+    }
+
+    #[test]
+    fn the_game_profile_takes_over_again_after_a_bench() {
+        let mut h = handler_with(Some(60.0), Some(0.8));
+        h.handle(Request::SetTdp { watts: 20 });
+        h.handle(Request::SaveProfile {
+            profile: profile("game.exe", 40, None),
+        });
+        h.handle(Request::ForegroundApp {
+            exe: Some("game.exe".into()),
+        });
+        h.tick();
+        assert_eq!(
+            h.handle(Request::StartBench { plan: short_plan() }),
+            Response::Ok
+        );
+        for _ in 0..9 {
+            h.tick();
+        }
+        assert!(h.status().bench.is_none());
+        let status = h.status();
+        assert_eq!(status.active_profile.as_deref(), Some("game.exe"));
+        assert!(status.auto_tdp.enabled);
+        assert_eq!(status.auto_tdp.target_fps, 40);
+        let Response::Profiles { profiles } = h.handle(Request::ListProfiles) else {
+            panic!("expected profiles");
+        };
+        assert!(profiles[0].auto_tdp.enabled, "profile left as it was");
+        assert!(!h.saved().auto_tdp.enabled, "global settings untouched");
+    }
+
+    #[test]
+    fn a_bench_waits_for_its_game_to_come_back_to_the_front() {
+        let mut h = handler();
+        h.handle(Request::ForegroundApp {
+            exe: Some("game.exe".into()),
+        });
+        h.tick();
+        // The shell is in front: no frames, the bench waits.
+        assert_eq!(
+            h.handle(Request::StartBench { plan: short_plan() }),
+            Response::Ok
+        );
+        h.tick();
+        let waiting = h.status().bench.expect("waiting shows as a bench");
+        assert_eq!((waiting.step, waiting.steps), (0, 3));
+        assert!(matches!(
+            h.handle(Request::SetTdp { watts: 8 }),
+            Response::Error { .. }
+        ));
+        // The game is back in front.
+        h.device = Box::new(MockDevice {
+            fps: Some(60.0),
+            ..MockDevice::default()
+        });
+        for _ in 0..BENCH_WAIT_FRAMES {
+            h.tick();
+        }
+        let running = h.status().bench.expect("bench started");
+        assert_eq!(running.step, 1);
+        assert_eq!(h.status().tdp_watts, Some(20));
+    }
+
+    #[test]
+    fn a_waiting_bench_gives_up_or_cancels() {
+        let mut h = handler();
+        h.handle(Request::ForegroundApp {
+            exe: Some("game.exe".into()),
+        });
+        h.handle(Request::StartBench { plan: short_plan() });
+        assert_eq!(h.handle(Request::CancelBench), Response::Ok);
+        assert!(h.status().bench.is_none());
+
+        h.handle(Request::StartBench { plan: short_plan() });
+        for _ in 0..BENCH_WAIT_MAX {
+            h.tick();
+        }
+        assert!(h.status().bench.is_none());
+        assert!(h.handle(Request::SetTdp { watts: 12 }) == Response::Ok);
     }
 
     #[test]

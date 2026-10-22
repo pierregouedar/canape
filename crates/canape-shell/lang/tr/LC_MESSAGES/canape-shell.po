@@ -432,3 +432,9 @@ msgstr "şu an {} · {} öğrenildi"
 
 msgid "{} · game profile"
 msgstr "{} · oyun profili"
+
+msgid "Waiting for the game"
+msgstr "Oyun bekleniyor"
+
+msgid "Bring the game back to the front: the bench starts on its own."
+msgstr "Oyuna dönün: test kendiliğinden başlar."

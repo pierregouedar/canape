@@ -122,4 +122,7 @@
   <data name="FooterGpu" xml:space="preserve">
     <value>GPU {0}</value>
   </data>
+  <data name="BenchWaiting" xml:space="preserve">
+    <value>正在等待游戏</value>
+  </data>
 </root>

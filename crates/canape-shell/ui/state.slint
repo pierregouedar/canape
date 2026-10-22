@@ -117,7 +117,8 @@ export global App {
     in property <[ProfileView]> profiles;
     in property <BenchView> bench;
     in property <[BenchRow]> bench-rows;
-    in property <Notice> notice;
+    // Cleared after a while by the window (app.slint).
+    in-out property <Notice> notice;
     // Message from the service, untranslated.
     in property <string> notice-detail;
     // "auto" or a language code.

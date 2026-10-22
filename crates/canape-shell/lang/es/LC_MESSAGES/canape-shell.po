@@ -432,3 +432,9 @@ msgstr "{} ahora · {} aprendidos"
 
 msgid "{} · game profile"
 msgstr "{} · perfil del juego"
+
+msgid "Waiting for the game"
+msgstr "Esperando al juego"
+
+msgid "Bring the game back to the front: the bench starts on its own."
+msgstr "Vuelve al juego: la prueba empieza sola."

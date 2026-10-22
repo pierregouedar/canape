@@ -432,3 +432,9 @@ msgstr "현재 {} · 학습값 {}"
 
 msgid "{} · game profile"
 msgstr "{} · 게임 프로필"
+
+msgid "Waiting for the game"
+msgstr "게임을 기다리는 중"
+
+msgid "Bring the game back to the front: the bench starts on its own."
+msgstr "게임으로 돌아가면 벤치가 자동으로 시작됩니다."

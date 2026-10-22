@@ -379,7 +379,7 @@ Ouvert depuis la tuile **Banc d'essai** de la page Performance ; **B** y revient
 1. Lancez le jeu et laissez tourner une **scène exigeante et stable** (pas un menu).
 2. Revenez dans Canapé (bouton Xbox ou Alt+Tab), **Performance → Banc d'essai**.
 3. Réglez le **pas** (2, 3 ou 5 W) et la durée **par palier** (10, 15 ou 30 s) avec gauche et droite. La durée totale s'affiche sur la ligne **Démarrer** (environ 2:20 avec 3 W et 15 s).
-4. **A** sur **Démarrer**, puis revenez au jeu. La limite change toute seule ; chaque palier attend 5 s avant de mesurer.
+4. **A** sur **Démarrer**, puis revenez au jeu. Tant que le jeu n'est pas revenu au premier plan, le banc d'essai affiche « En attente du jeu » ; il démarre dès que le jeu tourne de nouveau depuis 3 s, et abandonne au bout de 2 min. La limite change ensuite toute seule ; chaque palier attend 5 s avant de mesurer.
 
 <img src="images/fr/bench-running.png" alt="Banc d'essai en cours" width="720">
 

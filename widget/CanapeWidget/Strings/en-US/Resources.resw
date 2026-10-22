@@ -158,4 +158,8 @@
     <value>GPU {0}</value>
     <comment>Footer: GPU activity, {0} is a percentage</comment>
   </data>
+  <data name="BenchWaiting" xml:space="preserve">
+    <value>Waiting for the game</value>
+    <comment>Bench card: started from the shell, it waits for the game to come back to the front</comment>
+  </data>
 </root>

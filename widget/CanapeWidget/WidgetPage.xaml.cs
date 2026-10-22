@@ -461,7 +461,10 @@ namespace CanapeWidget
                 var step = Integer(bench, "step") ?? 0;
                 var steps = Math.Max(Integer(bench, "steps") ?? 1, 1);
                 var left = Math.Max(Integer(bench, "seconds_left") ?? 0, 0);
-                BenchStepText.Text = F("BenchStep", step, steps, F("FormatWatts", Integer(bench, "watts") ?? 0));
+                // Step 0: the bench waits for the game to come back to the front.
+                BenchStepText.Text = step == 0
+                    ? S("BenchWaiting")
+                    : F("BenchStep", step, steps, F("FormatWatts", Integer(bench, "watts") ?? 0));
                 BenchLeftText.Text = F("BenchLeft", string.Format(CultureInfo.InvariantCulture, "{0}:{1:00}", left / 60, left % 60));
                 // Completed steps: the current one counts once it is over.
                 BenchBar.Maximum = steps;
