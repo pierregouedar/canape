@@ -1,11 +1,12 @@
 //! The library page: games from `canape-library`, shown at once from the
 //! last scan's cache while a new scan runs in the background; covers
 //! decoded on a worker thread at the size they are shown, only for the
-//! rows on screen and around them.
+//! games on screen and around them.
 //!
-//! A second mode lists the games the user owns but has not installed (Steam
-//! through the Web API key in shell.json, Epic through Legendary); A
-//! installs them without opening the store's launcher.
+//! A second shelf lists the games the user owns but has not installed
+//! (Steam through the Web API key in shell.json, Epic through Legendary); A
+//! installs them without opening the store's launcher. One shelf at a time
+//! holds the model and its covers; the other only shows its first titles.
 //!
 //! Everything here runs on the UI thread except the scan, the decoding,
 //! the launch, the owned lists and the installs, which post their results
@@ -23,13 +24,14 @@ use std::time::{Duration, Instant};
 
 use canape_library::cache::{self, Recent};
 use canape_library::install::{self, Event, Install, Tools};
-use canape_library::{Game, Launch, Played, Roots, Sort, Source, online, tools};
+use canape_library::{Game, Launch, Played, Roots, Sort, online, tools};
 use slint::{
-    ComponentHandle, Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, Timer, TimerMode,
-    VecModel, Weak,
+    ComponentHandle, Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, SharedString, Timer,
+    TimerMode, VecModel, Weak,
 };
 
-use crate::grid::{self, Move};
+use crate::backdrop;
+use crate::grid;
 use crate::{AppWindow, GameView, Library};
 
 /// How long "Launching…" shows: the game's window usually covers the shell
@@ -43,6 +45,8 @@ const RESCAN_AFTER: Duration = Duration::from_secs(60);
 const ERROR_SHOWN: Duration = Duration::from_secs(10);
 /// The owned lists are asked for again after this.
 const OWNED_REFRESH: Duration = Duration::from_secs(10 * 60);
+/// Titles of the other shelf shown under the current one.
+const OTHER_SHOWN: usize = 5;
 
 /// The gamepad sends arrow keys (instead of Tab / Shift+Tab) while the
 /// library has the focus: the grid moves in two dimensions.
@@ -90,8 +94,6 @@ struct State {
     /// The games shown, in model order.
     shown: Vec<Game>,
     model: Rc<VecModel<GameView>>,
-    filter: Option<Source>,
-    sort: Sort,
     recent: Recent,
     view: Option<View>,
     /// Ids whose cover is in the model.
@@ -127,6 +129,10 @@ struct State {
     tools_dir: PathBuf,
     /// Clears the install or store error after a while.
     error_timer: Timer,
+    /// Colour of each decoded cover, for the backdrop.
+    tints: HashMap<String, [u8; 3]>,
+    /// Game whose colour the backdrop shows, and that colour.
+    backdrop: Option<(String, [u8; 3])>,
 }
 
 thread_local! {
@@ -139,12 +145,6 @@ fn with_state(f: impl FnOnce(&mut State)) {
             f(state);
         }
     });
-}
-
-fn source_filter(index: i32) -> Option<Source> {
-    usize::try_from(index - 1)
-        .ok()
-        .and_then(|i| Source::ALL.get(i).copied())
 }
 
 fn played_index(game: &Game, now: u64, offset: i64) -> i32 {
@@ -180,16 +180,19 @@ fn roots(tools_dir: &Path) -> (Roots, bool) {
 
 impl State {
     fn rebuild(&mut self, keep: Option<String>) {
-        let source = if self.to_install {
-            canape_library::not_installed(&self.owned, &self.all)
+        let to_install = canape_library::not_installed(&self.owned, &self.all);
+        let (mut shown, mut other) = if self.to_install {
+            (to_install, self.all.clone())
         } else {
-            self.all.clone()
+            (self.all.clone(), to_install)
         };
-        let mut shown: Vec<Game> = source
-            .into_iter()
-            .filter(|g| self.filter.is_none_or(|s| g.source == s))
+        canape_library::sort(&mut shown, Sort::Recent);
+        canape_library::sort(&mut other, Sort::Recent);
+        let other_titles: Vec<SharedString> = other
+            .iter()
+            .take(OTHER_SHOWN)
+            .map(|g| g.title.as_str().into())
             .collect();
-        canape_library::sort(&mut shown, self.sort);
         let now = canape_library::now();
         let views: Vec<GameView> = shown
             .iter()
@@ -216,8 +219,11 @@ impl State {
             let library = ui.global::<Library>();
             library.set_total(self.all.len() as i32);
             library.set_selected(selected as i32);
+            library.set_other_count(other.len() as i32);
+            library.set_other_titles(ModelRc::new(VecModel::from(other_titles)));
         }
         self.refresh_covers();
+        self.show_backdrop();
     }
 
     fn selected_id(&self) -> Option<String> {
@@ -269,8 +275,32 @@ impl State {
         self.queued.retain(|id| wanted_ids.contains(id));
     }
 
-    fn cover_ready(&mut self, id: &str, image: Image) {
+    /// Tints the page with the selected game's colour.
+    fn show_backdrop(&mut self) {
+        let Some(id) = self.selected_id() else { return };
+        let color = self
+            .tints
+            .get(&id)
+            .copied()
+            .unwrap_or_else(|| backdrop::fallback(&id));
+        if self.backdrop.as_ref() == Some(&(id.clone(), color)) {
+            return;
+        }
+        let (pixels, width, height) = backdrop::render(color);
+        if let Some(ui) = self.ui.upgrade() {
+            let buffer = SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(&pixels, width, height);
+            ui.global::<Library>()
+                .set_backdrop(Image::from_rgba8(buffer));
+        }
+        self.backdrop = Some((id, color));
+    }
+
+    fn cover_ready(&mut self, id: &str, image: Image, tint: [u8; 3]) {
         self.queued.remove(id);
+        self.tints.insert(id.to_owned(), tint);
+        if self.backdrop.as_ref().is_some_and(|(shown, _)| shown == id) {
+            self.show_backdrop();
+        }
         // Scrolled away while it was decoded.
         if !self.wanted.lock().unwrap().contains(id) {
             return;
@@ -749,12 +779,13 @@ fn spawn_decoder(wanted: Arc<Mutex<HashSet<String>>>) -> Sender<Job> {
             match canape_library::cover::load(&job.path, job.width, job.height) {
                 Ok(rgb) => {
                     let id = job.id;
+                    let tint = backdrop::tint(&rgb.pixels);
                     let rgba = canape_library::cover::rounded(&rgb, job.radius);
                     let _ = slint::invoke_from_event_loop(move || {
                         let buffer = SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(
                             &rgba, rgb.width, rgb.height,
                         );
-                        with_state(|state| state.cover_ready(&id, Image::from_rgba8(buffer)));
+                        with_state(|state| state.cover_ready(&id, Image::from_rgba8(buffer), tint));
                     });
                 }
                 Err(err) => {
@@ -803,8 +834,6 @@ pub fn start(ui: &AppWindow) {
         all: canape_library::merge(cached, &recent.launched),
         shown: Vec::new(),
         model,
-        filter: None,
-        sort: Sort::Recent,
         recent,
         view: None,
         loaded: HashSet::new(),
@@ -829,24 +858,16 @@ pub fn start(ui: &AppWindow) {
         installing: HashMap::new(),
         tools_dir,
         error_timer: Timer::default(),
+        tints: HashMap::new(),
+        backdrop: None,
     };
     state.rebuild(None);
     state.scan();
+    // The shelf of games to install shows under the installed ones.
+    state.refresh_owned(false);
     state.show_accounts();
     STATE.with(|s| *s.borrow_mut() = Some(state));
 
-    library.on_grid_move(|index, count, cols, direction| {
-        let (Ok(index), Ok(count), Ok(cols)) = (
-            usize::try_from(index),
-            usize::try_from(count),
-            usize::try_from(cols),
-        ) else {
-            return -1;
-        };
-        Move::from_index(direction)
-            .and_then(|m| grid::step(index, count, cols, m))
-            .map_or(-1, |i| i as i32)
-    });
     library.on_view(|first_row, visible_rows, cols, width, height| {
         let view = View {
             first_row: first_row.max(0) as usize,
@@ -877,34 +898,7 @@ pub fn start(ui: &AppWindow) {
             with_state(|state| state.launch(index));
         }
     });
-    library.on_set_filter({
-        let ui = ui.as_weak();
-        move |index| {
-            with_state(|state| {
-                state.filter = source_filter(index);
-                state.rebuild(None);
-            });
-            if let Some(ui) = ui.upgrade() {
-                ui.global::<Library>().set_filter(index);
-            }
-        }
-    });
-    library.on_set_sort({
-        let ui = ui.as_weak();
-        move |index| {
-            with_state(|state| {
-                state.sort = if index == 1 {
-                    Sort::Title
-                } else {
-                    Sort::Recent
-                };
-                state.rebuild(None);
-            });
-            if let Some(ui) = ui.upgrade() {
-                ui.global::<Library>().set_sort(index);
-            }
-        }
-    });
+    library.on_select(|_| with_state(State::show_backdrop));
     library.on_set_mode({
         let ui = ui.as_weak();
         move |mode| {
@@ -932,20 +926,4 @@ pub fn start(ui: &AppWindow) {
             });
         }
     });
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn filter_indices_follow_the_bar() {
-        assert_eq!(source_filter(0), None);
-        assert_eq!(source_filter(1), Some(Source::Steam));
-        assert_eq!(source_filter(2), Some(Source::Epic));
-        assert_eq!(source_filter(3), Some(Source::Gog));
-        assert_eq!(source_filter(4), Some(Source::Xbox));
-        assert_eq!(source_filter(5), None);
-        assert_eq!(source_filter(-1), None);
-    }
 }

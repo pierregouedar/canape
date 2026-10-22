@@ -1,11 +1,12 @@
-// The game library, Canapé's landing page: the covers of the installed
-// games in a grid, the most recently played first. The D-pad moves in the
-// grid (the gamepad sends arrow keys while it has the focus, see nav.rs),
-// up from the first row reaches the filters, A launches. The games, their
-// covers and the launches come from library.rs.
+// The game library, Canapé's landing page: the selected game large, then
+// a shelf of covers, the most recently played first, and the games to
+// install peeking below. Left and right move along the shelf (the gamepad
+// sends arrow keys while it has the focus, see nav.rs), up and down swap
+// the shelves, A plays or installs. The games, their covers and the
+// launches come from library.rs.
 
 import { Theme } from "theme.slint";
-import { Logo } from "widgets.slint";
+import { PadGlyph } from "widgets.slint";
 
 export struct GameView {
     id: string,
@@ -26,25 +27,26 @@ export struct GameView {
 }
 
 export global Library {
-    // Shown games, filtered and sorted.
+    // Games of the shelf in front, the most recently played first.
     in property <[GameView]> games;
-    // Every game, whatever the filter.
+    // Every installed game.
     in property <int> total;
     in property <bool> scanning;
     // A cache or a finished scan has been loaded: an empty list means
     // there are no games.
     in property <bool> ready;
-    // 0 all, 1 Steam, 2 Epic, 3 GOG, 4 Xbox.
-    in property <int> filter;
-    // 0 last played first, 1 by name.
-    in property <int> sort;
     in-out property <int> selected;
     // Id of the game being launched, "" when none.
     in property <string> launching;
     // Title of a game that could not be launched, "" when none.
     in property <string> failed;
-    // 0 installed games, 1 owned games to install.
+    // Shelf in front: 0 installed games, 1 owned games to install.
     in property <int> mode;
+    // The other shelf, peeking below: its size and first titles.
+    in property <int> other-count;
+    in property <[string]> other-titles;
+    // A glow in the selected game's colour, stretched over the window.
+    in property <image> backdrop;
     // A Steam Web API key is set in shell.json.
     in property <bool> steam-key;
     // Signed-in Epic account (through Legendary), "" when none.
@@ -56,21 +58,18 @@ export global Library {
     // Last install or sign-in failure, "" when none.
     in property <string> install-error;
 
-    callback set-filter(int);
-    callback set-sort(int);
     callback set-mode(int);
     callback epic-login();
     callback launch(int);
-    // The grid shows `rows` rows from `first-row`, `cols` per row, with
-    // covers of this size in physical pixels.
+    // The game at this index was selected.
+    callback select(int);
+    // The shelf shows `count` games from `first`, with covers of this size
+    // in physical pixels.
     callback view(int, int, int, float, float);
-    // The grid or the filters gained (true) or lost the focus.
+    // The shelf gained (true) or lost the focus.
     callback focus-changed(bool);
     // The library page was shown (true) or left.
     callback shown(bool);
-    // Index after moving from `index` among `count` items, `cols` per row:
-    // direction 0 left, 1 right, 2 up, 3 down. -1 leaves the grid upward.
-    pure callback grid-move(int, int, int, int) -> int;
 
     public pure function played-text(played: int) -> string {
         if played == 1 {
@@ -92,57 +91,37 @@ export global Library {
     }
 }
 
-// The store a game comes from, as a word (no coloured dot).
-component SourceTag inherits Rectangle {
-    in property <string> text;
-    in property <bool> overlay;
-    height: 24px;
-    width: label.preferred-width + 16px;
-    border-radius: 6px;
-    background: root.overlay ? #0a0d14d0 : Theme.surface-high;
-    border-width: root.overlay ? 0 : 1px;
-    border-color: Theme.stroke;
-    label := Text {
-        text: root.text.to-uppercase();
-        color: Theme.text;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 1px;
-        horizontal-alignment: center;
-        vertical-alignment: center;
-    }
-}
-
-component CoverTile inherits Rectangle {
+// A cover on the shelf; the selected one is larger, fully opaque and
+// ringed.
+component Cover inherits Rectangle {
     in property <GameView> game;
+    in property <bool> selected;
     in property <bool> focused;
     in property <bool> launching;
-    in property <bool> show-source: true;
     callback clicked();
-    // Focused tiles grow into the gaps, keeping the 2:3 shape.
-    property <length> grow: root.focused ? 7px : 0;
-    animate grow { duration: 140ms; easing: ease-out; }
+    width: root.selected ? 128px : 116px;
+    height: root.selected ? 192px : 174px;
+    animate width, height { duration: 160ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
 
-    if root.focused: Rectangle {
-        x: -root.grow;
-        y: -root.grow * 1.5;
-        width: root.width + 2 * root.grow;
-        height: root.height + 3 * root.grow;
-        border-radius: 12px;
-        background: Theme.surface;
-        drop-shadow-blur: 22px;
-        drop-shadow-color: #000000c0;
-        drop-shadow-offset-y: 6px;
+    if root.selected && root.focused: Rectangle {
+        x: -6px;
+        y: -6px;
+        width: parent.width + 12px;
+        height: parent.height + 12px;
+        border-radius: 16px;
+        border-width: 3px;
+        border-color: Theme.focus;
+        drop-shadow-blur: 30px;
+        drop-shadow-color: #0000008c;
+        drop-shadow-offset-y: 18px;
     }
 
     card := Rectangle {
-        x: -root.grow;
-        y: -root.grow * 1.5;
-        width: root.width + 2 * root.grow;
-        height: root.height + 3 * root.grow;
         border-radius: 10px;
         clip: true;
-        background: root.game.art ? Theme.surface-high : Theme.accent.mix(Theme.surface, 0.28);
+        opacity: root.selected ? 1 : 0.62;
+        background: root.game.art ? Theme.surface-high : Theme.accent.mix(Theme.surface, 0.3);
+        animate opacity { duration: 160ms; }
 
         if root.game.art: Image {
             width: 100%;
@@ -151,95 +130,39 @@ component CoverTile inherits Rectangle {
             image-fit: fill;
         }
 
-        // No art: the title on an accent-tinted card.
-        if !root.game.art: VerticalLayout {
-            padding: 16px;
-            padding-bottom: 44px;
-            spacing: 12px;
-            alignment: center;
-            Rectangle {
-                height: 4px;
-                HorizontalLayout {
-                    alignment: center;
-                    Rectangle {
-                        width: 28px;
-                        border-radius: 2px;
-                        background: Theme.accent;
-                    }
-                }
-            }
-
-            Text {
-                text: root.game.title;
-                color: Theme.text;
-                font-size: card.width > 170px ? 22px : 19px;
-                font-weight: 800;
-                wrap: word-wrap;
-                overflow: elide;
-                horizontal-alignment: center;
-                max-height: card.height - 100px;
-            }
+        // No art: the title at the bottom of a tinted card.
+        if !root.game.art: Text {
+            x: 12px;
+            y: parent.height - self.height - 12px;
+            width: parent.width - 24px;
+            text: root.game.title;
+            color: Theme.text;
+            font-size: 15px;
+            font-weight: 700;
+            wrap: word-wrap;
+            max-height: parent.height - 24px;
+            overflow: elide;
         }
 
-        if root.show-source && root.game.progress < 0: SourceTag {
-            x: 8px;
-            y: parent.height - self.height - 8px;
-            text: root.game.source;
-            overlay: true;
-        }
-
-        // Install in progress: a bar and the percentage at the bottom.
+        // Install in progress: a bar along the bottom.
         if root.game.progress >= 0: Rectangle {
-            y: parent.height - self.height;
-            height: 64px;
-            background: #07090ed8;
-            VerticalLayout {
-                padding: 12px;
-                spacing: 8px;
-                Text {
-                    text: @tr("Installing… {} %", Math.round(root.game.progress * 100));
-                    color: Theme.text;
-                    font-size: Theme.font-small;
-                    font-weight: 700;
-                    horizontal-alignment: center;
-                }
-
-                Rectangle {
-                    height: 6px;
-                    border-radius: 3px;
-                    background: Theme.surface-high;
-                    Rectangle {
-                        x: 0;
-                        width: parent.width * root.game.progress;
-                        border-radius: 3px;
-                        background: Theme.accent;
-                    }
-                }
+            x: 10px;
+            y: parent.height - 16px;
+            width: parent.width - 20px;
+            height: 6px;
+            border-radius: 3px;
+            background: #000000a0;
+            Rectangle {
+                x: 0;
+                width: parent.width * root.game.progress;
+                border-radius: 3px;
+                background: Theme.accent;
             }
         }
 
         if root.launching: Rectangle {
-            background: #07090ec0;
-            Text {
-                text: @tr("Launching…");
-                color: Theme.text;
-                font-size: Theme.font-body;
-                font-weight: 700;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-            }
+            background: #0b0c0fb0;
         }
-    }
-
-    // Focus ring, outside the art.
-    if root.focused: Rectangle {
-        x: card.x - 4px;
-        y: card.y - 4px;
-        width: card.width + 8px;
-        height: card.height + 8px;
-        border-radius: 14px;
-        border-width: 3px;
-        border-color: Theme.focus;
     }
 
     TouchArea {
@@ -249,29 +172,32 @@ component CoverTile inherits Rectangle {
     }
 }
 
-// One choice of the filter bar. The bar handles the keys; this only draws.
-component BarItem inherits Rectangle {
+// The main action: white, with the A button.
+component PrimaryButton inherits Rectangle {
     in property <string> label;
-    in property <bool> selected;
-    in property <bool> cursor;
     callback clicked();
-    height: 40px;
-    min-width: 52px;
-    border-radius: 20px;
-    background: root.selected ? Theme.accent : root.cursor ? Theme.surface-focus : transparent;
-    border-width: root.cursor ? 3px : 0;
-    border-color: Theme.focus;
-    animate background { duration: 120ms; }
+    height: 48px;
+    width: text.preferred-width + 60px;
+    border-radius: 10px;
+    background: Theme.focus;
 
     HorizontalLayout {
         padding-left: 14px;
-        padding-right: 14px;
-        Text {
+        padding-right: 22px;
+        spacing: 10px;
+        VerticalLayout {
+            alignment: center;
+            PadGlyph {
+                text: "A";
+                ink: Theme.background;
+            }
+        }
+
+        text := Text {
             text: root.label;
-            color: root.selected ? Theme.accent-text : root.cursor ? Theme.text : Theme.dim;
-            font-size: Theme.font-small;
-            font-weight: root.selected ? 700 : 600;
-            horizontal-alignment: center;
+            color: Theme.background;
+            font-size: 16px;
+            font-weight: 600;
             vertical-alignment: center;
         }
     }
@@ -283,364 +209,191 @@ component BarItem inherits Rectangle {
     }
 }
 
-component BarGroup inherits Rectangle {
-    border-radius: 24px;
-    background: Theme.surface;
-    border-width: 1px;
-    border-color: Theme.stroke;
-    HorizontalLayout {
-        padding: 3px;
-        spacing: 2px;
-        @children
-    }
-}
-
-export component LibraryPage inherits VerticalLayout {
-    spacing: 12px;
+export component LibraryPage inherits Rectangle {
     property <GameView> current: Library.games[Library.selected];
     property <bool> has-games: Library.games.length > 0;
-    // Modes (0, 1), filters (2 to 6) and sort orders (7, 8) in one row.
-    property <int> cursor: Library.filter + 2;
-    property <[string]> modes: [@tr("Installed"), @tr("To install")];
-    property <[string]> filters: [@tr("All"), "Steam", "Epic", "GOG", "Xbox"];
-    property <[string]> sorts: [@tr("Recent"), @tr("A–Z")];
     property <bool> to-install: Library.mode == 1;
+    property <int> sel: Library.selected;
+    property <length> pitch: 132px;
+    // Scrolled so that two games stay visible before the selected one.
+    property <length> scroll: max(0, min((Library.selected - 2) * root.pitch, Library.games.length * root.pitch + 12px - root.width));
+    changed sel => {
+        Library.select(self.sel);
+    }
 
-    init => {
+    function report() {
+        Library.view(
+            Math.floor(root.scroll / root.pitch),
+            Math.ceil(root.width / root.pitch) + 1,
+            1,
+            128px / 1phx,
+            192px / 1phx);
+    }
+    function act() {
         if root.has-games {
-            grid.focus();
-        } else {
-            bar.focus();
+            Library.launch(Library.selected);
+        } else if root.to-install && !Library.epic-busy {
+            Library.epic-login();
         }
     }
-    // The first games arrive after the page opened (no cache yet).
-    changed has-games => {
-        if root.has-games && bar.has-focus {
-            grid.focus();
-        }
+    init => {
+        self.report();
+        Library.select(Library.selected);
+    }
+    changed width => {
+        self.report();
+    }
+    changed scroll => {
+        self.report();
     }
 
-    function activate(item: int) {
-        if item < 2 {
-            Library.set-mode(item);
-        } else if item < 7 {
-            Library.set-filter(item - 2);
-        } else {
-            Library.set-sort(item - 7);
+    fs := FocusScope {
+        init => {
+            self.focus();
         }
-    }
-
-    // The selected game, and the filters.
-    HorizontalLayout {
-        height: 64px;
-        spacing: 24px;
-
-        VerticalLayout {
-            horizontal-stretch: 1;
-            alignment: center;
-            spacing: 6px;
-            Text {
-                text: root.has-games ? root.current.title : @tr("Library");
-                color: Theme.text;
-                font-size: 28px;
-                font-weight: 800;
-                overflow: elide;
-            }
-
-            HorizontalLayout {
-                spacing: 12px;
-                alignment: start;
-                height: 24px;
-                if root.has-games: SourceTag {
-                    text: root.current.source;
-                }
-                Text {
-                    text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.has-games && Library.launching == root.current.id ? @tr("Launching…") : root.has-games && root.current.progress >= 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed: press A to install") : root.has-games ? Library.played-text(root.current.played) : Library.scanning ? @tr("Looking for games…") : "";
-                    color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Library.launching != "" && Library.launching == root.current.id ? Theme.accent-line : Theme.dim;
-                    font-size: Theme.font-small;
-                    font-weight: Library.launching != "" ? 700 : 400;
-                    vertical-alignment: center;
-                    overflow: elide;
-                }
-            }
-        }
-
-        bar := FocusScope {
-            focus-on-click: false;
-            key-pressed(event) => {
-                if event.text == Key.LeftArrow {
-                    root.cursor = max(0, root.cursor - 1);
-                    return accept;
-                }
-                if event.text == Key.RightArrow {
-                    root.cursor = min(8, root.cursor + 1);
-                    return accept;
-                }
-                if event.text == Key.Return || event.text == " " {
-                    root.activate(root.cursor);
-                    return accept;
-                }
-                // In the "to install" mode with no games, the grid holds
-                // the Epic sign-in button.
-                if event.text == Key.DownArrow && (root.has-games || root.to-install) {
-                    grid.focus();
-                    return accept;
-                }
-                return reject;
-            }
-            focus-gained(reason) => {
-                root.cursor = Library.filter + 2;
-                Library.focus-changed(true);
-            }
-            focus-lost(reason) => {
-                Library.focus-changed(false);
-            }
-
-            HorizontalLayout {
-                spacing: 12px;
-                VerticalLayout {
-                    alignment: center;
-                    BarGroup {
-                        for label[i] in root.modes: BarItem {
-                            label: label;
-                            selected: Library.mode == i;
-                            cursor: bar.has-focus && root.cursor == i;
-                            clicked => {
-                                root.cursor = i;
-                                root.activate(i);
-                            }
-                        }
-                    }
-                }
-
-                VerticalLayout {
-                    alignment: center;
-                    BarGroup {
-                        for label[i] in root.filters: BarItem {
-                            label: label;
-                            selected: Library.filter == i;
-                            cursor: bar.has-focus && root.cursor == i + 2;
-                            clicked => {
-                                root.cursor = i + 2;
-                                root.activate(i + 2);
-                            }
-                        }
-                    }
-                }
-
-                VerticalLayout {
-                    alignment: center;
-                    BarGroup {
-                        for label[i] in root.sorts: BarItem {
-                            label: label;
-                            selected: Library.sort == i;
-                            cursor: bar.has-focus && root.cursor == i + 7;
-                            clicked => {
-                                root.cursor = i + 7;
-                                root.activate(i + 7);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    grid := FocusScope {
-        vertical-stretch: 1;
-        focus-on-click: false;
-        property <int> cols: 6;
-        property <length> gap: 18px;
-        // Room around the tiles for the focused one to grow and its ring.
-        property <length> pad-x: 12px;
-        property <length> pad-y: 16px;
-        property <length> tile-w: (self.width - 2 * self.pad-x - (self.cols - 1) * self.gap) / self.cols;
-        property <length> tile-h: self.tile-w * 1.5;
-        property <length> row-h: self.tile-h + self.gap;
-        property <int> rows: Math.ceil(Library.games.length / self.cols);
-
-        function report() {
-            Library.view(
-                max(0, Math.floor((-flick.content-y) / self.row-h)),
-                Math.ceil(self.height / self.row-h) + 1,
-                self.cols,
-                self.tile-w / 1phx,
-                self.tile-h / 1phx);
-        }
-
-        // Keeps the selected row at the top, so the row after it peeks in.
-        function reveal() {
-            flick.content-y = -max(0, min(Math.floor(Library.selected / self.cols) * self.row-h, flick.content-height - flick.height));
-        }
-
-        function go(direction: int) {
-            if !root.has-games {
-                return;
-            }
-            let next = Library.grid-move(Library.selected, Library.games.length, self.cols, direction);
-            if next < 0 {
-                bar.focus();
-            } else {
-                Library.selected = next;
-                self.reveal();
-            }
-        }
-
         key-pressed(event) => {
             if event.text == Key.LeftArrow {
-                self.go(0);
+                Library.selected = max(0, Library.selected - 1);
                 return accept;
             }
             if event.text == Key.RightArrow {
-                self.go(1);
+                Library.selected = min(Library.games.length - 1, Library.selected + 1);
                 return accept;
             }
-            if event.text == Key.UpArrow {
-                self.go(2);
+            if event.text == Key.UpArrow || event.text == Key.DownArrow {
+                Library.set-mode(root.to-install ? 0 : 1);
                 return accept;
             }
-            if event.text == Key.DownArrow {
-                self.go(3);
-                return accept;
-            }
-            if (event.text == Key.Return || event.text == " ") && root.has-games {
-                Library.launch(Library.selected);
-                return accept;
-            }
-            if (event.text == Key.Return || event.text == " ") && root.to-install && !Library.epic-busy {
-                Library.epic-login();
-                return accept;
-            }
-            if event.text == Key.UpArrow && !root.has-games {
-                bar.focus();
+            if event.text == Key.Return || event.text == " " {
+                root.act();
                 return accept;
             }
             return reject;
         }
         focus-gained(reason) => {
             Library.focus-changed(true);
-            self.reveal();
         }
         focus-lost(reason) => {
             Library.focus-changed(false);
         }
-        init => {
-            self.report();
-        }
-        changed width => {
-            self.report();
-        }
-        changed height => {
-            self.report();
-        }
-        changed rows => {
-            self.report();
-            self.reveal();
+    }
+
+    // The selected game, or why there is none.
+    VerticalLayout {
+        x: 0;
+        y: 28px;
+        width: 640px;
+        height: 270px;
+        spacing: 14px;
+        alignment: start;
+
+        Text {
+            text: root.has-games ? root.current.source.to-uppercase() : root.to-install ? @tr("To install").to-uppercase() : "";
+            color: Theme.dim;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
         }
 
-        flick := Flickable {
-            width: parent.width;
-            height: parent.height;
-            content-height: max(self.height, 2 * grid.pad-y + grid.rows * grid.row-h - grid.gap);
-            animate content-y { duration: 220ms; easing: ease-out; }
-            changed content-y => {
-                grid.report();
-            }
+        Text {
+            text: root.has-games ? root.current.title : !root.to-install ? (!Library.ready ? @tr("Looking for games…") : @tr("No games found")) : Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
+            color: Theme.text;
+            font-size: 52px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            overflow: elide;
+        }
 
-            for game[i] in Library.games: CoverTile {
-                x: grid.pad-x + Math.mod(i, grid.cols) * (grid.tile-w + grid.gap);
-                y: grid.pad-y + Math.floor(i / grid.cols) * grid.row-h;
-                width: grid.tile-w;
-                height: grid.tile-h;
-                game: game;
-                focused: grid.has-focus && i == Library.selected;
-                launching: Library.launching == game.id;
-                show-source: Library.filter == 0;
+        Text {
+            text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : !root.has-games && root.to-install ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress >= 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
+            color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
+            font-size: 16px;
+            wrap: word-wrap;
+            max-height: 66px;
+            overflow: elide;
+        }
+
+        if root.has-games || root.to-install: HorizontalLayout {
+            padding-top: 10px;
+            alignment: start;
+            PrimaryButton {
+                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : @tr("Install");
                 clicked => {
-                    if grid.has-focus && Library.selected == i {
-                        Library.launch(i);
-                    } else {
-                        Library.selected = i;
-                        grid.focus();
-                    }
+                    root.act();
+                    fs.focus();
                 }
             }
         }
+    }
 
-        // Nothing to install, or no store set up: say how to add one.
-        if !root.has-games && root.to-install: VerticalLayout {
-            alignment: center;
-            spacing: 14px;
-            Text {
-                text: Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
-                color: Theme.text;
-                font-size: Theme.font-title;
-                font-weight: 700;
-                horizontal-alignment: center;
-            }
+    // The shelf in front.
+    Text {
+        x: 0;
+        y: 316px;
+        text: root.to-install ? @tr("To install · {}", Library.games.length) : @tr("Recent");
+        color: Theme.text.mix(Theme.dim, 0.6);
+        font-size: 14px;
+        font-weight: 600;
+    }
 
-            Text {
-                text: @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.");
-                color: Theme.dim;
-                font-size: Theme.font-body;
-                horizontal-alignment: center;
-                wrap: word-wrap;
-            }
-
-            HorizontalLayout {
-                alignment: center;
-                Rectangle {
-                    height: 50px;
-                    width: epic-label.preferred-width + 48px;
-                    border-radius: 25px;
-                    background: grid.has-focus ? Theme.accent : Theme.surface-high;
-                    border-width: grid.has-focus ? 3px : 1px;
-                    border-color: grid.has-focus ? Theme.focus : Theme.stroke;
-                    epic-label := Text {
-                        text: Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games");
-                        color: grid.has-focus ? Theme.accent-text : Theme.text;
-                        font-size: Theme.font-body;
-                        font-weight: 700;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-
-                    TouchArea {
-                        clicked => {
-                            if !Library.epic-busy {
-                                Library.epic-login();
-                            }
-                        }
-                    }
+    Rectangle {
+        x: 0;
+        y: 346px;
+        height: 200px;
+        width: parent.width + 48px;
+        for game[i] in Library.games: Cover {
+            x: i * root.pitch + (i > Library.selected ? 12px : 0) - root.scroll;
+            y: parent.height - self.height - 8px;
+            game: game;
+            selected: i == Library.selected;
+            focused: fs.has-focus;
+            launching: Library.launching == game.id;
+            visible: self.x > -root.pitch && self.x < parent.width;
+            animate x { duration: 160ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+            clicked => {
+                if Library.selected == i {
+                    Library.launch(i);
+                } else {
+                    Library.selected = i;
                 }
+                fs.focus();
             }
         }
+    }
 
-        // Nothing to show: say why.
-        if !root.has-games && !root.to-install: VerticalLayout {
-            alignment: center;
-            spacing: 14px;
-            HorizontalLayout {
-                alignment: center;
-                Logo {
-                    size: 64px;
-                }
-            }
-
-            Text {
-                text: !Library.ready ? @tr("Looking for games…") : Library.total == 0 ? @tr("No games found") : @tr("No games from this store");
-                color: Theme.text;
-                font-size: Theme.font-title;
-                font-weight: 700;
-                horizontal-alignment: center;
-            }
-
-            if Library.ready && Library.total == 0: Text {
-                text: @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.");
-                color: Theme.dim;
-                font-size: Theme.font-body;
-                horizontal-alignment: center;
-                wrap: word-wrap;
+    // The other shelf, peeking in at the bottom.
+    if Library.other-count > 0: Text {
+        x: 0;
+        y: 556px;
+        text: root.to-install ? @tr("Recent") : @tr("To install · {}", Library.other-count);
+        color: Theme.dim;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    for title[i] in Library.other-titles: Rectangle {
+        x: i * root.pitch;
+        y: 584px;
+        width: 116px;
+        height: 100px;
+        border-radius: 8px;
+        background: Theme.surface-high;
+        opacity: 0.5;
+        Text {
+            x: 10px;
+            y: 10px;
+            width: parent.width - 20px;
+            text: title;
+            color: Theme.text;
+            font-size: 12px;
+            font-weight: 600;
+            wrap: word-wrap;
+            max-height: parent.height - 20px;
+            overflow: elide;
+        }
+        TouchArea {
+            clicked => {
+                Library.set-mode(root.to-install ? 0 : 1);
+                fs.focus();
             }
         }
     }

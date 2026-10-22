@@ -45,24 +45,22 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 |---|---|---|
 | [`fr/library.png`](images/fr/library.png) | Bibliothèque (jeux inventés) | Français |
 | [`fr/library-install.png`](images/fr/library-install.png) | Bibliothèque, jeux à installer (installation simulée) | Français |
-| [`fr/home.png`](images/fr/home.png) | Accueil | Français |
 | [`fr/performance.png`](images/fr/performance.png) | Performance | Français |
 | [`fr/hardware.png`](images/fr/hardware.png) | Matériel | Français |
 | [`fr/profiles.png`](images/fr/profiles.png) | Profils | Français |
 | [`fr/bench-results.png`](images/fr/bench-results.png) | Banc d'essai (résultats) | Français |
 | [`fr/bench-running.png`](images/fr/bench-running.png) | Banc d'essai en cours | Français |
-| [`fr/settings.png`](images/fr/settings.png) | Réglages (couleur d'accent, installation des jeux) | Français |
+| [`fr/settings.png`](images/fr/settings.png) | Réglages (langue, boutons de l'Ally, jaquettes, compte Epic, couleur d'accent) | Français |
 | [`en/library.png`](images/en/library.png) | Library (made-up games) | English |
 | [`en/library-install.png`](images/en/library-install.png) | Library, games to install (simulated install) | English |
-| [`en/home.png`](images/en/home.png) | Home | English |
 | [`en/performance.png`](images/en/performance.png) | Performance | English |
 | [`en/hardware.png`](images/en/hardware.png) | Hardware | English |
 | [`en/profiles.png`](images/en/profiles.png) | Profiles | English |
 | [`en/bench-results.png`](images/en/bench-results.png) | Bench (results) | English |
 | [`en/bench-running.png`](images/en/bench-running.png) | Bench running | English |
-| [`en/settings.png`](images/en/settings.png) | Settings (accent colour, installing games) | English |
-| [`ja/home.png`](images/ja/home.png) | ホーム | 日本語 |
+| [`en/settings.png`](images/en/settings.png) | Settings (language, Ally buttons, covers, Epic account, accent colour) | English |
+| [`ja/library.png`](images/ja/library.png) | ゲーム | 日本語 |
 | [`ru/performance.png`](images/ru/performance.png) | Производительность | Русский |
 | [`de/settings.png`](images/de/settings.png) | Einstellungen | Deutsch |
-| [`accent-teal.png`](images/accent-teal.png) | Home, accent sarcelle · teal accent | English |
-| [`accent-amber.png`](images/accent-amber.png) | Home, accent ambre · amber accent | English |
+| [`accent-teal.png`](images/accent-teal.png) | Performance, accent sarcelle · teal accent | English |
+| [`accent-amber.png`](images/accent-amber.png) | Performance, accent orange · orange accent | English |

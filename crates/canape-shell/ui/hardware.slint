@@ -1,379 +1,342 @@
-// Hardware page: fan curves, the driver's frame rate cap, the controller
-// mode, and saving the first two in the game's profile.
+// Hardware page: rows the D-pad moves through, as on the performance page.
+// Left and right move along a row of tiles or change the row's value; A
+// picks a tile; X saves the fans and the frame rate cap for the game in
+// the foreground:
+//   0 fan presets, 1 frame rate cap, 2 controller mode, 3 refresh rate.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
-import { Caption, Card, Chip, Tile } from "widgets.slint";
-
-// A label over a large value.
-component Figure inherits VerticalLayout {
-    in property <string> label;
-    in property <string> value;
-    spacing: 2px;
-    Text {
-        text: root.label;
-        color: Theme.dim;
-        font-size: Theme.font-small;
-        overflow: elide;
-    }
-
-    Text {
-        text: root.value;
-        color: Theme.text;
-        font-size: 20px;
-        font-weight: 700;
-        overflow: elide;
-    }
-}
+import { ChoiceTile, Figure, IconTile, LegendKey, Row, Ruler, SectionTitle } from "kit.slint";
 
 // The CPU fan's custom curve: duty (0 to 100 %) against temperature
 // (20 to 110 °C), from hardware.rs.
-component CurvePanel inherits Rectangle {
+component Curve inherits Rectangle {
     in property <string> line;
     in property <string> area;
-    border-radius: Theme.radius-small;
-    background: Theme.surface-high;
+    clip: true;
 
-    VerticalLayout {
-        padding: 12px;
-        spacing: 4px;
-        Rectangle {
-            vertical-stretch: 1;
-            clip: true;
-            for level in [0, 0.5]: Rectangle {
-                y: parent.height * level;
-                height: 1px;
-                background: Theme.stroke.with-alpha(0.6);
-            }
-            Rectangle {
-                y: parent.height - 1px;
-                height: 1px;
-                background: Theme.stroke;
-            }
+    Rectangle {
+        y: parent.height / 2;
+        height: 1px;
+        background: Theme.stroke.with-alpha(0.45);
+    }
 
-            if root.area != "": Path {
-                width: 100%;
-                height: 100%;
-                viewbox-width: 90;
-                viewbox-height: 100;
-                fit: fill;
-                commands: root.area;
-                fill: Theme.accent-line.with-alpha(0.24);
-                stroke: transparent;
-                stroke-width: 2px;
-            }
-            if root.line != "": Path {
-                width: 100%;
-                height: 100%;
-                viewbox-width: 90;
-                viewbox-height: 100;
-                fit: fill;
-                commands: root.line;
-                stroke: Theme.accent-line;
-                stroke-width: 3px;
-                stroke-line-join: round;
-            }
-            if root.line == "": Text {
-                width: parent.width;
-                height: parent.height;
-                text: @tr("The power mode's own curve");
-                color: Theme.dim;
-                font-size: Theme.font-small;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-                wrap: word-wrap;
-            }
+    Rectangle {
+        y: parent.height - 1px;
+        height: 1px;
+        background: Theme.stroke;
+    }
 
-            Text {
-                x: 4px;
-                y: 2px;
-                text: App.percent(100);
-                color: Theme.dim;
-                font-size: 13px;
-                font-weight: 600;
-            }
-        }
-
-        HorizontalLayout {
-            Text {
-                text: App.celsius(20);
-                color: Theme.dim;
-                font-size: 13px;
-            }
-
-            Text {
-                text: App.celsius(110);
-                color: Theme.dim;
-                font-size: 13px;
-                horizontal-alignment: right;
-            }
-        }
+    if root.area != "": Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 90;
+        viewbox-height: 100;
+        fit: fill;
+        commands: root.area;
+        fill: Theme.accent.with-alpha(0.16);
+        stroke: transparent;
+        stroke-width: 2px;
+    }
+    if root.line != "": Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 90;
+        viewbox-height: 100;
+        fit: fill;
+        commands: root.line;
+        stroke: Theme.accent;
+        stroke-width: 2.5px;
+        stroke-line-join: round;
+    }
+    if root.line == "": Text {
+        width: parent.width;
+        height: parent.height;
+        text: @tr("The power mode's own curve");
+        color: Theme.dim;
+        font-size: 13px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
     }
 }
 
-export component HardwarePage inherits VerticalLayout {
-    spacing: Theme.gap;
-    init => {
-        first.focus();
+export component HardwarePage inherits Rectangle {
+    in-out property <int> focus-row: 0;
+    in-out property <int> fan-col: root.fan-index >= 0 ? root.fan-index : 0;
+    in-out property <int> controller-col: root.controller-index >= 0 ? root.controller-index : 0;
+    in-out property <int> refresh-col: root.refresh-index >= 0 ? root.refresh-index : 0;
+    property <bool> active: fs.has-focus;
+    property <[string]> fan-presets: ["", "silent", "balanced", "max-cooling"];
+    property <int> fan-index: !App.status.connected ? -1 : App.status.fan-preset == "" ? 0 : App.status.fan-preset == "silent" ? 1 : App.status.fan-preset == "balanced" ? 2 : App.status.fan-preset == "max-cooling" ? 3 : -1;
+    property <[string]> controllers: ["gamepad", "wasd", "mouse"];
+    property <int> controller-index: App.status.controller == "gamepad" ? 0 : App.status.controller == "wasd" ? 1 : App.status.controller == "mouse" ? 2 : -1;
+    property <[int]> fps-stops: [0, 30, 40, 45, 60, 90, 120];
+    property <int> fps-index: App.status.fps-limit <= 0 ? 0 : App.status.fps-limit <= 30 ? 1 : App.status.fps-limit <= 40 ? 2 : App.status.fps-limit <= 45 ? 3 : App.status.fps-limit <= 60 ? 4 : App.status.fps-limit <= 90 ? 5 : 6;
+    property <int> refresh-index: root.index-of-refresh(App.refresh-hz);
+    property <int> rows: App.refresh-rates.length > 0 ? 4 : 3;
+
+    pure function index-of-refresh(hz: int) -> int {
+        // Past the end, an array reads as 0.
+        hz <= 0 ? -1 : hz == App.refresh-rates[0] ? 0 : hz == App.refresh-rates[1] ? 1 : hz == App.refresh-rates[2] ? 2 : hz == App.refresh-rates[3] ? 3 : hz == App.refresh-rates[4] ? 4 : hz == App.refresh-rates[5] ? 5 : -1
+    }
+    function side(d: int) {
+        if root.focus-row == 0 {
+            root.fan-col = clamp(root.fan-col + d, 0, 3);
+        } else if root.focus-row == 1 {
+            App.set-fps-limit(root.fps-stops[clamp(root.fps-index + d, 0, 6)]);
+        } else if root.focus-row == 2 {
+            root.controller-col = clamp(root.controller-col + d, 0, 2);
+        } else {
+            root.refresh-col = clamp(root.refresh-col + d, 0, App.refresh-rates.length - 1);
+        }
+    }
+    function activate() {
+        if root.focus-row == 0 {
+            App.set-fan-preset(root.fan-presets[root.fan-col]);
+        } else if root.focus-row == 2 {
+            App.set-controller(root.controllers[root.controller-col]);
+        } else if root.focus-row == 3 {
+            App.set-refresh(App.refresh-rates[root.refresh-col]);
+        }
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        key-pressed(event) => {
+            if event.text == Key.UpArrow {
+                root.focus-row = max(0, root.focus-row - 1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.focus-row = min(root.rows - 1, root.focus-row + 1);
+                return accept;
+            }
+            if !App.status.connected && root.focus-row != 3 {
+                return reject;
+            }
+            if event.text == Key.LeftArrow {
+                root.side(-1);
+                return accept;
+            }
+            if event.text == Key.RightArrow {
+                root.side(1);
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                root.activate();
+                return accept;
+            }
+            // X: keep the fans and the frame rate cap for this game.
+            if (event.text == Key.F2 || event.text == "x") && App.status.foreground != "" {
+                App.save-hardware-profile();
+                return accept;
+            }
+            return reject;
+        }
     }
 
     HorizontalLayout {
-        spacing: Theme.gap;
-        vertical-stretch: 1;
-        Card {
-            title: @tr("Fans");
-            horizontal-stretch: 3;
-            // The stretch alone shares the row.
-            preferred-width: 10px;
-            HorizontalLayout {
-                spacing: 20px;
-                vertical-stretch: 1;
+        width: parent.width;
+        height: parent.height;
+        spacing: 40px;
+
+        VerticalLayout {
+            width: 784px;
+            spacing: 10px;
+
+            Row {
+                focused: root.active && root.focus-row == 0;
+                enabled: App.status.connected;
                 VerticalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-top: 14px;
+                    padding-bottom: 14px;
                     spacing: 12px;
-                    horizontal-stretch: 1;
                     HorizontalLayout {
-                        spacing: 12px;
-                        first := Tile {
-                            horizontal-stretch: 1;
-                            preferred-width: 10px;
-                            font-size: 18px;
-                            pad: 10px;
-                            label: @tr("Automatic");
-                            sub: @tr("Firmware curve");
-                            selected: App.status.connected && App.status.fan-preset == "";
-                            enabled: App.status.connected;
-                            clicked => {
-                                App.set-fan-preset("");
-                            }
+                        SectionTitle {
+                            text: @tr("Fans");
                         }
 
-                        Tile {
+                        Text {
                             horizontal-stretch: 1;
-                            preferred-width: 10px;
-                            font-size: 18px;
-                            pad: 10px;
-                            label: @tr("Silent");
-                            sub: @tr("Off while cool");
-                            selected: App.status.fan-preset == "silent";
-                            enabled: App.status.connected;
-                            clicked => {
-                                App.set-fan-preset("silent");
-                            }
+                            text: App.status.fan-preset == "custom" ? @tr("Custom curves set by another client.") : App.status.foreground != "" ? @tr("{} · game profile", App.status.foreground) : "";
+                            color: Theme.dim;
+                            font-size: 13px;
+                            horizontal-alignment: right;
+                            vertical-alignment: center;
+                            overflow: elide;
                         }
                     }
 
                     HorizontalLayout {
                         spacing: 12px;
-                        Tile {
+                        for icon[i] in ["cycle", "silent", "balanced", "wind"]: IconTile {
                             horizontal-stretch: 1;
                             preferred-width: 10px;
-                            font-size: 18px;
-                            pad: 10px;
-                            label: @tr("Balanced");
-                            sub: @tr("Steady");
-                            selected: App.status.fan-preset == "balanced";
-                            enabled: App.status.connected;
+                            icon: icon;
+                            label: i == 0 ? @tr("Automatic") : i == 1 ? @tr("Silent") : i == 2 ? @tr("Balanced") : @tr("Maximum");
+                            selected: root.fan-index == i;
+                            focused: root.active && root.focus-row == 0 && root.fan-col == i;
                             clicked => {
-                                App.set-fan-preset("balanced");
-                            }
-                        }
-
-                        Tile {
-                            horizontal-stretch: 1;
-                            preferred-width: 10px;
-                            font-size: 18px;
-                            pad: 10px;
-                            label: @tr("Maximum");
-                            sub: @tr("Loud, coolest");
-                            selected: App.status.fan-preset == "max-cooling";
-                            enabled: App.status.connected;
-                            clicked => {
-                                App.set-fan-preset("max-cooling");
+                                root.focus-row = 0;
+                                root.fan-col = i;
+                                root.activate();
+                                fs.focus();
                             }
                         }
                     }
-
-                    HorizontalLayout {
-                        spacing: 12px;
-                        Figure {
-                            horizontal-stretch: 1;
-                            label: @tr("CPU fan");
-                            value: App.known(App.status.cpu-rpm, @tr("{} rpm", App.status.cpu-rpm));
-                        }
-
-                        Figure {
-                            horizontal-stretch: 1;
-                            label: @tr("GPU fan");
-                            value: App.known(App.status.gpu-rpm, @tr("{} rpm", App.status.gpu-rpm));
-                        }
-
-                        Figure {
-                            horizontal-stretch: 1;
-                            label: @tr("CPU temperature");
-                            value: App.known(App.status.temp, App.celsius(App.status.temp));
-                        }
-                    }
-
-                    Rectangle {
-                        vertical-stretch: 1;
-                    }
-                }
-
-                CurvePanel {
-                    width: 180px;
-                    line: App.status.fan-line;
-                    area: App.status.fan-area;
                 }
             }
 
-            Text {
-                text: App.status.fan-preset == "custom" ? @tr("Custom curves set by another client.") : @tr("A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset.");
-                color: Theme.faint;
-                font-size: Theme.font-small;
-                wrap: word-wrap;
+            Row {
+                focused: root.active && root.focus-row == 1;
+                enabled: App.status.connected;
+                VerticalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-top: 14px;
+                    padding-bottom: 14px;
+                    spacing: 12px;
+                    SectionTitle {
+                        text: @tr("Frame rate limit");
+                    }
+
+                    Ruler {
+                        labels: [@tr("None"), App.fps-value(30), App.fps-value(40), App.fps-value(45), App.fps-value(60), App.fps-value(90), App.fps-value(120)];
+                        selected: App.status.connected ? root.fps-index : -1;
+                        fill: false;
+                        pick(i) => {
+                            root.focus-row = 1;
+                            App.set-fps-limit(root.fps-stops[i]);
+                            fs.focus();
+                        }
+                    }
+                }
+            }
+
+            Row {
+                focused: root.active && root.focus-row == 2;
+                enabled: App.status.connected;
+                VerticalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-top: 14px;
+                    padding-bottom: 14px;
+                    spacing: 12px;
+                    SectionTitle {
+                        text: @tr("Controller");
+                    }
+
+                    HorizontalLayout {
+                        spacing: 12px;
+                        for icon[i] in ["gamepad", "keyboard", "mouse"]: IconTile {
+                            horizontal-stretch: 1;
+                            preferred-width: 10px;
+                            height: 76px;
+                            icon: icon;
+                            label: i == 0 ? @tr("Gamepad") : i == 1 ? @tr("Keyboard") : @tr("Mouse");
+                            selected: root.controller-index == i;
+                            focused: root.active && root.focus-row == 2 && root.controller-col == i;
+                            clicked => {
+                                root.focus-row = 2;
+                                root.controller-col = i;
+                                root.activate();
+                                fs.focus();
+                            }
+                        }
+                    }
+                }
+            }
+
+            if App.refresh-rates.length > 0: Row {
+                focused: root.active && root.focus-row == 3;
+                HorizontalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-top: 12px;
+                    padding-bottom: 12px;
+                    spacing: 12px;
+                    SectionTitle {
+                        width: 150px;
+                        text: @tr("Screen");
+                        vertical-alignment: center;
+                    }
+
+                    for hz[i] in App.refresh-rates: ChoiceTile {
+                        horizontal-stretch: 1;
+                        preferred-width: 10px;
+                        label: @tr("{} Hz", hz);
+                        selected: App.refresh-hz == hz;
+                        focused: root.active && root.focus-row == 3 && root.refresh-col == i;
+                        clicked => {
+                            root.focus-row = 3;
+                            root.refresh-col = i;
+                            root.activate();
+                            fs.focus();
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
             }
         }
 
         VerticalLayout {
-            spacing: Theme.gap;
-            horizontal-stretch: 2;
-            preferred-width: 10px;
-            Card {
-                title: @tr("Frame rate limit");
-                vertical-stretch: 1;
-                Text {
-                    text: @tr("The graphics driver holds games below this rate: less heat, less noise, longer battery life.");
-                    color: Theme.dim;
-                    font-size: Theme.font-small;
-                    wrap: word-wrap;
+            padding-top: 12px;
+            spacing: 26px;
+            HorizontalLayout {
+                spacing: 20px;
+                Figure {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    label: @tr("CPU fan");
+                    value: App.known(App.status.cpu-rpm, App.status.cpu-rpm);
+                    unit: @tr("rpm");
+                    note: App.known(App.status.gpu-rpm, @tr("GPU {}", @tr("{} rpm", App.status.gpu-rpm)));
                 }
 
-                HorizontalLayout {
-                    spacing: 8px;
-                    alignment: start;
-                    for fps in [0, 30, 40, 45]: Chip {
-                        label: fps == 0 ? @tr("None") : fps;
-                        selected: App.status.connected && App.status.fps-limit == fps;
-                        enabled: App.status.connected;
-                        clicked => {
-                            App.set-fps-limit(fps);
-                        }
-                    }
-                }
-
-                HorizontalLayout {
-                    spacing: 8px;
-                    alignment: start;
-                    for fps in [60, 90, 120]: Chip {
-                        label: fps;
-                        selected: App.status.connected && App.status.fps-limit == fps;
-                        enabled: App.status.connected;
-                        clicked => {
-                            App.set-fps-limit(fps);
-                        }
-                    }
+                Figure {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    label: @tr("CPU temperature");
+                    value: App.known(App.status.temp, App.status.temp);
+                    unit: "°C";
+                    note: App.status.temp-limit > 0 ? @tr("limit {}", App.celsius(App.status.temp-limit)) : " ";
                 }
             }
 
-            Card {
+            VerticalLayout {
+                spacing: 10px;
+                Curve {
+                    height: 140px;
+                    line: App.status.fan-line;
+                    area: App.status.fan-area;
+                }
+
                 HorizontalLayout {
-                    spacing: 12px;
-                    Caption {
-                        text: @tr("This game");
-                        vertical-alignment: center;
+                    spacing: 18px;
+                    LegendKey {
+                        text: @tr("CPU fan");
+                        ink: Theme.accent;
                     }
 
                     Text {
                         horizontal-stretch: 1;
-                        text: App.status.foreground != "" ? App.status.foreground : @tr("No game in the foreground");
-                        color: App.status.foreground != "" ? Theme.text : Theme.dim;
-                        font-size: Theme.font-body;
-                        font-weight: 600;
+                        text: App.celsius(20) + " – " + App.celsius(110);
+                        color: Theme.dim;
+                        font-size: 13px;
                         horizontal-alignment: right;
-                        vertical-alignment: center;
-                        overflow: elide;
-                    }
-                }
-
-                Chip {
-                    label: @tr("Keep these settings for this game");
-                    font-size: Theme.font-small;
-                    enabled: App.status.connected && App.status.foreground != "";
-                    clicked => {
-                        App.save-hardware-profile();
-                    }
-                }
-            }
-        }
-    }
-
-    HorizontalLayout {
-        spacing: Theme.gap;
-        Card {
-            title: @tr("Controller");
-            horizontal-stretch: 3;
-            preferred-width: 10px;
-            HorizontalLayout {
-                spacing: 12px;
-                Tile {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    label: @tr("Gamepad");
-                    sub: @tr("For games");
-                    selected: App.status.controller == "gamepad";
-                    enabled: App.status.connected;
-                    clicked => {
-                        App.set-controller("gamepad");
-                    }
-                }
-
-                Tile {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    label: @tr("Keyboard");
-                    sub: @tr("Buttons send keys");
-                    selected: App.status.controller == "wasd";
-                    enabled: App.status.connected;
-                    clicked => {
-                        App.set-controller("wasd");
-                    }
-                }
-
-                Tile {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    label: @tr("Mouse");
-                    sub: @tr("Stick moves the pointer");
-                    selected: App.status.controller == "mouse";
-                    enabled: App.status.connected;
-                    clicked => {
-                        App.set-controller("mouse");
-                    }
-                }
-            }
-        }
-
-        Card {
-            title: @tr("Screen");
-            horizontal-stretch: 2;
-            preferred-width: 10px;
-            HorizontalLayout {
-                spacing: 8px;
-                alignment: start;
-                for hz in App.refresh-rates: Chip {
-                    label: @tr("{} Hz", hz);
-                    selected: App.refresh-hz == hz;
-                    clicked => {
-                        App.set-refresh(hz);
                     }
                 }
             }
 
-            Text {
-                text: App.refresh-rates.length == 0 ? @tr("Refresh rate unavailable on this screen.") : @tr("A lower rate saves battery in games capped at 30, 40 or 60 FPS.");
-                color: Theme.faint;
-                font-size: Theme.font-small;
-                wrap: word-wrap;
+            Rectangle {
+                vertical-stretch: 1;
             }
         }
     }

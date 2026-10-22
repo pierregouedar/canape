@@ -9,14 +9,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-msgid "Home"
-msgstr "主页"
-
 msgid "Performance"
 msgstr "性能"
-
-msgid "Profiles"
-msgstr "配置文件"
 
 msgid "Bench"
 msgstr "基准测试"
@@ -24,14 +18,8 @@ msgstr "基准测试"
 msgid "Settings"
 msgstr "设置"
 
-msgid "Select"
-msgstr "选择"
-
 msgid "Back"
 msgstr "返回"
-
-msgid "Change page"
-msgstr "切换页面"
 
 msgid "Service not connected: start canape-service."
 msgstr "服务未连接：请启动 canape-service。"
@@ -51,20 +39,8 @@ msgstr "{} 也在控制硬件。请关闭它以避免冲突。"
 msgid "Power limit"
 msgstr "功耗限制"
 
-msgid "Auto"
-msgstr "自动"
-
 msgid "Service not connected"
 msgstr "服务未连接"
-
-msgid "Auto TDP, target {} FPS"
-msgstr "自动 TDP，目标 {} FPS"
-
-msgid "Set by the firmware: {} mode"
-msgstr "由固件设定：{}模式"
-
-msgid "Manual TDP"
-msgstr "手动 TDP"
 
 msgid "Auto TDP"
 msgstr "自动 TDP"
@@ -72,41 +48,14 @@ msgstr "自动 TDP"
 msgid "Thermal limit reached"
 msgstr "已达温度上限"
 
-msgid "Bench running"
-msgstr "基准测试进行中"
-
 msgid "Frame rate"
 msgstr "帧率"
-
-msgid "GPU"
-msgstr "GPU"
 
 msgid "CPU temperature"
 msgstr "CPU 温度"
 
-msgid "Battery"
-msgstr "电池"
-
 msgid "On battery"
 msgstr "使用电池"
-
-msgid "Plugged in"
-msgstr "已接通电源"
-
-msgid "Now playing"
-msgstr "正在游戏"
-
-msgid "No game detected"
-msgstr "未检测到游戏"
-
-msgid "Profile in use: {}"
-msgstr "正在使用的配置文件：{}"
-
-msgid "No profile for this game: the global settings apply."
-msgstr "此游戏没有配置文件：使用通用设置。"
-
-msgid "Start a game: its profile applies by itself."
-msgstr "启动游戏后，其配置文件会自动应用。"
 
 msgid "On"
 msgstr "开"
@@ -114,17 +63,8 @@ msgstr "开"
 msgid "Off"
 msgstr "关"
 
-msgid "Firmware mode"
-msgstr "固件模式"
-
 msgid "Balanced"
 msgstr "均衡"
-
-msgid "Target frame rate"
-msgstr "目标帧率"
-
-msgid "Maximum on battery"
-msgstr "电池供电时上限"
 
 msgid "None"
 msgstr "无"
@@ -132,29 +72,11 @@ msgstr "无"
 msgid "Auto TDP off"
 msgstr "自动 TDP 已关闭"
 
-msgid "learned: {}"
-msgstr "学习值：{}"
-
 msgid "In use"
 msgstr "使用中"
 
-msgid "Confirm"
-msgstr "确认"
-
 msgid "Delete"
 msgstr "删除"
-
-msgid "Current game"
-msgstr "当前游戏"
-
-msgid "A profile is in use for this game."
-msgstr "此游戏正在使用配置文件。"
-
-msgid "This game has no profile yet."
-msgstr "此游戏还没有配置文件。"
-
-msgid "Settings saved with the profile"
-msgstr "将保存到配置文件的设置"
 
 msgid "Target"
 msgstr "目标"
@@ -162,32 +84,8 @@ msgstr "目标"
 msgid "Power"
 msgstr "功耗"
 
-msgid "Temperature limit"
-msgstr "温度上限"
-
-msgid "Update the profile"
-msgstr "更新配置文件"
-
-msgid "Save as profile"
-msgstr "保存为配置文件"
-
-msgid "Start a game first"
-msgstr "请先启动游戏"
-
-msgid "A profile applies by itself when its game comes to the front."
-msgstr "游戏切换到前台时，其配置文件会自动应用。"
-
 msgid "No profiles yet. Save one while a game is running, or from a bench result."
 msgstr "还没有配置文件。可在游戏运行时或从基准测试结果中保存。"
-
-msgid "Set as TDP"
-msgstr "设为 TDP"
-
-msgid "Save for the game"
-msgstr "保存到游戏"
-
-msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
-msgstr "让前台游戏在多个功耗限制下运行并逐一测量。请保持一个高负载场景。"
 
 msgid "Step"
 msgstr "步长"
@@ -246,35 +144,17 @@ msgstr "最高温度"
 msgid "Sweet spot"
 msgstr "最佳平衡点"
 
-msgid "Near the best frame rate: {} FPS"
-msgstr "接近最高帧率：{} FPS"
-
 msgid "For {} FPS"
 msgstr "{} FPS 所需"
 
-msgid "Lowest power holding the target: {} FPS"
-msgstr "达到目标的最低功耗：{} FPS"
-
-msgid "Target not reached in this run"
-msgstr "本次测试未达到目标"
-
 msgid "Most efficient"
 msgstr "能效最高"
-
-msgid "Most frames per watt: {} FPS"
-msgstr "每瓦帧数最多：{} FPS"
 
 msgid "Automatic"
 msgstr "自动"
 
 msgid "Language"
 msgstr "语言"
-
-msgid "Automatic follows the Windows display language."
-msgstr "“自动”跟随 Windows 显示语言。"
-
-msgid "Version {}"
-msgstr "版本 {}"
 
 
 msgid "Service connected"
@@ -325,34 +205,13 @@ msgstr "饱和度"
 msgid "Brightness"
 msgstr "亮度"
 
-msgid "Presets"
-msgstr "预设"
-
-msgid "Every page follows this colour, and so does the Game Bar widget."
-msgstr "所有页面和 Game Bar 小组件都会使用此颜色。"
-
-msgid "Press A on a slider to adjust it."
-msgstr "在滑块上按 A 即可调整。"
-
-msgid "Move with the D-pad or the stick, then press A to finish."
-msgstr "用十字键或摇杆调整，按 A 完成。"
-
 # Library page
-
-msgid "Library"
-msgstr "游戏库"
 
 msgid "Play"
 msgstr "开始游戏"
 
-msgid "All"
-msgstr "全部"
-
 msgid "Recent"
 msgstr "最近"
-
-msgid "A–Z"
-msgstr "按名称"
 
 msgid "Played today"
 msgstr "今天玩过"
@@ -381,9 +240,6 @@ msgstr "正在查找游戏…"
 msgid "No games found"
 msgstr "未找到游戏"
 
-msgid "No games from this store"
-msgstr "此商店没有游戏"
-
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé 会显示通过 Steam、Epic Games Launcher、GOG Galaxy 和 Xbox 应用安装的游戏。"
 
@@ -393,25 +249,11 @@ msgstr "硬件"
 msgid "Fans"
 msgstr "风扇"
 
-
-msgid "Off while cool"
-msgstr "低温时停转"
-
-msgid "Steady"
-msgstr "平稳"
-
-
-msgid "Loud, coolest"
-msgstr "噪音大，温度最低"
-
 msgid "CPU fan"
 msgstr "CPU 风扇"
 
 msgid "{} rpm"
 msgstr "{} 转/分"
-
-msgid "GPU fan"
-msgstr "GPU 风扇"
 
 msgid "The power mode's own curve"
 msgstr "电源模式自带的曲线"
@@ -419,14 +261,8 @@ msgstr "电源模式自带的曲线"
 msgid "Custom curves set by another client."
 msgstr "由其他客户端设置的自定义曲线。"
 
-msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
-msgstr "预设会替换固件的曲线；选择“自动”即可恢复。切换电源模式会保留预设。"
-
 msgid "Frame rate limit"
 msgstr "帧率限制"
-
-msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
-msgstr "显卡驱动会把游戏帧率限制在此值以下：发热更少、噪音更低、续航更长。"
 
 
 msgid "Controller"
@@ -435,30 +271,14 @@ msgstr "控制器"
 msgid "Gamepad"
 msgstr "手柄"
 
-msgid "For games"
-msgstr "用于游戏"
-
 msgid "Keyboard"
 msgstr "键盘"
-
-msgid "Buttons send keys"
-msgstr "按键发送键盘按键"
 
 msgid "Mouse"
 msgstr "鼠标"
 
-msgid "Stick moves the pointer"
-msgstr "摇杆移动指针"
-
-msgid "This game"
-msgstr "此游戏"
-
 msgid "No game in the foreground"
 msgstr "前台没有游戏"
-
-
-msgid "Firmware curve"
-msgstr "固件曲线"
 
 msgid "Maximum"
 msgstr "最大"
@@ -466,65 +286,20 @@ msgstr "最大"
 msgid "Download missing covers"
 msgstr "下载缺少的封面"
 
-msgid "Only the art already on this device is shown."
-msgstr "只显示设备上已有的图片。"
-
-msgid "From Steam and SteamGridDB."
-msgstr "来自 Steam 和 SteamGridDB。"
-
-msgid "From Steam. A SteamGridDB key adds the other stores."
-msgstr "来自 Steam。添加 SteamGridDB 密钥可支持其他商店。"
-
-msgid "Keep these settings for this game"
-msgstr "为此游戏保存这些设置"
-
 msgid "Screen"
 msgstr "屏幕"
 
 msgid "{} Hz"
 msgstr "{} Hz"
 
-msgid "Refresh rate unavailable on this screen."
-msgstr "此屏幕无法调整刷新率。"
-
-msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
-msgstr "在限制为 30、40 或 60 FPS 的游戏中，较低的刷新率更省电。"
-
 msgid "Use the Ally's buttons"
 msgstr "使用 Ally 按键"
-
-msgid "Armoury: back to Canapé. Command Center: Game Bar."
-msgstr "Armoury：返回 Canapé。Command Center：Game Bar。"
-
-msgid "Install games from Canapé"
-msgstr "从 Canapé 安装游戏"
-
-msgid "Steam: API key set."
-msgstr "Steam：已设置 API 密钥。"
-
-msgid "Steam: no API key in shell.json."
-msgstr "Steam：shell.json 中没有 API 密钥。"
-
-msgid "Epic: {}."
-msgstr "Epic：{}。"
-
-msgid "Epic: not signed in."
-msgstr "Epic：未登录。"
-
-msgid "Epic sign-in"
-msgstr "Epic 登录"
 
 msgid "Installing… {} %"
 msgstr "正在安装… {} %"
 
-msgid "Installed"
-msgstr "已安装"
-
 msgid "To install"
 msgstr "待安装"
-
-msgid "Not installed: press A to install"
-msgstr "未安装：按 A 安装"
 
 msgid "Looking for your games…"
 msgstr "正在查找你的游戏…"
@@ -559,12 +334,6 @@ msgstr "功率范围"
 msgid "Temperature"
 msgstr "温度"
 
-msgid "Update"
-msgstr "更新"
-
-msgid "Save"
-msgstr "保存"
-
 msgid "limit {}"
 msgstr "上限 {}"
 
@@ -573,3 +342,93 @@ msgstr "目标 {}"
 
 msgid "W"
 msgstr "W"
+
+msgid "1 min"
+msgstr "1 分钟"
+
+msgid "Canapé {}"
+msgstr "Canapé {}"
+
+msgid "Choose"
+msgstr "选择"
+
+msgid "Epic Games account"
+msgstr "Epic Games 账户"
+
+msgid "GPU {}"
+msgstr "GPU {}"
+
+msgid "Game profiles"
+msgstr "游戏配置"
+
+msgid "Games"
+msgstr "游戏"
+
+msgid "General"
+msgstr "常规"
+
+msgid "General settings"
+msgstr "全局设置"
+
+msgid "Installing…"
+msgstr "正在安装…"
+
+msgid "Limit"
+msgstr "上限"
+
+msgid "No Steam API key"
+msgstr "没有 Steam API 密钥"
+
+msgid "Not installed"
+msgstr "未安装"
+
+msgid "Press X again to delete"
+msgstr "再按一次 X 删除"
+
+msgid "Save a profile for {}"
+msgstr "为 {} 保存配置"
+
+msgid "Save for this game"
+msgstr "为此游戏保存"
+
+msgid "Sections"
+msgstr "分区"
+
+msgid "Setting"
+msgstr "设置"
+
+msgid "Sign in"
+msgstr "登录"
+
+msgid "Start · {}"
+msgstr "开始 · {}"
+
+msgid "Steam API key set"
+msgstr "已设置 Steam API 密钥"
+
+msgid "To install · {}"
+msgstr "待安装 · {}"
+
+msgid "Update the profile of {}"
+msgstr "更新 {} 的配置"
+
+msgid "Value"
+msgstr "值"
+
+msgid "rpm"
+msgstr "转/分"
+
+msgid "{} learned"
+msgstr "已学习 {}"
+
+msgid "{} max"
+msgstr "最高 {}"
+
+msgid "{} now"
+msgstr "当前 {}"
+
+msgid "{} now · {} learned"
+msgstr "当前 {} · 已学习 {}"
+
+msgid "{} · game profile"
+msgstr "{} · 游戏配置"

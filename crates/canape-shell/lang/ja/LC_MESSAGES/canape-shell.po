@@ -9,14 +9,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-msgid "Home"
-msgstr "ホーム"
-
 msgid "Performance"
 msgstr "パフォーマンス"
-
-msgid "Profiles"
-msgstr "プロファイル"
 
 msgid "Bench"
 msgstr "ベンチマーク"
@@ -24,14 +18,8 @@ msgstr "ベンチマーク"
 msgid "Settings"
 msgstr "設定"
 
-msgid "Select"
-msgstr "決定"
-
 msgid "Back"
 msgstr "戻る"
-
-msgid "Change page"
-msgstr "ページ切り替え"
 
 msgid "Service not connected: start canape-service."
 msgstr "サービスに接続されていません。canape-service を起動してください。"
@@ -51,20 +39,8 @@ msgstr "{} もハードウェアを制御しています。競合を避けるた
 msgid "Power limit"
 msgstr "電力制限"
 
-msgid "Auto"
-msgstr "自動"
-
 msgid "Service not connected"
 msgstr "サービス未接続"
-
-msgid "Auto TDP, target {} FPS"
-msgstr "自動 TDP、目標 {} FPS"
-
-msgid "Set by the firmware: {} mode"
-msgstr "ファームウェアが設定: {}モード"
-
-msgid "Manual TDP"
-msgstr "手動 TDP"
 
 msgid "Auto TDP"
 msgstr "自動 TDP"
@@ -72,41 +48,14 @@ msgstr "自動 TDP"
 msgid "Thermal limit reached"
 msgstr "温度制限に到達"
 
-msgid "Bench running"
-msgstr "ベンチマーク実行中"
-
 msgid "Frame rate"
 msgstr "フレームレート"
-
-msgid "GPU"
-msgstr "GPU"
 
 msgid "CPU temperature"
 msgstr "CPU 温度"
 
-msgid "Battery"
-msgstr "バッテリー"
-
 msgid "On battery"
 msgstr "バッテリー駆動"
-
-msgid "Plugged in"
-msgstr "電源接続中"
-
-msgid "Now playing"
-msgstr "プレイ中"
-
-msgid "No game detected"
-msgstr "ゲームが検出されていません"
-
-msgid "Profile in use: {}"
-msgstr "使用中のプロファイル: {}"
-
-msgid "No profile for this game: the global settings apply."
-msgstr "このゲームのプロファイルはありません。共通の設定が適用されます。"
-
-msgid "Start a game: its profile applies by itself."
-msgstr "ゲームを起動すると、そのプロファイルが自動で適用されます。"
 
 msgid "On"
 msgstr "オン"
@@ -114,17 +63,8 @@ msgstr "オン"
 msgid "Off"
 msgstr "オフ"
 
-msgid "Firmware mode"
-msgstr "ファームウェアモード"
-
 msgid "Balanced"
 msgstr "バランス"
-
-msgid "Target frame rate"
-msgstr "目標フレームレート"
-
-msgid "Maximum on battery"
-msgstr "バッテリー時の上限"
 
 msgid "None"
 msgstr "なし"
@@ -132,29 +72,11 @@ msgstr "なし"
 msgid "Auto TDP off"
 msgstr "自動 TDP オフ"
 
-msgid "learned: {}"
-msgstr "学習値: {}"
-
 msgid "In use"
 msgstr "使用中"
 
-msgid "Confirm"
-msgstr "確認"
-
 msgid "Delete"
 msgstr "削除"
-
-msgid "Current game"
-msgstr "現在のゲーム"
-
-msgid "A profile is in use for this game."
-msgstr "このゲームにはプロファイルが適用されています。"
-
-msgid "This game has no profile yet."
-msgstr "このゲームにはまだプロファイルがありません。"
-
-msgid "Settings saved with the profile"
-msgstr "プロファイルに保存される設定"
 
 msgid "Target"
 msgstr "目標"
@@ -162,32 +84,8 @@ msgstr "目標"
 msgid "Power"
 msgstr "電力"
 
-msgid "Temperature limit"
-msgstr "温度制限"
-
-msgid "Update the profile"
-msgstr "プロファイルを更新"
-
-msgid "Save as profile"
-msgstr "プロファイルとして保存"
-
-msgid "Start a game first"
-msgstr "先にゲームを起動してください"
-
-msgid "A profile applies by itself when its game comes to the front."
-msgstr "ゲームが前面に来ると、そのプロファイルが自動で適用されます。"
-
 msgid "No profiles yet. Save one while a game is running, or from a bench result."
 msgstr "プロファイルはまだありません。ゲーム中、またはベンチマーク結果から保存できます。"
-
-msgid "Set as TDP"
-msgstr "TDP に設定"
-
-msgid "Save for the game"
-msgstr "ゲーム用に保存"
-
-msgid "Plays the game in front at several power limits and measures each one. Leave a demanding scene running."
-msgstr "前面のゲームを複数の電力制限で動かし、それぞれを計測します。負荷の高い場面を表示したままにしてください。"
 
 msgid "Step"
 msgstr "刻み"
@@ -246,35 +144,17 @@ msgstr "最高温度"
 msgid "Sweet spot"
 msgstr "スイートスポット"
 
-msgid "Near the best frame rate: {} FPS"
-msgstr "最高に近いフレームレート: {} FPS"
-
 msgid "For {} FPS"
 msgstr "{} FPS 向け"
 
-msgid "Lowest power holding the target: {} FPS"
-msgstr "目標を保てる最小電力: {} FPS"
-
-msgid "Target not reached in this run"
-msgstr "今回の計測では目標に届きませんでした"
-
 msgid "Most efficient"
 msgstr "最高効率"
-
-msgid "Most frames per watt: {} FPS"
-msgstr "1 W あたり最多フレーム: {} FPS"
 
 msgid "Automatic"
 msgstr "自動"
 
 msgid "Language"
 msgstr "言語"
-
-msgid "Automatic follows the Windows display language."
-msgstr "「自動」は Windows の表示言語に従います。"
-
-msgid "Version {}"
-msgstr "バージョン {}"
 
 
 msgid "Service connected"
@@ -325,34 +205,13 @@ msgstr "彩度"
 msgid "Brightness"
 msgstr "明るさ"
 
-msgid "Presets"
-msgstr "プリセット"
-
-msgid "Every page follows this colour, and so does the Game Bar widget."
-msgstr "すべてのページと Game Bar ウィジェットがこの色になります。"
-
-msgid "Press A on a slider to adjust it."
-msgstr "スライダーで A を押すと調整できます。"
-
-msgid "Move with the D-pad or the stick, then press A to finish."
-msgstr "十字キーかスティックで調整し、A で確定します。"
-
 # Library page
-
-msgid "Library"
-msgstr "ライブラリ"
 
 msgid "Play"
 msgstr "プレイ"
 
-msgid "All"
-msgstr "すべて"
-
 msgid "Recent"
 msgstr "最近"
-
-msgid "A–Z"
-msgstr "名前順"
 
 msgid "Played today"
 msgstr "今日プレイ"
@@ -381,9 +240,6 @@ msgstr "ゲームを検索中…"
 msgid "No games found"
 msgstr "ゲームが見つかりません"
 
-msgid "No games from this store"
-msgstr "このストアのゲームはありません"
-
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé は Steam、Epic Games Launcher、GOG Galaxy、Xbox アプリでインストールしたゲームを表示します。"
 
@@ -393,25 +249,11 @@ msgstr "ハードウェア"
 msgid "Fans"
 msgstr "ファン"
 
-
-msgid "Off while cool"
-msgstr "低温時は停止"
-
-msgid "Steady"
-msgstr "安定"
-
-
-msgid "Loud, coolest"
-msgstr "うるさいが最も冷える"
-
 msgid "CPU fan"
 msgstr "CPU ファン"
 
 msgid "{} rpm"
 msgstr "{} rpm"
-
-msgid "GPU fan"
-msgstr "GPU ファン"
 
 msgid "The power mode's own curve"
 msgstr "電源モード固有のカーブ"
@@ -419,14 +261,8 @@ msgstr "電源モード固有のカーブ"
 msgid "Custom curves set by another client."
 msgstr "別のクライアントが設定したカスタムカーブです。"
 
-msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
-msgstr "プリセットはファームウェアのカーブを置き換えます。「自動」で元に戻ります。電源モードを変えてもプリセットは保持されます。"
-
 msgid "Frame rate limit"
 msgstr "フレームレート制限"
-
-msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
-msgstr "グラフィックスドライバーがゲームをこのフレームレート以下に抑えます。発熱と騒音が減り、バッテリーが長持ちします。"
 
 
 msgid "Controller"
@@ -435,30 +271,14 @@ msgstr "コントローラー"
 msgid "Gamepad"
 msgstr "ゲームパッド"
 
-msgid "For games"
-msgstr "ゲーム用"
-
 msgid "Keyboard"
 msgstr "キーボード"
-
-msgid "Buttons send keys"
-msgstr "ボタンでキー入力"
 
 msgid "Mouse"
 msgstr "マウス"
 
-msgid "Stick moves the pointer"
-msgstr "スティックでポインター操作"
-
-msgid "This game"
-msgstr "このゲーム"
-
 msgid "No game in the foreground"
 msgstr "前面のゲームはありません"
-
-
-msgid "Firmware curve"
-msgstr "ファームウェアのカーブ"
 
 msgid "Maximum"
 msgstr "最大"
@@ -466,65 +286,20 @@ msgstr "最大"
 msgid "Download missing covers"
 msgstr "足りないカバーをダウンロード"
 
-msgid "Only the art already on this device is shown."
-msgstr "この端末にある画像だけを表示します。"
-
-msgid "From Steam and SteamGridDB."
-msgstr "Steam と SteamGridDB から。"
-
-msgid "From Steam. A SteamGridDB key adds the other stores."
-msgstr "Steam から。SteamGridDB のキーがあれば他のストアにも対応します。"
-
-msgid "Keep these settings for this game"
-msgstr "この設定をこのゲームに保存"
-
 msgid "Screen"
 msgstr "画面"
 
 msgid "{} Hz"
 msgstr "{} Hz"
 
-msgid "Refresh rate unavailable on this screen."
-msgstr "この画面ではリフレッシュレートを変更できません。"
-
-msgid "A lower rate saves battery in games capped at 30, 40 or 60 FPS."
-msgstr "30・40・60 FPS に制限したゲームでは、低いレートでバッテリーを節約できます。"
-
 msgid "Use the Ally's buttons"
 msgstr "Ally のボタンを使う"
-
-msgid "Armoury: back to Canapé. Command Center: Game Bar."
-msgstr "Armoury：Canapé に戻る。Command Center：Game Bar。"
-
-msgid "Install games from Canapé"
-msgstr "Canapé からゲームをインストール"
-
-msgid "Steam: API key set."
-msgstr "Steam：API キー設定済み。"
-
-msgid "Steam: no API key in shell.json."
-msgstr "Steam：shell.json に API キーがありません。"
-
-msgid "Epic: {}."
-msgstr "Epic：{}。"
-
-msgid "Epic: not signed in."
-msgstr "Epic：未サインイン。"
-
-msgid "Epic sign-in"
-msgstr "Epic サインイン"
 
 msgid "Installing… {} %"
 msgstr "インストール中… {} %"
 
-msgid "Installed"
-msgstr "インストール済み"
-
 msgid "To install"
 msgstr "未インストール"
-
-msgid "Not installed: press A to install"
-msgstr "未インストール：A でインストール"
 
 msgid "Looking for your games…"
 msgstr "ゲームを検索中…"
@@ -559,12 +334,6 @@ msgstr "電力範囲"
 msgid "Temperature"
 msgstr "温度"
 
-msgid "Update"
-msgstr "更新"
-
-msgid "Save"
-msgstr "保存"
-
 msgid "limit {}"
 msgstr "上限 {}"
 
@@ -573,3 +342,93 @@ msgstr "目標 {}"
 
 msgid "W"
 msgstr "W"
+
+msgid "1 min"
+msgstr "1 分"
+
+msgid "Canapé {}"
+msgstr "Canapé {}"
+
+msgid "Choose"
+msgstr "選択"
+
+msgid "Epic Games account"
+msgstr "Epic Games アカウント"
+
+msgid "GPU {}"
+msgstr "GPU {}"
+
+msgid "Game profiles"
+msgstr "ゲームプロファイル"
+
+msgid "Games"
+msgstr "ゲーム"
+
+msgid "General"
+msgstr "一般"
+
+msgid "General settings"
+msgstr "全体設定"
+
+msgid "Installing…"
+msgstr "インストール中…"
+
+msgid "Limit"
+msgstr "上限"
+
+msgid "No Steam API key"
+msgstr "Steam API キーなし"
+
+msgid "Not installed"
+msgstr "未インストール"
+
+msgid "Press X again to delete"
+msgstr "もう一度 X を押すと削除"
+
+msgid "Save a profile for {}"
+msgstr "{} のプロファイルを保存"
+
+msgid "Save for this game"
+msgstr "このゲーム用に保存"
+
+msgid "Sections"
+msgstr "セクション"
+
+msgid "Setting"
+msgstr "設定"
+
+msgid "Sign in"
+msgstr "サインイン"
+
+msgid "Start · {}"
+msgstr "開始 · {}"
+
+msgid "Steam API key set"
+msgstr "Steam API キー設定済み"
+
+msgid "To install · {}"
+msgstr "インストール可能 · {}"
+
+msgid "Update the profile of {}"
+msgstr "{} のプロファイルを更新"
+
+msgid "Value"
+msgstr "値"
+
+msgid "rpm"
+msgstr "rpm"
+
+msgid "{} learned"
+msgstr "学習値 {}"
+
+msgid "{} max"
+msgstr "最大 {}"
+
+msgid "{} now"
+msgstr "現在 {}"
+
+msgid "{} now · {} learned"
+msgstr "現在 {} · 学習値 {}"
+
+msgid "{} · game profile"
+msgstr "{} · ゲームプロファイル"

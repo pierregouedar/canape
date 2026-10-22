@@ -10,7 +10,8 @@ use slint::{ComponentHandle, SharedString, Weak};
 use windows_sys::Win32::UI::Input::XboxController::{
     XINPUT_GAMEPAD_A, XINPUT_GAMEPAD_B, XINPUT_GAMEPAD_DPAD_DOWN, XINPUT_GAMEPAD_DPAD_LEFT,
     XINPUT_GAMEPAD_DPAD_RIGHT, XINPUT_GAMEPAD_DPAD_UP, XINPUT_GAMEPAD_LEFT_SHOULDER,
-    XINPUT_GAMEPAD_RIGHT_SHOULDER, XINPUT_STATE, XInputGetState,
+    XINPUT_GAMEPAD_RIGHT_SHOULDER, XINPUT_GAMEPAD_X, XINPUT_GAMEPAD_Y, XINPUT_STATE,
+    XInputGetState,
 };
 
 use crate::AppWindow;
@@ -40,6 +41,8 @@ fn read_pad() -> Option<Pad> {
                 right: pressed(XINPUT_GAMEPAD_DPAD_RIGHT) || (horizontal && x > STICK_THRESHOLD),
                 confirm: pressed(XINPUT_GAMEPAD_A),
                 back: pressed(XINPUT_GAMEPAD_B),
+                x: pressed(XINPUT_GAMEPAD_X),
+                y: pressed(XINPUT_GAMEPAD_Y),
                 page_prev: pressed(XINPUT_GAMEPAD_LEFT_SHOULDER),
                 page_next: pressed(XINPUT_GAMEPAD_RIGHT_SHOULDER),
             }

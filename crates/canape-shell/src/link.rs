@@ -12,7 +12,7 @@ use canape_core::{
     BenchReport, ControllerMode, PerformanceMode, Profile, Request, Response, Status, protocol,
 };
 use canape_ipc::Connection;
-use slint::{ComponentHandle, ModelRc, VecModel, Weak};
+use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
 
 use crate::history::History;
 use crate::report::{self, Recommendation};
@@ -323,6 +323,12 @@ fn show_status(ui: &Weak<AppWindow>, shared: &Shared, status: Option<Status>) {
     };
     let _ = ui.upgrade_in_event_loop(move |ui| {
         let app = ui.global::<App>();
+        let learned = app
+            .get_profiles()
+            .iter()
+            .find(|p| !view.active_profile.is_empty() && p.exe == view.active_profile)
+            .map_or(-1, |p| p.learned_watts);
+        app.set_learned_watts(learned);
         app.set_status(view);
         app.set_graphs(graphs);
     });

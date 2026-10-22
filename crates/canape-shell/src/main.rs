@@ -10,8 +10,10 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod accent;
+mod backdrop;
 #[cfg(windows)]
 mod buttons;
+mod clock;
 #[cfg(any(windows, test))]
 mod foreground;
 #[cfg(windows)]
@@ -103,11 +105,22 @@ fn main() -> Result<(), slint::PlatformError> {
         accent::show(&ui, color, None);
     }
     if let Ok(page) = std::env::var("CANAPE_PAGE") {
-        // Development aid: open a given page (0 = library, 1 = home).
+        // Development aid: open a given page (see AppWindow.page).
         ui.set_page(page.parse().unwrap_or(0));
     }
     library::set_shown(ui.get_page() == 0);
     library::start(&ui);
+
+    ui.global::<App>().set_clock(clock::now().into());
+    let clock_timer = Timer::default();
+    {
+        let ui = ui.as_weak();
+        clock_timer.start(TimerMode::Repeated, clock::REFRESH, move || {
+            if let Some(ui) = ui.upgrade() {
+                ui.global::<App>().set_clock(clock::now().into());
+            }
+        });
+    }
 
     let link = Link::start(ui.as_weak(), accent);
     connect(&ui, &link);

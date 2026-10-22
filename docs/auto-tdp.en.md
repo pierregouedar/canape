@@ -271,7 +271,7 @@ sequenceDiagram
     Note over Service: No profile: re-applies the remembered global state
 ```
 
-- **Detection**: the service, in session 0, cannot see windows. The shell tells it which program is in the foreground (see the [user guide](user-guide.en.md#profiles)). After reconnecting to the service, the shell sends the last known program again.
+- **Detection**: the service, in session 0, cannot see windows. The shell tells it which program is in the foreground (see the [user guide](user-guide.en.md#game-profiles)). After reconnecting to the service, the shell sends the last known program again.
 - **Activation**: when a game that has a profile comes to the foreground, the service remembers the global state (mode, TDP, auto TDP, fan curves, frame rate limit), then applies the profile's auto TDP starting from the learned watts. A profile whose auto TDP is off turns auto TDP off and keeps the current power. Then come the profile's fan curves and frame rate limit; what the profile does not set follows the global settings. Only what differs is written.
 - **While the profile is active**: changing the target or another auto TDP option changes **the profile**, not the global settings. Fans and the frame rate limit follow the same rule only if the profile has its own (each one separately); otherwise the change is global and stays after the game.
 - **End**: when the game leaves the foreground (another program, or the game is closed), the service re-applies the remembered global state, fans and frame rate limit included. So a mode or manual TDP picked while the profile was active only lasts as long as the game.
@@ -471,7 +471,7 @@ From the [M5 report](m5-report.md), with `m5-check` (steps of 6 W, 3 s settling,
 - **Temperature limit**: 85 °C leaves some margin. Power climbs again only once the temperature is 3 °C below it.
 - **Profiles**: save the profile after a session where auto TDP settled; the next one will start at the learned watts.
 - **Bench**: in a demanding, steady scene (not a menu or a cutscene), or with Unigine Heaven (see [Choosing a test load](#choosing-a-test-load)). Use 30 s per step for games whose frame rate varies a lot.
-- **Check the frame rate** on Home: if it stays at "—", auto TDP does nothing (see [troubleshooting](user-guide.en.md#common-problems)).
+- **Check the frame rate** at the top right of the screen (or on the Performance page): if it stays at "—", auto TDP does nothing (see [troubleshooting](user-guide.en.md#common-problems)).
 
 ## Known limits
 

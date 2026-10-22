@@ -43,19 +43,17 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 
 ### Captures
 
-| Bibliothèque : Steam, Epic, GOG et Xbox | Bibliothèque : jeux à installer |
+| Jeux : Steam, Epic, GOG et Xbox | Jeux : étagère À installer |
 |---|---|
-| <img src="docs/images/fr/library.png" alt="Bibliothèque" width="400"> | <img src="docs/images/fr/library-install.png" alt="Bibliothèque, jeux à installer" width="400"> |
-| **Accueil : consommation et limite, GPU** | **Performance : auto TDP et graphe** |
-| <img src="docs/images/fr/home.png" alt="Accueil" width="400"> | <img src="docs/images/fr/performance.png" alt="Performance" width="400"> |
-| **Matériel : ventilateurs, limite de FPS, manette** | **Profils par jeu** |
-| <img src="docs/images/fr/hardware.png" alt="Matériel" width="400"> | <img src="docs/images/fr/profiles.png" alt="Profils" width="400"> |
+| <img src="docs/images/fr/library.png" alt="Jeux" width="400"> | <img src="docs/images/fr/library-install.png" alt="Jeux, étagère À installer" width="400"> |
+| **Performance : auto TDP et graphe** | **Matériel : ventilateurs, limite de FPS, manette, écran** |
+| <img src="docs/images/fr/performance.png" alt="Performance" width="400"> | <img src="docs/images/fr/hardware.png" alt="Matériel" width="400"> |
+| **Réglages : langue, boutons, jaquettes, Epic, couleur d'accent** | **Profils de jeu** |
+| <img src="docs/images/fr/settings.png" alt="Réglages" width="400"> | <img src="docs/images/fr/profiles.png" alt="Profils de jeu" width="400"> |
 | **Banc d'essai : résultats et recommandations** | **Banc d'essai en cours** |
 | <img src="docs/images/fr/bench-results.png" alt="Résultats du banc d'essai" width="400"> | <img src="docs/images/fr/bench-running.png" alt="Banc d'essai en cours" width="400"> |
-| **Réglages : langue, couleur d'accent, installation des jeux, jaquettes** | |
-| <img src="docs/images/fr/settings.png" alt="Réglages" width="400"> | |
-| **Accent sarcelle** | **Accent ambre** |
-| <img src="docs/images/accent-teal.png" alt="Accueil avec l'accent sarcelle" width="400"> | <img src="docs/images/accent-amber.png" alt="Accueil avec l'accent ambre" width="400"> |
+| **Accent sarcelle** | **Accent orange** |
+| <img src="docs/images/accent-teal.png" alt="Performance avec l'accent sarcelle" width="400"> | <img src="docs/images/accent-amber.png" alt="Performance avec l'accent orange" width="400"> |
 
 <sub>Captures du shell rendues sous Linux avec le simulateur matériel (valeurs fictives). D'autres captures dans le [guide d'utilisation](docs/user-guide.fr.md).</sub>
 
@@ -82,7 +80,7 @@ Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas e
 | M2.5 | État persistant, journal des écritures, détection des conflits, rendu logiciel, XInput direct, CI | ✅ ([rapport](docs/m4-report.md)) |
 | M3 | Widget Game Bar relié au service ([rapport](docs/m3-report.md)) | ✅ première version · 🧪 nouvelle version 13 langues pas encore compilée |
 | M4 | Auto TDP réel : FPS et charge GPU via AMD ADL ([rapport](docs/m4-report.md)) | ✅ jusqu'à `99cad07` · 🧪 optimisations suivantes |
-| M5 | Profils par jeu, banc d'essai, shell 7 pages en 13 langues ([rapport, 1ʳᵉ partie](docs/m5-report.md)) | 🚧 shell, ventilateurs, manette, écran, boutons, bibliothèque et bench essayés sur l'Ally ; auto TDP corrigé · 🧪 installations, widget, limite de FPS corrigée |
+| M5 | Profils par jeu, banc d'essai, shell en 13 langues ([rapport, 1ʳᵉ partie](docs/m5-report.md)) | 🚧 shell, ventilateurs, manette, écran, boutons, bibliothèque et bench essayés sur l'Ally ; auto TDP corrigé · 🧪 installations, widget, limite de FPS corrigée |
 | M6 | Bibliothèque de jeux, installation des jeux Steam et Epic, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | ✅ bibliothèque (Steam, Xbox), ventilateurs, manette, fréquence de l'écran, boutons Armoury / Command Center, essayés sur l'Ally ([M5](docs/m5-report.md)) · 🧪 installation des jeux Steam et Epic, limite de FPS corrigée, fréquence par jeu · ⏳ installation des jeux GOG ([étude](docs/game-install-study.md)) |
 
 ### Organisation du dépôt
@@ -140,19 +138,17 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 
 ### Screenshots
 
-| Library: Steam, Epic, GOG and Xbox | Library: games to install |
+| Games: Steam, Epic, GOG and Xbox | Games: To install shelf |
 |---|---|
-| <img src="docs/images/en/library.png" alt="Library" width="400"> | <img src="docs/images/en/library-install.png" alt="Library, games to install" width="400"> |
-| **Home: power draw vs. limit, GPU** | **Performance: auto TDP and graph** |
-| <img src="docs/images/en/home.png" alt="Home" width="400"> | <img src="docs/images/en/performance.png" alt="Performance" width="400"> |
-| **Hardware: fans, frame rate limit, controller** | **Per-game profiles** |
-| <img src="docs/images/en/hardware.png" alt="Hardware" width="400"> | <img src="docs/images/en/profiles.png" alt="Profiles" width="400"> |
+| <img src="docs/images/en/library.png" alt="Games" width="400"> | <img src="docs/images/en/library-install.png" alt="Games, To install shelf" width="400"> |
+| **Performance: auto TDP and graph** | **Hardware: fans, frame rate limit, controller, screen** |
+| <img src="docs/images/en/performance.png" alt="Performance" width="400"> | <img src="docs/images/en/hardware.png" alt="Hardware" width="400"> |
+| **Settings: language, buttons, covers, Epic, accent colour** | **Game profiles** |
+| <img src="docs/images/en/settings.png" alt="Settings" width="400"> | <img src="docs/images/en/profiles.png" alt="Game profiles" width="400"> |
 | **Bench: results and recommendations** | **Bench running** |
 | <img src="docs/images/en/bench-results.png" alt="Bench results" width="400"> | <img src="docs/images/en/bench-running.png" alt="Bench running" width="400"> |
-| **Settings: language, accent colour, installing games, covers** | |
-| <img src="docs/images/en/settings.png" alt="Settings" width="400"> | |
-| **Teal accent** | **Amber accent** |
-| <img src="docs/images/accent-teal.png" alt="Home with the teal accent" width="400"> | <img src="docs/images/accent-amber.png" alt="Home with the amber accent" width="400"> |
+| **Teal accent** | **Orange accent** |
+| <img src="docs/images/accent-teal.png" alt="Performance with the teal accent" width="400"> | <img src="docs/images/accent-amber.png" alt="Performance with the orange accent" width="400"> |
 
 <sub>Shell screenshots rendered on Linux with the hardware simulator (made-up values). More in the [user guide](docs/user-guide.en.md).</sub>
 
@@ -179,7 +175,7 @@ Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, n
 | M2.5 | Persistent state, write log, conflict detection, software rendering, direct XInput, CI | ✅ ([report](docs/m4-report.md)) |
 | M3 | Game Bar widget talking to the service ([report](docs/m3-report.md)) | ✅ first version · 🧪 new 13-language version not built yet |
 | M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `99cad07` · 🧪 later optimizations |
-| M5 | Per-game profiles, bench, 7-page shell in 13 languages ([report, part 1](docs/m5-report.md)) | 🚧 shell, fans, controller, screen, buttons, library and bench tried on the Ally; auto TDP fixed · 🧪 installs, widget, fixed frame rate limit |
+| M5 | Per-game profiles, bench, shell in 13 languages ([report, part 1](docs/m5-report.md)) | 🚧 shell, fans, controller, screen, buttons, library and bench tried on the Ally; auto TDP fixed · 🧪 installs, widget, fixed frame rate limit |
 | M6 | Game library, installing Steam and Epic games, fans, frame rate limit, controller mode, display refresh rate, special buttons | ✅ library (Steam, Xbox), fans, controller, screen refresh rate, Armoury / Command Center buttons, tried on the Ally ([M5](docs/m5-report.md)) · 🧪 installing Steam and Epic games, fixed frame rate limit, per-game refresh rate · ⏳ installing GOG games ([study](docs/game-install-study.md), in French) |
 
 ### Repository map

@@ -133,6 +133,11 @@ export global App {
     in property <[int]> refresh-rates;
     // The Ally's own buttons act on Canapé (shell.json).
     in property <bool> ally-buttons;
+    // Time of day, "21:42".
+    in property <string> clock;
+    // Power the auto TDP learned for the game in the foreground, -1 when
+    // none.
+    in property <int> learned-watts: -1;
 
     callback set-mode(string);
     callback change-tdp(int);

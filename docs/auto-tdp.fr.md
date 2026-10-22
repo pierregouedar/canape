@@ -271,7 +271,7 @@ sequenceDiagram
     Note over Service: Pas de profil : réapplique l'état général mémorisé
 ```
 
-- **Détection** : le service, en session 0, ne voit pas les fenêtres. Le shell lui signale le programme au premier plan (voir le [guide d'utilisation](user-guide.fr.md#profils)). Après une reconnexion au service, le shell renvoie le dernier programme connu.
+- **Détection** : le service, en session 0, ne voit pas les fenêtres. Le shell lui signale le programme au premier plan (voir le [guide d'utilisation](user-guide.fr.md#profils-de-jeu)). Après une reconnexion au service, le shell renvoie le dernier programme connu.
 - **Activation** : quand un jeu qui a un profil arrive au premier plan, le service mémorise l'état général (mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS), puis applique l'auto TDP du profil en partant des watts appris. Un profil dont l'auto TDP est désactivé coupe l'auto TDP et garde la puissance actuelle. Viennent ensuite les courbes de ventilateurs et la limite de FPS du profil ; ce que le profil ne fixe pas suit les réglages généraux. Seul ce qui change est écrit.
 - **Pendant le profil** : changer l'objectif ou une autre option de l'auto TDP modifie **le profil**, pas les réglages généraux. Les ventilateurs et la limite de FPS suivent la même règle seulement si le profil a les siens (chacun séparément) ; sinon, le changement est général et reste après le jeu.
 - **Fin** : quand le jeu quitte le premier plan (autre programme, ou jeu fermé), le service réapplique l'état général mémorisé, ventilateurs et limite de FPS compris. Un mode ou un TDP manuel choisi pendant le profil ne dure donc que le temps du jeu.
@@ -471,7 +471,7 @@ D'après le [rapport M5](m5-report.md), avec `m5-check` (paliers de 6 W, 3 s de 
 - **Limite de température** : 85 °C laisse de la marge. La puissance ne remonte qu'une fois la température redescendue 3 °C sous la limite.
 - **Profils** : enregistrez le profil après une session où l'auto TDP s'est stabilisé ; la suivante démarrera aux watts appris.
 - **Banc d'essai** : dans une scène exigeante et stable (pas un menu ni une cinématique), ou avec Unigine Heaven (voir [Choisir une charge de test](#choisir-une-charge-de-test)). Prenez 30 s par palier pour les jeux dont les FPS varient beaucoup.
-- **Vérifiez les FPS** sur l'Accueil : s'ils restent à « — », l'auto TDP ne fait rien (voir le [dépannage](user-guide.fr.md#problèmes-courants)).
+- **Vérifiez les FPS** en haut à droite de l'écran (ou sur la page Performance) : s'ils restent à « — », l'auto TDP ne fait rien (voir le [dépannage](user-guide.fr.md#problèmes-courants)).
 
 ## Limites connues
 

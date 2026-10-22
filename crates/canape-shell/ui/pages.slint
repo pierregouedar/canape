@@ -1,1176 +1,362 @@
-// The pages after the library (library.slint), switched with LB / RB. Each page focuses its first control
-// when it opens, so the gamepad always has something to act on.
+// The two sub-pages: game profiles (from the settings) and the bench (from
+// the performance page). Both are lines the D-pad moves through, like the
+// settings page; B goes back.
 
 import { Theme } from "theme.slint";
-import { App, ProfileView, BenchRow, RecView } from "state.slint";
-import { Caption, Card, Chip, ColorSlider, Graph, Logo, Pressable, Stepper, Tile, WarnIcon } from "widgets.slint";
-import { Library } from "library.slint";
+import { App } from "state.slint";
+import { SectionTitle, SettingLine } from "kit.slint";
 
-component Title inherits Text {
-    color: Theme.text;
-    font-size: 30px;
-    font-weight: 700;
-    overflow: elide;
-}
-
-component Dim inherits Text {
-    color: Theme.dim;
-    font-size: Theme.font-body;
-    wrap: word-wrap;
-}
-
-component Warning inherits Rectangle {
-    in property <string> text;
-    height: 48px;
-    border-radius: Theme.radius-small;
-    background: Theme.warn-soft;
-    border-width: 1px;
-    border-color: Theme.warn.with-alpha(0.45);
-
-    HorizontalLayout {
-        padding-left: 14px;
-        padding-right: 16px;
-        spacing: 12px;
-        VerticalLayout {
-            alignment: center;
-            WarnIcon { }
-        }
-
-        Text {
-            text: root.text;
-            color: Theme.warn;
-            font-size: Theme.font-body;
-            vertical-alignment: center;
-            overflow: elide;
-        }
-    }
-}
-
-component Stat inherits Rectangle {
-    horizontal-stretch: 1;
-    // Same preferred width for all: the stretch alone shares the row.
-    preferred-width: 10px;
-    in property <string> label;
-    in property <string> value;
-    in property <color> value-color: Theme.text;
-    background: Theme.surface;
-    border-radius: Theme.radius;
-    border-width: 1px;
-    border-color: Theme.stroke;
-
-    VerticalLayout {
-        padding: 16px;
-        padding-left: 22px;
-        spacing: 0px;
-        alignment: center;
-        Caption {
-            text: root.label;
-        }
-
-        HorizontalLayout {
-            spacing: 12px;
-            Text {
-                text: root.value;
-                color: root.value-color;
-                font-size: 34px;
-                font-weight: 700;
-                vertical-alignment: center;
-                overflow: elide;
-            }
-
-            @children
-        }
-    }
-}
-
-// Short coloured stroke before a caption: the legend of a graph line.
-component LegendMark inherits Rectangle {
-    width: 18px;
-    height: 4px;
-    border-radius: 2px;
-}
-
-// A caption over a large number, aligned left or right.
-component Reading inherits VerticalLayout {
-    in property <string> label;
-    in property <string> value;
-    in property <length> size: 40px;
-    // Colour of the graph line this figure stands for, if any.
-    in property <color> mark: transparent;
-    in property <color> value-color: Theme.text;
-    in property <TextHorizontalAlignment> align: left;
-    spacing: 2px;
-    HorizontalLayout {
-        spacing: 8px;
-        alignment: root.align == TextHorizontalAlignment.right ? end : start;
-        if root.mark != transparent: VerticalLayout {
-            alignment: center;
-            LegendMark {
-                background: root.mark;
-            }
-        }
-        Caption {
-            text: root.label;
-            horizontal-alignment: root.align;
-        }
-    }
-
-    Text {
-        text: root.value;
-        color: root.value-color;
-        font-size: root.size;
-        font-weight: 800;
-        horizontal-alignment: root.align;
-        overflow: elide;
-    }
-}
-
-// A caption and a number on one line, for narrow panels.
-// A graph with its scale in the top left corner.
-component GraphPanel inherits Rectangle {
-    in property <string> line;
-    in property <string> area;
-    in property <string> reference;
-    in property <color> tint: Theme.accent-line;
-    in property <string> scale-label;
-    min-height: 60px;
-    vertical-stretch: 1;
-
-    Graph {
-        line: root.line;
-        area: root.area;
-        reference: root.reference;
-        tint: root.tint;
-    }
-
-    Text {
-        x: 6px;
-        y: 4px;
-        text: root.scale-label;
-        color: Theme.dim;
-        font-size: 13px;
-        font-weight: 600;
-    }
-}
-
-export component HomePage inherits VerticalLayout {
-    spacing: Theme.gap;
-    init => {
-        first.focus();
-    }
-
-    if App.status.conflicts != "": Warning {
-        text: @tr("Also driving the hardware: {}. Close it to avoid conflicts.", App.status.conflicts);
-    }
-
-    HorizontalLayout {
-        spacing: Theme.gap;
-        min-height: 230px;
-        vertical-stretch: 1;
-
-        // What the APU draws, against the limit Canapé set.
-        Rectangle {
-            horizontal-stretch: 7;
-            preferred-width: 10px;
-            border-radius: Theme.radius;
-            // Neutral: captions and numbers must read with any accent, even
-            // a dark one; the accent stays on the border and the graph.
-            background: Theme.surface;
-            border-width: 1px;
-            border-color: Theme.accent.with-alpha(0.45);
-
-            VerticalLayout {
-                padding: 22px;
-                padding-bottom: 18px;
-                spacing: 10px;
-
-                HorizontalLayout {
-                    spacing: 24px;
-                    Reading {
-                        label: @tr("Power draw");
-                        mark: Theme.accent-line;
-                        value: App.known(App.status.power-tenths, App.watts-tenths(App.status.power-tenths));
-                        size: 56px;
-                    }
-
-                    Reading {
-                        label: @tr("Power limit");
-                        mark: Theme.reference;
-                        value: !App.status.connected ? "—" : App.status.tdp >= 0 ? App.watts(App.status.tdp) : App.firmware-mode() ? @tr("Auto") : "—";
-                        size: 44px;
-                        align: right;
-                    }
-                }
-
-                HorizontalLayout {
-                    spacing: 16px;
-                    Text {
-                        horizontal-stretch: 1;
-                        text: !App.status.connected ? @tr("Service not connected") : App.status.auto-tdp ? @tr("Auto TDP, target {} FPS", App.status.target-fps) : App.firmware-mode() ? @tr("Set by the firmware: {} mode", App.mode-name(App.status.mode)) : @tr("Manual TDP");
-                        color: Theme.dim;
-                        font-size: Theme.font-body;
-                        overflow: elide;
-                    }
-
-                    if App.status.thermal-limited: Text {
-                        text: @tr("Thermal limit reached");
-                        color: Theme.warn;
-                        font-size: Theme.font-body;
-                        font-weight: 600;
-                    }
-                    if App.status.bench-running: Text {
-                        text: @tr("Bench running");
-                        color: Theme.accent-line;
-                        font-size: Theme.font-body;
-                        font-weight: 600;
-                    }
-                }
-
-                GraphPanel {
-                    line: App.graphs.power-line;
-                    area: App.graphs.power-area;
-                    reference: App.graphs.limit-line;
-                    scale-label: App.watts(App.graphs.power-scale);
-                }
-            }
-        }
-
-        VerticalLayout {
-            horizontal-stretch: 5;
-            preferred-width: 10px;
-            spacing: Theme.gap;
-
-            Card {
-                vertical-stretch: 1;
-                pad: 22px;
-                inner-spacing: 10px;
-                HorizontalLayout {
-                    spacing: 16px;
-                    Reading {
-                        label: @tr("GPU");
-                        mark: Theme.graph;
-                        value: App.known(App.status.gpu, App.percent(App.status.gpu));
-                    }
-
-                    Reading {
-                        label: @tr("Frame rate");
-                        value: App.known(App.status.fps, App.fps-value(App.status.fps));
-                        align: right;
-                    }
-                }
-
-                GraphPanel {
-                    line: App.graphs.gpu-line;
-                    area: App.graphs.gpu-area;
-                    tint: Theme.graph;
-                    scale-label: App.percent(100);
-                }
-            }
-
-            HorizontalLayout {
-                spacing: Theme.gap;
-                Stat {
-                    label: @tr("CPU temperature");
-                    value: App.known(App.status.temp, App.celsius(App.status.temp));
-                    value-color: App.status.temp >= 90 ? Theme.bad : App.status.temp >= 80 ? Theme.warn : Theme.text;
-                }
-
-                Stat {
-                    label: !App.status.connected || !App.status.power-known ? @tr("Battery") : App.status.on-battery ? @tr("On battery") : @tr("Plugged in");
-                    value: App.known(App.status.battery, App.percent(App.status.battery));
-                    value-color: App.status.connected && App.status.battery >= 0 && App.status.battery <= 20 && App.status.on-battery ? Theme.bad : Theme.text;
-                }
-            }
-        }
-    }
-
-    Card {
-        title: @tr("Now playing");
-        pad: 16px;
-        inner-spacing: 2px;
-        HorizontalLayout {
-            spacing: Theme.gap;
-            Text {
-                text: App.status.foreground != "" ? App.status.foreground : @tr("No game detected");
-                color: App.status.foreground != "" ? Theme.text : Theme.dim;
-                font-size: 26px;
-                font-weight: 700;
-                overflow: elide;
-                vertical-alignment: center;
-            }
-
-            Text {
-                horizontal-stretch: 1;
-                text: App.status.active-profile != "" ? @tr("Profile in use: {}", App.status.active-profile) : App.status.foreground != "" ? @tr("No profile for this game: the global settings apply.") : @tr("Start a game: its profile applies by itself.");
-                color: App.status.active-profile != "" ? Theme.accent-line : Theme.dim;
-                font-size: Theme.font-body;
-                font-weight: App.status.active-profile != "" ? 600 : 400;
-                horizontal-alignment: right;
-                vertical-alignment: center;
-                overflow: elide;
-            }
-        }
-    }
-
-    HorizontalLayout {
-        spacing: Theme.gap;
-        height: 80px;
-        first := Tile {
-            label: @tr("Auto TDP");
-            sub: App.status.auto-tdp ? @tr("On") : @tr("Off");
-            selected: App.status.auto-tdp;
-            enabled: App.status.connected;
-            clicked => {
-                App.toggle-auto-tdp();
-            }
-        }
-
-        for mode in ["silent", "performance", "turbo"]: Tile {
-            label: App.mode-name(mode);
-            sub: @tr("Firmware mode");
-            selected: App.status.mode == mode;
-            enabled: App.status.connected;
-            clicked => {
-                App.set-mode(mode);
-            }
-        }
-    }
-}
-
-component Setting inherits Rectangle {
-    in property <string> label;
-    in property <string> value;
-    horizontal-stretch: 1;
-    preferred-width: 10px;
-    border-radius: Theme.radius-small;
-    background: Theme.surface-high;
-    VerticalLayout {
-        padding: 12px;
-        padding-left: 16px;
-        spacing: 2px;
-        Text {
-            text: root.label;
-            color: Theme.dim;
-            font-size: Theme.font-small;
-            overflow: elide;
-        }
-
-        Text {
-            text: App.status.connected ? root.value : "—";
-            color: Theme.text;
-            font-size: 22px;
-            font-weight: 700;
-            overflow: elide;
-        }
-    }
-}
-
-component ProfileRow inherits Rectangle {
-    in property <ProfileView> profile;
-    in property <bool> active;
-    property <bool> armed;
-    callback focus-gained();
-    height: 76px;
-    border-radius: Theme.radius-small;
-    background: root.active ? Theme.accent-soft : Theme.surface-high;
-
-    HorizontalLayout {
-        padding-left: 18px;
-        padding-right: 12px;
-        spacing: 12px;
-        VerticalLayout {
-            alignment: center;
-            spacing: 2px;
-            horizontal-stretch: 1;
-            Text {
-                text: root.profile.exe;
-                color: Theme.text;
-                font-size: 20px;
-                font-weight: 600;
-                overflow: elide;
-            }
-
-            Text {
-                text: (root.profile.auto-tdp ? App.fps-value(root.profile.target-fps) + "  ·  " + App.watts(root.profile.min-watts) + " – " + App.watts(root.profile.max-watts) : @tr("Auto TDP off")) + (root.profile.learned-watts >= 0 ? "  ·  " + @tr("learned: {}", App.watts(root.profile.learned-watts)) : "");
-                color: Theme.dim;
-                font-size: Theme.font-small;
-                overflow: elide;
-            }
-        }
-
-        if root.active: Text {
-            text: @tr("In use");
-            color: Theme.accent-line;
-            font-size: Theme.font-small;
-            font-weight: 700;
-            vertical-alignment: center;
-        }
-
-        VerticalLayout {
-            alignment: center;
-            delete := Chip {
-                min-width: 132px;
-                label: root.armed ? @tr("Confirm") : @tr("Delete");
-                selected: root.armed;
-                clicked => {
-                    if root.armed {
-                        root.armed = false;
-                        App.delete-profile(root.profile.exe);
-                    } else {
-                        root.armed = true;
-                    }
-                }
-                focus-gained => {
-                    root.focus-gained();
-                }
-                changed focused => {
-                    if !self.focused {
-                        root.armed = false;
-                    }
-                }
-            }
-        }
-    }
-}
-
-export component ProfilesPage inherits HorizontalLayout {
-    spacing: Theme.gap;
-    property <length> row-height: 76px;
-    property <length> row-gap: 10px;
+// Game profiles. Line 0 saves the game in the foreground; the others are
+// the profiles, and X deletes the focused one after a second press.
+export component ProfilesPage inherits Rectangle {
+    in-out property <int> focus-row: 0;
+    // Line whose profile X deletes on the next press, -1 when none.
+    in-out property <int> armed: -1;
+    property <bool> active: fs.has-focus;
+    property <bool> can-save: App.status.connected && App.status.foreground != "";
+    property <int> rows: App.profiles.length + 1;
+    property <length> pitch: 56px;
     init => {
         App.refresh();
-        first.focus();
+    }
+    changed focus-row => {
+        root.armed = -1;
+        // Keep the focused line in view: the gamepad cannot scroll.
+        let y = (root.focus-row - 1) * root.pitch;
+        if y + list.content-y < 0 {
+            list.content-y = -y;
+        }
+        if y + root.pitch + list.content-y > list.height {
+            list.content-y = list.height - y - root.pitch;
+        }
     }
 
-    Card {
-        title: @tr("Current game");
-        horizontal-stretch: 1;
-        preferred-width: 100px;
-        inner-spacing: 12px;
-
-        Title {
-            text: App.status.foreground != "" ? App.status.foreground : @tr("No game detected");
-            color: App.status.foreground != "" ? Theme.text : Theme.dim;
+    fs := FocusScope {
+        init => {
+            self.focus();
         }
-
-        Dim {
-            text: App.status.active-profile != "" ? @tr("A profile is in use for this game.") : @tr("This game has no profile yet.");
-        }
-
-        Caption {
-            text: @tr("Settings saved with the profile");
-        }
-
-        HorizontalLayout {
-            spacing: 10px;
-            Setting {
-                label: @tr("Target");
-                value: App.fps-value(App.status.target-fps);
+        key-pressed(event) => {
+            if event.text == Key.UpArrow {
+                root.focus-row = max(0, root.focus-row - 1);
+                return accept;
             }
-
-            Setting {
-                label: @tr("Power");
-                value: App.watts(App.status.min-watts) + " – " + App.watts(App.status.max-watts);
+            if event.text == Key.DownArrow {
+                root.focus-row = min(root.rows - 1, root.focus-row + 1);
+                return accept;
             }
-        }
-
-        HorizontalLayout {
-            spacing: 10px;
-            Setting {
-                label: @tr("Maximum on battery");
-                value: App.status.battery-cap > 0 ? App.watts(App.status.battery-cap) : @tr("None");
-            }
-
-            Setting {
-                label: @tr("Temperature limit");
-                value: App.status.temp-limit > 0 ? App.celsius(App.status.temp-limit) : @tr("None");
-            }
-        }
-
-        first := Tile {
-            height: 72px;
-            label: App.status.active-profile != "" ? @tr("Update the profile") : @tr("Save as profile");
-            sub: App.status.foreground != "" ? App.status.foreground : @tr("Start a game first");
-            enabled: App.status.connected && App.status.foreground != "";
-            clicked => {
+            if (event.text == Key.Return || event.text == " ") && root.focus-row == 0 && root.can-save {
                 App.save-profile();
+                return accept;
             }
-        }
-
-        Rectangle { }
-
-        Text {
-            text: @tr("A profile applies by itself when its game comes to the front.");
-            color: Theme.faint;
-            font-size: Theme.font-small;
-            wrap: word-wrap;
-        }
-    }
-
-    Card {
-        title: @tr("Profiles");
-        horizontal-stretch: 1;
-        preferred-width: 100px;
-
-        if App.profiles.length == 0: Dim {
-            text: App.status.connected ? @tr("No profiles yet. Save one while a game is running, or from a bench result.") : @tr("Service not connected");
-            vertical-stretch: 1;
-            vertical-alignment: top;
-        }
-
-        if App.profiles.length > 0: list := Flickable {
-            vertical-stretch: 1;
-            content-height: App.profiles.length * (root.row-height + root.row-gap);
-            for profile[i] in App.profiles: ProfileRow {
-                x: 0;
-                y: i * (root.row-height + root.row-gap);
-                width: list.width;
-                height: root.row-height;
-                profile: profile;
-                active: profile.exe.to-lowercase() == App.status.active-profile.to-lowercase();
-                // Keep the focused row in view: the gamepad cannot scroll.
-                focus-gained => {
-                    if self.y + list.content-y < 0 {
-                        list.content-y = -self.y;
-                    }
-                    if self.y + self.height + list.content-y > list.height {
-                        list.content-y = list.height - self.y - self.height;
-                    }
+            if (event.text == Key.F2 || event.text == "x") && root.focus-row > 0 {
+                if root.armed == root.focus-row {
+                    root.armed = -1;
+                    App.delete-profile(App.profiles[root.focus-row - 1].exe);
+                    root.focus-row = min(root.focus-row, root.rows - 2);
+                } else {
+                    root.armed = root.focus-row;
                 }
+                return accept;
             }
+            return reject;
         }
     }
-}
 
-component Cell inherits Text {
-    height: 30px;
-    font-size: Theme.font-body;
-    horizontal-alignment: center;
-    vertical-alignment: center;
-    color: Theme.text;
-}
+    VerticalLayout {
+        x: 0;
+        width: 784px;
+        height: parent.height;
+        spacing: 2px;
 
-component Recommendation inherits Card {
-    in property <RecView> rec;
-    in property <string> explanation;
-    in property <string> missing;
-    in property <bool> can-save;
-    pad: 18px;
-    inner-spacing: 8px;
-    horizontal-stretch: 1;
+        SectionTitle {
+            height: 36px;
+            x: 16px;
+            text: @tr("Game profiles");
+        }
 
-    Text {
-        text: root.rec.available ? App.watts(root.rec.watts) : "—";
-        color: root.rec.available ? Theme.text : Theme.faint;
-        font-size: 36px;
-        font-weight: 800;
-    }
-
-    Text {
-        text: root.rec.available ? root.explanation : root.missing;
-        color: Theme.dim;
-        font-size: Theme.font-small;
-        overflow: elide;
-    }
-
-    HorizontalLayout {
-        spacing: 10px;
-        Chip {
-            horizontal-stretch: 1;
-            font-size: Theme.font-small;
-            label: @tr("Set as TDP");
-            enabled: App.status.connected && root.rec.available;
+        SettingLine {
+            label: App.status.foreground != "" ? (App.status.active-profile != "" ? @tr("Update the profile of {}", App.status.foreground) : @tr("Save a profile for {}", App.status.foreground)) : @tr("No game in the foreground");
+            value: "";
+            chevrons: false;
+            enabled: root.can-save;
+            focused: root.active && root.focus-row == 0;
             clicked => {
-                App.apply-tdp(root.rec.watts);
+                root.focus-row = 0;
+                if root.can-save {
+                    App.save-profile();
+                }
+                fs.focus();
             }
-        }
-
-        Chip {
-            horizontal-stretch: 1;
-            font-size: Theme.font-small;
-            label: @tr("Save for the game");
-            enabled: App.status.connected && root.rec.available && root.can-save;
-            clicked => {
-                App.apply-profile(root.rec.watts);
-            }
-        }
-    }
-}
-
-export component BenchPage inherits VerticalLayout {
-    spacing: Theme.gap;
-    property <int> step-watts: 3;
-    property <int> measure-secs: 15;
-    property <bool> has-game: App.bench.exe != "" || App.status.foreground != "";
-    init => {
-        App.refresh();
-        start.focus();
-    }
-
-    Card {
-        pad: 18px;
-        HorizontalLayout {
-            spacing: 24px;
-            VerticalLayout {
-                horizontal-stretch: 1;
-                spacing: 4px;
-                alignment: center;
-                Text {
-                    text: @tr("Bench");
-                    color: Theme.text;
-                    font-size: Theme.font-title;
-                    font-weight: 700;
-                }
-
-                Dim {
-                    text: @tr("Plays the game in front at several power limits and measures each one. Leave a demanding scene running.");
-                    font-size: Theme.font-small;
-                }
-            }
-
-            VerticalLayout {
-                spacing: 6px;
-                alignment: center;
-                Caption {
-                    text: @tr("Step");
-                }
-
-                HorizontalLayout {
-                    spacing: 8px;
-                    for w in [2, 3, 5]: Chip {
-                        label: App.watts(w);
-                        selected: root.step-watts == w;
-                        enabled: !App.status.bench-running;
-                        clicked => {
-                            root.step-watts = w;
-                        }
-                    }
-                }
-            }
-
-            VerticalLayout {
-                spacing: 6px;
-                alignment: center;
-                Caption {
-                    text: @tr("Per step");
-                }
-
-                HorizontalLayout {
-                    spacing: 8px;
-                    for s in [10, 15, 30]: Chip {
-                        label: @tr("{} s", s);
-                        selected: root.measure-secs == s;
-                        enabled: !App.status.bench-running;
-                        clicked => {
-                            root.measure-secs = s;
-                        }
-                    }
-                }
-            }
-
-            start := Tile {
-                width: 190px;
-                label: App.status.bench-running ? @tr("Cancel") : @tr("Start");
-                sub: App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("about {}", App.duration(App.bench-duration(root.step-watts, root.measure-secs)));
-                selected: !App.status.bench-running && App.status.connected && App.status.foreground != "";
-                enabled: App.status.connected;
-                clicked => {
-                    if App.status.bench-running {
-                        App.cancel-bench();
-                    } else {
-                        App.start-bench(root.step-watts, root.measure-secs);
-                    }
-                }
-            }
-        }
-    }
-
-    if App.status.bench-running: Card {
-        title: @tr("Running");
-        vertical-stretch: 1;
-        Text {
-            text: @tr("Step {} of {}: {}", App.status.bench-step, App.status.bench-steps, App.watts(App.status.bench-watts));
-            color: Theme.text;
-            font-size: 34px;
-            font-weight: 700;
         }
 
         Rectangle {
             height: 12px;
-            border-radius: 6px;
-            background: Theme.surface-high;
+        }
+
+        if App.profiles.length == 0: Text {
+            x: 16px;
+            text: App.status.connected ? @tr("No profiles yet. Save one while a game is running, or from a bench result.") : @tr("Service not connected");
+            color: Theme.dim;
+            font-size: 14px;
+            wrap: word-wrap;
+        }
+
+        list := Flickable {
+            vertical-stretch: 1;
+            content-height: App.profiles.length * root.pitch;
+            animate content-y { duration: 160ms; easing: ease-out; }
+            for profile[i] in App.profiles: SettingLine {
+                y: i * root.pitch;
+                width: list.width;
+                label: profile.exe + (profile.exe.to-lowercase() == App.status.active-profile.to-lowercase() ? "  ·  " + @tr("In use") : "");
+                value: root.armed == i + 1 ? @tr("Press X again to delete") : (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "");
+                chevrons: false;
+                focused: root.active && root.focus-row == i + 1;
+                clicked => {
+                    root.focus-row = i + 1;
+                    fs.focus();
+                }
+            }
+        }
+    }
+}
+
+// The bench: plays the game in front at several power limits. Lines 0 and
+// 1 set the step and the time per step, line 2 starts or cancels; after a
+// run, lines 3 to 5 are the recommendations: A sets the power limit, X
+// saves it for the game.
+export component BenchPage inherits Rectangle {
+    in-out property <int> focus-row: 2;
+    in-out property <int> step-watts: 3;
+    in-out property <int> measure-secs: 15;
+    property <bool> active: fs.has-focus;
+    property <bool> has-game: App.bench.exe != "" || App.status.foreground != "";
+    property <bool> results: !App.status.bench-running && App.bench.available;
+    property <[int]> steps: [2, 3, 5];
+    property <[int]> times: [10, 15, 30];
+    init => {
+        App.refresh();
+    }
+    changed results => {
+        if !root.results && root.focus-row > 2 {
+            root.focus-row = 2;
+        }
+    }
+
+    function pick(list: [int], value: int, d: int) -> int {
+        let i = value == list[0] ? 0 : value == list[1] ? 1 : 2;
+        list[clamp(i + d, 0, 2)]
+    }
+    function start-or-cancel() {
+        if App.status.bench-running {
+            App.cancel-bench();
+        } else if App.status.connected {
+            App.start-bench(root.step-watts, root.measure-secs);
+        }
+    }
+    function rec-watts(r: int) -> int {
+        r == 3 ? App.bench.sweet-spot.watts : r == 4 ? App.bench.for-target.watts : App.bench.most-efficient.watts
+    }
+    function rec-available(r: int) -> bool {
+        r == 3 ? App.bench.sweet-spot.available : r == 4 ? App.bench.for-target.available : App.bench.most-efficient.available
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        key-pressed(event) => {
+            if event.text == Key.UpArrow {
+                root.focus-row = max(0, root.focus-row - 1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.focus-row = min(root.results ? 5 : 2, root.focus-row + 1);
+                return accept;
+            }
+            if (event.text == Key.LeftArrow || event.text == Key.RightArrow) && !App.status.bench-running {
+                let d = event.text == Key.LeftArrow ? -1 : 1;
+                if root.focus-row == 0 {
+                    root.step-watts = root.pick(root.steps, root.step-watts, d);
+                } else if root.focus-row == 1 {
+                    root.measure-secs = root.pick(root.times, root.measure-secs, d);
+                }
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                if root.focus-row == 2 {
+                    root.start-or-cancel();
+                } else if root.focus-row > 2 && root.rec-available(root.focus-row) && App.status.connected {
+                    App.apply-tdp(root.rec-watts(root.focus-row));
+                }
+                return accept;
+            }
+            if (event.text == Key.F2 || event.text == "x") && root.focus-row > 2 && root.rec-available(root.focus-row) && root.has-game && App.status.connected {
+                App.apply-profile(root.rec-watts(root.focus-row));
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    HorizontalLayout {
+        width: parent.width;
+        height: parent.height;
+        spacing: 40px;
+
+        VerticalLayout {
+            width: 640px;
+            spacing: 2px;
+
+            SectionTitle {
+                height: 36px;
+                x: 16px;
+                text: @tr("Bench");
+            }
+
+            SettingLine {
+                label: @tr("Step");
+                value: App.watts(root.step-watts);
+                enabled: !App.status.bench-running;
+                focused: root.active && root.focus-row == 0;
+                step(d) => {
+                    root.focus-row = 0;
+                    root.step-watts = root.pick(root.steps, root.step-watts, d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                label: @tr("Per step");
+                value: @tr("{} s", root.measure-secs);
+                enabled: !App.status.bench-running;
+                focused: root.active && root.focus-row == 1;
+                step(d) => {
+                    root.focus-row = 1;
+                    root.measure-secs = root.pick(root.times, root.measure-secs, d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                label: App.status.bench-running ? @tr("Cancel") : @tr("Start");
+                value: App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("about {}", App.duration(App.bench-duration(root.step-watts, root.measure-secs)));
+                chevrons: false;
+                enabled: App.status.connected;
+                focused: root.active && root.focus-row == 2;
+                clicked => {
+                    root.focus-row = 2;
+                    root.start-or-cancel();
+                    fs.focus();
+                }
+            }
+
             Rectangle {
-                x: 0;
-                height: parent.height;
-                width: parent.width * max(0, App.status.bench-step - 1) / max(1, App.status.bench-steps);
-                border-radius: 6px;
-                background: Theme.accent;
-                animate width { duration: 400ms; }
-            }
-        }
-
-        Dim {
-            text: @tr("{} left. Keep the game in front; the power limit changes on its own.", App.duration(App.status.bench-seconds-left));
-        }
-
-        Rectangle { }
-    }
-
-    if !App.status.bench-running && !App.bench.available: Card {
-        vertical-stretch: 1;
-        Dim {
-            text: App.status.connected ? @tr("No results yet. Start a game, then start the bench.") : @tr("Service not connected");
-            vertical-stretch: 1;
-            vertical-alignment: center;
-            horizontal-alignment: center;
-        }
-    }
-
-    if !App.status.bench-running && App.bench.available: Card {
-        title: (App.bench.exe != "" ? @tr("Results for {}", App.bench.exe) : @tr("Results")) + (App.bench.completed ? "" : "  ·  " + @tr("incomplete run"));
-        pad: 18px;
-        inner-spacing: 8px;
-        HorizontalLayout {
-            spacing: 4px;
-            VerticalLayout {
-                width: 200px;
-                for label in [@tr("Power"), @tr("Average FPS"), @tr("Lowest FPS"), @tr("FPS per watt"), @tr("Max temperature")]: Text {
-                    height: 30px;
-                    text: label;
-                    color: Theme.dim;
-                    font-size: Theme.font-small;
-                    vertical-alignment: center;
-                    overflow: elide;
-                }
+                height: 24px;
             }
 
-            for row in App.bench-rows: Rectangle {
-                border-radius: 10px;
-                background: row.watts == App.bench.sweet-spot.watts ? Theme.accent-soft : transparent;
+            // The run's measures, one column per power limit.
+            if root.results: HorizontalLayout {
+                padding-left: 16px;
+                spacing: 4px;
                 VerticalLayout {
-                    Cell {
-                        text: App.watts(row.watts);
-                        font-weight: 700;
-                    }
-
-                    Rectangle {
+                    width: 150px;
+                    for label in [@tr("Power"), @tr("Average FPS"), @tr("Lowest FPS"), @tr("FPS per watt"), @tr("Max temperature")]: Text {
                         height: 30px;
-                        Rectangle {
-                            x: 6px;
-                            y: 4px;
-                            height: parent.height - 8px;
-                            width: (parent.width - 12px) * row.share;
-                            border-radius: 4px;
-                            background: Theme.accent.with-alpha(0.25);
-                        }
-
-                        Cell {
-                            text: row.fps-avg;
-                        }
-                    }
-
-                    Cell {
-                        text: row.fps-low;
+                        text: label;
                         color: Theme.dim;
-                    }
-
-                    Cell {
-                        text: App.tenths(row.fps-per-watt-tenths);
-                    }
-
-                    Cell {
-                        text: row.temp >= 0 ? App.celsius(row.temp) : "—";
-                        color: Theme.dim;
+                        font-size: 13px;
+                        vertical-alignment: center;
+                        overflow: elide;
                     }
                 }
-            }
-        }
-    }
 
-    if !App.status.bench-running && App.bench.available: HorizontalLayout {
-        spacing: Theme.gap;
-        Recommendation {
-            title: @tr("Sweet spot");
-            rec: App.bench.sweet-spot;
-            explanation: @tr("Near the best frame rate: {} FPS", App.bench.sweet-spot.fps);
-            can-save: root.has-game;
-        }
-
-        Recommendation {
-            title: @tr("For {} FPS", App.bench.target-fps);
-            rec: App.bench.for-target;
-            explanation: @tr("Lowest power holding the target: {} FPS", App.bench.for-target.fps);
-            missing: @tr("Target not reached in this run");
-            can-save: root.has-game;
-        }
-
-        Recommendation {
-            title: @tr("Most efficient");
-            rec: App.bench.most-efficient;
-            explanation: @tr("Most frames per watt: {} FPS", App.bench.most-efficient.fps);
-            can-save: root.has-game;
-        }
-    }
-}
-
-struct Language {
-    code: string,
-    name: string,
-}
-
-// A ready-made accent.
-component Swatch inherits Pressable {
-    in property <color> swatch;
-    in property <string> hex;
-    horizontal-stretch: 1;
-    height: 50px;
-    border-radius: 10px;
-    // The swatch shows its own colour, selected or not.
-    background: root.swatch;
-    selected: Theme.accent-hex == root.hex;
-    border-width: self.focused ? 3px : root.selected ? 2px : 0;
-    border-color: self.focused ? Theme.focus : Theme.text.with-alpha(0.7);
-    clicked => {
-        App.pick-accent(root.hex);
-    }
-
-    if root.selected: Text {
-        text: "✓";
-        color: Theme.accent-text;
-        font-size: 20px;
-        font-weight: 800;
-        horizontal-alignment: center;
-        vertical-alignment: center;
-    }
-}
-
-export component SettingsPage inherits HorizontalLayout {
-    spacing: Theme.gap;
-    // Darkest accent the picker allows: below, it no longer reads on the
-    // dark background.
-    property <float> min-value: 0.4;
-    property <[[Language]]> rows: [
-        [
-            { code: "auto", name: @tr("Automatic") },
-            { code: "en", name: "English" },
-            { code: "fr", name: "Français" },
-            { code: "es", name: "Español" },
-        ],
-        [
-            { code: "de", name: "Deutsch" },
-            { code: "it", name: "Italiano" },
-            { code: "pt", name: "Português" },
-            { code: "nl", name: "Nederlands" },
-        ],
-        [
-            { code: "pl", name: "Polski" },
-            { code: "ru", name: "Русский" },
-            { code: "tr", name: "Türkçe" },
-            { code: "ja", name: "日本語" },
-        ],
-        [
-            { code: "ko", name: "한국어" },
-            { code: "zh_CN", name: "简体中文" },
-            // Empty cells keep the grid aligned.
-            { code: "", name: "" },
-            { code: "", name: "" },
-        ],
-    ];
-    // The hex code is what gets saved; the colour, what gets drawn.
-    property <[{ hex: string, color: color }]> presets: [
-        { hex: "#ff3d5e", color: #ff3d5e },
-        { hex: "#f97316", color: #f97316 },
-        { hex: "#eab308", color: #eab308 },
-        { hex: "#10b981", color: #10b981 },
-        { hex: "#06b6d4", color: #06b6d4 },
-        { hex: "#3b82f6", color: #3b82f6 },
-        { hex: "#8b5cf6", color: #8b5cf6 },
-        { hex: "#ec4899", color: #ec4899 },
-    ];
-
-    VerticalLayout {
-        horizontal-stretch: 7;
-        preferred-width: 10px;
-        spacing: Theme.gap;
-
-        Card {
-            inner-spacing: 10px;
-
-            HorizontalLayout {
-                spacing: 16px;
-                Caption {
-                    text: @tr("Language");
-                }
-
-                Text {
-                    horizontal-stretch: 1;
-                    text: @tr("Automatic follows the Windows display language.");
-                    color: Theme.faint;
-                    font-size: Theme.font-small;
-                    horizontal-alignment: right;
-                    overflow: elide;
-                }
-            }
-
-            for row[r] in root.rows: HorizontalLayout {
-                spacing: 10px;
-                for language[c] in row: Rectangle {
-                    height: 54px;
-                    horizontal-stretch: 1;
-                    if language.code != "": Tile {
-                        width: parent.width;
-                        height: parent.height;
-                        min-height: 0;
-                        pad: 8px;
-                        font-size: 18px;
-                        label: language.name;
-                        selected: App.language == language.code;
-                        clicked => {
-                            App.set-language(language.code);
-                        }
-                        // Focus the current choice; "auto" first, as a fallback.
-                        init => {
-                            if (r == 0 && c == 0) || App.language == language.code {
-                                self.focus();
-                            }
+                for row in App.bench-rows: Rectangle {
+                    border-radius: 8px;
+                    background: row.watts == App.bench.sweet-spot.watts ? Theme.surface-high : transparent;
+                    VerticalLayout {
+                        for value[i] in [App.watts(row.watts), row.fps-avg, row.fps-low, App.tenths(row.fps-per-watt-tenths), row.temp >= 0 ? App.celsius(row.temp) : "—"]: Text {
+                            height: 30px;
+                            text: value;
+                            color: i == 0 || i == 1 ? Theme.text : Theme.text.mix(Theme.dim, 0.6);
+                            font-size: 14px;
+                            font-weight: i == 0 ? 600 : 500;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
                         }
                     }
                 }
             }
+
+            if !root.results && !App.status.bench-running: Text {
+                x: 16px;
+                text: App.status.connected ? @tr("No results yet. Start a game, then start the bench.") : @tr("Service not connected");
+                color: Theme.dim;
+                font-size: 14px;
+                wrap: word-wrap;
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
+            }
         }
 
-        Card {
-            vertical-stretch: 1;
-            inner-spacing: 10px;
+        VerticalLayout {
+            spacing: 2px;
 
-            HorizontalLayout {
+            SectionTitle {
+                height: 36px;
+                x: 16px;
+                text: App.status.bench-running ? @tr("Running") : root.results ? (App.bench.exe != "" ? @tr("Results for {}", App.bench.exe) : @tr("Results")) + (App.bench.completed ? "" : " · " + @tr("incomplete run")) : "";
+            }
+
+            if App.status.bench-running: VerticalLayout {
+                padding-left: 16px;
+                padding-right: 16px;
                 spacing: 14px;
-                VerticalLayout {
-                    alignment: center;
-                    Logo {
-                        size: 40px;
-                    }
-                }
-
                 Text {
-                    text: "Canapé";
+                    text: @tr("Step {} of {}: {}", App.status.bench-step, App.status.bench-steps, App.watts(App.status.bench-watts));
                     color: Theme.text;
                     font-size: 28px;
-                    font-weight: 800;
-                    vertical-alignment: center;
+                    font-weight: 600;
                 }
 
-                VerticalLayout {
-                    horizontal-stretch: 1;
-                    alignment: center;
-                    Text {
-                        text: @tr("Version {}", App.version);
-                        color: Theme.dim;
-                        font-size: Theme.font-small;
-                        horizontal-alignment: right;
-                    }
-
-                    Text {
-                        text: App.status.connected ? @tr("Service connected") : @tr("Service not connected");
-                        color: App.status.connected ? Theme.faint : Theme.warn;
-                        font-size: Theme.font-small;
-                        horizontal-alignment: right;
-                        overflow: elide;
-                    }
-                }
-            }
-
-            Rectangle { }
-
-            HorizontalLayout {
-                spacing: 16px;
-                VerticalLayout {
-                    horizontal-stretch: 1;
-                    alignment: center;
-                    spacing: 2px;
-                    Text {
-                        text: @tr("Install games from Canapé");
-                        color: Theme.text;
-                        font-size: Theme.font-body;
-                        overflow: elide;
-                    }
-
-                    Text {
-                        text: (Library.steam-key ? @tr("Steam: API key set.") : @tr("Steam: no API key in shell.json.")) + " " + (Library.epic-account != "" ? @tr("Epic: {}.", Library.epic-account) : @tr("Epic: not signed in."));
-                        color: Theme.faint;
-                        font-size: Theme.font-small;
-                        wrap: word-wrap;
+                Rectangle {
+                    height: 4px;
+                    border-radius: 2px;
+                    background: Theme.surface-focus;
+                    Rectangle {
+                        x: 0;
+                        width: parent.width * max(0, App.status.bench-step - 1) / max(1, App.status.bench-steps);
+                        border-radius: 2px;
+                        background: Theme.accent;
+                        animate width { duration: 400ms; }
                     }
                 }
 
-                VerticalLayout {
-                    alignment: center;
-                    Chip {
-                        min-width: 110px;
-                        label: Library.epic-busy ? "…" : @tr("Epic sign-in");
-                        enabled: !Library.epic-busy;
-                        clicked => {
-                            Library.epic-login();
-                        }
-                    }
-                }
-            }
-
-            HorizontalLayout {
-                spacing: 16px;
-                VerticalLayout {
-                    horizontal-stretch: 1;
-                    alignment: center;
-                    spacing: 2px;
-                    Text {
-                        text: @tr("Download missing covers");
-                        color: Theme.text;
-                        font-size: Theme.font-body;
-                        overflow: elide;
-                    }
-
-                    Text {
-                        text: !App.online-covers ? @tr("Only the art already on this device is shown.") : App.griddb-key ? @tr("From Steam and SteamGridDB.") : @tr("From Steam. A SteamGridDB key adds the other stores.");
-                        color: Theme.faint;
-                        font-size: Theme.font-small;
-                        wrap: word-wrap;
-                    }
-                }
-
-                VerticalLayout {
-                    alignment: center;
-                    Chip {
-                        min-width: 110px;
-                        label: App.online-covers ? @tr("On") : @tr("Off");
-                        selected: App.online-covers;
-                        clicked => {
-                            App.toggle-online-covers();
-                        }
-                    }
-                }
-            }
-
-            HorizontalLayout {
-                spacing: 16px;
-                VerticalLayout {
-                    horizontal-stretch: 1;
-                    alignment: center;
-                    spacing: 2px;
-                    Text {
-                        text: @tr("Use the Ally's buttons");
-                        color: Theme.text;
-                        font-size: Theme.font-body;
-                        overflow: elide;
-                    }
-
-                    Text {
-                        text: @tr("Armoury: back to Canapé. Command Center: Game Bar.");
-                        color: Theme.faint;
-                        font-size: Theme.font-small;
-                        wrap: word-wrap;
-                    }
-                }
-
-                VerticalLayout {
-                    alignment: center;
-                    Chip {
-                        min-width: 110px;
-                        label: App.ally-buttons ? @tr("On") : @tr("Off");
-                        selected: App.ally-buttons;
-                        clicked => {
-                            App.toggle-ally-buttons();
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    Card {
-        title: @tr("Accent colour");
-        horizontal-stretch: 5;
-        preferred-width: 10px;
-        inner-spacing: 16px;
-
-        HorizontalLayout {
-            spacing: 16px;
-            Rectangle {
-                width: 128px;
-                height: 72px;
-                border-radius: Theme.radius-small;
-                background: Theme.accent;
                 Text {
-                    text: Theme.accent-hex.to-uppercase();
-                    color: Theme.accent-text;
-                    font-size: Theme.font-body;
-                    font-weight: 700;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
+                    text: @tr("{} left. Keep the game in front; the power limit changes on its own.", App.duration(App.status.bench-seconds-left));
+                    color: Theme.dim;
+                    font-size: 14px;
+                    wrap: word-wrap;
                 }
             }
 
-            Text {
-                text: @tr("Every page follows this colour, and so does the Game Bar widget.");
-                color: Theme.dim;
-                font-size: Theme.font-small;
-                wrap: word-wrap;
-                vertical-alignment: center;
+            for r in (root.results ? [3, 4, 5] : []): SettingLine {
+                label: r == 3 ? @tr("Sweet spot") : r == 4 ? @tr("For {} FPS", App.bench.target-fps) : @tr("Most efficient");
+                value: root.rec-available(r) ? App.watts(root.rec-watts(r)) + " · " + App.fps-value(r == 3 ? App.bench.sweet-spot.fps : r == 4 ? App.bench.for-target.fps : App.bench.most-efficient.fps) : "—";
+                chevrons: false;
+                enabled: root.rec-available(r);
+                focused: root.active && root.focus-row == r;
+                clicked => {
+                    root.focus-row = r;
+                    fs.focus();
+                }
             }
-        }
 
-        hue := ColorSlider {
-            label: @tr("Hue");
-            value: Theme.accent-hue / 360;
-            step: 5 / 360;
-            rainbow: true;
-            knob: Theme.accent;
-            moved(v) => {
-                // 360° is 0° again: stop just before, so the knob stays right.
-                App.pick-accent-hsv(min(v, 0.999) * 360, Theme.accent-saturation, Theme.accent-value);
+            Rectangle {
+                vertical-stretch: 1;
             }
-        }
-
-        sat := ColorSlider {
-            label: @tr("Saturation");
-            value: Theme.accent-saturation;
-            step: 0.05;
-            track: @linear-gradient(90deg, hsv(Theme.accent-hue, 0, Theme.accent-value) 0%, hsv(Theme.accent-hue, 1, Theme.accent-value) 100%);
-            knob: Theme.accent;
-            moved(v) => {
-                App.pick-accent-hsv(Theme.accent-hue, v, Theme.accent-value);
-            }
-        }
-
-        bright := ColorSlider {
-            label: @tr("Brightness");
-            value: max(0, (Theme.accent-value - root.min-value) / (1 - root.min-value));
-            step: 0.05 / (1 - root.min-value);
-            track: @linear-gradient(90deg, hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value) 0%, hsv(Theme.accent-hue, Theme.accent-saturation, 1) 100%);
-            knob: Theme.accent;
-            moved(v) => {
-                App.pick-accent-hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value + v * (1 - root.min-value));
-            }
-        }
-
-        Caption {
-            text: @tr("Presets");
-        }
-
-        HorizontalLayout {
-            spacing: 10px;
-            for preset in root.presets: Swatch {
-                hex: preset.hex;
-                swatch: preset.color;
-            }
-        }
-
-        Rectangle { }
-
-        Text {
-            text: hue.grabbed || sat.grabbed || bright.grabbed ? @tr("Move with the D-pad or the stick, then press A to finish.") : @tr("Press A on a slider to adjust it.");
-            color: hue.grabbed || sat.grabbed || bright.grabbed ? Theme.text : Theme.faint;
-            font-size: Theme.font-small;
-            wrap: word-wrap;
         }
     }
 }

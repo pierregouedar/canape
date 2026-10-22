@@ -145,22 +145,23 @@ fn area(runs: &[Vec<(f32, f32)>]) -> String {
     out.trim_end().to_owned()
 }
 
-/// A limit holds until it changes: horizontal steps rather than slopes.
+/// A limit holds until it changes: horizontal steps rather than slopes,
+/// dashed (half of each second drawn) so it reads apart from the power.
 fn steps(runs: &[Vec<(f32, f32)>]) -> String {
     let mut out = String::new();
     for run in runs {
         let (x, y) = run[0];
-        let _ = write!(out, "M {x} {y} ");
         if run.len() == 1 {
-            let _ = write!(out, "L {} {y} ", x - 0.5);
+            let _ = write!(out, "M {x} {y} L {} {y} ", x - 0.5);
         }
-        let mut level = y;
+        let (mut from, mut level) = (x, y);
         for &(x, y) in &run[1..] {
-            let _ = write!(out, "L {x} {level} ");
+            let _ = write!(out, "M {from} {level} L {} {level} ", from + 0.5);
             if y != level {
-                let _ = write!(out, "L {x} {y} ");
+                let _ = write!(out, "M {x} {level} L {x} {y} ");
                 level = y;
             }
+            from = x;
         }
     }
     out.trim_end().to_owned()
@@ -225,7 +226,10 @@ mod tests {
     #[test]
     fn limit_draws_as_steps() {
         let runs = vec![vec![(0.0, 50.0), (1.0, 50.0), (2.0, 20.0)]];
-        assert_eq!(steps(&runs), "M 0 50 L 1 50 L 2 50 L 2 20");
+        assert_eq!(
+            steps(&runs),
+            "M 0 50 L 0.5 50 M 1 50 L 1.5 50 M 2 50 L 2 20"
+        );
     }
 
     #[test]
