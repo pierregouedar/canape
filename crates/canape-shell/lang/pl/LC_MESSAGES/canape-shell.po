@@ -419,3 +419,83 @@ msgstr "Brak gier z tego sklepu"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé pokazuje gry zainstalowane przez Steam, Epic Games Launcher, GOG Galaxy i aplikację Xbox."
+
+msgid "Hardware"
+msgstr "Sprzęt"
+
+msgid "Fans"
+msgstr "Wentylatory"
+
+
+msgid "Off while cool"
+msgstr "Wyłączone, gdy chłodno"
+
+msgid "Steady"
+msgstr "Równomiernie"
+
+
+msgid "Loud, coolest"
+msgstr "Głośno, najchłodniej"
+
+msgid "CPU fan"
+msgstr "Wentylator CPU"
+
+msgid "{} rpm"
+msgstr "{} obr./min"
+
+msgid "GPU fan"
+msgstr "Wentylator GPU"
+
+msgid "The power mode's own curve"
+msgstr "Własna krzywa trybu zasilania"
+
+msgid "Custom curves set by another client."
+msgstr "Własne krzywe ustawione przez innego klienta."
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "Profil zastępuje krzywą firmware'u; Automatyczny ją przywraca. Zmiana trybu zasilania zachowuje profil."
+
+msgid "Frame rate limit"
+msgstr "Limit FPS"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "Sterownik grafiki utrzymuje gry poniżej tej liczby klatek: mniej ciepła, mniej hałasu, dłużej na baterii."
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "Przy automatycznym TDP ustaw jego cel na limicie lub poniżej."
+
+msgid "Controller"
+msgstr "Kontroler"
+
+msgid "Gamepad"
+msgstr "Gamepad"
+
+msgid "For games"
+msgstr "Do gier"
+
+msgid "Keyboard"
+msgstr "Klawiatura"
+
+msgid "Buttons send keys"
+msgstr "Przyciski wysyłają klawisze"
+
+msgid "Mouse"
+msgstr "Mysz"
+
+msgid "Stick moves the pointer"
+msgstr "Gałka porusza kursorem"
+
+msgid "This game"
+msgstr "Ta gra"
+
+msgid "No game in the foreground"
+msgstr "Brak gry na pierwszym planie"
+
+msgid "Keep fans and limit for this game"
+msgstr "Zachowaj wentylatory i limit dla tej gry"
+
+msgid "Firmware curve"
+msgstr "Krzywa firmware'u"
+
+msgid "Maximum"
+msgstr "Maksimum"

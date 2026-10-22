@@ -419,3 +419,83 @@ msgstr "Нет игр из этого магазина"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé показывает игры, установленные через Steam, Epic Games Launcher, GOG Galaxy и приложение Xbox."
+
+msgid "Hardware"
+msgstr "Железо"
+
+msgid "Fans"
+msgstr "Вентиляторы"
+
+
+msgid "Off while cool"
+msgstr "Стоят, пока прохладно"
+
+msgid "Steady"
+msgstr "Ровно"
+
+
+msgid "Loud, coolest"
+msgstr "Шумно, холоднее всего"
+
+msgid "CPU fan"
+msgstr "Вентилятор ЦП"
+
+msgid "{} rpm"
+msgstr "{} об/мин"
+
+msgid "GPU fan"
+msgstr "Вентилятор ГП"
+
+msgid "The power mode's own curve"
+msgstr "Собственная кривая режима питания"
+
+msgid "Custom curves set by another client."
+msgstr "Свои кривые, заданные другим клиентом."
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "Пресет заменяет кривую прошивки; «Авто» возвращает её. При смене режима питания пресет сохраняется."
+
+msgid "Frame rate limit"
+msgstr "Ограничение FPS"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "Графический драйвер держит игры ниже этой частоты кадров: меньше нагрев и шум, дольше работа от батареи."
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "С авто-TDP задайте его цель не выше ограничения."
+
+msgid "Controller"
+msgstr "Контроллер"
+
+msgid "Gamepad"
+msgstr "Геймпад"
+
+msgid "For games"
+msgstr "Для игр"
+
+msgid "Keyboard"
+msgstr "Клавиатура"
+
+msgid "Buttons send keys"
+msgstr "Кнопки нажимают клавиши"
+
+msgid "Mouse"
+msgstr "Мышь"
+
+msgid "Stick moves the pointer"
+msgstr "Стик двигает указатель"
+
+msgid "This game"
+msgstr "Эта игра"
+
+msgid "No game in the foreground"
+msgstr "Нет игры на переднем плане"
+
+msgid "Keep fans and limit for this game"
+msgstr "Сохранить вентиляторы и ограничение для этой игры"
+
+msgid "Firmware curve"
+msgstr "Кривая прошивки"
+
+msgid "Maximum"
+msgstr "Максимум"

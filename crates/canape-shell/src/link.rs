@@ -8,7 +8,9 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use canape_core::{BenchReport, PerformanceMode, Profile, Request, Response, Status, protocol};
+use canape_core::{
+    BenchReport, ControllerMode, PerformanceMode, Profile, Request, Response, Status, protocol,
+};
 use canape_ipc::Connection;
 use slint::{ComponentHandle, ModelRc, VecModel, Weak};
 
@@ -344,11 +346,19 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
             gpu: -1,
             temp: -1,
             battery: -1,
+            cpu_rpm: -1,
+            gpu_rpm: -1,
             ..StatusView::default()
         };
     };
     let known = |v: Option<f32>| v.map_or(-1, |v| v.round() as i32);
     let bench = s.bench;
+    let (fan_line, fan_area) = s
+        .fan_curves
+        .cpu
+        .as_ref()
+        .map(crate::hardware::curve_paths)
+        .unwrap_or_default();
     StatusView {
         connected: true,
         tdp: s.tdp_watts.map_or(-1, |w| w as i32),
@@ -375,7 +385,32 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
         bench_steps: bench.map_or(0, |b| b.steps as i32),
         bench_watts: bench.map_or(0, |b| b.watts as i32),
         bench_seconds_left: bench.map_or(0, |b| b.seconds_left as i32),
+        tdp_floor: tdp_floor(s) as i32,
+        tdp_ceiling: tdp_ceiling(s) as i32,
+        cpu_rpm: s.cpu_fan_rpm.map_or(-1, |r| r as i32),
+        gpu_rpm: s.gpu_fan_rpm.map_or(-1, |r| r as i32),
+        fan_preset: crate::hardware::preset_name(&s.fan_curves).into(),
+        fan_line: fan_line.into(),
+        fan_area: fan_area.into(),
+        fps_limit: s.fps_limit.map_or(0, |f| f as i32),
+        controller: match s.controller_mode {
+            Some(ControllerMode::Gamepad) => "gamepad",
+            Some(ControllerMode::Wasd) => "wasd",
+            Some(ControllerMode::Mouse) => "mouse",
+            None => "",
+        }
+        .into(),
     }
+}
+
+/// Lowest wattage this model accepts, when the service knows it.
+pub fn tdp_floor(status: &Status) -> u32 {
+    status.tdp_min_watts.unwrap_or(crate::MIN_WATTS)
+}
+
+/// Highest wattage this model accepts, when the service knows it.
+pub fn tdp_ceiling(status: &Status) -> u32 {
+    status.tdp_max_watts.unwrap_or(crate::MAX_WATTS)
 }
 
 fn profile_view(profile: &Profile) -> ProfileView {

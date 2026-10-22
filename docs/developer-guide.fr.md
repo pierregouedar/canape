@@ -460,7 +460,7 @@ Hors Windows, les journaux et l'état vont dans `<tmp>/Canape/` (`service.log`, 
 | `CANAPE_MOCK_FPS` | service (simulateur) | FPS simulés, par exemple `60`. Sans elle, `fps` vaut `null` et l'auto TDP ne bouge pas. Sert aussi sous Windows quand le simulateur est utilisé. |
 | `CANAPE_SOCKET` | service, shell, `canape-ctl` (hors Windows) | Chemin du socket Unix. |
 | `CANAPE_WINDOWED` | shell | Présente (n'importe quelle valeur) : fenêtre au lieu du plein écran. |
-| `CANAPE_PAGE` | shell | Page ouverte au démarrage : 0 Bibliothèque, 1 Accueil, 2 Performance, 3 Profils, 4 Banc d'essai, 5 Réglages. |
+| `CANAPE_PAGE` | shell | Page ouverte au démarrage : 0 Bibliothèque, 1 Accueil, 2 Performance, 3 Matériel, 4 Profils, 5 Banc d'essai, 6 Réglages. |
 | `CANAPE_LIBRARY_FIXTURE` | shell (builds de debug) | Une fausse bibliothèque à la place des boutiques installées : voir [La bibliothèque de jeux](#la-bibliothèque-de-jeux). |
 | `LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG` | shell (hors Windows) | Langue en mode Automatique, dans cet ordre de priorité. |
 | `TMPDIR` | tous (hors Windows) | Dossier temporaire, donc emplacement de `Canape/`. |

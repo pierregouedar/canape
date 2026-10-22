@@ -419,3 +419,83 @@ msgstr "このストアのゲームはありません"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé は Steam、Epic Games Launcher、GOG Galaxy、Xbox アプリでインストールしたゲームを表示します。"
+
+msgid "Hardware"
+msgstr "ハードウェア"
+
+msgid "Fans"
+msgstr "ファン"
+
+
+msgid "Off while cool"
+msgstr "低温時は停止"
+
+msgid "Steady"
+msgstr "安定"
+
+
+msgid "Loud, coolest"
+msgstr "うるさいが最も冷える"
+
+msgid "CPU fan"
+msgstr "CPU ファン"
+
+msgid "{} rpm"
+msgstr "{} rpm"
+
+msgid "GPU fan"
+msgstr "GPU ファン"
+
+msgid "The power mode's own curve"
+msgstr "電源モード固有のカーブ"
+
+msgid "Custom curves set by another client."
+msgstr "別のクライアントが設定したカスタムカーブです。"
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "プリセットはファームウェアのカーブを置き換えます。「自動」で元に戻ります。電源モードを変えてもプリセットは保持されます。"
+
+msgid "Frame rate limit"
+msgstr "フレームレート制限"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "グラフィックスドライバーがゲームをこのフレームレート以下に抑えます。発熱と騒音が減り、バッテリーが長持ちします。"
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "自動 TDP を使う場合は、目標を制限以下に設定してください。"
+
+msgid "Controller"
+msgstr "コントローラー"
+
+msgid "Gamepad"
+msgstr "ゲームパッド"
+
+msgid "For games"
+msgstr "ゲーム用"
+
+msgid "Keyboard"
+msgstr "キーボード"
+
+msgid "Buttons send keys"
+msgstr "ボタンでキー入力"
+
+msgid "Mouse"
+msgstr "マウス"
+
+msgid "Stick moves the pointer"
+msgstr "スティックでポインター操作"
+
+msgid "This game"
+msgstr "このゲーム"
+
+msgid "No game in the foreground"
+msgstr "前面のゲームはありません"
+
+msgid "Keep fans and limit for this game"
+msgstr "このゲームにファンと制限を保存"
+
+msgid "Firmware curve"
+msgstr "ファームウェアのカーブ"
+
+msgid "Maximum"
+msgstr "最大"

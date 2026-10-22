@@ -419,3 +419,83 @@ msgstr "此商店没有游戏"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé 会显示通过 Steam、Epic Games Launcher、GOG Galaxy 和 Xbox 应用安装的游戏。"
+
+msgid "Hardware"
+msgstr "硬件"
+
+msgid "Fans"
+msgstr "风扇"
+
+
+msgid "Off while cool"
+msgstr "低温时停转"
+
+msgid "Steady"
+msgstr "平稳"
+
+
+msgid "Loud, coolest"
+msgstr "噪音大，温度最低"
+
+msgid "CPU fan"
+msgstr "CPU 风扇"
+
+msgid "{} rpm"
+msgstr "{} 转/分"
+
+msgid "GPU fan"
+msgstr "GPU 风扇"
+
+msgid "The power mode's own curve"
+msgstr "电源模式自带的曲线"
+
+msgid "Custom curves set by another client."
+msgstr "由其他客户端设置的自定义曲线。"
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "预设会替换固件的曲线；选择“自动”即可恢复。切换电源模式会保留预设。"
+
+msgid "Frame rate limit"
+msgstr "帧率限制"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "显卡驱动会把游戏帧率限制在此值以下：发热更少、噪音更低、续航更长。"
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "使用自动 TDP 时，请将其目标设为不高于该限制。"
+
+msgid "Controller"
+msgstr "控制器"
+
+msgid "Gamepad"
+msgstr "手柄"
+
+msgid "For games"
+msgstr "用于游戏"
+
+msgid "Keyboard"
+msgstr "键盘"
+
+msgid "Buttons send keys"
+msgstr "按键发送键盘按键"
+
+msgid "Mouse"
+msgstr "鼠标"
+
+msgid "Stick moves the pointer"
+msgstr "摇杆移动指针"
+
+msgid "This game"
+msgstr "此游戏"
+
+msgid "No game in the foreground"
+msgstr "前台没有游戏"
+
+msgid "Keep fans and limit for this game"
+msgstr "为此游戏保存风扇和限制"
+
+msgid "Firmware curve"
+msgstr "固件曲线"
+
+msgid "Maximum"
+msgstr "最大"

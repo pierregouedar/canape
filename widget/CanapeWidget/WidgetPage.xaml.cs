@@ -529,7 +529,10 @@ namespace CanapeWidget
             }
             var delta = int.Parse((string)((FrameworkElement)sender).Tag, CultureInfo.InvariantCulture);
             var watts = current.Value + delta;
-            if (watts < 1)
+            // The model's range, when the service reports it.
+            var min = Integer(lastStatus, "tdp_min_watts") ?? 1;
+            var max = Integer(lastStatus, "tdp_max_watts") ?? int.MaxValue;
+            if (watts < min || watts > max)
             {
                 return;
             }

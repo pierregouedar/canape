@@ -8,6 +8,7 @@ import { App, Notice } from "state.slint";
 import { BatteryIcon, Bolt, Hint, Logo, PadGlyph } from "widgets.slint";
 import { BenchPage, HomePage, PerformancePage, ProfilesPage, SettingsPage } from "pages.slint";
 import { Library, LibraryPage } from "library.slint";
+import { HardwarePage } from "hardware.slint";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
@@ -25,9 +26,9 @@ component Tab inherits Rectangle {
     animate background { duration: 120ms; }
 
     HorizontalLayout {
-        // Six tabs must fit in every language (Russian is the widest).
-        padding-left: 14px;
-        padding-right: 14px;
+        // Seven tabs must fit in every language (Russian is the widest).
+        padding-left: 10px;
+        padding-right: 10px;
         Text {
             text: root.label;
             color: root.selected ? Theme.text : ta.has-hover ? Theme.text.with-alpha(0.85) : Theme.dim;
@@ -61,9 +62,10 @@ export component AppWindow inherits Window {
     preferred-width: 1280px;
     preferred-height: 720px;
 
-    // 0 Library, 1 Home, 2 Performance, 3 Profiles, 4 Bench, 5 Settings.
+    // 0 Library, 1 Home, 2 Performance, 3 Hardware, 4 Profiles, 5 Bench,
+    // 6 Settings.
     in-out property <int> page: 0;
-    property <int> pages: 6;
+    property <int> pages: 7;
     changed page => {
         Library.shown(root.page == 0);
     }
@@ -137,7 +139,7 @@ export component AppWindow inherits Window {
                     HorizontalLayout {
                         padding: 4px;
                         spacing: 2px;
-                        for label[i] in [@tr("Library"), @tr("Home"), @tr("Performance"), @tr("Profiles"), @tr("Bench"), @tr("Settings")]: Tab {
+                        for label[i] in [@tr("Library"), @tr("Home"), @tr("Performance"), @tr("Hardware"), @tr("Profiles"), @tr("Bench"), @tr("Settings")]: Tab {
                             label: label;
                             selected: root.page == i;
                             clicked => {
@@ -198,9 +200,10 @@ export component AppWindow inherits Window {
                 if root.page == 0: LibraryPage { }
                 if root.page == 1: HomePage { }
                 if root.page == 2: PerformancePage { }
-                if root.page == 3: ProfilesPage { }
-                if root.page == 4: BenchPage { }
-                if root.page == 5: SettingsPage { }
+                if root.page == 3: HardwarePage { }
+                if root.page == 4: ProfilesPage { }
+                if root.page == 5: BenchPage { }
+                if root.page == 6: SettingsPage { }
             }
 
             HorizontalLayout {

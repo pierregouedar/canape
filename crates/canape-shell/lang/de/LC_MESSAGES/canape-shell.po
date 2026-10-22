@@ -419,3 +419,83 @@ msgstr "Keine Spiele aus diesem Store"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé zeigt die Spiele, die mit Steam, dem Epic Games Launcher, GOG Galaxy und der Xbox-App installiert wurden."
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Fans"
+msgstr "Lüfter"
+
+
+msgid "Off while cool"
+msgstr "Aus, solange kühl"
+
+msgid "Steady"
+msgstr "Gleichmäßig"
+
+
+msgid "Loud, coolest"
+msgstr "Laut, am kühlsten"
+
+msgid "CPU fan"
+msgstr "CPU-Lüfter"
+
+msgid "{} rpm"
+msgstr "{} U/min"
+
+msgid "GPU fan"
+msgstr "GPU-Lüfter"
+
+msgid "The power mode's own curve"
+msgstr "Die eigene Kurve des Leistungsmodus"
+
+msgid "Custom curves set by another client."
+msgstr "Eigene Kurven, von einem anderen Client gesetzt."
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "Eine Vorgabe ersetzt die Kurve der Firmware; Automatisch stellt sie wieder her. Ein Wechsel des Leistungsmodus behält die Vorgabe."
+
+msgid "Frame rate limit"
+msgstr "Bildratenlimit"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "Der Grafiktreiber hält Spiele unter dieser Bildrate: weniger Wärme, weniger Lärm, längere Akkulaufzeit."
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "Mit Auto-TDP dessen Ziel auf oder unter das Limit setzen."
+
+msgid "Controller"
+msgstr "Controller"
+
+msgid "Gamepad"
+msgstr "Gamepad"
+
+msgid "For games"
+msgstr "Für Spiele"
+
+msgid "Keyboard"
+msgstr "Tastatur"
+
+msgid "Buttons send keys"
+msgstr "Tasten senden Tastendrücke"
+
+msgid "Mouse"
+msgstr "Maus"
+
+msgid "Stick moves the pointer"
+msgstr "Stick bewegt den Zeiger"
+
+msgid "This game"
+msgstr "Dieses Spiel"
+
+msgid "No game in the foreground"
+msgstr "Kein Spiel im Vordergrund"
+
+msgid "Keep fans and limit for this game"
+msgstr "Lüfter und Limit für dieses Spiel behalten"
+
+msgid "Firmware curve"
+msgstr "Kurve der Firmware"
+
+msgid "Maximum"
+msgstr "Maximum"

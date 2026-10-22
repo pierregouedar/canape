@@ -460,7 +460,7 @@ Off Windows, logs and state go to `<tmp>/Canape/` (`service.log`, `state.json`, 
 | `CANAPE_MOCK_FPS` | service (simulator) | Simulated frame rate, for example `60`. Without it, `fps` is `null` and auto TDP does not move. Also applies on Windows when the simulator is in use. |
 | `CANAPE_SOCKET` | service, shell, `canape-ctl` (off Windows) | Unix socket path. |
 | `CANAPE_WINDOWED` | shell | Present (any value): a window instead of full screen. |
-| `CANAPE_PAGE` | shell | Page shown at startup: 0 Library, 1 Home, 2 Performance, 3 Profiles, 4 Bench, 5 Settings. |
+| `CANAPE_PAGE` | shell | Page shown at startup: 0 Library, 1 Home, 2 Performance, 3 Hardware, 4 Profiles, 5 Bench, 6 Settings. |
 | `CANAPE_LIBRARY_FIXTURE` | shell (debug builds) | A fake library instead of the installed stores: see [The game library](#the-game-library). |
 | `LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG` | shell (off Windows) | Language in Automatic mode, in this order of priority. |
 | `TMPDIR` | all (off Windows) | Temporary folder, hence where `Canape/` lives. |

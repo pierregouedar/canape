@@ -419,3 +419,83 @@ msgstr "No hay juegos de esta tienda"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé muestra los juegos instalados con Steam, Epic Games Launcher, GOG Galaxy y la app de Xbox."
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Fans"
+msgstr "Ventiladores"
+
+
+msgid "Off while cool"
+msgstr "Parados en frío"
+
+msgid "Steady"
+msgstr "Estable"
+
+
+msgid "Loud, coolest"
+msgstr "Ruidoso, el más fresco"
+
+msgid "CPU fan"
+msgstr "Ventilador CPU"
+
+msgid "{} rpm"
+msgstr "{} rpm"
+
+msgid "GPU fan"
+msgstr "Ventilador GPU"
+
+msgid "The power mode's own curve"
+msgstr "La curva propia del modo de energía"
+
+msgid "Custom curves set by another client."
+msgstr "Curvas personalizadas fijadas por otro cliente."
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "Un preajuste sustituye la curva del firmware; Automático la restablece. Cambiar de modo de energía mantiene el preajuste."
+
+msgid "Frame rate limit"
+msgstr "Límite de FPS"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "El controlador gráfico mantiene los juegos por debajo de esta tasa: menos calor, menos ruido, más batería."
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "Con el TDP automático, pon su objetivo en el límite o por debajo."
+
+msgid "Controller"
+msgstr "Mando"
+
+msgid "Gamepad"
+msgstr "Mando"
+
+msgid "For games"
+msgstr "Para juegos"
+
+msgid "Keyboard"
+msgstr "Teclado"
+
+msgid "Buttons send keys"
+msgstr "Los botones envían teclas"
+
+msgid "Mouse"
+msgstr "Ratón"
+
+msgid "Stick moves the pointer"
+msgstr "El stick mueve el puntero"
+
+msgid "This game"
+msgstr "Este juego"
+
+msgid "No game in the foreground"
+msgstr "Ningún juego en primer plano"
+
+msgid "Keep fans and limit for this game"
+msgstr "Guardar ventiladores y límite para este juego"
+
+msgid "Firmware curve"
+msgstr "Curva del firmware"
+
+msgid "Maximum"
+msgstr "Máximo"

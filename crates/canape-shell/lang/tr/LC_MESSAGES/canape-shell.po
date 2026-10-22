@@ -419,3 +419,83 @@ msgstr "Bu mağazadan oyun yok"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé; Steam, Epic Games Launcher, GOG Galaxy ve Xbox uygulamasıyla yüklenen oyunları gösterir."
+
+msgid "Hardware"
+msgstr "Donanım"
+
+msgid "Fans"
+msgstr "Fanlar"
+
+
+msgid "Off while cool"
+msgstr "Serinken kapalı"
+
+msgid "Steady"
+msgstr "Dengeli hız"
+
+
+msgid "Loud, coolest"
+msgstr "Gürültülü, en serin"
+
+msgid "CPU fan"
+msgstr "CPU fanı"
+
+msgid "{} rpm"
+msgstr "{} dev/dk"
+
+msgid "GPU fan"
+msgstr "GPU fanı"
+
+msgid "The power mode's own curve"
+msgstr "Güç modunun kendi eğrisi"
+
+msgid "Custom curves set by another client."
+msgstr "Başka bir istemcinin ayarladığı özel eğriler."
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "Hazır ayar, donanım yazılımının eğrisinin yerini alır; Otomatik onu geri getirir. Güç modunu değiştirmek hazır ayarı korur."
+
+msgid "Frame rate limit"
+msgstr "FPS sınırı"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "Grafik sürücüsü oyunları bu kare hızının altında tutar: daha az ısı, daha az gürültü, daha uzun pil ömrü."
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "Otomatik TDP ile hedefini sınırda veya altında ayarlayın."
+
+msgid "Controller"
+msgstr "Kumanda"
+
+msgid "Gamepad"
+msgstr "Oyun kumandası"
+
+msgid "For games"
+msgstr "Oyunlar için"
+
+msgid "Keyboard"
+msgstr "Klavye"
+
+msgid "Buttons send keys"
+msgstr "Düğmeler tuş gönderir"
+
+msgid "Mouse"
+msgstr "Fare"
+
+msgid "Stick moves the pointer"
+msgstr "Çubuk imleci hareket ettirir"
+
+msgid "This game"
+msgstr "Bu oyun"
+
+msgid "No game in the foreground"
+msgstr "Ön planda oyun yok"
+
+msgid "Keep fans and limit for this game"
+msgstr "Fanları ve sınırı bu oyun için sakla"
+
+msgid "Firmware curve"
+msgstr "Yazılım eğrisi"
+
+msgid "Maximum"
+msgstr "Maksimum"

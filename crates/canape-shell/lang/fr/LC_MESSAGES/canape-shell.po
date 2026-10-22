@@ -419,3 +419,83 @@ msgstr "Aucun jeu de cette boutique"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé affiche les jeux installés avec Steam, l'Epic Games Launcher, GOG Galaxy et l'app Xbox."
+
+msgid "Hardware"
+msgstr "Matériel"
+
+msgid "Fans"
+msgstr "Ventilateurs"
+
+
+msgid "Off while cool"
+msgstr "Arrêtés à froid"
+
+msgid "Steady"
+msgstr "Régulier"
+
+
+msgid "Loud, coolest"
+msgstr "Bruyant, le plus frais"
+
+msgid "CPU fan"
+msgstr "Ventilateur CPU"
+
+msgid "{} rpm"
+msgstr "{} tr/min"
+
+msgid "GPU fan"
+msgstr "Ventilateur GPU"
+
+msgid "The power mode's own curve"
+msgstr "La courbe propre au mode d'alimentation"
+
+msgid "Custom curves set by another client."
+msgstr "Courbes personnalisées définies par un autre client."
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "Un préréglage remplace la courbe du firmware ; Automatique la rétablit. Changer de mode d'alimentation garde le préréglage."
+
+msgid "Frame rate limit"
+msgstr "Limite de FPS"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "Le pilote graphique maintient les jeux sous ce débit : moins de chaleur, moins de bruit, plus d'autonomie."
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "Avec l'auto TDP, réglez son objectif au niveau de la limite ou en dessous."
+
+msgid "Controller"
+msgstr "Manette"
+
+msgid "Gamepad"
+msgstr "Manette de jeu"
+
+msgid "For games"
+msgstr "Pour les jeux"
+
+msgid "Keyboard"
+msgstr "Clavier"
+
+msgid "Buttons send keys"
+msgstr "Les boutons envoient des touches"
+
+msgid "Mouse"
+msgstr "Souris"
+
+msgid "Stick moves the pointer"
+msgstr "Le stick déplace le pointeur"
+
+msgid "This game"
+msgstr "Ce jeu"
+
+msgid "No game in the foreground"
+msgstr "Aucun jeu au premier plan"
+
+msgid "Keep fans and limit for this game"
+msgstr "Garder ventilateurs et limite pour ce jeu"
+
+msgid "Firmware curve"
+msgstr "Courbe du firmware"
+
+msgid "Maximum"
+msgstr "Maximum"

@@ -36,6 +36,22 @@ export struct StatusView {
     bench-steps: int,
     bench-watts: int,
     bench-seconds-left: int,
+    // Power range of this model, in watts.
+    tdp-floor: int,
+    tdp-ceiling: int,
+    // Fan speeds, -1 when unknown.
+    cpu-rpm: int,
+    gpu-rpm: int,
+    // "" (firmware curves), "silent", "balanced", "max-cooling" or "custom".
+    fan-preset: string,
+    // The CPU fan's custom curve (hardware.rs: viewbox 90 x 100), "" when
+    // the firmware drives it.
+    fan-line: string,
+    fan-area: string,
+    // Driver frame rate cap, 0 = none.
+    fps-limit: int,
+    // "gamepad", "wasd", "mouse" or "" when unknown.
+    controller: string,
 }
 
 export struct ProfileView {
@@ -131,6 +147,15 @@ export global App {
     // degrees, saturation and value in [0, 1]) or a preset (#rrggbb).
     callback pick-accent-hsv(float, float, float);
     callback pick-accent(string);
+    // Hardware page. A preset key from StatusView.fan-preset, "" for the
+    // firmware's curves.
+    callback set-fan-preset(string);
+    // 0 removes the cap.
+    callback set-fps-limit(int);
+    callback set-controller(string);
+    // Saves the current fan curves and frame rate cap in the profile of the
+    // game in the foreground.
+    callback save-hardware-profile();
 
     // Shared formatting, translated.
     public pure function watts(w: int) -> string {

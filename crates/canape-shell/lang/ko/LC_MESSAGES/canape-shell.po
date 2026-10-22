@@ -419,3 +419,83 @@ msgstr "이 스토어의 게임이 없습니다"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé는 Steam, Epic Games Launcher, GOG Galaxy, Xbox 앱으로 설치한 게임을 보여 줍니다."
+
+msgid "Hardware"
+msgstr "하드웨어"
+
+msgid "Fans"
+msgstr "팬"
+
+
+msgid "Off while cool"
+msgstr "낮은 온도에서 정지"
+
+msgid "Steady"
+msgstr "일정함"
+
+
+msgid "Loud, coolest"
+msgstr "시끄럽지만 가장 시원함"
+
+msgid "CPU fan"
+msgstr "CPU 팬"
+
+msgid "{} rpm"
+msgstr "{} rpm"
+
+msgid "GPU fan"
+msgstr "GPU 팬"
+
+msgid "The power mode's own curve"
+msgstr "전원 모드 자체 곡선"
+
+msgid "Custom curves set by another client."
+msgstr "다른 클라이언트가 설정한 사용자 곡선입니다."
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "프리셋은 펌웨어 곡선을 대체합니다. 자동을 선택하면 되돌아갑니다. 전원 모드를 바꿔도 프리셋은 유지됩니다."
+
+msgid "Frame rate limit"
+msgstr "프레임 제한"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "그래픽 드라이버가 게임을 이 프레임 이하로 유지합니다: 발열과 소음이 줄고 배터리가 오래갑니다."
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "자동 TDP를 쓸 때는 목표를 제한 이하로 설정하세요."
+
+msgid "Controller"
+msgstr "컨트롤러"
+
+msgid "Gamepad"
+msgstr "게임패드"
+
+msgid "For games"
+msgstr "게임용"
+
+msgid "Keyboard"
+msgstr "키보드"
+
+msgid "Buttons send keys"
+msgstr "버튼이 키를 입력"
+
+msgid "Mouse"
+msgstr "마우스"
+
+msgid "Stick moves the pointer"
+msgstr "스틱으로 포인터 이동"
+
+msgid "This game"
+msgstr "이 게임"
+
+msgid "No game in the foreground"
+msgstr "전면에 실행 중인 게임 없음"
+
+msgid "Keep fans and limit for this game"
+msgstr "이 게임에 팬과 제한 저장"
+
+msgid "Firmware curve"
+msgstr "펌웨어 곡선"
+
+msgid "Maximum"
+msgstr "최대"

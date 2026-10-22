@@ -419,3 +419,83 @@ msgstr "Geen games uit deze winkel"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "Canapé toont de games die met Steam, de Epic Games Launcher, GOG Galaxy en de Xbox-app zijn geïnstalleerd."
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Fans"
+msgstr "Ventilatoren"
+
+
+msgid "Off while cool"
+msgstr "Uit zolang koel"
+
+msgid "Steady"
+msgstr "Gelijkmatig"
+
+
+msgid "Loud, coolest"
+msgstr "Luid, het koelst"
+
+msgid "CPU fan"
+msgstr "CPU-ventilator"
+
+msgid "{} rpm"
+msgstr "{} tpm"
+
+msgid "GPU fan"
+msgstr "GPU-ventilator"
+
+msgid "The power mode's own curve"
+msgstr "De eigen curve van de energiemodus"
+
+msgid "Custom curves set by another client."
+msgstr "Aangepaste curves, ingesteld door een andere client."
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "Een voorinstelling vervangt de curve van de firmware; Automatisch zet die terug. Een andere energiemodus behoudt de voorinstelling."
+
+msgid "Frame rate limit"
+msgstr "FPS-limiet"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "Het grafische stuurprogramma houdt games onder deze framerate: minder warmte, minder geluid, langere accuduur."
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "Zet bij auto-TDP het doel op of onder de limiet."
+
+msgid "Controller"
+msgstr "Controller"
+
+msgid "Gamepad"
+msgstr "Gamepad"
+
+msgid "For games"
+msgstr "Voor games"
+
+msgid "Keyboard"
+msgstr "Toetsenbord"
+
+msgid "Buttons send keys"
+msgstr "Knoppen sturen toetsen"
+
+msgid "Mouse"
+msgstr "Muis"
+
+msgid "Stick moves the pointer"
+msgstr "Stick beweegt de aanwijzer"
+
+msgid "This game"
+msgstr "Deze game"
+
+msgid "No game in the foreground"
+msgstr "Geen game op de voorgrond"
+
+msgid "Keep fans and limit for this game"
+msgstr "Ventilatoren en limiet bewaren voor deze game"
+
+msgid "Firmware curve"
+msgstr "Curve van de firmware"
+
+msgid "Maximum"
+msgstr "Maximaal"

@@ -419,3 +419,83 @@ msgstr "Nenhum jogo desta loja"
 
 msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
 msgstr "O Canapé mostra os jogos instalados com o Steam, o Epic Games Launcher, o GOG Galaxy e a app Xbox."
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Fans"
+msgstr "Ventoinhas"
+
+
+msgid "Off while cool"
+msgstr "Paradas quando frio"
+
+msgid "Steady"
+msgstr "Estável"
+
+
+msgid "Loud, coolest"
+msgstr "Barulhento, o mais frio"
+
+msgid "CPU fan"
+msgstr "Ventoinha da CPU"
+
+msgid "{} rpm"
+msgstr "{} rpm"
+
+msgid "GPU fan"
+msgstr "Ventoinha da GPU"
+
+msgid "The power mode's own curve"
+msgstr "A curva própria do modo de energia"
+
+msgid "Custom curves set by another client."
+msgstr "Curvas personalizadas definidas por outro cliente."
+
+msgid "A preset replaces the firmware's curve; Automatic gives it back. Changing the power mode keeps the preset."
+msgstr "Uma predefinição substitui a curva do firmware; Automático a restaura. Mudar o modo de energia mantém a predefinição."
+
+msgid "Frame rate limit"
+msgstr "Limite de FPS"
+
+msgid "The graphics driver holds games below this rate: less heat, less noise, longer battery life."
+msgstr "O driver gráfico mantém os jogos abaixo desta taxa: menos calor, menos ruído, mais bateria."
+
+msgid "With auto TDP, set its target at or below the limit."
+msgstr "Com o TDP automático, defina o alvo no limite ou abaixo."
+
+msgid "Controller"
+msgstr "Controle"
+
+msgid "Gamepad"
+msgstr "Gamepad"
+
+msgid "For games"
+msgstr "Para jogos"
+
+msgid "Keyboard"
+msgstr "Teclado"
+
+msgid "Buttons send keys"
+msgstr "Os botões enviam teclas"
+
+msgid "Mouse"
+msgstr "Mouse"
+
+msgid "Stick moves the pointer"
+msgstr "O analógico move o ponteiro"
+
+msgid "This game"
+msgstr "Este jogo"
+
+msgid "No game in the foreground"
+msgstr "Nenhum jogo em primeiro plano"
+
+msgid "Keep fans and limit for this game"
+msgstr "Guardar ventoinhas e limite para este jogo"
+
+msgid "Firmware curve"
+msgstr "Curva do firmware"
+
+msgid "Maximum"
+msgstr "Máximo"

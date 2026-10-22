@@ -15,6 +15,7 @@ mod foreground;
 #[cfg(windows)]
 mod gamepad;
 mod grid;
+mod hardware;
 mod history;
 mod i18n;
 mod instance;
@@ -27,7 +28,7 @@ mod report;
 use std::rc::Rc;
 use std::time::Duration;
 
-use canape_core::{AutoTdpSettings, BenchPlan, PerformanceMode, Request};
+use canape_core::{AutoTdpSettings, BenchPlan, ControllerMode, Fan, PerformanceMode, Request};
 
 use slint::{ComponentHandle, Timer, TimerMode};
 
@@ -35,7 +36,8 @@ use crate::link::Link;
 
 slint::include_modules!();
 
-/// Bounds of the wattage steppers; the service clamps to the model's range.
+/// Bounds of the wattage steppers until the service reports the model's
+/// own range.
 const MIN_WATTS: u32 = 5;
 const MAX_WATTS: u32 = 35;
 /// Starting point of the manual TDP when leaving a firmware mode, which
@@ -147,8 +149,10 @@ fn connect(ui: &AppWindow, link: &Link) {
         let link = link.clone();
         move |delta| {
             // Disabled in the UI while the firmware picks the limits.
-            if let Some(current) = link.status().tdp_watts {
-                let watts = step(current, delta, MIN_WATTS, MAX_WATTS);
+            let status = link.status();
+            if let Some(current) = status.tdp_watts {
+                let (lo, hi) = (link::tdp_floor(&status), link::tdp_ceiling(&status));
+                let watts = step(current, delta, lo, hi);
                 link.send(Request::SetTdp { watts });
             }
         }
@@ -177,16 +181,19 @@ fn connect(ui: &AppWindow, link: &Link) {
     app.on_change_min_watts({
         let link = link.clone();
         move |delta| {
+            let lo = link::tdp_floor(&link.status());
             update_auto(&link, |s| {
-                s.min_watts = step(s.min_watts, delta, MIN_WATTS, s.max_watts)
+                s.min_watts = step(s.min_watts, delta, lo, s.max_watts)
             })
         }
     });
     app.on_change_max_watts({
         let link = link.clone();
         move |delta| {
+            let status = link.status();
+            let (lo, hi) = (link::tdp_floor(&status), link::tdp_ceiling(&status));
             update_auto(&link, |s| {
-                s.max_watts = step(s.max_watts, delta, s.min_watts.max(MIN_WATTS), MAX_WATTS)
+                s.max_watts = step(s.max_watts, delta, s.min_watts.max(lo), hi)
             })
         }
     });
@@ -283,6 +290,63 @@ fn connect(ui: &AppWindow, link: &Link) {
                 ..report::profile_for(&report, rec, &exe, status.auto_tdp)
             };
             link.send(Request::SaveProfile { profile });
+        }
+    });
+
+    app.on_set_fan_preset({
+        let link = link.clone();
+        move |key| match hardware::preset_from_key(&key) {
+            Some(preset) => {
+                // The Ally has no middle fan; the service skips it anyway.
+                for fan in [Fan::Cpu, Fan::Gpu] {
+                    link.send(Request::SetFanCurve {
+                        fan,
+                        curve: preset.curve(),
+                    });
+                }
+            }
+            None => link.send(Request::ResetFanCurves),
+        }
+    });
+    app.on_set_fps_limit({
+        let link = link.clone();
+        move |fps| {
+            link.send(Request::SetFpsLimit {
+                fps: (fps > 0).then_some(fps as u32),
+            })
+        }
+    });
+    app.on_set_controller({
+        let link = link.clone();
+        move |mode| {
+            let mode = match mode.as_str() {
+                "wasd" => ControllerMode::Wasd,
+                "mouse" => ControllerMode::Mouse,
+                _ => ControllerMode::Gamepad,
+            };
+            link.send(Request::SetControllerMode { mode });
+        }
+    });
+    app.on_save_hardware_profile({
+        let link = link.clone();
+        move || {
+            let status = link.status();
+            let Some(exe) = status.foreground.clone() else {
+                return;
+            };
+            let existing = link.profile(&exe).unwrap_or_else(|| canape_core::Profile {
+                exe: exe.clone(),
+                auto_tdp: status.auto_tdp,
+                ..Default::default()
+            });
+            link.send(Request::SaveProfile {
+                profile: canape_core::Profile {
+                    // An empty set means "the firmware's curves" for this game.
+                    fan_curves: Some(status.fan_curves.clone()),
+                    fps_limit: status.fps_limit,
+                    ..existing
+                },
+            });
         }
     });
 
