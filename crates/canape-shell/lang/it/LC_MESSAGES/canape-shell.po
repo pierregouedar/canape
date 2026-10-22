@@ -303,8 +303,6 @@ msgstr "Automatica segue la lingua di Windows."
 msgid "Version {}"
 msgstr "Versione {}"
 
-msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
-msgstr "Una home leggera in stile console per ROG Ally. L'hardware è gestito dal servizio Canapé."
 
 msgid "Service connected"
 msgstr "Servizio connesso"
@@ -524,3 +522,57 @@ msgstr "Usa i pulsanti dell'Ally"
 
 msgid "Armoury: back to Canapé. Command Center: Game Bar."
 msgstr "Armoury: torna a Canapé. Command Center: Game Bar."
+
+msgid "Install games from Canapé"
+msgstr "Installa giochi da Canapé"
+
+msgid "Steam: API key set."
+msgstr "Steam: chiave API impostata."
+
+msgid "Steam: no API key in shell.json."
+msgstr "Steam: nessuna chiave API in shell.json."
+
+msgid "Epic: {}."
+msgstr "Epic: {}."
+
+msgid "Epic: not signed in."
+msgstr "Epic: accesso non effettuato."
+
+msgid "Epic sign-in"
+msgstr "Accesso a Epic"
+
+msgid "Installing… {} %"
+msgstr "Installazione… {} %"
+
+msgid "Installed"
+msgstr "Installati"
+
+msgid "To install"
+msgstr "Da installare"
+
+msgid "Not installed: press A to install"
+msgstr "Non installato: premi A per installarlo"
+
+msgid "Looking for your games…"
+msgstr "Ricerca dei tuoi giochi…"
+
+msgid "Every game you own is installed"
+msgstr "Tutti i tuoi giochi sono installati"
+
+msgid "Install your games from here"
+msgstr "Installa i tuoi giochi da qui"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
+msgstr "Steam: aggiungi la tua chiave API Web di Steam (steamcommunity.com/dev/apikey) come steam_api_key in shell.json. Epic: accedi una volta qui sotto; Canapé usa Legendary per installare senza il launcher Epic."
+
+msgid "Opening the Epic sign-in…"
+msgstr "Apertura dell'accesso a Epic…"
+
+msgid "Epic: {} (sign in again)"
+msgstr "Epic: {} (accedi di nuovo)"
+
+msgid "Sign in to Epic Games"
+msgstr "Accedi a Epic Games"
+
+msgid "Install"
+msgstr "Installa"

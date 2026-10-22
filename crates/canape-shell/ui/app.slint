@@ -211,7 +211,7 @@ export component AppWindow inherits Window {
                 spacing: 26px;
                 Hint {
                     glyph: "A";
-                    text: root.page == 0 ? @tr("Play") : @tr("Select");
+                    text: root.page == 0 ? (Library.mode == 1 ? @tr("Install") : @tr("Play")) : @tr("Select");
                 }
 
                 Hint {

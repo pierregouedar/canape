@@ -10,7 +10,7 @@ use windows_sys::Win32::Networking::WinHttp::{
     WinHttpSendRequest, WinHttpSetTimeouts,
 };
 
-use crate::online::{Http, MAX_BYTES};
+use crate::online::Http;
 
 fn wide(s: &str) -> Vec<u16> {
     s.encode_utf16().chain(Some(0)).collect()
@@ -78,7 +78,7 @@ fn split(url: &str) -> io::Result<(&str, &str)> {
 }
 
 impl Http for WinHttp {
-    fn get(&self, url: &str, bearer: Option<&str>) -> io::Result<Vec<u8>> {
+    fn get_limited(&self, url: &str, bearer: Option<&str>, max: usize) -> io::Result<Vec<u8>> {
         let (host, path) = split(url)?;
         let (host, path, verb) = (wide(host), wide(path), wide("GET"));
         let connect = Handle::new(unsafe {
@@ -151,7 +151,7 @@ impl Http for WinHttp {
                 return Ok(body);
             }
             body.extend_from_slice(&chunk[..read as usize]);
-            if body.len() > MAX_BYTES {
+            if body.len() > max {
                 return Err(io::Error::other("answer too large"));
             }
         }

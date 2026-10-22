@@ -3,11 +3,16 @@
 //! decoded on a worker thread at the size they are shown, only for the
 //! rows on screen and around them.
 //!
-//! Everything here runs on the UI thread except the scan, the decoding and
-//! the launch itself, which post their results back to the event loop.
+//! A second mode lists the games the user owns but has not installed (Steam
+//! through the Web API key in shell.json, Epic through Legendary); A
+//! installs them without opening the store's launcher.
+//!
+//! Everything here runs on the UI thread except the scan, the decoding,
+//! the launch, the owned lists and the installs, which post their results
+//! back to the event loop.
 
 use std::cell::RefCell;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -17,8 +22,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use canape_library::cache::{self, Recent};
-use canape_library::online;
-use canape_library::{Game, Played, Roots, Sort, Source};
+use canape_library::install::{self, Event, Install, Tools};
+use canape_library::{Game, Launch, Played, Roots, Sort, Source, online, tools};
 use slint::{
     ComponentHandle, Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, Timer, TimerMode,
     VecModel, Weak,
@@ -34,6 +39,8 @@ const LAUNCH_SHOWN: Duration = Duration::from_secs(5);
 const COVER_RADIUS: f32 = 10.0;
 /// Coming back to the page rescans if the last scan is older than this.
 const RESCAN_AFTER: Duration = Duration::from_secs(60);
+/// The owned lists are asked for again after this.
+const OWNED_REFRESH: Duration = Duration::from_secs(10 * 60);
 
 /// The gamepad sends arrow keys (instead of Tab / Shift+Tab) while the
 /// library has the focus: the grid moves in two dimensions.
@@ -95,6 +102,19 @@ struct State {
     recent_path: PathBuf,
     launch_timer: Timer,
     offset: i64,
+    /// Showing the owned games that are not installed.
+    to_install: bool,
+    /// Owned games (installed or not), as entries to install.
+    owned: Vec<Game>,
+    /// Art links the stores gave for owned games (Epic).
+    art: HashMap<String, String>,
+    owned_at: Option<Instant>,
+    owned_loading: bool,
+    owned_path: PathBuf,
+    /// Installs running: id → share done.
+    installing: HashMap<String, f32>,
+    /// Canapé's helper programs (Legendary).
+    tools_dir: PathBuf,
 }
 
 thread_local! {
@@ -132,20 +152,30 @@ fn played_index(game: &Game, now: u64, offset: i64) -> i32 {
 /// Where the games come from: the real stores, or in a development build
 /// the fake machine of `CANAPE_LIBRARY_FIXTURE` (see
 /// [`canape_library::Roots::fixture`]).
-fn roots() -> (Roots, bool) {
+fn roots(tools_dir: &Path) -> (Roots, bool) {
     match std::env::var_os("CANAPE_LIBRARY_FIXTURE") {
         Some(dir) if cfg!(debug_assertions) => (Roots::fixture(&PathBuf::from(dir)), true),
-        _ => (Roots::system(), false),
+        _ => {
+            let mut roots = Roots::system();
+            let exe = tools::legendary_path(tools_dir);
+            roots.legendary = canape_library::legendary::config_dir()
+                .filter(|_| exe.is_file())
+                .map(|config| (config, exe));
+            (roots, false)
+        }
     }
 }
 
 impl State {
     fn rebuild(&mut self, keep: Option<String>) {
-        let mut shown: Vec<Game> = self
-            .all
-            .iter()
+        let source = if self.to_install {
+            canape_library::not_installed(&self.owned, &self.all)
+        } else {
+            self.all.clone()
+        };
+        let mut shown: Vec<Game> = source
+            .into_iter()
             .filter(|g| self.filter.is_none_or(|s| g.source == s))
-            .cloned()
             .collect();
         canape_library::sort(&mut shown, self.sort);
         let now = canape_library::now();
@@ -158,6 +188,8 @@ impl State {
                 cover: Image::default(),
                 art: g.cover.is_some(),
                 played: played_index(g, now, self.offset),
+                installed: !matches!(g.launch, Launch::Install { .. }),
+                progress: self.installing.get(&g.id).copied().unwrap_or(-1.0),
             })
             .collect();
         let selected = keep
@@ -263,7 +295,7 @@ impl State {
             ));
             publish(&cache_path, games.clone());
             // A fixture never goes online.
-            if !fixture && download_covers(&games, &covers) {
+            if !fixture && download_covers(&games, &HashMap::new(), &covers) {
                 online::attach(&mut games, &covers);
                 publish(&cache_path, games);
             }
@@ -279,6 +311,10 @@ impl State {
         let Some(game) = self.shown.get(index).cloned() else {
             return;
         };
+        if let Launch::Install { install } = &game.launch {
+            self.install(&game, install.clone());
+            return;
+        }
         library.set_launching(game.id.as_str().into());
         library.set_failed("".into());
         self.recent.record(&game.id, canape_library::now());
@@ -302,6 +338,136 @@ impl State {
                 with_state(|state| state.launched(id, title, result));
             });
         });
+    }
+
+    /// What the installs need: Steam's folder and Legendary, when present.
+    fn tools(&self) -> Tools {
+        let legendary = tools::legendary_path(&self.tools_dir);
+        Tools {
+            steam: self.roots.steam.clone(),
+            legendary: legendary.is_file().then_some(legendary),
+        }
+    }
+
+    /// Starts installing `game` on its own thread.
+    fn install(&mut self, game: &Game, install: Install) {
+        if self.installing.contains_key(&game.id) {
+            return;
+        }
+        crate::log(&format!("library: installing {} ({install:?})", game.id));
+        self.installing.insert(game.id.clone(), 0.0);
+        self.show_progress(&game.id);
+        if let Some(ui) = self.ui.upgrade() {
+            ui.global::<Library>().set_install_error("".into());
+        }
+        let (id, title, fixture, tools) = (
+            game.id.clone(),
+            game.title.clone(),
+            self.fixture,
+            self.tools(),
+        );
+        thread::spawn(move || {
+            let post = |event: Event| {
+                let (id, title) = (id.clone(), title.clone());
+                let _ = slint::invoke_from_event_loop(move || {
+                    with_state(|state| state.install_event(&id, &title, event));
+                });
+            };
+            if fixture {
+                // Development: a pretend download of a minute.
+                for step in 1..=120 {
+                    thread::sleep(Duration::from_millis(500));
+                    post(Event::Progress(step as f32 / 120.0));
+                }
+                post(Event::Done);
+            } else {
+                install::run(&install, &tools, post);
+            }
+        });
+    }
+
+    fn install_event(&mut self, id: &str, title: &str, event: Event) {
+        match event {
+            Event::Progress(share) => {
+                self.installing.insert(id.to_owned(), share);
+                self.show_progress(id);
+            }
+            Event::Done => {
+                crate::log(&format!("library: {id} installed"));
+                self.installing.remove(id);
+                // The new game shows up in the installed list.
+                self.scan();
+            }
+            Event::Failed(message) => {
+                crate::log(&format!("library: installing {id}: {message}"));
+                self.installing.remove(id);
+                self.show_progress(id);
+                if let Some(ui) = self.ui.upgrade() {
+                    ui.global::<Library>()
+                        .set_install_error(format!("{title}: {message}").into());
+                }
+            }
+        }
+    }
+
+    /// Updates the progress shown on `id`'s tile.
+    fn show_progress(&mut self, id: &str) {
+        let Some(i) = self.shown.iter().position(|g| g.id == id) else {
+            return;
+        };
+        if let Some(mut row) = self.model.row_data(i) {
+            row.progress = self.installing.get(id).copied().unwrap_or(-1.0);
+            self.model.set_row_data(i, row);
+        }
+    }
+
+    /// Asks the stores for the owned games, unless done recently.
+    fn refresh_owned(&mut self, force: bool) {
+        if self.owned_loading
+            || (!force && self.owned_at.is_some_and(|t| t.elapsed() < OWNED_REFRESH))
+        {
+            return;
+        }
+        self.owned_loading = true;
+        self.show_accounts();
+        let (fixture, steam, tools, covers, owned_path) = (
+            self.fixture,
+            self.roots.steam.clone(),
+            self.tools(),
+            self.covers_dir.clone(),
+            self.owned_path.clone(),
+        );
+        // A fixture's owned games: `<fixture>/owned.json`.
+        let fixture_owned = std::env::var_os("CANAPE_LIBRARY_FIXTURE")
+            .map(|dir| PathBuf::from(dir).join("owned.json"))
+            .unwrap_or_default();
+        thread::spawn(move || {
+            let settings = crate::i18n::ShellSettings::load();
+            let (owned, art, account) = if fixture {
+                (cache::load(&fixture_owned), HashMap::new(), None)
+            } else {
+                fetch_owned(&settings, steam.as_deref(), tools.legendary.as_deref())
+            };
+            if let Err(err) = cache::save(&owned_path, &owned) {
+                crate::log(&format!("library: saving owned games: {err}"));
+            }
+            let mut with_covers = owned.clone();
+            online::attach(&mut with_covers, &covers);
+            post_owned(with_covers.clone(), art.clone(), account.clone(), false);
+            if !fixture && download_covers(&with_covers, &art, &covers) {
+                online::attach(&mut with_covers, &covers);
+                post_owned(with_covers, art, account, true);
+            }
+        });
+    }
+
+    /// Shows which stores can list owned games.
+    fn show_accounts(&self) {
+        let Some(ui) = self.ui.upgrade() else { return };
+        let library = ui.global::<Library>();
+        let settings = crate::i18n::ShellSettings::load();
+        library.set_steam_key(!settings.steam_api_key.trim().is_empty());
+        library.set_owned_loading(self.owned_loading);
     }
 
     /// The launch returned: show the outcome, then put the game first.
@@ -329,6 +495,134 @@ impl State {
                 });
             });
     }
+}
+
+/// Owned games from every store set up: Steam through the Web API, Epic
+/// through Legendary. Returns them, the art links Epic gave, and the
+/// signed-in Epic account.
+fn fetch_owned(
+    settings: &crate::i18n::ShellSettings,
+    steam: Option<&Path>,
+    legendary: Option<&Path>,
+) -> (Vec<Game>, HashMap<String, String>, Option<String>) {
+    let (mut owned, mut art, mut account) = (Vec::new(), HashMap::new(), None);
+    let key = settings.steam_api_key.trim();
+    #[cfg(windows)]
+    if !key.is_empty()
+        && let Some(steam) = steam
+    {
+        use canape_library::online::Http;
+        let result = canape_library::steam::local_steam_id(steam)
+            .ok_or_else(|| std::io::Error::other("no Steam account signed in"))
+            .and_then(|id| {
+                let http = canape_library::http::WinHttp::new()?;
+                http.get(&canape_library::steam::owned_url(key, id), None)
+            })
+            .and_then(|json| {
+                canape_library::steam::parse_owned(&json)
+                    .ok_or_else(|| std::io::Error::other("unreadable answer (check the API key)"))
+            });
+        match result {
+            Ok(games) => owned.extend(games),
+            Err(err) => crate::log(&format!("library: Steam owned games: {err}")),
+        }
+    }
+    #[cfg(not(windows))]
+    let _ = (key, steam);
+    if let Some(exe) = legendary {
+        match install::epic_account(exe) {
+            Ok(Some(name)) => {
+                account = Some(name);
+                match install::epic_owned(exe) {
+                    Ok(list) => {
+                        for item in list {
+                            if let Some(url) = item.art_url {
+                                art.insert(item.game.id.clone(), url);
+                            }
+                            owned.push(item.game);
+                        }
+                    }
+                    Err(err) => crate::log(&format!("library: Epic owned games: {err}")),
+                }
+            }
+            Ok(None) => {}
+            Err(err) => crate::log(&format!("library: Epic account: {err}")),
+        }
+    }
+    (owned, art, account)
+}
+
+fn post_owned(
+    owned: Vec<Game>,
+    art: HashMap<String, String>,
+    account: Option<String>,
+    covers_only: bool,
+) {
+    let _ = slint::invoke_from_event_loop(move || {
+        with_state(|state| {
+            state.owned = owned;
+            state.art = art;
+            if !covers_only {
+                state.owned_loading = false;
+                state.owned_at = Some(Instant::now());
+            }
+            if let Some(ui) = state.ui.upgrade() {
+                ui.global::<Library>()
+                    .set_epic_account(account.unwrap_or_default().into());
+            }
+            state.show_accounts();
+            if state.to_install {
+                let keep = state.selected_id();
+                state.rebuild(keep);
+            }
+        })
+    });
+}
+
+/// Downloads Legendary if needed, then opens its Epic sign-in window and
+/// lists the owned games again.
+fn epic_login() {
+    let dir = canape_core::log::dir("LOCALAPPDATA").join("tools");
+    let busy = |on: bool, error: String| {
+        let _ = slint::invoke_from_event_loop(move || {
+            with_state(|state| {
+                if let Some(ui) = state.ui.upgrade() {
+                    let library = ui.global::<Library>();
+                    library.set_epic_busy(on);
+                    if !error.is_empty() {
+                        library.set_install_error(error.into());
+                    }
+                }
+                if !on {
+                    state.refresh_owned(true);
+                }
+            })
+        });
+    };
+    busy(true, String::new());
+    thread::spawn(move || {
+        let exe = tools::legendary_path(&dir);
+        #[cfg(windows)]
+        let ready = if exe.is_file() {
+            Ok(exe)
+        } else {
+            canape_library::http::WinHttp::new()
+                .and_then(|http| tools::fetch_legendary(&http, &dir))
+        };
+        #[cfg(not(windows))]
+        let ready: std::io::Result<PathBuf> = Err(std::io::Error::other(format!(
+            "Epic sign-in needs Windows ({})",
+            exe.display()
+        )));
+        let result = ready.and_then(|exe| install::epic_login(&exe));
+        match result {
+            Ok(_) => busy(false, String::new()),
+            Err(err) => {
+                crate::log(&format!("library: Epic sign-in: {err}"));
+                busy(false, format!("Epic: {err}"));
+            }
+        }
+    });
 }
 
 /// Saves `games` as the last scan and shows them.
@@ -361,18 +655,19 @@ pub fn online_settings(settings: &crate::i18n::ShellSettings) -> online::Setting
     }
 }
 
-/// Downloads the covers of games that have none; true if any arrived.
-fn download_covers(games: &[Game], dir: &Path) -> bool {
+/// Downloads the covers of games that have none (`art`: links the stores
+/// gave); true if any arrived.
+fn download_covers(games: &[Game], art: &HashMap<String, String>, dir: &Path) -> bool {
     let settings = online_settings(&crate::i18n::ShellSettings::load());
     if !settings.enabled() {
         return false;
     }
     #[cfg(windows)]
     let result = canape_library::http::WinHttp::new()
-        .and_then(|http| online::download_missing(games, dir, &settings, &http));
+        .and_then(|http| online::download_missing(games, art, dir, &settings, &http));
     #[cfg(not(windows))]
     let result: std::io::Result<Vec<String>> = {
-        let _ = (games, dir);
+        let _ = (games, art, dir);
         Ok(Vec::new())
     };
     match result {
@@ -431,13 +726,16 @@ pub fn set_shown(shown: bool) {
 
 /// Shows the cached library, wires the page, and starts a scan.
 pub fn start(ui: &AppWindow) {
-    let (roots, fixture) = roots();
     let dir = canape_core::log::dir("LOCALAPPDATA");
+    let tools_dir = dir.join("tools");
+    let (roots, fixture) = roots(&tools_dir);
     // A fixture must not overwrite the real cache.
     let suffix = if fixture { "-fixture" } else { "" };
     let cache_path = dir.join(format!("library{suffix}.json"));
     let recent_path = dir.join(format!("recent{suffix}.json"));
     let covers_dir = dir.join(format!("covers{suffix}"));
+    let owned_path = dir.join(format!("owned{suffix}.json"));
+    let owned = cache::load(&owned_path);
     let recent = Recent::load(&recent_path);
     let cached = cache::load(&cache_path);
 
@@ -469,10 +767,21 @@ pub fn start(ui: &AppWindow) {
         covers_dir,
         launch_timer: Timer::default(),
         offset: canape_library::local_utc_offset(),
+        to_install: false,
+        owned,
+        art: HashMap::new(),
+        owned_at: None,
+        owned_loading: false,
+        owned_path,
+        installing: HashMap::new(),
+        tools_dir,
     };
     state.rebuild(None);
     state.scan();
+    state.show_accounts();
     STATE.with(|s| *s.borrow_mut() = Some(state));
+    // Fills the "to install" list in the background.
+    with_state(|state| state.refresh_owned(false));
 
     library.on_grid_move(|index, count, cols, direction| {
         let (Ok(index), Ok(count), Ok(cols)) = (
@@ -544,6 +853,22 @@ pub fn start(ui: &AppWindow) {
             }
         }
     });
+    library.on_set_mode({
+        let ui = ui.as_weak();
+        move |mode| {
+            with_state(|state| {
+                state.to_install = mode == 1;
+                if state.to_install {
+                    state.refresh_owned(false);
+                }
+                state.rebuild(None);
+            });
+            if let Some(ui) = ui.upgrade() {
+                ui.global::<Library>().set_mode(mode);
+            }
+        }
+    });
+    library.on_epic_login(epic_login);
     library.on_focus_changed(|focused| LIBRARY_FOCUSED.store(focused, Ordering::Relaxed));
     library.on_shown(|shown| {
         set_shown(shown);

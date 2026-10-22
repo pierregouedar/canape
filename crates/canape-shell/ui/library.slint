@@ -19,6 +19,10 @@ export struct GameView {
     // 0 unknown, 1 today, 2 yesterday, 3 within 7 days, 4 within 30 days,
     // 5 longer ago.
     played: int,
+    // False for an owned game that A installs.
+    installed: bool,
+    // Install progress, 0 to 1; -1 when not installing.
+    progress: float,
 }
 
 export global Library {
@@ -39,9 +43,23 @@ export global Library {
     in property <string> launching;
     // Title of a game that could not be launched, "" when none.
     in property <string> failed;
+    // 0 installed games, 1 owned games to install.
+    in property <int> mode;
+    // A Steam Web API key is set in shell.json.
+    in property <bool> steam-key;
+    // Signed-in Epic account (through Legendary), "" when none.
+    in property <string> epic-account;
+    // Legendary is being downloaded or its sign-in window is open.
+    in property <bool> epic-busy;
+    // The owned lists are being fetched.
+    in property <bool> owned-loading;
+    // Last install or sign-in failure, "" when none.
+    in property <string> install-error;
 
     callback set-filter(int);
     callback set-sort(int);
+    callback set-mode(int);
+    callback epic-login();
     callback launch(int);
     // The grid shows `rows` rows from `first-row`, `cols` per row, with
     // covers of this size in physical pixels.
@@ -163,11 +181,41 @@ component CoverTile inherits Rectangle {
             }
         }
 
-        if root.show-source: SourceTag {
+        if root.show-source && root.game.progress < 0: SourceTag {
             x: 8px;
             y: parent.height - self.height - 8px;
             text: root.game.source;
             overlay: true;
+        }
+
+        // Install in progress: a bar and the percentage at the bottom.
+        if root.game.progress >= 0: Rectangle {
+            y: parent.height - self.height;
+            height: 64px;
+            background: #07090ed8;
+            VerticalLayout {
+                padding: 12px;
+                spacing: 8px;
+                Text {
+                    text: @tr("Installing… {} %", Math.round(root.game.progress * 100));
+                    color: Theme.text;
+                    font-size: Theme.font-small;
+                    font-weight: 700;
+                    horizontal-alignment: center;
+                }
+
+                Rectangle {
+                    height: 6px;
+                    border-radius: 3px;
+                    background: Theme.surface-high;
+                    Rectangle {
+                        x: 0;
+                        width: parent.width * root.game.progress;
+                        border-radius: 3px;
+                        background: Theme.accent;
+                    }
+                }
+            }
         }
 
         if root.launching: Rectangle {
@@ -251,10 +299,12 @@ export component LibraryPage inherits VerticalLayout {
     spacing: 12px;
     property <GameView> current: Library.games[Library.selected];
     property <bool> has-games: Library.games.length > 0;
-    // Filters (0 to 4) and sort orders (5, 6) in one row.
-    property <int> cursor: Library.filter;
+    // Modes (0, 1), filters (2 to 6) and sort orders (7, 8) in one row.
+    property <int> cursor: Library.filter + 2;
+    property <[string]> modes: [@tr("Installed"), @tr("To install")];
     property <[string]> filters: [@tr("All"), "Steam", "Epic", "GOG", "Xbox"];
     property <[string]> sorts: [@tr("Recent"), @tr("A–Z")];
+    property <bool> to-install: Library.mode == 1;
 
     init => {
         if root.has-games {
@@ -271,10 +321,12 @@ export component LibraryPage inherits VerticalLayout {
     }
 
     function activate(item: int) {
-        if item < 5 {
-            Library.set-filter(item);
+        if item < 2 {
+            Library.set-mode(item);
+        } else if item < 7 {
+            Library.set-filter(item - 2);
         } else {
-            Library.set-sort(item - 5);
+            Library.set-sort(item - 7);
         }
     }
 
@@ -303,8 +355,8 @@ export component LibraryPage inherits VerticalLayout {
                     text: root.current.source;
                 }
                 Text {
-                    text: Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.has-games && Library.launching == root.current.id ? @tr("Launching…") : root.has-games ? Library.played-text(root.current.played) : Library.scanning ? @tr("Looking for games…") : "";
-                    color: Library.failed != "" ? Theme.warn : Library.launching != "" && Library.launching == root.current.id ? Theme.accent-line : Theme.dim;
+                    text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.has-games && Library.launching == root.current.id ? @tr("Launching…") : root.has-games && root.current.progress >= 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed: press A to install") : root.has-games ? Library.played-text(root.current.played) : Library.scanning ? @tr("Looking for games…") : "";
+                    color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Library.launching != "" && Library.launching == root.current.id ? Theme.accent-line : Theme.dim;
                     font-size: Theme.font-small;
                     font-weight: Library.launching != "" ? 700 : 400;
                     vertical-alignment: center;
@@ -321,21 +373,23 @@ export component LibraryPage inherits VerticalLayout {
                     return accept;
                 }
                 if event.text == Key.RightArrow {
-                    root.cursor = min(6, root.cursor + 1);
+                    root.cursor = min(8, root.cursor + 1);
                     return accept;
                 }
                 if event.text == Key.Return || event.text == " " {
                     root.activate(root.cursor);
                     return accept;
                 }
-                if event.text == Key.DownArrow && root.has-games {
+                // In the "to install" mode with no games, the grid holds
+                // the Epic sign-in button.
+                if event.text == Key.DownArrow && (root.has-games || root.to-install) {
                     grid.focus();
                     return accept;
                 }
                 return reject;
             }
             focus-gained(reason) => {
-                root.cursor = Library.filter;
+                root.cursor = Library.filter + 2;
                 Library.focus-changed(true);
             }
             focus-lost(reason) => {
@@ -347,9 +401,9 @@ export component LibraryPage inherits VerticalLayout {
                 VerticalLayout {
                     alignment: center;
                     BarGroup {
-                        for label[i] in root.filters: BarItem {
+                        for label[i] in root.modes: BarItem {
                             label: label;
-                            selected: Library.filter == i;
+                            selected: Library.mode == i;
                             cursor: bar.has-focus && root.cursor == i;
                             clicked => {
                                 root.cursor = i;
@@ -362,13 +416,28 @@ export component LibraryPage inherits VerticalLayout {
                 VerticalLayout {
                     alignment: center;
                     BarGroup {
+                        for label[i] in root.filters: BarItem {
+                            label: label;
+                            selected: Library.filter == i;
+                            cursor: bar.has-focus && root.cursor == i + 2;
+                            clicked => {
+                                root.cursor = i + 2;
+                                root.activate(i + 2);
+                            }
+                        }
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    BarGroup {
                         for label[i] in root.sorts: BarItem {
                             label: label;
                             selected: Library.sort == i;
-                            cursor: bar.has-focus && root.cursor == i + 5;
+                            cursor: bar.has-focus && root.cursor == i + 7;
                             clicked => {
-                                root.cursor = i + 5;
-                                root.activate(i + 5);
+                                root.cursor = i + 7;
+                                root.activate(i + 7);
                             }
                         }
                     }
@@ -438,6 +507,14 @@ export component LibraryPage inherits VerticalLayout {
                 Library.launch(Library.selected);
                 return accept;
             }
+            if (event.text == Key.Return || event.text == " ") && root.to-install && !Library.epic-busy {
+                Library.epic-login();
+                return accept;
+            }
+            if event.text == Key.UpArrow && !root.has-games {
+                bar.focus();
+                return accept;
+            }
             return reject;
         }
         focus-gained(reason) => {
@@ -490,8 +567,57 @@ export component LibraryPage inherits VerticalLayout {
             }
         }
 
+        // Nothing to install, or no store set up: say how to add one.
+        if !root.has-games && root.to-install: VerticalLayout {
+            alignment: center;
+            spacing: 14px;
+            Text {
+                text: Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
+                color: Theme.text;
+                font-size: Theme.font-title;
+                font-weight: 700;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.");
+                color: Theme.dim;
+                font-size: Theme.font-body;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+            }
+
+            HorizontalLayout {
+                alignment: center;
+                Rectangle {
+                    height: 50px;
+                    width: epic-label.preferred-width + 48px;
+                    border-radius: 25px;
+                    background: grid.has-focus ? Theme.accent : Theme.surface-high;
+                    border-width: grid.has-focus ? 3px : 1px;
+                    border-color: grid.has-focus ? Theme.focus : Theme.stroke;
+                    epic-label := Text {
+                        text: Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games");
+                        color: grid.has-focus ? Theme.accent-text : Theme.text;
+                        font-size: Theme.font-body;
+                        font-weight: 700;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    TouchArea {
+                        clicked => {
+                            if !Library.epic-busy {
+                                Library.epic-login();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Nothing to show: say why.
-        if !root.has-games: VerticalLayout {
+        if !root.has-games && !root.to-install: VerticalLayout {
             alignment: center;
             spacing: 14px;
             HorizontalLayout {

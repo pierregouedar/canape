@@ -9,6 +9,7 @@
 //! URL building and response parsing are pure and tested; the transport is
 //! the [`Http`] trait, implemented with WinHTTP on Windows.
 
+use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -45,8 +46,14 @@ impl Settings {
 
 /// An HTTPS GET.
 pub trait Http {
-    /// The body of a 200 answer; an error for any other status.
-    fn get(&self, url: &str, bearer: Option<&str>) -> io::Result<Vec<u8>>;
+    /// The body of a 200 answer, at most `max` bytes; an error for any
+    /// other status or a longer body.
+    fn get_limited(&self, url: &str, bearer: Option<&str>, max: usize) -> io::Result<Vec<u8>>;
+
+    /// [`Http::get_limited`] for images and API answers.
+    fn get(&self, url: &str, bearer: Option<&str>) -> io::Result<Vec<u8>> {
+        self.get_limited(url, bearer, MAX_BYTES)
+    }
 }
 
 /// File name stem for a game id: `steam:1245620` -> `steam_1245620`.
@@ -183,8 +190,12 @@ fn missed_recently(dir: &Path, id: &str, now: SystemTime) -> bool {
         .is_ok_and(|t| now.duration_since(t).unwrap_or_default() < RETRY_AFTER)
 }
 
-/// The image bytes of the first source that has art for `game`.
-fn find(game: &Game, settings: &Settings, http: &dyn Http) -> Option<Vec<u8>> {
+/// The image bytes of the first source that has art for `game`: its own
+/// art link if the store gave one (`art`), Steam's CDN, then SteamGridDB.
+fn find(game: &Game, art: Option<&str>, settings: &Settings, http: &dyn Http) -> Option<Vec<u8>> {
+    if let Some(bytes) = art.and_then(|url| http.get(url, None).ok()) {
+        return Some(bytes);
+    }
     let appid = steam_appid(game);
     if settings.steam_cdn
         && let Some(appid) = appid
@@ -209,9 +220,11 @@ fn find(game: &Game, settings: &Settings, http: &dyn Http) -> Option<Vec<u8>> {
 }
 
 /// Downloads the covers of games that have none, at most
-/// [`MAX_PER_SCAN`]. Returns the ids that got one.
+/// [`MAX_PER_SCAN`]. `art` maps game ids to art links their store gave
+/// (Epic). Returns the ids that got one.
 pub fn download_missing(
     games: &[Game],
+    art: &HashMap<String, String>,
     dir: &Path,
     settings: &Settings,
     http: &dyn Http,
@@ -229,7 +242,8 @@ pub fn download_missing(
         .take(MAX_PER_SCAN);
     for game in wanted {
         let stem = stem(&game.id);
-        let image = find(game, settings, http)
+        let link = art.get(&game.id).map(String::as_str);
+        let image = find(game, link, settings, http)
             .filter(|b| b.len() <= MAX_BYTES)
             .and_then(|b| Some((image_extension(&b)?, b)));
         match image {
@@ -252,7 +266,6 @@ mod tests {
     use super::*;
     use crate::Launch;
     use std::cell::RefCell;
-    use std::collections::HashMap;
 
     struct Fake {
         answers: HashMap<String, Vec<u8>>,
@@ -260,7 +273,7 @@ mod tests {
     }
 
     impl Http for Fake {
-        fn get(&self, url: &str, bearer: Option<&str>) -> io::Result<Vec<u8>> {
+        fn get_limited(&self, url: &str, bearer: Option<&str>, _: usize) -> io::Result<Vec<u8>> {
             self.asked
                 .borrow_mut()
                 .push((url.to_owned(), bearer.is_some()));
@@ -359,7 +372,7 @@ mod tests {
             game("gog:1", "Fabrikam Quest", Source::Gog),
             game("epic:x", "Nowhere", Source::Epic),
         ];
-        let got = download_missing(&games, &dir, &settings, &http).unwrap();
+        let got = download_missing(&games, &HashMap::new(), &dir, &settings, &http).unwrap();
         assert_eq!(got, ["steam:400", "gog:1"]);
         // The key only goes to the SteamGridDB API, never to a CDN.
         for (url, bearer) in http.asked.borrow().iter() {
@@ -377,7 +390,7 @@ mod tests {
         let mut fresh = games.clone();
         fresh[0].cover = None;
         assert!(
-            download_missing(&fresh, &dir, &settings, &http)
+            download_missing(&fresh, &HashMap::new(), &dir, &settings, &http)
                 .unwrap()
                 .is_empty()
         );
@@ -393,7 +406,8 @@ mod tests {
             asked: RefCell::new(Vec::new()),
         };
         let games = [game("steam:400", "Portal", Source::Steam)];
-        let got = download_missing(&games, &dir, &Settings::default(), &http).unwrap();
+        let got =
+            download_missing(&games, &HashMap::new(), &dir, &Settings::default(), &http).unwrap();
         assert!(got.is_empty() && http.asked.borrow().is_empty());
         assert!(!dir.exists());
     }

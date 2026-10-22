@@ -303,8 +303,6 @@ msgstr "「自動」は Windows の表示言語に従います。"
 msgid "Version {}"
 msgstr "バージョン {}"
 
-msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
-msgstr "ROG Ally 向けの軽量なコンソール風ホーム。ハードウェアは Canapé サービスが制御します。"
 
 msgid "Service connected"
 msgstr "サービス接続済み"
@@ -524,3 +522,57 @@ msgstr "Ally のボタンを使う"
 
 msgid "Armoury: back to Canapé. Command Center: Game Bar."
 msgstr "Armoury：Canapé に戻る。Command Center：Game Bar。"
+
+msgid "Install games from Canapé"
+msgstr "Canapé からゲームをインストール"
+
+msgid "Steam: API key set."
+msgstr "Steam：API キー設定済み。"
+
+msgid "Steam: no API key in shell.json."
+msgstr "Steam：shell.json に API キーがありません。"
+
+msgid "Epic: {}."
+msgstr "Epic：{}。"
+
+msgid "Epic: not signed in."
+msgstr "Epic：未サインイン。"
+
+msgid "Epic sign-in"
+msgstr "Epic サインイン"
+
+msgid "Installing… {} %"
+msgstr "インストール中… {} %"
+
+msgid "Installed"
+msgstr "インストール済み"
+
+msgid "To install"
+msgstr "未インストール"
+
+msgid "Not installed: press A to install"
+msgstr "未インストール：A でインストール"
+
+msgid "Looking for your games…"
+msgstr "ゲームを検索中…"
+
+msgid "Every game you own is installed"
+msgstr "所有ゲームはすべてインストール済みです"
+
+msgid "Install your games from here"
+msgstr "ここからゲームをインストール"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
+msgstr "Steam：Steam Web API キー（steamcommunity.com/dev/apikey）を shell.json の steam_api_key に追加してください。Epic：下から一度サインインしてください。Canapé は Legendary を使い、Epic ランチャーなしでインストールします。"
+
+msgid "Opening the Epic sign-in…"
+msgstr "Epic サインインを開いています…"
+
+msgid "Epic: {} (sign in again)"
+msgstr "Epic：{}（再サインイン）"
+
+msgid "Sign in to Epic Games"
+msgstr "Epic Games にサインイン"
+
+msgid "Install"
+msgstr "インストール"

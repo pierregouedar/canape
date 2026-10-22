@@ -303,8 +303,6 @@ msgstr "“自动”跟随 Windows 显示语言。"
 msgid "Version {}"
 msgstr "版本 {}"
 
-msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
-msgstr "为 ROG Ally 打造的轻量主机风格主页。硬件由 Canapé 服务控制。"
 
 msgid "Service connected"
 msgstr "服务已连接"
@@ -524,3 +522,57 @@ msgstr "使用 Ally 按键"
 
 msgid "Armoury: back to Canapé. Command Center: Game Bar."
 msgstr "Armoury：返回 Canapé。Command Center：Game Bar。"
+
+msgid "Install games from Canapé"
+msgstr "从 Canapé 安装游戏"
+
+msgid "Steam: API key set."
+msgstr "Steam：已设置 API 密钥。"
+
+msgid "Steam: no API key in shell.json."
+msgstr "Steam：shell.json 中没有 API 密钥。"
+
+msgid "Epic: {}."
+msgstr "Epic：{}。"
+
+msgid "Epic: not signed in."
+msgstr "Epic：未登录。"
+
+msgid "Epic sign-in"
+msgstr "Epic 登录"
+
+msgid "Installing… {} %"
+msgstr "正在安装… {} %"
+
+msgid "Installed"
+msgstr "已安装"
+
+msgid "To install"
+msgstr "待安装"
+
+msgid "Not installed: press A to install"
+msgstr "未安装：按 A 安装"
+
+msgid "Looking for your games…"
+msgstr "正在查找你的游戏…"
+
+msgid "Every game you own is installed"
+msgstr "你拥有的游戏已全部安装"
+
+msgid "Install your games from here"
+msgstr "从这里安装你的游戏"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
+msgstr "Steam：在 shell.json 中将你的 Steam Web API 密钥（steamcommunity.com/dev/apikey）添加为 steam_api_key。Epic：在下方登录一次；Canapé 使用 Legendary 安装，无需 Epic 启动器。"
+
+msgid "Opening the Epic sign-in…"
+msgstr "正在打开 Epic 登录…"
+
+msgid "Epic: {} (sign in again)"
+msgstr "Epic：{}（重新登录）"
+
+msgid "Sign in to Epic Games"
+msgstr "登录 Epic Games"
+
+msgid "Install"
+msgstr "安装"

@@ -20,6 +20,12 @@ pub fn launch(launch: &Launch) -> io::Result<()> {
     }
 
     let (file, args, cwd) = match launch {
+        Launch::Install { .. } => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "not installed: see canape_library::install",
+            ));
+        }
         Launch::Uri { uri } => (wide(uri), None, None),
         Launch::Exe { path, args, cwd } => (
             wide(&path.to_string_lossy()),

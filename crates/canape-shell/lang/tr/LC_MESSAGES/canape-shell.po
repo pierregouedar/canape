@@ -303,8 +303,6 @@ msgstr "Otomatik, Windows görüntüleme dilini izler."
 msgid "Version {}"
 msgstr "Sürüm {}"
 
-msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
-msgstr "ROG Ally için hafif, konsol tarzı bir ana ekran. Donanımı Canapé hizmeti yönetir."
 
 msgid "Service connected"
 msgstr "Hizmet bağlı"
@@ -524,3 +522,57 @@ msgstr "Ally düğmelerini kullan"
 
 msgid "Armoury: back to Canapé. Command Center: Game Bar."
 msgstr "Armoury: Canapé'ye dön. Command Center: Game Bar."
+
+msgid "Install games from Canapé"
+msgstr "Oyunları Canapé'den kur"
+
+msgid "Steam: API key set."
+msgstr "Steam: API anahtarı ayarlı."
+
+msgid "Steam: no API key in shell.json."
+msgstr "Steam: shell.json'da API anahtarı yok."
+
+msgid "Epic: {}."
+msgstr "Epic: {}."
+
+msgid "Epic: not signed in."
+msgstr "Epic: giriş yapılmadı."
+
+msgid "Epic sign-in"
+msgstr "Epic girişi"
+
+msgid "Installing… {} %"
+msgstr "Kuruluyor… %{}"
+
+msgid "Installed"
+msgstr "Kurulu"
+
+msgid "To install"
+msgstr "Kurulacak"
+
+msgid "Not installed: press A to install"
+msgstr "Kurulu değil: kurmak için A'ya basın"
+
+msgid "Looking for your games…"
+msgstr "Oyunların aranıyor…"
+
+msgid "Every game you own is installed"
+msgstr "Sahip olduğun tüm oyunlar kurulu"
+
+msgid "Install your games from here"
+msgstr "Oyunlarını buradan kur"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
+msgstr "Steam: Steam Web API anahtarını (steamcommunity.com/dev/apikey) shell.json içine steam_api_key olarak ekle. Epic: aşağıdan bir kez giriş yap; Canapé, Epic başlatıcısı olmadan kurmak için Legendary'yi kullanır."
+
+msgid "Opening the Epic sign-in…"
+msgstr "Epic girişi açılıyor…"
+
+msgid "Epic: {} (sign in again)"
+msgstr "Epic: {} (yeniden giriş yap)"
+
+msgid "Sign in to Epic Games"
+msgstr "Epic Games'e giriş yap"
+
+msgid "Install"
+msgstr "Kur"

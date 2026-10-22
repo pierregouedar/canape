@@ -303,8 +303,6 @@ msgstr "Automatyczny używa języka wyświetlania Windows."
 msgid "Version {}"
 msgstr "Wersja {}"
 
-msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
-msgstr "Lekki ekran główny w stylu konsoli dla ROG Ally. Sprzętem steruje usługa Canapé."
 
 msgid "Service connected"
 msgstr "Usługa połączona"
@@ -524,3 +522,57 @@ msgstr "Używaj przycisków Ally"
 
 msgid "Armoury: back to Canapé. Command Center: Game Bar."
 msgstr "Armoury: powrót do Canapé. Command Center: Game Bar."
+
+msgid "Install games from Canapé"
+msgstr "Instaluj gry z Canapé"
+
+msgid "Steam: API key set."
+msgstr "Steam: klucz API ustawiony."
+
+msgid "Steam: no API key in shell.json."
+msgstr "Steam: brak klucza API w shell.json."
+
+msgid "Epic: {}."
+msgstr "Epic: {}."
+
+msgid "Epic: not signed in."
+msgstr "Epic: niezalogowano."
+
+msgid "Epic sign-in"
+msgstr "Logowanie Epic"
+
+msgid "Installing… {} %"
+msgstr "Instalowanie… {} %"
+
+msgid "Installed"
+msgstr "Zainstalowane"
+
+msgid "To install"
+msgstr "Do zainstalowania"
+
+msgid "Not installed: press A to install"
+msgstr "Niezainstalowana: naciśnij A, aby zainstalować"
+
+msgid "Looking for your games…"
+msgstr "Szukanie twoich gier…"
+
+msgid "Every game you own is installed"
+msgstr "Wszystkie twoje gry są zainstalowane"
+
+msgid "Install your games from here"
+msgstr "Instaluj gry stąd"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
+msgstr "Steam: dodaj klucz Steam Web API (steamcommunity.com/dev/apikey) jako steam_api_key w shell.json. Epic: zaloguj się raz poniżej; Canapé instaluje przez Legendary bez launchera Epic."
+
+msgid "Opening the Epic sign-in…"
+msgstr "Otwieranie logowania Epic…"
+
+msgid "Epic: {} (sign in again)"
+msgstr "Epic: {} (zaloguj ponownie)"
+
+msgid "Sign in to Epic Games"
+msgstr "Zaloguj się do Epic Games"
+
+msgid "Install"
+msgstr "Zainstaluj"

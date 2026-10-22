@@ -303,8 +303,6 @@ msgstr "Automático segue o idioma de exibição do Windows."
 msgid "Version {}"
 msgstr "Versão {}"
 
-msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
-msgstr "Uma tela inicial leve, estilo console, para o ROG Ally. O hardware é controlado pelo serviço Canapé."
 
 msgid "Service connected"
 msgstr "Serviço conectado"
@@ -524,3 +522,57 @@ msgstr "Usar os botões do Ally"
 
 msgid "Armoury: back to Canapé. Command Center: Game Bar."
 msgstr "Armoury: voltar ao Canapé. Command Center: Game Bar."
+
+msgid "Install games from Canapé"
+msgstr "Instalar jogos pelo Canapé"
+
+msgid "Steam: API key set."
+msgstr "Steam: chave de API definida."
+
+msgid "Steam: no API key in shell.json."
+msgstr "Steam: sem chave de API no shell.json."
+
+msgid "Epic: {}."
+msgstr "Epic: {}."
+
+msgid "Epic: not signed in."
+msgstr "Epic: sem login."
+
+msgid "Epic sign-in"
+msgstr "Login da Epic"
+
+msgid "Installing… {} %"
+msgstr "Instalando… {} %"
+
+msgid "Installed"
+msgstr "Instalados"
+
+msgid "To install"
+msgstr "Para instalar"
+
+msgid "Not installed: press A to install"
+msgstr "Não instalado: aperte A para instalar"
+
+msgid "Looking for your games…"
+msgstr "Procurando seus jogos…"
+
+msgid "Every game you own is installed"
+msgstr "Todos os seus jogos estão instalados"
+
+msgid "Install your games from here"
+msgstr "Instale seus jogos daqui"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
+msgstr "Steam: adicione sua chave da API Web da Steam (steamcommunity.com/dev/apikey) como steam_api_key no shell.json. Epic: faça login uma vez abaixo; o Canapé usa o Legendary para instalar sem o launcher da Epic."
+
+msgid "Opening the Epic sign-in…"
+msgstr "Abrindo o login da Epic…"
+
+msgid "Epic: {} (sign in again)"
+msgstr "Epic: {} (entrar de novo)"
+
+msgid "Sign in to Epic Games"
+msgstr "Entrar na Epic Games"
+
+msgid "Install"
+msgstr "Instalar"

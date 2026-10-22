@@ -303,8 +303,6 @@ msgstr "자동은 Windows 표시 언어를 따릅니다."
 msgid "Version {}"
 msgstr "버전 {}"
 
-msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
-msgstr "ROG Ally를 위한 가벼운 콘솔 스타일 홈. 하드웨어는 Canapé 서비스가 제어합니다."
 
 msgid "Service connected"
 msgstr "서비스 연결됨"
@@ -524,3 +522,57 @@ msgstr "Ally 버튼 사용"
 
 msgid "Armoury: back to Canapé. Command Center: Game Bar."
 msgstr "Armoury: Canapé로 돌아가기. Command Center: Game Bar."
+
+msgid "Install games from Canapé"
+msgstr "Canapé에서 게임 설치"
+
+msgid "Steam: API key set."
+msgstr "Steam: API 키 설정됨."
+
+msgid "Steam: no API key in shell.json."
+msgstr "Steam: shell.json에 API 키 없음."
+
+msgid "Epic: {}."
+msgstr "Epic: {}."
+
+msgid "Epic: not signed in."
+msgstr "Epic: 로그인 안 됨."
+
+msgid "Epic sign-in"
+msgstr "Epic 로그인"
+
+msgid "Installing… {} %"
+msgstr "설치 중… {} %"
+
+msgid "Installed"
+msgstr "설치됨"
+
+msgid "To install"
+msgstr "설치할 게임"
+
+msgid "Not installed: press A to install"
+msgstr "설치 안 됨: A를 눌러 설치"
+
+msgid "Looking for your games…"
+msgstr "게임을 찾는 중…"
+
+msgid "Every game you own is installed"
+msgstr "보유한 모든 게임이 설치되어 있습니다"
+
+msgid "Install your games from here"
+msgstr "여기서 게임을 설치하세요"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
+msgstr "Steam: Steam 웹 API 키(steamcommunity.com/dev/apikey)를 shell.json의 steam_api_key에 추가하세요. Epic: 아래에서 한 번 로그인하세요. Canapé는 Legendary로 Epic 런처 없이 설치합니다."
+
+msgid "Opening the Epic sign-in…"
+msgstr "Epic 로그인 여는 중…"
+
+msgid "Epic: {} (sign in again)"
+msgstr "Epic: {} (다시 로그인)"
+
+msgid "Sign in to Epic Games"
+msgstr "Epic Games 로그인"
+
+msgid "Install"
+msgstr "설치"

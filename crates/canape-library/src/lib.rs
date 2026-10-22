@@ -18,10 +18,13 @@ pub mod epic;
 pub mod gog;
 #[cfg(windows)]
 pub mod http;
+pub mod install;
 mod launch;
+pub mod legendary;
 pub mod online;
 mod sha256;
 pub mod steam;
+pub mod tools;
 pub mod vdf;
 #[cfg(windows)]
 mod win;
@@ -78,6 +81,8 @@ pub enum Launch {
         args: String,
         cwd: PathBuf,
     },
+    /// Owned but not installed: A installs it (see [`install`]).
+    Install { install: install::Install },
 }
 
 /// One installed game.
@@ -106,6 +111,8 @@ pub struct Roots {
     pub gog: GogSource,
     /// `XboxGames` folders.
     pub xbox: Vec<PathBuf>,
+    /// Games installed with Legendary: its config folder and executable.
+    pub legendary: Option<(PathBuf, PathBuf)>,
 }
 
 /// Where GOG games are listed.
@@ -129,6 +136,7 @@ impl Roots {
                 epic: epic::manifest_dir(),
                 gog: GogSource::Registry,
                 xbox: xbox::roots(),
+                legendary: None,
             }
         }
         #[cfg(not(windows))]
@@ -146,6 +154,7 @@ impl Roots {
             epic: Some(dir.join("epic")),
             gog: GogSource::File(dir.join("gog.json")),
             xbox: vec![dir.join("xbox")],
+            legendary: None,
         }
     }
 }
@@ -167,6 +176,9 @@ pub fn scan(roots: &Roots) -> Vec<Game> {
     }
     for dir in &roots.xbox {
         games.extend(xbox::scan(dir));
+    }
+    if let Some((config, exe)) = &roots.legendary {
+        games.extend(legendary::scan(config, exe));
     }
     games
 }
@@ -252,6 +264,19 @@ pub fn merge(games: Vec<Game>, launched: &HashMap<String, u64>) -> Vec<Game> {
     }
     sort(&mut out, Sort::Recent);
     out
+}
+
+/// The owned games that are not installed: `owned` minus every game of
+/// `installed` with the same id or the same title.
+pub fn not_installed(owned: &[Game], installed: &[Game]) -> Vec<Game> {
+    let ids: std::collections::HashSet<&str> = installed.iter().map(|g| g.id.as_str()).collect();
+    let titles: std::collections::HashSet<String> =
+        installed.iter().map(|g| title_key(&g.title)).collect();
+    owned
+        .iter()
+        .filter(|g| !ids.contains(g.id.as_str()) && !titles.contains(&title_key(&g.title)))
+        .cloned()
+        .collect()
 }
 
 /// How long ago a game was played, in calendar terms, for the UI.
@@ -388,6 +413,22 @@ mod tests {
         ];
         sort(&mut games, Sort::Title);
         assert_eq!(ids(&games), ["b", "c", "a"]);
+    }
+
+    #[test]
+    fn installed_games_leave_the_owned_list() {
+        let installed = vec![
+            game("steam:400", "Portal", Source::Steam, None),
+            game("gog:1", "HADES™", Source::Gog, None),
+        ];
+        let owned = vec![
+            game("steam:400", "Portal", Source::Steam, None),
+            game("epic:x", "Hades", Source::Epic, None),
+            game("steam:620", "Portal 2", Source::Steam, None),
+        ];
+        let left = not_installed(&owned, &installed);
+        assert_eq!(left.len(), 1);
+        assert_eq!(left[0].id, "steam:620");
     }
 
     #[test]

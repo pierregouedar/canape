@@ -166,6 +166,129 @@ pub fn cover(steam: &Path, appid: u32) -> Option<PathBuf> {
     candidates.into_iter().find(|p| p.is_file())
 }
 
+/// SteamID64 of the account last signed in, from
+/// `config/loginusers.vdf`: the one marked `MostRecent`, else the latest
+/// `Timestamp`.
+pub fn steam_id(loginusers: &str) -> Option<u64> {
+    let root = vdf::parse(loginusers);
+    let users = root.get("users")?;
+    users
+        .entries()
+        .iter()
+        .filter_map(|(id, user)| {
+            let id: u64 = id.parse().ok()?;
+            let recent = user.str("MostRecent").or(user.str("mostrecent")) == Some("1");
+            let at: u64 = user
+                .str("Timestamp")
+                .and_then(|t| t.trim().parse().ok())
+                .unwrap_or(0);
+            Some(((recent, at), id))
+        })
+        .max()
+        .map(|(_, id)| id)
+}
+
+/// The account's SteamID64, read from the Steam folder.
+pub fn local_steam_id(steam: &Path) -> Option<u64> {
+    steam_id(&read(&steam.join("config").join("loginusers.vdf"))?)
+}
+
+/// Steam Web API: every game the account owns, names included.
+pub fn owned_url(key: &str, steam_id: u64) -> String {
+    format!(
+        "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key={key}&steamid={steam_id}&include_appinfo=1&include_played_free_games=1&format=json"
+    )
+}
+
+#[derive(serde::Deserialize)]
+struct OwnedAnswer {
+    response: OwnedList,
+}
+
+#[derive(serde::Deserialize)]
+struct OwnedList {
+    #[serde(default)]
+    games: Vec<OwnedGame>,
+}
+
+#[derive(serde::Deserialize)]
+struct OwnedGame {
+    appid: u32,
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    rtime_last_played: u64,
+}
+
+/// The owned games of a `GetOwnedGames` answer, as entries to install.
+/// Tools are left out.
+pub fn parse_owned(json: &[u8]) -> Option<Vec<Game>> {
+    let answer: OwnedAnswer = serde_json::from_slice(json).ok()?;
+    Some(
+        answer
+            .response
+            .games
+            .into_iter()
+            .filter(|g| !g.name.is_empty() && !is_tool(g.appid, &g.name))
+            .map(|g| Game {
+                id: format!("steam:{}", g.appid),
+                title: g.name,
+                source: Source::Steam,
+                cover: None,
+                launch: Launch::Install {
+                    install: crate::install::Install::Steam { appid: g.appid },
+                },
+                last_played: Some(g.rtime_last_played).filter(|&t| t > 0),
+            })
+            .collect(),
+    )
+}
+
+/// Where a Steam download stands, from its manifest.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Download {
+    /// Fully installed.
+    Installed,
+    /// Share downloaded, 0 to 1 (0 while Steam prepares).
+    Progress(f32),
+}
+
+/// The state of an install from the text of its manifest.
+pub fn parse_download(text: &str) -> Option<Download> {
+    let root = vdf::parse(text);
+    let app = root.get("AppState")?;
+    let flags: u32 = app.str("StateFlags")?.trim().parse().ok()?;
+    let number = |key| -> u64 {
+        app.str(key)
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or(0)
+    };
+    let (done, total) = (number("BytesDownloaded"), number("BytesToDownload"));
+    // Bit 2 alone: installed and nothing left to fetch.
+    if flags == 4 || (flags & 4 != 0 && total > 0 && done >= total) {
+        return Some(Download::Installed);
+    }
+    let share = if total > 0 {
+        (done as f32 / total as f32).min(1.0)
+    } else {
+        0.0
+    };
+    Some(Download::Progress(share))
+}
+
+/// The state of `appid`'s install, in any library folder.
+pub fn download(steam: &Path, appid: u32) -> Option<Download> {
+    let vdf_text = read(&steam.join("steamapps").join("libraryfolders.vdf"));
+    library_folders(steam, vdf_text.as_deref())
+        .into_iter()
+        .find_map(|folder| {
+            let path = folder
+                .join("steamapps")
+                .join(format!("appmanifest_{appid}.acf"));
+            parse_download(&read(&path)?)
+        })
+}
+
 /// Installed Steam games under the Steam folder `steam`.
 pub fn scan(steam: &Path) -> Vec<Game> {
     let steamapps = steam.join("steamapps");
@@ -217,6 +340,61 @@ pub fn scan(steam: &Path) -> Vec<Game> {
 mod tests {
     use super::*;
     use crate::test_util::fixture;
+
+    #[test]
+    fn steam_id_prefers_the_most_recent_account() {
+        let text = r#""users"
+        {
+            "76561197960287930" { "AccountName" "old" "MostRecent" "0" "Timestamp" "1700000000" }
+            "76561198000000001" { "AccountName" "me" "MostRecent" "1" "Timestamp" "1600000000" }
+        }"#;
+        assert_eq!(steam_id(text), Some(76561198000000001));
+        let no_flag = r#""users" { "1" { "Timestamp" "5" } "2" { "Timestamp" "9" } }"#;
+        assert_eq!(steam_id(no_flag), Some(2));
+        assert_eq!(steam_id("\"users\" { }"), None);
+    }
+
+    #[test]
+    fn owned_games_become_installs() {
+        let json = br#"{"response":{"game_count":3,"games":[
+            {"appid":400,"name":"Portal","playtime_forever":12,"rtime_last_played":1700000000},
+            {"appid":228980,"name":"Steamworks Common Redistributables"},
+            {"appid":620,"name":"Portal 2"}]}}"#;
+        let games = parse_owned(json).unwrap();
+        assert_eq!(games.len(), 2);
+        assert_eq!(games[0].id, "steam:400");
+        assert_eq!(games[0].last_played, Some(1700000000));
+        assert_eq!(
+            games[1].launch,
+            Launch::Install {
+                install: crate::install::Install::Steam { appid: 620 }
+            }
+        );
+        assert!(parse_owned(br#"{"response":{}}"#).unwrap().is_empty());
+        assert!(parse_owned(b"<html>Forbidden</html>").is_none());
+    }
+
+    #[test]
+    fn download_states() {
+        let manifest = |flags: &str, done: &str, total: &str| {
+            format!(
+                r#""AppState" {{ "appid" "620" "StateFlags" "{flags}" "BytesDownloaded" "{done}" "BytesToDownload" "{total}" }}"#
+            )
+        };
+        assert_eq!(
+            parse_download(&manifest("4", "100", "100")),
+            Some(Download::Installed)
+        );
+        assert_eq!(
+            parse_download(&manifest("1026", "25", "100")),
+            Some(Download::Progress(0.25))
+        );
+        assert_eq!(
+            parse_download(&manifest("1026", "0", "0")),
+            Some(Download::Progress(0.0))
+        );
+        assert_eq!(parse_download("nothing"), None);
+    }
 
     #[test]
     fn library_folders_current_and_old_formats() {

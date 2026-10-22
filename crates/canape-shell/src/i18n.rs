@@ -32,6 +32,9 @@ pub struct ShellSettings {
     /// SteamGridDB API key (steamgriddb.com, Preferences, API); empty for
     /// Steam's own covers only.
     pub steamgriddb_key: String,
+    /// Steam Web API key (steamcommunity.com/dev/apikey): lists the owned
+    /// Steam games that are not installed.
+    pub steam_api_key: String,
     /// Refresh rate picked on the Hardware page, in Hz; 0 leaves the screen
     /// as Windows has it.
     pub refresh_hz: u32,
@@ -46,6 +49,7 @@ impl Default for ShellSettings {
             accent: crate::accent::DEFAULT.into(),
             online_covers: true,
             steamgriddb_key: String::new(),
+            steam_api_key: String::new(),
             refresh_hz: 0,
             ally_buttons: true,
         }

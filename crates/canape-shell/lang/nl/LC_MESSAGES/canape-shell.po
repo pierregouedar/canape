@@ -303,8 +303,6 @@ msgstr "Automatisch volgt de weergavetaal van Windows."
 msgid "Version {}"
 msgstr "Versie {}"
 
-msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
-msgstr "Een licht startscherm in consolestijl voor de ROG Ally. De hardware wordt aangestuurd door de Canapé-service."
 
 msgid "Service connected"
 msgstr "Service verbonden"
@@ -524,3 +522,57 @@ msgstr "De knoppen van de Ally gebruiken"
 
 msgid "Armoury: back to Canapé. Command Center: Game Bar."
 msgstr "Armoury: terug naar Canapé. Command Center: Game Bar."
+
+msgid "Install games from Canapé"
+msgstr "Games installeren vanuit Canapé"
+
+msgid "Steam: API key set."
+msgstr "Steam: API-sleutel ingesteld."
+
+msgid "Steam: no API key in shell.json."
+msgstr "Steam: geen API-sleutel in shell.json."
+
+msgid "Epic: {}."
+msgstr "Epic: {}."
+
+msgid "Epic: not signed in."
+msgstr "Epic: niet aangemeld."
+
+msgid "Epic sign-in"
+msgstr "Epic-aanmelding"
+
+msgid "Installing… {} %"
+msgstr "Installeren… {} %"
+
+msgid "Installed"
+msgstr "Geïnstalleerd"
+
+msgid "To install"
+msgstr "Te installeren"
+
+msgid "Not installed: press A to install"
+msgstr "Niet geïnstalleerd: druk op A om te installeren"
+
+msgid "Looking for your games…"
+msgstr "Je games worden gezocht…"
+
+msgid "Every game you own is installed"
+msgstr "Al je games zijn geïnstalleerd"
+
+msgid "Install your games from here"
+msgstr "Installeer je games vanaf hier"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
+msgstr "Steam: zet je Steam Web API-sleutel (steamcommunity.com/dev/apikey) als steam_api_key in shell.json. Epic: meld je hieronder één keer aan; Canapé installeert met Legendary zonder de Epic-launcher."
+
+msgid "Opening the Epic sign-in…"
+msgstr "Epic-aanmelding wordt geopend…"
+
+msgid "Epic: {} (sign in again)"
+msgstr "Epic: {} (opnieuw aanmelden)"
+
+msgid "Sign in to Epic Games"
+msgstr "Aanmelden bij Epic Games"
+
+msgid "Install"
+msgstr "Installeren"

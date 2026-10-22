@@ -303,8 +303,6 @@ msgstr "Automático sigue el idioma de Windows."
 msgid "Version {}"
 msgstr "Versión {}"
 
-msgid "A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service."
-msgstr "Un inicio ligero, estilo consola, para la ROG Ally. El hardware lo controla el servicio Canapé."
 
 msgid "Service connected"
 msgstr "Servicio conectado"
@@ -524,3 +522,57 @@ msgstr "Usar los botones de la Ally"
 
 msgid "Armoury: back to Canapé. Command Center: Game Bar."
 msgstr "Armoury: volver a Canapé. Command Center: Game Bar."
+
+msgid "Install games from Canapé"
+msgstr "Instalar juegos desde Canapé"
+
+msgid "Steam: API key set."
+msgstr "Steam: clave de API añadida."
+
+msgid "Steam: no API key in shell.json."
+msgstr "Steam: sin clave de API en shell.json."
+
+msgid "Epic: {}."
+msgstr "Epic: {}."
+
+msgid "Epic: not signed in."
+msgstr "Epic: sin sesión."
+
+msgid "Epic sign-in"
+msgstr "Inicio de sesión de Epic"
+
+msgid "Installing… {} %"
+msgstr "Instalando… {} %"
+
+msgid "Installed"
+msgstr "Instalados"
+
+msgid "To install"
+msgstr "Por instalar"
+
+msgid "Not installed: press A to install"
+msgstr "No instalado: pulsa A para instalarlo"
+
+msgid "Looking for your games…"
+msgstr "Buscando tus juegos…"
+
+msgid "Every game you own is installed"
+msgstr "Todos tus juegos están instalados"
+
+msgid "Install your games from here"
+msgstr "Instala tus juegos desde aquí"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
+msgstr "Steam: añade tu clave de la API web de Steam (steamcommunity.com/dev/apikey) como steam_api_key en shell.json. Epic: inicia sesión una vez abajo; Canapé usa Legendary para instalar sin el launcher de Epic."
+
+msgid "Opening the Epic sign-in…"
+msgstr "Abriendo el inicio de sesión de Epic…"
+
+msgid "Epic: {} (sign in again)"
+msgstr "Epic: {} (volver a iniciar sesión)"
+
+msgid "Sign in to Epic Games"
+msgstr "Iniciar sesión en Epic Games"
+
+msgid "Install"
+msgstr "Instalar"

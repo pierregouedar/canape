@@ -40,6 +40,18 @@ GAMES = [
 ]
 
 
+# Owned but not installed: (store, title, colours, store id).
+OWNED = [
+    ("steam", "Tidal Bloom", "#0e7490", "#fef3c7", 910001),
+    ("epic", "Quiet Orbit", "#1e293b", "#c4b5fd", "QuietOrbit"),
+    ("steam", "Paper Kingdom", "#7c2d12", "#fde68a", 910002),
+    ("epic", "Lumen Drift", "#064e3b", "#a7f3d0", "LumenDrift"),
+    ("steam", "Rust Garden", "#3f3f46", "#fca5a5", 910003),
+    ("steam", "Northbound", "#1e3a8a", "#e0e7ff", 910004),
+    ("epic", "Mosaic Run", "#701a75", "#fbcfe8", "MosaicRun"),
+]
+
+
 def cover(path, title, top, bottom, size="600x900"):
     """A gradient, two soft discs and the title."""
     width, height = (int(v) for v in size.split("x"))
@@ -150,6 +162,17 @@ def main(out):
         f.write(vdf(config))
     with open(os.path.join(library, "gog.json"), "w") as f:
         json.dump(gog, f, indent=1)
+    # The "to install" list, as the shell caches it, with downloaded covers.
+    owned = []
+    for store, title, top, bottom, store_id in OWNED:
+        game_id = f"{store}:{store_id}"
+        install = ({"store": "steam", "appid": store_id} if store == "steam"
+                   else {"store": "epic", "app": store_id})
+        owned.append({"id": game_id, "title": title, "source": store,
+                      "launch": {"kind": "install", "install": install}})
+        cover(os.path.join(covers, game_id.replace(":", "_") + ".jpg"), title, top, bottom)
+    with open(os.path.join(library, "owned.json"), "w") as f:
+        json.dump({"version": 1, "games": owned}, f, indent=1)
     with open(os.path.join(out, "appdata", "Canape", "recent-fixture.json"), "w") as f:
         json.dump({"launched": launched}, f, indent=1)
     print(f"LOCALAPPDATA={out}/appdata CANAPE_LIBRARY_FIXTURE={library}")

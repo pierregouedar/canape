@@ -4,6 +4,7 @@
 import { Theme } from "theme.slint";
 import { App, ProfileView, BenchRow, RecView } from "state.slint";
 import { Caption, Card, Chip, ColorSlider, Graph, Logo, Pressable, Stepper, Tile, WarnIcon } from "widgets.slint";
+import { Library } from "library.slint";
 
 component Title inherits Text {
     color: Theme.text;
@@ -1244,14 +1245,41 @@ export component SettingsPage inherits HorizontalLayout {
                 }
             }
 
-            Text {
-                text: @tr("A light, console-style home for the ROG Ally. The hardware is driven by the Canapé service.");
-                color: Theme.dim;
-                font-size: Theme.font-small;
-                wrap: word-wrap;
-            }
-
             Rectangle { }
+
+            HorizontalLayout {
+                spacing: 16px;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    alignment: center;
+                    spacing: 2px;
+                    Text {
+                        text: @tr("Install games from Canapé");
+                        color: Theme.text;
+                        font-size: Theme.font-body;
+                        overflow: elide;
+                    }
+
+                    Text {
+                        text: (Library.steam-key ? @tr("Steam: API key set.") : @tr("Steam: no API key in shell.json.")) + " " + (Library.epic-account != "" ? @tr("Epic: {}.", Library.epic-account) : @tr("Epic: not signed in."));
+                        color: Theme.faint;
+                        font-size: Theme.font-small;
+                        wrap: word-wrap;
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    Chip {
+                        min-width: 110px;
+                        label: Library.epic-busy ? "…" : @tr("Epic sign-in");
+                        enabled: !Library.epic-busy;
+                        clicked => {
+                            Library.epic-login();
+                        }
+                    }
+                }
+            }
 
             HorizontalLayout {
                 spacing: 16px;
