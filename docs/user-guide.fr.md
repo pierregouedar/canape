@@ -171,7 +171,7 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 | **Récents** | Les jeux installés, les derniers joués en premier (puis par nom). La jaquette sélectionnée est plus grande, opaque et entourée de blanc ; les autres sont atténuées. Un jeu sans image affiche son titre sur une carte teintée. |
 | **À installer · N** | En bas, l'étagère suivante dépasse : les jeux Steam et Epic que vous possédez sans les avoir installés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). |
 
-**Se déplacer** : gauche et droite parcourent l'étagère, qui défile pour garder deux jeux visibles avant la sélection. Haut ou bas fait passer l'autre étagère devant (« À installer » n'est proposée que si elle contient des jeux, ou tant qu'aucune boutique n'est configurée, pour expliquer comment le faire) : le bandeau décrit alors le jeu à installer et le bouton devient **Installer**. **A** lance le jeu sélectionné ; Canapé affiche « Lancement… » quelques secondes, puis place le jeu en tête de l'étagère.
+**Se déplacer** : gauche et droite parcourent l'étagère, qui défile pour garder deux jeux visibles avant la sélection. Haut ou bas fait passer l'autre étagère devant (« À installer » n'apparaît que si elle contient des jeux : voir [Installer des jeux possédés](#installer-des-jeux-possédés) pour configurer Steam ou Epic) : le bandeau décrit alors le jeu à installer et le bouton devient **Installer**. **A** lance le jeu sélectionné ; Canapé affiche « Lancement… » quelques secondes, puis place le jeu en tête de l'étagère.
 
 **D'où viennent les jeux**
 
@@ -220,7 +220,7 @@ Canapé demande la liste du compte connecté en dernier à Steam sur cet apparei
 
 **Epic : se connecter une fois**
 
-1. Choisissez **Se connecter à Epic Games** sur l'étagère À installer (le bouton n'apparaît que si elle est vide) ou **Compte Epic Games** dans les [Réglages](#réglages).
+1. Choisissez **Compte Epic Games** dans les [Réglages](#réglages).
 2. La première fois, Canapé télécharge **Legendary**, un client Epic libre (licence GPL-3) qui reste un programme séparé, depuis ses publications officielles sur GitHub, dans `%LOCALAPPDATA%\Canape\tools`. Le fichier est vérifié avec l'empreinte SHA-256 que GitHub publie : sans empreinte, ou si elle ne correspond pas, rien n'est enregistré et l'erreur s'affiche en haut de la bibliothèque.
 3. Legendary ouvre sa propre fenêtre de connexion Epic, avec une console à côté (sans WebView2, Legendary y demande un code à la place). Ces fenêtres ne se pilotent pas à la manette : l'écran tactile et le clavier tactile peuvent être nécessaires.
 4. La fenêtre fermée, Canapé redemande la liste des jeux. Le bouton affiche ensuite « Epic : <compte> (se reconnecter) ».

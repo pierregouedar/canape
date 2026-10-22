@@ -171,7 +171,7 @@ The first section, the one Canapé opens on: the selected game large, then a she
 | **Recent** | The installed games, the most recently played first (then by name). The selected cover is larger, opaque and outlined in white; the others are dimmed. A game without art shows its title on a tinted card. |
 | **To install · N** | At the bottom, the next shelf peeks in: the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)). |
 
-**Moving around**: left and right move along the shelf, which scrolls to keep two games visible before the selection. Up or down brings the other shelf to the front ("To install" is only offered when it holds games, or while no store is set up, to explain how): the header then describes the game to install and the button becomes **Install**. **A** launches the selected game; Canapé shows "Launching…" for a few seconds, then puts the game first on the shelf.
+**Moving around**: left and right move along the shelf, which scrolls to keep two games visible before the selection. Up or down brings the other shelf to the front ("To install" only shows when it holds games: see [Installing owned games](#installing-owned-games) to set up Steam or Epic): the header then describes the game to install and the button becomes **Install**. **A** launches the selected game; Canapé shows "Launching…" for a few seconds, then puts the game first on the shelf.
 
 **Where the games come from**
 
@@ -220,7 +220,7 @@ Canapé asks for the list of the account last signed in to Steam on this device 
 
 **Epic: sign in once**
 
-1. Pick **Sign in to Epic Games** on the To install shelf (the button only shows when it is empty) or **Epic Games account** in [Settings](#settings).
+1. Pick **Epic Games account** in [Settings](#settings).
 2. The first time, Canapé downloads **Legendary**, an open-source Epic client (GPL-3 licence) that stays a separate program, from its official releases on GitHub, into `%LOCALAPPDATA%\Canape\tools`. The file is checked against the SHA-256 digest GitHub publishes: without a digest, or if it does not match, nothing is saved and the error shows at the top of the library.
 3. Legendary opens its own Epic sign-in window, with a console next to it (without WebView2, Legendary asks for a code there instead). These windows are not made for the gamepad: the touch screen and the touch keyboard may be needed.
 4. Once the window is closed, Canapé asks for the list of games again. The button then reads "Epic: <account> (sign in again)".

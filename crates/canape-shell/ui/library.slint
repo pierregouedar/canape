@@ -213,12 +213,9 @@ export component LibraryPage inherits Rectangle {
     property <GameView> current: Library.games[Library.selected];
     property <bool> has-games: Library.games.length > 0;
     property <bool> to-install: Library.mode == 1;
-    // No store lists owned games yet: the empty "to install" shelf then
-    // explains how to set one up.
-    property <bool> no-store: !Library.steam-key && Library.epic-account == "";
     // The other shelf can come to the front: back to the installed games
-    // always, to the games to install when there are some to show.
-    property <bool> can-swap: root.to-install || Library.other-count > 0 || root.no-store;
+    // always, to the games to install when there are some.
+    property <bool> can-swap: root.to-install || Library.other-count > 0;
     property <int> sel: Library.selected;
     property <length> pitch: 132px;
     // Scrolled so that two games stay visible before the selected one.
@@ -367,12 +364,11 @@ export component LibraryPage inherits Rectangle {
         }
     }
 
-    // The other shelf, peeking in at the bottom; with nothing to install
-    // yet, only its name, so that down still leads to the store setup.
-    if root.has-games && (Library.other-count > 0 || root.no-store): Text {
+    // The other shelf, peeking in at the bottom.
+    if root.has-games && Library.other-count > 0: Text {
         x: 0;
         y: 556px;
-        text: root.to-install ? @tr("Recent") : Library.other-count > 0 ? @tr("To install · {}", Library.other-count) : @tr("To install");
+        text: root.to-install ? @tr("Recent") : @tr("To install · {}", Library.other-count);
         color: Theme.dim;
         font-size: 14px;
         font-weight: 600;

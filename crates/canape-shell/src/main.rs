@@ -84,8 +84,11 @@ fn main() -> Result<(), slint::PlatformError> {
     if std::env::var_os("CANAPE_WINDOWED").is_none() {
         ui.window().set_fullscreen(true);
     }
-    ui.global::<App>()
-        .set_version(env!("CARGO_PKG_VERSION").into());
+    let version = match env!("CANAPE_COMMIT") {
+        "" => env!("CARGO_PKG_VERSION").to_owned(),
+        commit => format!("{} ({commit})", env!("CARGO_PKG_VERSION")),
+    };
+    ui.global::<App>().set_version(version.into());
 
     // Translations can only be selected once a component exists.
     let settings = i18n::ShellSettings::load();
