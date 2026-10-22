@@ -68,12 +68,22 @@ pub fn library_folders(steam: &Path, vdf_text: Option<&str>) -> Vec<PathBuf> {
         };
         if let Some(path) = path.filter(|p| !p.is_empty()) {
             let path = PathBuf::from(path);
-            if !folders.contains(&path) {
+            if !folders.iter().any(|f| folder_key(f) == folder_key(&path)) {
                 folders.push(path);
             }
         }
     }
     folders
+}
+
+/// Windows paths ignore case and slash direction: the registry gives
+/// `c:/program files (x86)/steam`, `libraryfolders.vdf` gives
+/// `C:\Program Files (x86)\Steam` for the same folder.
+fn folder_key(path: &Path) -> String {
+    path.to_string_lossy()
+        .replace('/', "\\")
+        .trim_end_matches('\\')
+        .to_lowercase()
 }
 
 /// What an `appmanifest_<appid>.acf` says about an installed game.
@@ -415,6 +425,10 @@ mod tests {
             [PathBuf::from(r"C:\Steam"), PathBuf::from(r"E:\Games")]
         );
         assert_eq!(library_folders(steam, None), [PathBuf::from(r"C:\Steam")]);
+        // The same folder as the install folder, written differently.
+        let registry = Path::new("c:/program files (x86)/steam");
+        let same = "\"libraryfolders\" { \"0\" { \"path\" \"C:\\\\Program Files (x86)\\\\Steam\\\\\" } }";
+        assert_eq!(library_folders(registry, Some(same)), [registry]);
     }
 
     #[test]
