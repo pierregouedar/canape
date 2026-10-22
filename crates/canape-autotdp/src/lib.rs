@@ -88,6 +88,8 @@ pub struct Controller {
     /// Consecutive raw samples below the target band.
     deficit_streak: u32,
     thermal_limited: bool,
+    /// The last wattage that held for [`SETTLED_TICKS`], kept after a change.
+    last_settled: Option<u32>,
 }
 
 impl Controller {
@@ -103,6 +105,7 @@ impl Controller {
             ceiling: None,
             deficit_streak: 0,
             thermal_limited: false,
+            last_settled: None,
             config,
         }
     }
@@ -130,6 +133,13 @@ impl Controller {
     /// the next session of the same game.
     pub fn settled_watts(&self) -> Option<u32> {
         (self.ticks_since_change >= SETTLED_TICKS).then_some(self.watts)
+    }
+
+    /// The last wattage that held for a while, even if power moved since:
+    /// what to remember for a game saved while something else disturbs it
+    /// (the shell in front, a menu).
+    pub fn last_settled_watts(&self) -> Option<u32> {
+        self.settled_watts().or(self.last_settled)
     }
 
     /// Drops to the ceiling at once if above it, even when no game is
@@ -215,8 +225,11 @@ impl Controller {
             && self.deficit_streak > 0
             && self.ticks_since_change >= c.cooldown_up_ticks
         {
-            // Recover faster from a big deficit.
-            let step = if fps < c.target_fps * 0.8 {
+            // A probe that just missed the target is undone, not overshot;
+            // otherwise recover faster from a big deficit.
+            let step = if self.probing && fps >= c.target_fps * 0.8 {
+                c.step_down_watts
+            } else if fps < c.target_fps * 0.8 {
                 c.step_up_watts * 2
             } else {
                 c.step_up_watts
@@ -241,6 +254,9 @@ impl Controller {
         };
 
         if next == self.watts {
+            if self.ticks_since_change >= SETTLED_TICKS {
+                self.last_settled = Some(self.watts);
+            }
             return None;
         }
         self.probing = next < self.watts;
@@ -397,6 +413,51 @@ mod tests {
             assert_eq!(ctl.update(sample(200.0)), None);
         }
         assert_eq!(ctl.watts(), 14);
+    }
+
+    #[test]
+    fn a_failed_probe_goes_back_one_step() {
+        let config = Config {
+            target_fps: 40.0,
+            ..Config::default()
+        };
+        let mut ctl = Controller::new(config, 12);
+        let busy = |fps| Sample {
+            fps,
+            gpu_util: Some(0.99),
+            ..Sample::default()
+        };
+        // 45 FPS at 12 W: over the headroom band, the probe goes to 11 W.
+        let lowered = (0..10).find_map(|_| ctl.update(busy(45.0)));
+        assert_eq!(lowered, Some(11));
+        // 11 W just misses the target: back to 12 W, not 13 W.
+        let raised = (0..10).find_map(|_| ctl.update(busy(36.0)));
+        assert_eq!(raised, Some(12));
+    }
+
+    #[test]
+    fn the_last_settled_wattage_survives_a_change() {
+        let mut ctl = Controller::new(Config::default(), 15);
+        let steady = Sample {
+            fps: 61.0,
+            gpu_util: Some(0.99),
+            ..Sample::default()
+        };
+        for _ in 0..SETTLED_TICKS + 1 {
+            assert_eq!(ctl.update(steady), None);
+        }
+        assert_eq!(ctl.last_settled_watts(), Some(15));
+        // The game stalls (the shell came to the front): power rises, the
+        // settled wattage is still the one to remember.
+        let raised = (0..5).find_map(|_| {
+            ctl.update(Sample {
+                fps: 30.0,
+                ..steady
+            })
+        });
+        assert!(raised.is_some_and(|w| w > 15));
+        assert_eq!(ctl.settled_watts(), None);
+        assert_eq!(ctl.last_settled_watts(), Some(15));
     }
 
     #[test]

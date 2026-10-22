@@ -161,6 +161,23 @@ impl Handler {
                         message: "a profile needs an executable name".into(),
                     };
                 }
+                let mut profile = profile;
+                // Saved from the shell while the game runs: the shell in front
+                // disturbs the game, so the wattage that held before is a
+                // better guess than the current one.
+                let running = self
+                    .foreground
+                    .as_deref()
+                    .is_some_and(|exe| profile.matches(exe));
+                if running
+                    && profile.auto_tdp.enabled
+                    && let Some(watts) = self
+                        .controller
+                        .as_ref()
+                        .and_then(Controller::last_settled_watts)
+                {
+                    profile.learned_watts = Some(watts);
+                }
                 self.profiles.retain(|p| !p.matches(&profile.exe));
                 self.profiles.push(profile);
                 // The settings of an active profile may have changed: re-apply.

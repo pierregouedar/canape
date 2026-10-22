@@ -197,6 +197,7 @@ To avoid a sawtooth, a raise caused by a **lasting deficit** (at least two secon
 - A floor lasts **30 s** at first.
 - If the raise follows a failed probe, the duration **doubles**: 60 s, 120 s, 240 s, then **480 s (8 min)** at most. A plain raise (game start, heavier scene) does not double it.
 - The duration stays doubled for the next floors: the more probes fail, the rarer they get, instead of yo-yoing.
+- A probe that only just failed (frame rate still above 80 % of the target) is **undone**: power goes back up by the watt it took, not by 2 W. Without it, when the power that holds the target sits right on a step (11 W for 40 FPS on Heaven), auto TDP went 11 → 13 W and then slowly back down.
 
 ### Single-stall filter
 
@@ -257,6 +258,8 @@ The value is brought between the minimum and the maximum and **applied at once**
 ## Per-game profiles
 
 A profile ties an executable name (compared case-insensitively) to auto TDP settings and, optionally, to **learned watts**, **fan curves** and a **frame rate limit** (the last two saved from the shell's Hardware page).
+
+When a profile is saved from the shell while its game runs, the service takes as learned watts the **last power that held steady for 30 s**, not the current one: the shell in front makes the game's frame rate drop, and auto TDP rises meanwhile.
 
 ```mermaid
 sequenceDiagram

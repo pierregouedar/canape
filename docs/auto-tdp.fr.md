@@ -197,6 +197,7 @@ Pour éviter les dents de scie, une montée due à un **manque qui dure** (au mo
 - Le plancher dure **30 s** au départ.
 - Si la montée suit une sonde ratée, la durée **double** : 60 s, 120 s, 240 s, puis **480 s (8 min)** au maximum. Une simple montée (début de partie, scène plus lourde) ne la double pas.
 - La durée reste doublée pour les planchers suivants : plus les sondes ratent, plus elles deviennent rares, au lieu de faire le yo-yo.
+- Une sonde ratée de peu (FPS encore au-dessus de 80 % de l'objectif) est **annulée** : la puissance remonte du watt qu'elle avait retiré, pas de 2 W. Sans cela, quand la puissance qui tient l'objectif tombe pile sur un palier (11 W pour 40 FPS sur Heaven), l'auto TDP faisait 11 → 13 W puis redescendait lentement.
 
 ### Filtre de l'à-coup isolé
 
@@ -257,6 +258,8 @@ La valeur est ramenée entre le minimum et le maximum et **appliquée tout de su
 ## Profils par jeu
 
 Un profil associe un nom d'exécutable (comparé sans tenir compte de la casse) à des réglages d'auto TDP et, éventuellement, à des **watts appris**, des **courbes de ventilateurs** et une **limite de FPS** (ces deux dernières enregistrées depuis la page Matériel du shell).
+
+Quand un profil est enregistré depuis le shell pendant que son jeu tourne, le service prend comme watts appris la **dernière puissance restée stable 30 s**, pas celle du moment : le shell au premier plan fait chuter les FPS du jeu, et l'auto TDP monte pendant ce temps.
 
 ```mermaid
 sequenceDiagram
