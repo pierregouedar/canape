@@ -1,12 +1,13 @@
 // The game library, Canapé's landing page: the selected game large, then
-// a shelf of covers, the most recently played first, and the games to
-// install peeking below. Left and right move along the shelf (the gamepad
-// sends arrow keys while it has the focus, see nav.rs), up and down swap
-// the shelves, A plays or installs. The games, their covers and the
-// launches come from library.rs.
+// shelves of covers: recent, installed, one per store, to install. The
+// shelf in front is full; the next one peeks in below. Left and right move
+// along the shelf (the gamepad sends arrow keys while it has the focus, see
+// nav.rs), up and down change shelf, A plays or installs. The games, their
+// covers and the launches come from library.rs, the shelves from
+// shelves.rs.
 
 import { Theme } from "theme.slint";
-import { PadGlyph } from "widgets.slint";
+import { PadGlyph, StoreLogo } from "widgets.slint";
 import { Reveal } from "kit.slint";
 
 export struct GameView {
@@ -27,16 +28,28 @@ export struct GameView {
     progress: float,
 }
 
+export struct ShelfView {
+    // 0 recent, 1 installed, 2 a store's, 3 to install.
+    kind: int,
+    // The store of a store's shelf (see GameView.source), "" otherwise.
+    store: string,
+    games: [GameView],
+    // Selected game while the shelf is not in front.
+    selected: int,
+}
+
 export global Library {
-    // Games of the shelf in front, the most recently played first.
-    in property <[GameView]> games;
+    // Top to bottom.
+    in property <[ShelfView]> shelves;
+    // The shelf in front, and its selected game.
+    in property <int> shelf;
+    in-out property <int> selected;
     // Every installed game.
     in property <int> total;
     in property <bool> scanning;
     // A cache or a finished scan has been loaded: an empty list means
     // there are no games.
     in property <bool> ready;
-    in-out property <int> selected;
     // Id of the game being launched, "" when none.
     in property <string> launching;
     // Title of a game that could not be launched, "" when none.
@@ -45,11 +58,6 @@ export global Library {
     // it, "" when none. A stray press (or a list that moved under the
     // focus) never starts a download on its own.
     in-out property <string> armed;
-    // Shelf in front: 0 installed games, 1 owned games to install.
-    in property <int> mode;
-    // The other shelf, peeking below: its size and first titles.
-    in property <int> other-count;
-    in property <[string]> other-titles;
     // A glow in the selected game's colour, stretched over the window: two
     // layers, the new colour goes into the hidden one, which then fades in
     // over the other.
@@ -67,14 +75,15 @@ export global Library {
     // Last install or sign-in failure, "" when none.
     in property <string> install-error;
 
-    callback set-mode(int);
+    // Bring this shelf to the front.
+    callback focus-shelf(int);
     callback epic-login();
     callback launch(int);
-    // The game at this index was selected.
+    // The game at this index of the shelf in front was selected.
     callback select(int);
-    // The shelf shows `count` games from `first`, with covers of this size
-    // in physical pixels.
-    callback view(int, int, int, float, float);
+    // A shelf shows this many covers across, of this size in physical
+    // pixels.
+    callback view(int, float, float);
     // The shelf gained (true) or lost the focus.
     callback focus-changed(bool);
     // The library page was shown (true) or left.
@@ -224,36 +233,50 @@ component PrimaryButton inherits Rectangle {
     }
 }
 
+// A shelf's name, with its store's logo and its size.
+component ShelfTitle inherits HorizontalLayout {
+    in property <ShelfView> shelf;
+    in property <bool> front;
+    spacing: 8px;
+    alignment: start;
+    if root.shelf.kind == 2: VerticalLayout {
+        alignment: center;
+        StoreLogo {
+            width: 16px;
+            height: 16px;
+            store: root.shelf.store;
+            ink: label.color;
+        }
+    }
+    label := Text {
+        text: root.shelf.kind == 0 ? @tr("Recent") : root.shelf.kind == 1 ? @tr("Installed · {}", root.shelf.games.length) : root.shelf.kind == 2 ? root.shelf.store + " · " + root.shelf.games.length : @tr("To install · {}", root.shelf.games.length);
+        color: root.front ? Theme.text.mix(Theme.dim, 0.6) : Theme.dim;
+        font-size: 14px;
+        font-weight: 600;
+        vertical-alignment: center;
+    }
+}
+
 export component LibraryPage inherits Rectangle {
-    property <GameView> current: Library.games[Library.selected];
-    property <bool> has-games: Library.games.length > 0;
-    property <bool> to-install: Library.mode == 1;
-    // The other shelf can come to the front: back to the installed games
-    // always, to the games to install when there are some.
-    property <bool> can-swap: root.to-install || Library.other-count > 0;
+    property <ShelfView> front: Library.shelves[Library.shelf];
+    property <GameView> current: root.front.games[Library.selected];
+    property <bool> has-games: root.front.games.length > 0;
+    property <bool> to-install: root.front.kind == 3;
     property <int> sel: Library.selected;
     property <length> pitch: 132px;
+    // From one shelf's title to the next.
+    property <length> shelf-pitch: 240px;
     // The side the next game's title slides in from.
     property <length> hero-from: 0;
     // A was just pressed: the button shows it for a moment.
     property <bool> pressed;
-    // Scrolled so that two games stay visible before the selected one.
-    property <length> scroll: max(0, min((Library.selected - 2) * root.pitch, Library.games.length * root.pitch + 12px - root.width));
     changed sel => {
         Library.armed = "";
         Library.select(self.sel);
     }
 
     function report() {
-        Library.view(
-            Math.floor(root.scroll / root.pitch),
-            Math.ceil(root.width / root.pitch) + 1,
-            1,
-            128px / 1phx,
-            192px / 1phx);
-    }
-    changed to-install => {
-        Library.armed = "";
+        Library.view(Math.ceil(root.width / root.pitch) + 1, 128px / 1phx, 192px / 1phx);
     }
     function act() {
         root.pressed = true;
@@ -266,14 +289,18 @@ export component LibraryPage inherits Rectangle {
             Library.epic-login();
         }
     }
+    function go-shelf(index: int) {
+        if index >= 0 && index < Library.shelves.length && index != Library.shelf {
+            Library.armed = "";
+            root.hero-from = 0;
+            Library.focus-shelf(index);
+        }
+    }
     init => {
         self.report();
         Library.select(Library.selected);
     }
     changed width => {
-        self.report();
-    }
-    changed scroll => {
         self.report();
     }
 
@@ -289,11 +316,15 @@ export component LibraryPage inherits Rectangle {
             }
             if event.text == Key.RightArrow {
                 root.hero-from = 16px;
-                Library.selected = min(Library.games.length - 1, Library.selected + 1);
+                Library.selected = max(0, min(root.front.games.length - 1, Library.selected + 1));
                 return accept;
             }
-            if (event.text == Key.UpArrow || event.text == Key.DownArrow) && root.can-swap {
-                Library.set-mode(root.to-install ? 0 : 1);
+            if event.text == Key.UpArrow {
+                root.go-shelf(Library.shelf - 1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.go-shelf(Library.shelf + 1);
                 return accept;
             }
             if event.text == Key.Return || event.text == " " {
@@ -320,7 +351,7 @@ export component LibraryPage inherits Rectangle {
 
     // The selected game, or why there is none; a new model at each game,
     // so its title fades in.
-    for key in [root.has-games ? root.current.id : ""]: Reveal {
+    for key in [Library.shelf + ":" + (root.has-games ? root.current.id : "")]: Reveal {
         x: 0;
         y: 28px;
         width: 640px;
@@ -332,12 +363,27 @@ export component LibraryPage inherits Rectangle {
             spacing: 14px;
             alignment: start;
 
-            Text {
-                text: root.has-games ? root.current.source.to-uppercase() : root.to-install ? @tr("To install").to-uppercase() : "";
-                color: Theme.dim;
-                font-size: 13px;
-                font-weight: 600;
-                letter-spacing: 1px;
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: start;
+                height: 16px;
+                if root.has-games: VerticalLayout {
+                    alignment: center;
+                    StoreLogo {
+                        width: 15px;
+                        height: 15px;
+                        store: root.current.source;
+                        ink: Theme.dim;
+                    }
+                }
+                Text {
+                    text: root.has-games ? root.current.source.to-uppercase() : root.to-install ? @tr("To install").to-uppercase() : "";
+                    color: Theme.dim;
+                    font-size: 13px;
+                    font-weight: 600;
+                    letter-spacing: 1px;
+                    vertical-alignment: center;
+                }
             }
 
             Text {
@@ -373,74 +419,69 @@ export component LibraryPage inherits Rectangle {
         }
     }
 
-    // The shelf in front.
-    if root.has-games || !root.to-install: Text {
-        x: 0;
-        y: 316px;
-        text: root.to-install ? @tr("To install · {}", Library.games.length) : @tr("Recent");
-        color: Theme.text.mix(Theme.dim, 0.6);
-        font-size: 14px;
-        font-weight: 600;
-    }
-
+    // The shelves, the one in front at the top; the one above slides out
+    // of view, the next one peeks in at the bottom.
     Rectangle {
         x: 0;
-        y: 346px;
-        height: 200px;
+        y: 300px;
         width: parent.width + 48px;
-        for game[i] in Library.games: Cover {
-            x: i * root.pitch + (i > Library.selected ? 12px : 0) - root.scroll;
-            y: parent.height - self.height - 8px;
-            game: game;
-            selected: i == Library.selected;
-            focused: fs.has-focus;
-            launching: Library.launching == game.id;
-            visible: self.x > -root.pitch && self.x < parent.width;
-            animate x { duration: 160ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
-            clicked => {
-                if Library.selected == i {
-                    root.act();
-                } else {
-                    Library.selected = i;
-                }
-                fs.focus();
-            }
-        }
-    }
+        height: parent.height - 300px;
+        clip: true;
 
-    // The other shelf, peeking in at the bottom.
-    if root.has-games && Library.other-count > 0: Text {
-        x: 0;
-        y: 556px;
-        text: root.to-install ? @tr("Recent") : @tr("To install · {}", Library.other-count);
-        color: Theme.dim;
-        font-size: 14px;
-        font-weight: 600;
-    }
-    for title[i] in (root.has-games ? Library.other-titles : []): Rectangle {
-        x: i * root.pitch;
-        y: 584px;
-        width: 116px;
-        height: 100px;
-        border-radius: 8px;
-        background: Theme.surface-high;
-        opacity: 0.5;
-        Text {
-            x: 10px;
-            y: 10px;
-            width: parent.width - 20px;
-            text: title;
-            color: Theme.text;
-            font-size: 12px;
-            font-weight: 600;
-            wrap: word-wrap;
-            max-height: parent.height - 20px;
-            overflow: elide;
-        }
-        TouchArea {
-            clicked => {
-                Library.set-mode(root.to-install ? 0 : 1);
-                fs.focus();
+        Rectangle {
+            y: -Library.shelf * root.shelf-pitch;
+            height: Library.shelves.length * root.shelf-pitch;
+            animate y { duration: 280ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+            for shelf[si] in Library.shelves: Rectangle {
+                property <bool> in-front: si == Library.shelf;
+                property <int> pick: self.in-front ? Library.selected : shelf.selected;
+                // Two games stay visible before the selected one.
+                property <length> scroll: max(0, min((self.pick - 2) * root.pitch, shelf.games.length * root.pitch + 12px - root.width));
+                y: si * root.shelf-pitch;
+                height: root.shelf-pitch;
+                // Only the shelves around the one in front are drawn.
+                visible: si >= Library.shelf - 1 && si <= Library.shelf + 1;
+                opacity: self.in-front ? 1 : 0.5;
+                animate opacity { duration: 220ms; }
+
+                ShelfTitle {
+                    x: 0;
+                    y: 16px;
+                    height: 20px;
+                    shelf: shelf;
+                    front: parent.in-front;
+                }
+
+                if shelf.games.length == 0 && shelf.kind == 3: Text {
+                    x: 0;
+                    y: 60px;
+                    text: Library.owned-loading ? @tr("Looking for your games…") : @tr("Nothing to install");
+                    color: Theme.dim;
+                    font-size: 14px;
+                }
+
+                for game[i] in shelf.games: Cover {
+                    x: i * root.pitch + (parent.in-front && i > parent.pick ? 12px : 0) - parent.scroll;
+                    y: 46px + 200px - self.height - 8px;
+                    game: game;
+                    selected: parent.in-front && i == parent.pick;
+                    focused: fs.has-focus;
+                    launching: Library.launching == game.id;
+                    visible: self.x > -root.pitch && self.x < root.width + 48px;
+                    animate x { duration: 160ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+                    clicked => {
+                        if !parent.in-front {
+                            root.go-shelf(si);
+                            Library.selected = i;
+                        } else if Library.selected == i {
+                            root.act();
+                        } else {
+                            Library.selected = i;
+                        }
+                        fs.focus();
+                    }
+                }
             }
         }
     }

@@ -3,10 +3,12 @@
 //! decoded on a worker thread at the size they are shown, only for the
 //! games on screen and around them.
 //!
-//! A second shelf lists the games the user owns but has not installed
-//! (Steam through the Web API key in shell.json, Epic through Legendary); A
-//! installs them without opening the store's launcher. One shelf at a time
-//! holds the model and its covers; the other only shows its first titles.
+//! The games sit on shelves (shelves.rs): recent, installed, one per
+//! store, and last the games the user owns but has not installed (Steam
+//! through the Web API key in shell.json, Epic through Legendary), which A
+//! installs without opening the store's launcher. Each shelf has its own
+//! model and remembers its selection; a cover is decoded once and shared
+//! by every shelf that shows the game.
 //!
 //! Everything here runs on the UI thread except the scan, the decoding,
 //! the launch, the owned lists and the installs, which post their results
@@ -24,15 +26,16 @@ use std::time::{Duration, Instant};
 
 use canape_library::cache::{self, Recent};
 use canape_library::install::{self, Event, Install, Tools};
-use canape_library::{Game, Launch, Played, Roots, Sort, online, tools};
+use canape_library::{Game, Launch, Played, Roots, online, tools};
 use slint::{
-    ComponentHandle, Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, SharedString, Timer,
-    TimerMode, VecModel, Weak,
+    ComponentHandle, Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, Timer, TimerMode,
+    VecModel, Weak,
 };
 
 use crate::backdrop;
 use crate::grid;
-use crate::{AppWindow, GameView, Library};
+use crate::shelves::{self, Kind, Shelf};
+use crate::{AppWindow, GameView, Library, ShelfView};
 
 /// How long "Launching…" shows: the game's window usually covers the shell
 /// before that.
@@ -45,8 +48,6 @@ const RESCAN_AFTER: Duration = Duration::from_secs(60);
 const ERROR_SHOWN: Duration = Duration::from_secs(10);
 /// The owned lists are asked for again after this.
 const OWNED_REFRESH: Duration = Duration::from_secs(10 * 60);
-/// Titles of the other shelf shown under the current one.
-const OTHER_SHOWN: usize = 5;
 
 /// The gamepad sends arrow keys (instead of Tab / Shift+Tab) while the
 /// library has the focus: the grid moves in two dimensions.
@@ -77,12 +78,12 @@ struct Job {
     radius: f32,
 }
 
-/// What the grid shows, as last reported by the page.
+/// What a shelf shows, as last reported by the page.
 #[derive(Clone, Copy, PartialEq)]
 struct View {
-    first_row: usize,
-    visible_rows: usize,
-    cols: usize,
+    /// Covers across the page.
+    visible: usize,
+    /// Cover size, physical pixels.
     width: u32,
     height: u32,
 }
@@ -91,13 +92,19 @@ struct State {
     ui: Weak<AppWindow>,
     /// Every game, merged and deduplicated.
     all: Vec<Game>,
-    /// The games shown, in model order.
-    shown: Vec<Game>,
-    model: Rc<VecModel<GameView>>,
+    /// The shelves, top to bottom, with one model each.
+    shelves: Vec<Shelf>,
+    models: Vec<Rc<VecModel<GameView>>>,
+    /// The shelves' model, in library.slint.
+    shelf_model: Rc<VecModel<ShelfView>>,
+    /// Selected game on each shelf.
+    picks: Vec<usize>,
+    /// The shelf in front.
+    focus: usize,
     recent: Recent,
     view: Option<View>,
-    /// Ids whose cover is in the model.
-    loaded: HashSet<String>,
+    /// Decoded covers, by game id.
+    covers: HashMap<String, Image>,
     /// Ids sent to the decoder and not back yet.
     queued: HashSet<String>,
     /// Ids the decoder should still decode (others are skipped).
@@ -114,8 +121,6 @@ struct State {
     recent_path: PathBuf,
     launch_timer: Timer,
     offset: i64,
-    /// Showing the owned games that are not installed.
-    to_install: bool,
     /// Owned games (installed or not), as entries to install.
     owned: Vec<Game>,
     /// Art links the stores gave for owned games (Epic).
@@ -184,89 +189,209 @@ fn roots(tools_dir: &Path) -> (Roots, bool) {
 }
 
 impl State {
-    fn rebuild(&mut self, keep: Option<String>) {
+    /// Builds the shelves again and keeps the focus on `keep` (a shelf and
+    /// a game on it) when it is still there, else on the same kind of
+    /// shelf. Unchanged shelves keep their models, so their covers stay.
+    fn rebuild(&mut self, keep: Option<(Kind, String)>) {
+        let keep = keep.or_else(|| self.current());
+        let previous: HashMap<Kind, String> = self
+            .shelves
+            .iter()
+            .zip(&self.picks)
+            .filter_map(|(shelf, &i)| shelf.games.get(i).map(|g| (shelf.kind, g.id.clone())))
+            .collect();
         let to_install = canape_library::not_installed(&self.owned, &self.all);
-        let (mut shown, mut other) = if self.to_install {
-            (to_install, self.all.clone())
-        } else {
-            (self.all.clone(), to_install)
-        };
-        canape_library::sort(&mut shown, Sort::Recent);
-        canape_library::sort(&mut other, Sort::Recent);
-        let other_titles: Vec<SharedString> = other
-            .iter()
-            .take(OTHER_SHOWN)
-            .map(|g| g.title.as_str().into())
-            .collect();
+        let shelves = shelves::build(&self.all, to_install);
         let now = canape_library::now();
-        let views: Vec<GameView> = shown
-            .iter()
-            .map(|g| GameView {
-                id: g.id.as_str().into(),
-                title: g.title.as_str().into(),
-                source: g.source.label().into(),
-                cover: Image::default(),
-                art: g.cover.is_some(),
-                played: played_index(g, now, self.offset),
-                installed: !matches!(g.launch, Launch::Install { .. }),
-                progress: self.installing.get(&g.id).copied().unwrap_or(-1.0),
+
+        let same_kinds = shelves.len() == self.shelves.len()
+            && shelves
+                .iter()
+                .zip(&self.shelves)
+                .all(|(a, b)| a.kind == b.kind);
+        if !same_kinds {
+            self.models = shelves
+                .iter()
+                .map(|_| Rc::new(VecModel::default()))
+                .collect();
+        }
+        let mut picks = Vec::with_capacity(shelves.len());
+        let mut rows = Vec::with_capacity(shelves.len());
+        for (s, shelf) in shelves.iter().enumerate() {
+            let views: Vec<GameView> = shelf.games.iter().map(|g| self.game_view(g, now)).collect();
+            let model = &self.models[s];
+            let changed = model.row_count() != views.len()
+                || views
+                    .iter()
+                    .enumerate()
+                    .any(|(i, v)| model.row_data(i).is_none_or(|old| !same_view(&old, v)));
+            if changed {
+                model.set_vec(views);
+            }
+            let pick = previous
+                .get(&shelf.kind)
+                .and_then(|id| shelf.games.iter().position(|g| &g.id == id))
+                .unwrap_or(0);
+            picks.push(pick);
+            rows.push(ShelfView {
+                kind: shelf.kind.index(),
+                store: shelf.kind.store().into(),
+                games: ModelRc::from(model.clone()),
+                selected: pick as i32,
+            });
+        }
+
+        let focus = keep
+            .as_ref()
+            .and_then(|(kind, _)| shelves.iter().position(|s| s.kind == *kind))
+            .or_else(|| {
+                // The kind in front is gone (the recent shelf of a library
+                // never played): the installed games.
+                keep.as_ref()
+                    .and_then(|_| shelves.iter().position(|s| s.kind == Kind::Installed))
             })
-            .collect();
-        let selected = keep
-            .and_then(|id| shown.iter().position(|g| g.id == id))
             .unwrap_or(0);
-        self.shown = shown;
-        self.model.set_vec(views);
-        self.loaded.clear();
-        self.queued.clear();
-        self.wanted.lock().unwrap().clear();
+        if let Some((_, id)) = &keep
+            && let Some(i) = shelves[focus].games.iter().position(|g| &g.id == id)
+        {
+            picks[focus] = i;
+            rows[focus].selected = i as i32;
+        }
+
+        let rows_changed = !same_kinds
+            || rows.iter().enumerate().any(|(i, r)| {
+                self.shelf_model
+                    .row_data(i)
+                    .is_none_or(|old| old.selected != r.selected)
+            });
+        self.shelves = shelves;
+        self.picks = picks;
+        self.focus = focus;
+        if !same_kinds {
+            self.shelf_model.set_vec(rows);
+        } else if rows_changed {
+            for (i, row) in rows.into_iter().enumerate() {
+                self.shelf_model.set_row_data(i, row);
+            }
+        }
         if let Some(ui) = self.ui.upgrade() {
             let library = ui.global::<Library>();
             library.set_total(self.all.len() as i32);
-            library.set_selected(selected as i32);
-            library.set_other_count(other.len() as i32);
-            library.set_other_titles(ModelRc::new(VecModel::from(other_titles)));
+            library.set_shelf(self.focus as i32);
+            library.set_selected(self.picks[self.focus] as i32);
         }
         self.refresh_covers();
         self.show_backdrop();
     }
 
-    fn selected_id(&self) -> Option<String> {
-        let ui = self.ui.upgrade()?;
-        let index = usize::try_from(ui.global::<Library>().get_selected()).ok()?;
-        self.shown.get(index).map(|g| g.id.clone())
+    fn game_view(&self, g: &Game, now: u64) -> GameView {
+        GameView {
+            id: g.id.as_str().into(),
+            title: g.title.as_str().into(),
+            source: g.source.label().into(),
+            cover: self.covers.get(&g.id).cloned().unwrap_or_default(),
+            art: g.cover.is_some(),
+            played: played_index(g, now, self.offset),
+            installed: !matches!(g.launch, Launch::Install { .. }),
+            progress: self.installing.get(&g.id).copied().unwrap_or(-1.0),
+        }
     }
 
-    /// Queues the covers of the rows around the view and drops the others.
+    /// The shelf in front and its selected game.
+    fn current(&self) -> Option<(Kind, String)> {
+        let shelf = self.shelves.get(self.focus)?;
+        let game = shelf.games.get(*self.picks.get(self.focus)?)?;
+        Some((shelf.kind, game.id.clone()))
+    }
+
+    fn selected_id(&self) -> Option<String> {
+        self.current().map(|(_, id)| id)
+    }
+
+    /// Brings the shelf `index` to the front, on the game it had selected.
+    fn focus_shelf(&mut self, index: usize) {
+        if index >= self.shelves.len() || index == self.focus {
+            return;
+        }
+        // The shelf left behind shows where it was.
+        let old = self.focus;
+        if let Some(mut row) = self.shelf_model.row_data(old)
+            && row.selected != self.picks[old] as i32
+        {
+            row.selected = self.picks[old] as i32;
+            self.shelf_model.set_row_data(old, row);
+        }
+        self.focus = index;
+        if let Some(ui) = self.ui.upgrade() {
+            let library = ui.global::<Library>();
+            library.set_shelf(index as i32);
+            library.set_selected(self.picks[index] as i32);
+        }
+        if self.shelves[index].kind == Kind::ToInstall {
+            self.refresh_owned(false);
+        }
+        self.refresh_covers();
+        self.show_backdrop();
+    }
+
+    /// The game `index` of the shelf in front was selected.
+    fn select(&mut self, index: usize) {
+        if let Some(pick) = self.picks.get_mut(self.focus) {
+            *pick = index;
+        }
+        self.refresh_covers();
+        self.show_backdrop();
+    }
+
+    /// Queues the covers around the selection of the shelf in front and of
+    /// its neighbours, and drops the others.
     fn refresh_covers(&mut self) {
         let Some(view) = self.view else { return };
-        let cols = view.cols.max(1);
-        let rows = self.shown.len().div_ceil(cols);
-        let wanted = grid::wanted_rows(view.first_row, view.visible_rows, rows);
-        let kept = grid::kept_rows(&wanted, rows);
-        let in_rows = |rows: &std::ops::Range<usize>, i: usize| rows.contains(&(i / cols));
+        let mut wanted: Vec<&Game> = Vec::new();
+        let mut kept: HashSet<&str> = HashSet::new();
+        let near = self.focus.saturating_sub(1)..(self.focus + 2).min(self.shelves.len());
+        for s in near {
+            let games = &self.shelves[s].games;
+            // As library.slint scrolls: two covers before the selected one.
+            let first = self.picks[s]
+                .saturating_sub(2)
+                .min(games.len().saturating_sub(view.visible.saturating_sub(1)));
+            let rows = grid::wanted_rows(first, view.visible, games.len());
+            for g in &games[grid::kept_rows(&rows, games.len())] {
+                kept.insert(&g.id);
+            }
+            wanted.extend(&games[rows]);
+        }
+
+        let dropped: HashSet<String> = self
+            .covers
+            .keys()
+            .filter(|id| !kept.contains(id.as_str()))
+            .cloned()
+            .collect();
+        if !dropped.is_empty() {
+            self.covers.retain(|id, _| !dropped.contains(id));
+            for (shelf, model) in self.shelves.iter().zip(&self.models) {
+                for (i, game) in shelf.games.iter().enumerate() {
+                    if dropped.contains(&game.id)
+                        && let Some(mut row) = model.row_data(i)
+                    {
+                        row.cover = Image::default();
+                        model.set_row_data(i, row);
+                    }
+                }
+            }
+        }
         let scale = self
             .ui
             .upgrade()
             .map_or(1.0, |ui| ui.window().scale_factor());
-
-        for (i, game) in self.shown.iter().enumerate() {
-            if !in_rows(&kept, i) && self.loaded.remove(&game.id) {
-                if let Some(mut row) = self.model.row_data(i) {
-                    row.cover = Image::default();
-                    self.model.set_row_data(i, row);
-                }
-            }
-        }
         let mut wanted_ids = self.wanted.lock().unwrap();
         wanted_ids.clear();
-        for (i, game) in self.shown.iter().enumerate() {
-            if !in_rows(&wanted, i) {
-                continue;
-            }
+        for game in wanted {
             let Some(path) = &game.cover else { continue };
             wanted_ids.insert(game.id.clone());
-            if !self.loaded.contains(&game.id) && self.queued.insert(game.id.clone()) {
+            if !self.covers.contains_key(&game.id) && self.queued.insert(game.id.clone()) {
                 let _ = self.jobs.send(Job {
                     id: game.id.clone(),
                     path: path.clone(),
@@ -322,13 +447,21 @@ impl State {
         if !self.wanted.lock().unwrap().contains(id) {
             return;
         }
-        let Some(i) = self.shown.iter().position(|g| g.id == id) else {
-            return;
-        };
-        if let Some(mut row) = self.model.row_data(i) {
-            row.cover = image;
-            self.model.set_row_data(i, row);
-            self.loaded.insert(id.to_owned());
+        self.covers.insert(id.to_owned(), image.clone());
+        self.update_rows(id, |row| row.cover = image.clone());
+    }
+
+    /// Changes the rows showing the game `id`, on every shelf.
+    fn update_rows(&self, id: &str, change: impl Fn(&mut GameView)) {
+        for (shelf, model) in self.shelves.iter().zip(&self.models) {
+            for (i, game) in shelf.games.iter().enumerate() {
+                if game.id == id
+                    && let Some(mut row) = model.row_data(i)
+                {
+                    change(&mut row);
+                    model.set_row_data(i, row);
+                }
+            }
         }
     }
 
@@ -367,7 +500,12 @@ impl State {
         if !library.get_launching().is_empty() {
             return;
         }
-        let Some(game) = self.shown.get(index).cloned() else {
+        let Some(game) = self
+            .shelves
+            .get(self.focus)
+            .and_then(|shelf| shelf.games.get(index))
+            .cloned()
+        else {
             return;
         };
         if let Launch::Install { install } = &game.launch {
@@ -483,13 +621,8 @@ impl State {
 
     /// Updates the progress shown on `id`'s tile.
     fn show_progress(&mut self, id: &str) {
-        let Some(i) = self.shown.iter().position(|g| g.id == id) else {
-            return;
-        };
-        if let Some(mut row) = self.model.row_data(i) {
-            row.progress = self.installing.get(id).copied().unwrap_or(-1.0);
-            self.model.set_row_data(i, row);
-        }
+        let progress = self.installing.get(id).copied().unwrap_or(-1.0);
+        self.update_rows(id, |row| row.progress = progress);
     }
 
     /// Asks the stores for the owned games, unless done recently.
@@ -567,10 +700,22 @@ impl State {
                 with_state(|state| {
                     let all = std::mem::take(&mut state.all);
                     state.all = canape_library::merge(all, &state.recent.launched);
-                    state.rebuild(Some(id.clone()));
+                    // The game now leads the recent shelf.
+                    state.rebuild(Some((Kind::Recent, id.clone())));
                 });
             });
     }
+}
+
+/// Whether a row needs no update: the same game in the same state, its
+/// cover aside (covers come and go with the scroll).
+fn same_view(old: &GameView, new: &GameView) -> bool {
+    old.id == new.id
+        && old.title == new.title
+        && old.art == new.art
+        && old.played == new.played
+        && old.installed == new.installed
+        && old.progress == new.progress
 }
 
 /// Owned games from every store set up: Steam through the Web API, Epic
@@ -672,10 +817,7 @@ fn post_owned(owned: Owned, covers_only: bool) {
                     .set_epic_account(owned.account.unwrap_or_default().into());
             }
             state.show_accounts();
-            if state.to_install {
-                let keep = state.selected_id();
-                state.rebuild(keep);
-            }
+            state.rebuild(None);
         })
     });
 }
@@ -736,17 +878,13 @@ fn publish(cache_path: &Path, games: Vec<Game>) {
             state.scanning = false;
             state.last_scan = Some(Instant::now());
             state.all = canape_library::merge(games, &state.recent.launched);
-            let mut keep = state.selected_id();
+            let mut keep = None;
             // Leave the games to install for the one just installed, rather
             // than land on another one A would install.
             if let Some(id) = state.just_installed.take()
                 && state.all.iter().any(|g| g.id == id)
             {
-                state.to_install = false;
-                if let Some(ui) = state.ui.upgrade() {
-                    ui.global::<Library>().set_mode(0);
-                }
-                keep = Some(id);
+                keep = Some((Kind::Installed, id));
             }
             state.rebuild(keep);
             if let Some(ui) = state.ui.upgrade() {
@@ -852,20 +990,23 @@ pub fn start(ui: &AppWindow) {
     let recent = Recent::load(&recent_path);
     let cached = cache::load(&cache_path);
 
-    let model = Rc::new(VecModel::<GameView>::default());
+    let shelf_model = Rc::new(VecModel::<ShelfView>::default());
     let library = ui.global::<Library>();
-    library.set_games(ModelRc::from(model.clone()));
+    library.set_shelves(ModelRc::from(shelf_model.clone()));
     library.set_ready(!cached.is_empty());
 
     let wanted = Arc::new(Mutex::new(HashSet::new()));
     let mut state = State {
         ui: ui.as_weak(),
         all: canape_library::merge(cached, &recent.launched),
-        shown: Vec::new(),
-        model,
+        shelves: Vec::new(),
+        models: Vec::new(),
+        shelf_model,
+        picks: Vec::new(),
+        focus: 0,
         recent,
         view: None,
-        loaded: HashSet::new(),
+        covers: HashMap::new(),
         queued: HashSet::new(),
         jobs: spawn_decoder(wanted.clone()),
         wanted,
@@ -878,7 +1019,6 @@ pub fn start(ui: &AppWindow) {
         covers_dir,
         launch_timer: Timer::default(),
         offset: canape_library::local_utc_offset(),
-        to_install: false,
         owned,
         art: HashMap::new(),
         owned_at: None,
@@ -894,16 +1034,14 @@ pub fn start(ui: &AppWindow) {
     };
     state.rebuild(None);
     state.scan();
-    // The shelf of games to install shows under the installed ones.
+    // The shelf of games to install comes last.
     state.refresh_owned(false);
     state.show_accounts();
     STATE.with(|s| *s.borrow_mut() = Some(state));
 
-    library.on_view(|first_row, visible_rows, cols, width, height| {
+    library.on_view(|visible, width, height| {
         let view = View {
-            first_row: first_row.max(0) as usize,
-            visible_rows: visible_rows.max(1) as usize,
-            cols: cols.max(1) as usize,
+            visible: visible.max(1) as usize,
             width: width.round().max(1.0) as u32,
             height: height.round().max(1.0) as u32,
         };
@@ -917,8 +1055,17 @@ pub fn start(ui: &AppWindow) {
             state.view = Some(view);
             if resized {
                 // Covers decoded for another size: start again.
-                let keep = state.selected_id();
-                state.rebuild(keep);
+                state.covers.clear();
+                state.queued.clear();
+                for model in &state.models {
+                    for i in 0..model.row_count() {
+                        if let Some(mut row) = model.row_data(i) {
+                            row.cover = Image::default();
+                            model.set_row_data(i, row);
+                        }
+                    }
+                }
+                state.refresh_covers();
             } else {
                 state.refresh_covers();
             }
@@ -929,20 +1076,14 @@ pub fn start(ui: &AppWindow) {
             with_state(|state| state.launch(index));
         }
     });
-    library.on_select(|_| with_state(State::show_backdrop));
-    library.on_set_mode({
-        let ui = ui.as_weak();
-        move |mode| {
-            with_state(|state| {
-                state.to_install = mode == 1;
-                if state.to_install {
-                    state.refresh_owned(false);
-                }
-                state.rebuild(None);
-            });
-            if let Some(ui) = ui.upgrade() {
-                ui.global::<Library>().set_mode(mode);
-            }
+    library.on_select(|index| {
+        if let Ok(index) = usize::try_from(index) {
+            with_state(|state| state.select(index));
+        }
+    });
+    library.on_focus_shelf(|index| {
+        if let Ok(index) = usize::try_from(index) {
+            with_state(|state| state.focus_shelf(index));
         }
     });
     library.on_epic_login(epic_login);

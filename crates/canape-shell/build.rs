@@ -8,7 +8,15 @@ fn main() {
         .with_bundled_translations("lang")
         .with_default_translation_context(slint_build::DefaultTranslationContext::None);
     slint_build::compile_with_config("ui/app.slint", config).expect("Slint UI must compile");
+    // A directory only changes when an entry is added or removed: watch
+    // each catalog too, so an edited translation rebuilds.
     println!("cargo:rerun-if-changed=lang");
+    for entry in std::fs::read_dir("lang").into_iter().flatten().flatten() {
+        let po = entry.path().join("LC_MESSAGES").join("canape-shell.po");
+        if po.is_file() {
+            println!("cargo:rerun-if-changed={}", po.display());
+        }
+    }
 
     // The commit, shown next to the version in the settings ("" outside a
     // git checkout).

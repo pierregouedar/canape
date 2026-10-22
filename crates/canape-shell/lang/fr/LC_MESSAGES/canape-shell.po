@@ -447,3 +447,12 @@ msgstr "Appuyez de nouveau sur A pour installer"
 
 msgid "Confirm"
 msgstr "Confirmer"
+
+msgid "Installed · {}"
+msgstr "Installés · {}"
+
+msgid "Shelves"
+msgstr "Étagères"
+
+msgid "Nothing to install"
+msgstr "Rien à installer"

@@ -29,6 +29,7 @@ mod link;
 mod nav;
 mod report;
 mod screen;
+mod shelves;
 
 use std::rc::Rc;
 use std::time::Duration;

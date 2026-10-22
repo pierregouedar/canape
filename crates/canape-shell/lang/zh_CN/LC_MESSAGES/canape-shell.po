@@ -447,3 +447,12 @@ msgstr "再按一次 A 进行安装"
 
 msgid "Confirm"
 msgstr "确认"
+
+msgid "Installed · {}"
+msgstr "已安装 · {}"
+
+msgid "Shelves"
+msgstr "货架"
+
+msgid "Nothing to install"
+msgstr "没有待安装的游戏"

@@ -447,3 +447,12 @@ msgstr "설치하려면 A를 다시 누르세요"
 
 msgid "Confirm"
 msgstr "확인"
+
+msgid "Installed · {}"
+msgstr "설치됨 · {}"
+
+msgid "Shelves"
+msgstr "선반"
+
+msgid "Nothing to install"
+msgstr "설치할 게임 없음"

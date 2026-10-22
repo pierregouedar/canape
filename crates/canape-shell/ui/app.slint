@@ -23,7 +23,7 @@ import "fonts/PlusJakartaSans-Bold.ttf";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
-export { Library, GameView } from "library.slint";
+export { Library, GameView, ShelfView } from "library.slint";
 
 // A section name; the current one is brighter and underlined.
 component Section inherits Rectangle {
@@ -336,6 +336,10 @@ export component AppWindow inherits Window {
                     color: App.notice == Notice.saved && App.status.connected ? Theme.good : Theme.warn;
                 }
 
+                if root.page == 0 && Library.shelves.length > 1: Hint {
+                    glyph: "updown";
+                    text: @tr("Shelves");
+                }
                 if root.page >= 1: Hint {
                     glyph: "updown";
                     text: @tr("Setting");
@@ -346,7 +350,7 @@ export component AppWindow inherits Window {
                 }
                 Hint {
                     glyph: "A";
-                    text: root.page == 0 ? (Library.armed != "" ? @tr("Confirm") : Library.mode == 1 ? @tr("Install") : @tr("Play")) : @tr("Choose");
+                    text: root.page == 0 ? (Library.armed != "" ? @tr("Confirm") : Library.shelves[Library.shelf].kind == 3 ? @tr("Install") : @tr("Play")) : @tr("Choose");
                 }
 
                 if root.page == 1 || root.page == 2 || root.page == 5: Hint {

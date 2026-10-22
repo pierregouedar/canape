@@ -163,15 +163,17 @@ La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé dep
 
 <sub>Une bibliothèque inventée (`tools/fake-library.py`) : titres et jaquettes sont générés.</sub>
 
-La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné en grand, puis une étagère de jaquettes.
+La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné en grand, puis des étagères de jaquettes, l'une sous l'autre.
 
 | Zone | Contenu |
 |---|---|
-| **Jeu sélectionné** | Sa boutique (STEAM, EPIC, GOG, XBOX), son titre, quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…) et le bouton **Jouer** (« Lancement… » après A). Derrière, une lueur reprend la couleur de sa jaquette. |
-| **Récents** | Les jeux installés, les derniers joués en premier (puis par nom). La jaquette sélectionnée est plus grande, opaque et entourée de blanc ; les autres sont atténuées. Un jeu sans image affiche son titre sur une carte teintée. |
-| **À installer · N** | En bas, l'étagère suivante dépasse : les jeux Steam et Epic que vous possédez sans les avoir installés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). |
+| **Jeu sélectionné** | Le logo et le nom de sa boutique (STEAM, EPIC, GOG, XBOX), son titre, quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…) et le bouton **Jouer** (« Lancement… » après A). Derrière, une lueur reprend la couleur de sa jaquette. |
+| **Récents** | Les 10 derniers jeux joués, le plus récent en premier. Absente tant qu'aucun jeu n'a été joué. La jaquette sélectionnée est plus grande, opaque et entourée de blanc ; les autres sont atténuées. Un jeu sans image affiche son titre sur une carte teintée. |
+| **Installés · N** | Tous les jeux installés, par ordre alphabétique. |
+| **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N** | Les jeux installés de chaque boutique, avec son logo, par ordre alphabétique. Seulement les boutiques qui ont des jeux, et seulement s'il y en a plusieurs (sinon l'étagère répéterait Installés). |
+| **À installer · N** | Toujours en dernier : les jeux Steam et Epic que vous possédez sans les avoir installés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Vide, elle explique comment configurer Steam et Epic. |
 
-**Se déplacer** : gauche et droite parcourent l'étagère, qui défile pour garder deux jeux visibles avant la sélection. Haut ou bas fait passer l'autre étagère devant (« À installer » n'apparaît que si elle contient des jeux : voir [Installer des jeux possédés](#installer-des-jeux-possédés) pour configurer Steam ou Epic) : le bandeau décrit alors le jeu à installer et le bouton devient **Installer**. **A** lance le jeu sélectionné ; Canapé affiche « Lancement… » quelques secondes, puis place le jeu en tête de l'étagère.
+**Se déplacer** : gauche et droite parcourent l'étagère, qui défile pour garder deux jeux visibles avant la sélection. Haut et bas passent à l'étagère précédente ou suivante : elle glisse en haut, la suivante dépasse en bas, atténuée. Chaque étagère retient le jeu sélectionné quand on la quitte. Sur À installer, le bandeau décrit le jeu à installer et le bouton devient **Installer**. **A** lance le jeu sélectionné ; Canapé affiche « Lancement… » quelques secondes, puis place le jeu en tête de Récents, qui revient devant.
 
 **D'où viennent les jeux**
 
@@ -209,7 +211,7 @@ Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutili
 > [!NOTE]
 > **Rien de cette partie n'a encore été essayé sur l'Ally** : ni la liste des jeux Steam par l'API Web, ni l'installation par Steam, ni le téléchargement de Legendary, ni la connexion Epic, ni l'installation et le lancement des jeux Epic par Legendary. Seuls l'interface (sous Linux, avec la fausse bibliothèque et une installation simulée) et la lecture des réponses de Steam, d'Epic et de GitHub (sur des réponses enregistrées) ont été testées.
 
-L'étagère **À installer** liste les jeux que vous possédez sur Steam ou sur Epic sans les avoir installés sur la console (haut ou bas depuis Récents la fait passer devant). **A** puis **A** de nouveau (« Confirmer ») installe le jeu sans ouvrir l'interface de Steam ni le lanceur Epic : un appui isolé ne lance jamais de téléchargement ; le bouton et l'aide en bas de l'écran deviennent « Installer ». Un jeu déjà installé, depuis n'importe quelle boutique (même identifiant ou même titre), n'apparaît pas dans cette liste.
+L'étagère **À installer** liste les jeux que vous possédez sur Steam ou sur Epic sans les avoir installés sur la console (la dernière étagère : bas jusqu'à elle). **A** puis **A** de nouveau (« Confirmer ») installe le jeu sans ouvrir l'interface de Steam ni le lanceur Epic : un appui isolé ne lance jamais de téléchargement ; le bouton et l'aide en bas de l'écran deviennent « Installer ». Un jeu déjà installé, depuis n'importe quelle boutique (même identifiant ou même titre), n'apparaît pas dans cette liste.
 
 **Steam : préparer une fois**
 
@@ -233,8 +235,8 @@ Les jeux Epic qui s'installent par une autre boutique (Ubisoft, EA) sont écart�
 
 | Boutique | Installation | Progression | À la fin |
 |---|---|---|---|
-| **Steam** | Canapé confie l'installation à Steam, qui démarre discrètement dans la zone de notification s'il ne tournait pas. Steam n'ouvre que sa petite fenêtre d'installation (dossier, raccourcis) : confirmez-la (pas encore vérifié à la manette). Steam télécharge ensuite en arrière-plan. | Lue toutes les 2 s dans le manifeste du jeu. | Le jeu passe dans Récents, qui revient devant avec le jeu sélectionné : A le lance, par Steam comme les autres. |
-| **Epic** | Legendary installe le jeu en silence, sans fenêtre ni question, dans son dossier par défaut. | Lue dans ce qu'affiche Legendary. | Le jeu passe dans Récents et se lance par Legendary : le lanceur Epic n'est jamais ouvert. |
+| **Steam** | Canapé confie l'installation à Steam, qui démarre discrètement dans la zone de notification s'il ne tournait pas. Steam n'ouvre que sa petite fenêtre d'installation (dossier, raccourcis) : confirmez-la (pas encore vérifié à la manette). Steam télécharge ensuite en arrière-plan. | Lue toutes les 2 s dans le manifeste du jeu. | Le jeu passe dans Installés, qui revient devant avec le jeu sélectionné : A le lance, par Steam comme les autres. |
+| **Epic** | Legendary installe le jeu en silence, sans fenêtre ni question, dans son dossier par défaut. | Lue dans ce qu'affiche Legendary. | Le jeu passe dans Installés et se lance par Legendary : le lanceur Epic n'est jamais ouvert. |
 
 - Pendant l'installation, la jaquette affiche une barre de progression et le bandeau « Installation… N % » quand le jeu est sélectionné ; « En attente de la boutique… » tant que le téléchargement n'a pas commencé (fenêtre de Steam à valider, par exemple). On peut continuer à naviguer et installer d'autres jeux.
 - Canapé ne choisit pas le dossier et ne vérifie pas l'espace libre : Steam le propose dans sa fenêtre, Legendary prend son dossier par défaut.

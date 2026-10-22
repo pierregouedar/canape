@@ -447,3 +447,12 @@ msgstr "Yüklemek için A'ya tekrar basın"
 
 msgid "Confirm"
 msgstr "Onayla"
+
+msgid "Installed · {}"
+msgstr "Yüklü · {}"
+
+msgid "Shelves"
+msgstr "Raflar"
+
+msgid "Nothing to install"
+msgstr "Yüklenecek oyun yok"

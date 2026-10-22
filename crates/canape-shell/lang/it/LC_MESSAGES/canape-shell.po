@@ -447,3 +447,12 @@ msgstr "Premi di nuovo A per installare"
 
 msgid "Confirm"
 msgstr "Conferma"
+
+msgid "Installed · {}"
+msgstr "Installati · {}"
+
+msgid "Shelves"
+msgstr "Scaffali"
+
+msgid "Nothing to install"
+msgstr "Niente da installare"

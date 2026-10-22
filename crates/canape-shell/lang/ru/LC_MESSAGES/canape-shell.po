@@ -447,3 +447,12 @@ msgstr "Нажмите A ещё раз для установки"
 
 msgid "Confirm"
 msgstr "Подтвердить"
+
+msgid "Installed · {}"
+msgstr "Установленные · {}"
+
+msgid "Shelves"
+msgstr "Полки"
+
+msgid "Nothing to install"
+msgstr "Нечего устанавливать"

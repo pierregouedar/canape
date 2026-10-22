@@ -447,3 +447,12 @@ msgstr "もう一度 A を押すとインストール"
 
 msgid "Confirm"
 msgstr "確認"
+
+msgid "Installed · {}"
+msgstr "インストール済み · {}"
+
+msgid "Shelves"
+msgstr "棚"
+
+msgid "Nothing to install"
+msgstr "インストールできるゲームはありません"

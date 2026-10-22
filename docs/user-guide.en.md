@@ -163,15 +163,17 @@ The gamepad is only read while Canapé is in the foreground: a game launched fro
 
 <sub>A made-up library (`tools/fake-library.py`): titles and covers are generated.</sub>
 
-The first section, the one Canapé opens on: the selected game large, then a shelf of covers.
+The first section, the one Canapé opens on: the selected game large, then shelves of covers, one under the other.
 
 | Area | Contents |
 |---|---|
-| **Selected game** | Its store (STEAM, EPIC, GOG, XBOX), its title, when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…) and the **Play** button ("Launching…" after A). Behind it, a glow takes the colour of its cover. |
-| **Recent** | The installed games, the most recently played first (then by name). The selected cover is larger, opaque and outlined in white; the others are dimmed. A game without art shows its title on a tinted card. |
-| **To install · N** | At the bottom, the next shelf peeks in: the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)). |
+| **Selected game** | Its store's logo and name (STEAM, EPIC, GOG, XBOX), its title, when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…) and the **Play** button ("Launching…" after A). Behind it, a glow takes the colour of its cover. |
+| **Recent** | The last 10 games played, the most recent first. Absent until a game has been played. The selected cover is larger, opaque and outlined in white; the others are dimmed. A game without art shows its title on a tinted card. |
+| **Installed · N** | Every installed game, in alphabetical order. |
+| **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N** | Each store's installed games, with its logo, in alphabetical order. Only stores that have games, and only when there are several (otherwise the shelf would repeat Installed). |
+| **To install · N** | Always last: the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)). Empty, it explains how to set up Steam and Epic. |
 
-**Moving around**: left and right move along the shelf, which scrolls to keep two games visible before the selection. Up or down brings the other shelf to the front ("To install" only shows when it holds games: see [Installing owned games](#installing-owned-games) to set up Steam or Epic): the header then describes the game to install and the button becomes **Install**. **A** launches the selected game; Canapé shows "Launching…" for a few seconds, then puts the game first on the shelf.
+**Moving around**: left and right move along the shelf, which scrolls to keep two games visible before the selection. Up and down go to the previous or next shelf: it slides to the top, the next one peeks in at the bottom, dimmed. Each shelf remembers its selected game when you leave it. On To install, the header describes the game to install and the button becomes **Install**. **A** launches the selected game; Canapé shows "Launching…" for a few seconds, then puts the game first on Recent, which comes back to the front.
 
 **Where the games come from**
 
@@ -209,7 +211,7 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 > [!NOTE]
 > **Nothing in this part has been tried on the Ally yet**: not the Steam owned list through the Web API, not installing through Steam, not the Legendary download, not the Epic sign-in, not installing and launching Epic games through Legendary. Only the UI (on Linux, with the fake library and a simulated install) and the reading of Steam's, Epic's and GitHub's answers (against recorded answers) were tested.
 
-The **To install** shelf lists the games you own on Steam or Epic but have not installed on the console (up or down from Recent brings it to the front). **A**, then **A** again ("Confirm"), installs the game without opening Steam's interface or the Epic launcher: a single press never starts a download; the button and the hint at the bottom of the screen become "Install". A game already installed, from any store (same id or same title), does not show in this list.
+The **To install** shelf lists the games you own on Steam or Epic but have not installed on the console (the last shelf: down until you reach it). **A**, then **A** again ("Confirm"), installs the game without opening Steam's interface or the Epic launcher: a single press never starts a download; the button and the hint at the bottom of the screen become "Install". A game already installed, from any store (same id or same title), does not show in this list.
 
 **Steam: set up once**
 
@@ -233,8 +235,8 @@ Epic games that install through another store (Ubisoft, EA) are left out: Legend
 
 | Store | Install | Progress | At the end |
 |---|---|---|---|
-| **Steam** | Canapé hands the install to Steam, which starts quietly in the notification area if it was not running. Steam only opens its small install window (folder, shortcuts): confirm it (not checked with the gamepad yet). Steam then downloads in the background. | Read every 2 s from the game's manifest. | The game moves to Recent, which comes back to the front with the game selected: A launches it, through Steam like the others. |
-| **Epic** | Legendary installs the game silently, without a window or questions, into its default folder. | Read from Legendary's output. | The game moves to Recent and launches through Legendary: the Epic launcher is never opened. |
+| **Steam** | Canapé hands the install to Steam, which starts quietly in the notification area if it was not running. Steam only opens its small install window (folder, shortcuts): confirm it (not checked with the gamepad yet). Steam then downloads in the background. | Read every 2 s from the game's manifest. | The game moves to Installed, which comes back to the front with the game selected: A launches it, through Steam like the others. |
+| **Epic** | Legendary installs the game silently, without a window or questions, into its default folder. | Read from Legendary's output. | The game moves to Installed and launches through Legendary: the Epic launcher is never opened. |
 
 - While installing, the cover shows a progress bar, and the header "Installing… N %" when the game is selected; "Waiting for the store…" until the download starts (Steam's window to confirm, for example). You can keep moving around and install other games.
 - Canapé does not pick the folder nor check the free space: Steam offers them in its window, Legendary uses its default folder.

@@ -447,3 +447,12 @@ msgstr "Druk nogmaals op A om te installeren"
 
 msgid "Confirm"
 msgstr "Bevestigen"
+
+msgid "Installed · {}"
+msgstr "Geïnstalleerd · {}"
+
+msgid "Shelves"
+msgstr "Planken"
+
+msgid "Nothing to install"
+msgstr "Niets te installeren"
