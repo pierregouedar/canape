@@ -83,7 +83,7 @@ Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas e
 | M3 | Widget Game Bar relié au service ([rapport](docs/m3-report.md)) | ✅ première version · 🧪 nouvelle version 13 langues pas encore compilée |
 | M4 | Auto TDP réel : FPS et charge GPU via AMD ADL ([rapport](docs/m4-report.md)) | ✅ jusqu'à `99cad07` · 🧪 optimisations suivantes |
 | M5 | Profils par jeu, banc d'essai, shell 7 pages en 13 langues ([rapport, 1ʳᵉ partie](docs/m5-report.md)) | 🚧 shell, ventilateurs, manette, écran, boutons, bibliothèque et bench essayés sur l'Ally ; auto TDP corrigé · 🧪 installations, widget, limite de FPS corrigée |
-| M6 | Bibliothèque de jeux, installation des jeux Steam et Epic, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | 🧪 bibliothèque, installation des jeux Steam et Epic, ventilateurs, limite de FPS, manette, fréquence de l'écran et boutons Armoury / Command Center (jamais essayés sur l'Ally) · ⏳ installation des jeux GOG ([étude](docs/game-install-study.md)) |
+| M6 | Bibliothèque de jeux, installation des jeux Steam et Epic, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | ✅ bibliothèque (Steam, Xbox), ventilateurs, manette, fréquence de l'écran, boutons Armoury / Command Center, essayés sur l'Ally ([M5](docs/m5-report.md)) · 🧪 installation des jeux Steam et Epic, limite de FPS corrigée, fréquence par jeu · ⏳ installation des jeux GOG ([étude](docs/game-install-study.md)) |
 
 ### Organisation du dépôt
 
@@ -180,7 +180,7 @@ Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, n
 | M3 | Game Bar widget talking to the service ([report](docs/m3-report.md)) | ✅ first version · 🧪 new 13-language version not built yet |
 | M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `99cad07` · 🧪 later optimizations |
 | M5 | Per-game profiles, bench, 7-page shell in 13 languages ([report, part 1](docs/m5-report.md)) | 🚧 shell, fans, controller, screen, buttons, library and bench tried on the Ally; auto TDP fixed · 🧪 installs, widget, fixed frame rate limit |
-| M6 | Game library, installing Steam and Epic games, fans, frame rate limit, controller mode, display refresh rate, special buttons | 🧪 library, installing Steam and Epic games, fans, frame rate limit, controller, screen refresh rate and Armoury / Command Center buttons (never tried on the Ally) · ⏳ installing GOG games ([study](docs/game-install-study.md), in French) |
+| M6 | Game library, installing Steam and Epic games, fans, frame rate limit, controller mode, display refresh rate, special buttons | ✅ library (Steam, Xbox), fans, controller, screen refresh rate, Armoury / Command Center buttons, tried on the Ally ([M5](docs/m5-report.md)) · 🧪 installing Steam and Epic games, fixed frame rate limit, per-game refresh rate · ⏳ installing GOG games ([study](docs/game-install-study.md), in French) |
 
 ### Repository map
 
