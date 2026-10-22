@@ -1,6 +1,6 @@
 //! The library's shelves, top to bottom: the games played lately, every
-//! installed game, the installed games of each store (when there are
-//! several stores), and the owned games to install. Pure: library.rs
+//! installed game, each store's games (installed or to install), and the
+//! owned games to install. Pure: library.rs
 //! turns them into models.
 
 use canape_library::{Game, Sort, Source};
@@ -62,29 +62,34 @@ pub fn build(installed: &[Game], mut to_install: Vec<Game>) -> Vec<Shelf> {
 
     let mut all = installed.to_vec();
     canape_library::sort(&mut all, Sort::Title);
-    let stores: Vec<Source> = Source::ALL
+    canape_library::sort(&mut to_install, Sort::Title);
+    // A store's shelf mixes its installed games and those to install.
+    let mut by_store: Vec<Shelf> = Source::ALL
         .into_iter()
-        .filter(|s| all.iter().any(|g| g.source == *s))
-        .collect();
-    // With one store, its shelf would repeat the installed one.
-    let by_store: Vec<Shelf> = if stores.len() > 1 {
-        stores
-            .iter()
-            .map(|&source| Shelf {
+        .map(|source| {
+            let mut games: Vec<Game> = all
+                .iter()
+                .chain(&to_install)
+                .filter(|g| g.source == source)
+                .cloned()
+                .collect();
+            canape_library::sort(&mut games, Sort::Title);
+            Shelf {
                 kind: Kind::Store(source),
-                games: all.iter().filter(|g| g.source == source).cloned().collect(),
-            })
-            .collect()
-    } else {
-        Vec::new()
-    };
+                games,
+            }
+        })
+        .filter(|shelf| !shelf.games.is_empty())
+        .collect();
+    // A lone store with nothing to install would repeat the installed shelf.
+    if by_store.len() == 1 && to_install.is_empty() {
+        by_store.clear();
+    }
     shelves.push(Shelf {
         kind: Kind::Installed,
         games: all,
     });
     shelves.extend(by_store);
-
-    canape_library::sort(&mut to_install, Sort::Title);
     shelves.push(Shelf {
         kind: Kind::ToInstall,
         games: to_install,
@@ -134,6 +139,8 @@ mod tests {
         assert_eq!(ids(&shelves[0]), ["c", "b"]);
         assert_eq!(ids(&shelves[1]), ["a", "b", "c"]);
         assert_eq!(ids(&shelves[2]), ["b", "c"]);
+        // Epic: installed and to install, mixed by title.
+        assert_eq!(ids(&shelves[3]), ["a", "z"]);
         assert_eq!(ids(&shelves[4]), ["z"]);
     }
 
@@ -145,6 +152,18 @@ mod tests {
             .map(|s| s.kind)
             .collect();
         assert_eq!(kinds, [Kind::Installed, Kind::ToInstall]);
+    }
+
+    #[test]
+    fn one_store_with_games_to_install() {
+        let installed = [game("a", Source::Steam, None)];
+        let shelves = build(&installed, vec![game("b", Source::Steam, None)]);
+        let kinds: Vec<Kind> = shelves.iter().map(|s| s.kind).collect();
+        assert_eq!(
+            kinds,
+            [Kind::Installed, Kind::Store(Source::Steam), Kind::ToInstall]
+        );
+        assert_eq!(ids(&shelves[1]), ["a", "b"]);
     }
 
     #[test]

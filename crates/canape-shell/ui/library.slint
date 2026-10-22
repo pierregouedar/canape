@@ -137,9 +137,8 @@ component Cover inherits Rectangle {
     card := Rectangle {
         border-radius: 10px;
         clip: true;
-        opacity: root.selected ? 1 : 0.62;
-        background: root.game.art ? Theme.surface-high : Theme.accent.mix(Theme.surface, 0.3);
-        animate opacity { duration: 160ms; }
+        // Under loaded art, nothing: a fill would show at the rounded corners.
+        background: !root.game.art ? Theme.accent.mix(Theme.surface, 0.3) : root.game.cover.width > 0 ? transparent : Theme.surface-high;
 
         // Fades in once decoded.
         if root.game.art: Image {
@@ -184,6 +183,14 @@ component Cover inherits Rectangle {
         if root.launching: Rectangle {
             background: #0b0c0fb0;
         }
+    }
+
+    // Dims the covers not selected: a veil costs far less than an opacity,
+    // which the software renderer draws through a layer.
+    Rectangle {
+        border-radius: 10px;
+        background: Theme.background.with-alpha(root.selected ? 0 : 0.38);
+        animate background { duration: 160ms; }
     }
 
     TouchArea {
@@ -266,6 +273,8 @@ export component LibraryPage inherits Rectangle {
     property <length> pitch: 132px;
     // From one shelf's title to the next.
     property <length> shelf-pitch: 240px;
+    // Room left of the shelves for the focus ring.
+    property <length> margin: 16px;
     // The side the next game's title slides in from.
     property <length> hero-from: 0;
     // A was just pressed: the button shows it for a moment.
@@ -421,14 +430,17 @@ export component LibraryPage inherits Rectangle {
 
     // The shelves, the one in front at the top; the one above slides out
     // of view, the next one peeks in at the bottom.
+    // Starts left of the covers: the focus ring reaches past the first one.
     Rectangle {
-        x: 0;
+        x: -root.margin;
         y: 300px;
-        width: parent.width + 48px;
+        width: parent.width + 48px + root.margin;
         height: parent.height - 300px;
         clip: true;
 
         Rectangle {
+            x: root.margin;
+            width: parent.width - root.margin;
             y: -Library.shelf * root.shelf-pitch;
             height: Library.shelves.length * root.shelf-pitch;
             animate y { duration: 280ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -442,8 +454,6 @@ export component LibraryPage inherits Rectangle {
                 height: root.shelf-pitch;
                 // Only the shelves around the one in front are drawn.
                 visible: si >= Library.shelf - 1 && si <= Library.shelf + 1;
-                opacity: self.in-front ? 1 : 0.5;
-                animate opacity { duration: 220ms; }
 
                 ShelfTitle {
                     x: 0;
@@ -481,6 +491,14 @@ export component LibraryPage inherits Rectangle {
                         }
                         fs.focus();
                     }
+                }
+
+                // The shelves behind the one in front are dimmed.
+                Rectangle {
+                    y: 40px;
+                    height: 210px;
+                    background: Theme.background.with-alpha(parent.in-front ? 0 : 0.45);
+                    animate background { duration: 220ms; }
                 }
             }
         }

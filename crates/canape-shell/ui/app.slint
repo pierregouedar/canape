@@ -165,7 +165,8 @@ export component AppWindow inherits Window {
             }
 
             Rectangle {
-                background: @linear-gradient(180deg, Theme.background.with-alpha(0) 0%, Theme.background.with-alpha(0.55) 52%, Theme.background 78%);
+                // Eased over many stops: a single bend shows as a line.
+                background: @linear-gradient(180deg, Theme.background.with-alpha(0) 0%, Theme.background.with-alpha(0.04) 15%, Theme.background.with-alpha(0.12) 26%, Theme.background.with-alpha(0.25) 36%, Theme.background.with-alpha(0.41) 45%, Theme.background.with-alpha(0.58) 53%, Theme.background.with-alpha(0.74) 61%, Theme.background.with-alpha(0.87) 68%, Theme.background.with-alpha(0.96) 74%, Theme.background 80%);
             }
         }
 
@@ -265,6 +266,12 @@ export component AppWindow inherits Window {
                     from-y: root.enter-y;
                     LibraryPage { }
                 }
+                // The next shelf fades out under the hints.
+                if root.page == 0: Rectangle {
+                    y: parent.height - 48px;
+                    height: 48px + 54px;
+                    background: @linear-gradient(180deg, Theme.background.with-alpha(0) 0%, Theme.background.with-alpha(0.75) 50%, Theme.background.with-alpha(0.92) 100%);
+                }
                 if root.page == 1: Reveal {
                     x: 32px;
                     y: 28px;
@@ -350,7 +357,7 @@ export component AppWindow inherits Window {
                 }
                 Hint {
                     glyph: "A";
-                    text: root.page == 0 ? (Library.armed != "" ? @tr("Confirm") : Library.shelves[Library.shelf].kind == 3 ? @tr("Install") : @tr("Play")) : @tr("Choose");
+                    text: root.page == 0 ? (Library.armed != "" ? @tr("Confirm") : Library.shelves[Library.shelf].games.length > 0 && !Library.shelves[Library.shelf].games[Library.selected].installed ? @tr("Install") : @tr("Play")) : @tr("Choose");
                 }
 
                 if root.page == 1 || root.page == 2 || root.page == 5: Hint {
