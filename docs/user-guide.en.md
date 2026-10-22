@@ -215,7 +215,7 @@ A profile ties an executable (for example `eldenring.exe`) to auto TDP settings.
 - **Profiles** (right): the list sorted by name, with the target, the power range and the learned watts. The profile in use is highlighted ("In use"). **Delete** asks for confirmation: a first press of A shows "Confirm", a second one deletes. Moving away cancels.
 
 > [!NOTE]
-> **How Canapé detects the game**: every 2 seconds the shell checks which program is in the foreground and tells the service (which, in session 0, cannot see windows). Explorer, Game Bar, the Start menu, Task Manager and Canapé itself are ignored: going back to Canapé does not "leave" the game while it is still running. Any other program counts as a game (a web browser too). So the shell must be running for profiles to work.
+> **How Canapé detects the game**: every 2 seconds the shell checks which program is in the foreground and tells the service (which, in session 0, cannot see windows). Explorer, Game Bar, the Start menu, Task Manager and Canapé itself are ignored: going back to Canapé does not "leave" the game while it is still running. Another program counts as a game when it **fills the screen** (full screen or borderless window) or **already has a profile**: a browser or Discord in an ordinary window does not replace the game running behind it. To create a profile for a windowed game, switch it to full screen while you save the profile. The shell must be running for profiles to work.
 
 Profiles and learned watts are covered in [Auto TDP and bench](auto-tdp.en.md#per-game-profiles).
 

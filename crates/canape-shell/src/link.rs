@@ -24,6 +24,8 @@ struct Shared {
     report: Mutex<Option<BenchReport>>,
     /// Last foreground program seen by the shell, resent after a reconnection.
     foreground: Mutex<Option<String>>,
+    /// Executables that have a profile, for the foreground detection.
+    profile_exes: Mutex<Vec<String>>,
     history: Mutex<History>,
     accent: Mutex<AccentState>,
 }
@@ -76,6 +78,8 @@ impl Link {
                 let background = is_background(&request);
                 let notice = match send(&mut conn, &request) {
                     Ok(Response::Profiles { profiles }) => {
+                        *state.profile_exes.lock().unwrap() =
+                            profiles.iter().map(|p| p.exe.clone()).collect();
                         show_profiles(&ui, &profiles);
                         continue;
                     }
@@ -146,6 +150,17 @@ impl Link {
         });
     }
 
+    /// True when `exe` has a game profile.
+    #[cfg(windows)]
+    pub fn has_profile(&self, exe: &str) -> bool {
+        self.shared
+            .profile_exes
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|known| known.eq_ignore_ascii_case(exe))
+    }
+
     /// Reports the foreground program to the service, now and after every
     /// reconnection.
     #[cfg_attr(not(windows), allow(dead_code))]
@@ -177,6 +192,9 @@ fn send(conn: &mut Option<Connection>, request: &Request) -> io::Result<Response
 }
 
 /// Subscribes and forwards every status push until the connection drops.
+/// Status pushes (about one per second) between two profile list refreshes.
+const PROFILES_REFRESH_PUSHES: u32 = 10;
+
 fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> io::Result<()> {
     let mut conn = open()?;
     conn.send(&Request::Subscribe)?;
@@ -189,8 +207,10 @@ fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> 
     let _ = commands.send(Request::GetBenchReport);
 
     let mut first = true;
+    let mut pushes = 0u32;
     while let Some(response) = conn.recv::<Response>()? {
         if let Response::Status(status) = response {
+            pushes = pushes.wrapping_add(1);
             let previous = std::mem::replace(&mut *shared.status.lock().unwrap(), status.clone());
             if !first && previous.bench.is_some() && status.bench.is_none() {
                 // A run just ended: fetch its results.
@@ -199,7 +219,12 @@ fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> 
             if previous.auto_tdp.target_fps != status.auto_tdp.target_fps {
                 show_report(ui, shared);
             }
-            if previous.active_profile != status.active_profile {
+            // Profiles can also change elsewhere (widget, canape-ctl): the
+            // status does not say, so poll the short list now and then.
+            if previous.active_profile != status.active_profile
+                || previous.foreground != status.foreground
+                || pushes % PROFILES_REFRESH_PUSHES == 0
+            {
                 let _ = commands.send(Request::ListProfiles);
             }
             if first || previous.accent != status.accent {

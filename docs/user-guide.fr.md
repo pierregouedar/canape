@@ -215,7 +215,7 @@ Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages 
 - **Profils** (à droite) : la liste triée par nom, avec l'objectif, la plage de puissance et les watts appris. Le profil utilisé est surligné (« Utilisé »). **Supprimer** demande une confirmation : un premier appui sur A affiche « Confirmer », un second supprime. Quitter le bouton annule.
 
 > [!NOTE]
-> **Comment Canapé détecte le jeu** : le shell regarde toutes les 2 secondes quel programme a le premier plan et le signale au service (qui, en session 0, ne voit pas les fenêtres). L'Explorateur, la Game Bar, le menu Démarrer, le gestionnaire des tâches et Canapé lui-même sont ignorés : revenir dans Canapé ne « quitte » pas le jeu tant qu'il tourne. Tout autre programme compte comme un jeu (un navigateur aussi). Il faut donc que le shell tourne pour que les profils fonctionnent.
+> **Comment Canapé détecte le jeu** : le shell regarde toutes les 2 secondes quel programme a le premier plan et le signale au service (qui, en session 0, ne voit pas les fenêtres). L'Explorateur, la Game Bar, le menu Démarrer, le gestionnaire des tâches et Canapé lui-même sont ignorés : revenir dans Canapé ne « quitte » pas le jeu tant qu'il tourne. Un autre programme compte comme un jeu s'il **occupe tout l'écran** (plein écran ou fenêtre sans bordure) ou s'il **a déjà un profil** : un navigateur ou Discord dans une fenêtre normale ne remplace pas le jeu qui tourne derrière. Pour créer le profil d'un jeu fenêtré, passez-le en plein écran le temps de l'enregistrer. Il faut que le shell tourne pour que les profils fonctionnent.
 
 Les profils et les watts appris sont détaillés dans [Auto TDP et banc d'essai](auto-tdp.fr.md#profils-par-jeu).
 

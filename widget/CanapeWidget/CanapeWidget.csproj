@@ -67,9 +67,9 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\Square150x150Logo.png" />
-    <Content Include="Assets\Square44x44Logo.png" />
+    <!-- Sofa icons: base names plus Square44x44Logo target sizes (plated and
+         unplated) for the Game Bar menu and the taskbar. -->
+    <Content Include="Assets\*.png" />
     <Content Include="Properties\Default.rd.xml" />
   </ItemGroup>
   <ItemGroup>

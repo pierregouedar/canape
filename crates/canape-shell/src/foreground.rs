@@ -1,6 +1,11 @@
 //! Foreground game reporting: the service runs in session 0 and cannot see
 //! the user's windows, so the shell tells it which program is in front.
 //!
+//! A program counts as the game when its window fills the screen (full
+//! screen or borderless) or when it has a profile: a browser or a chat app
+//! in an ordinary window is not a game, and leaves the game behind it in
+//! place.
+//!
 //! The decision logic is pure ([`Tracker`]); the Windows polling is at the
 //! bottom.
 
@@ -31,7 +36,10 @@ pub fn is_host(exe: &str) -> bool {
 pub enum Seen {
     /// The shell itself, a Windows host, or nothing identifiable.
     Ignored,
+    /// A full-screen program, or one with a profile.
     Program(String),
+    /// Any other program, in an ordinary window.
+    Windowed(String),
 }
 
 /// Remembers the last program reported and decides when to report again.
@@ -75,12 +83,16 @@ mod windows {
     use std::time::Duration;
 
     use windows_sys::Win32::Foundation::{CloseHandle, HANDLE, WAIT_TIMEOUT};
+    use windows_sys::Win32::Foundation::{HWND, RECT};
+    use windows_sys::Win32::Graphics::Gdi::{
+        GetMonitorInfoW, MONITOR_DEFAULTTONEAREST, MONITORINFO, MonitorFromWindow,
+    };
     use windows_sys::Win32::System::Threading::{
         GetCurrentProcessId, OpenProcess, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
         PROCESS_SYNCHRONIZE, QueryFullProcessImageNameW, WaitForSingleObject,
     };
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        GetForegroundWindow, GetWindowThreadProcessId,
+        GetForegroundWindow, GetWindowRect, GetWindowThreadProcessId,
     };
 
     use super::{Seen, Tracker, file_name};
@@ -129,16 +141,38 @@ mod windows {
         }
     }
 
-    /// The foreground process, unless it is the shell itself.
-    fn foreground() -> Option<(Process, String)> {
+    /// True when the window covers its whole monitor: full screen or
+    /// borderless, as games run.
+    fn fills_screen(window: HWND) -> bool {
+        let mut rect: RECT = unsafe { std::mem::zeroed() };
+        if unsafe { GetWindowRect(window, &mut rect) } == 0 {
+            return false;
+        }
+        let monitor = unsafe { MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST) };
+        let mut info: MONITORINFO = unsafe { std::mem::zeroed() };
+        info.cbSize = size_of::<MONITORINFO>() as u32;
+        if unsafe { GetMonitorInfoW(monitor, &mut info) } == 0 {
+            return false;
+        }
+        let screen = info.rcMonitor;
+        rect.left <= screen.left
+            && rect.top <= screen.top
+            && rect.right >= screen.right
+            && rect.bottom >= screen.bottom
+    }
+
+    /// The foreground process, unless it is the shell itself, and whether
+    /// its window fills the screen.
+    fn foreground() -> Option<(Process, String, bool)> {
+        let window = unsafe { GetForegroundWindow() };
         let mut pid = 0;
-        unsafe { GetWindowThreadProcessId(GetForegroundWindow(), &mut pid) };
+        unsafe { GetWindowThreadProcessId(window, &mut pid) };
         if pid == 0 || pid == unsafe { GetCurrentProcessId() } {
             return None;
         }
         let process = Process::open(pid)?;
         let exe = process.exe()?;
-        Some((process, exe))
+        Some((process, exe, fills_screen(window)))
     }
 
     pub fn spawn(link: Link) {
@@ -148,7 +182,10 @@ mod windows {
             let mut game: Option<Process> = None;
             loop {
                 let (seen, process) = match foreground() {
-                    Some((process, exe)) => (Seen::Program(exe), Some(process)),
+                    Some((process, exe, full)) if full || link.has_profile(&exe) => {
+                        (Seen::Program(exe), Some(process))
+                    }
+                    Some((_, exe, _)) => (Seen::Windowed(exe), None),
                     None => (Seen::Ignored, None),
                 };
                 let alive = game.as_ref().is_some_and(Process::alive);
@@ -212,6 +249,20 @@ mod tests {
         let mut t = Tracker::default();
         assert_eq!(t.update(Seen::Ignored, false), None);
         assert_eq!(t.update(program("explorer.exe"), false), None);
+    }
+
+    #[test]
+    fn a_windowed_program_is_not_a_game() {
+        let mut t = Tracker::default();
+        assert_eq!(t.update(Seen::Windowed("msedge.exe".into()), false), None);
+        t.update(program("game.exe"), false);
+        // Discord in a window over the game: the game stays.
+        assert_eq!(t.update(Seen::Windowed("discord.exe".into()), true), None);
+        // The game quit, the browser is in front: no game.
+        assert_eq!(
+            t.update(Seen::Windowed("msedge.exe".into()), false),
+            Some(None)
+        );
     }
 
     #[test]
