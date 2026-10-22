@@ -38,6 +38,23 @@ struct AccentState {
     sent: Option<String>,
 }
 
+impl AccentState {
+    /// Whether an accent pushed by the service should replace the local one.
+    /// The echo of our own last send is consumed once, so the same colour
+    /// set again later from elsewhere is still followed.
+    fn adopt(&mut self, remote: &str) -> bool {
+        if self.sent.as_deref() == Some(remote) {
+            self.sent = None;
+            return false;
+        }
+        if remote == self.local {
+            return false;
+        }
+        self.local = remote.to_owned();
+        true
+    }
+}
+
 #[derive(Clone)]
 pub struct Link {
     commands: Sender<Request>,
@@ -257,10 +274,9 @@ fn follow_accent(
         return;
     };
     let remote = remote.to_ascii_lowercase();
-    if remote == accent.local || accent.sent.as_deref() == Some(remote.as_str()) {
+    if !accent.adopt(&remote) {
         return;
     }
-    accent.local = remote.clone();
     drop(accent);
     crate::save_accent(&remote);
     if let Some(color) = crate::accent::parse(&remote) {
@@ -484,5 +500,17 @@ mod tests {
         let (view, _) = bench_view(Some(&report), 90);
         assert!(!view.for_target.available);
         assert!(!bench_view(None, 60).0.available);
+    }
+
+    #[test]
+    fn own_accent_echo_is_ignored_once_then_followed_again() {
+        let mut accent = AccentState {
+            local: "#ff3d5e".into(),
+            sent: Some("#ff3d5e".into()),
+        };
+        assert!(!accent.adopt("#ff3d5e"), "echo of our own send");
+        assert!(accent.adopt("#f59e0b"), "changed elsewhere");
+        assert!(accent.adopt("#ff3d5e"), "set back elsewhere");
+        assert!(!accent.adopt("#ff3d5e"), "already shown");
     }
 }
