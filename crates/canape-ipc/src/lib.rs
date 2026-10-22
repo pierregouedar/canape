@@ -9,6 +9,9 @@ use std::io::{self, BufRead, BufReader, Write};
 use canape_core::protocol;
 use serde::{Serialize, de::DeserializeOwned};
 
+// Used by the Windows pipe; tested everywhere.
+#[cfg_attr(not(windows), allow(dead_code))]
+mod acl;
 #[cfg(windows)]
 mod windows;
 #[cfg(windows)]

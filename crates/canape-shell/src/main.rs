@@ -214,6 +214,7 @@ fn connect(ui: &AppWindow, link: &Link) {
                         exe,
                         auto_tdp: status.auto_tdp,
                         learned_watts,
+                        ..Default::default()
                     },
                 });
             }

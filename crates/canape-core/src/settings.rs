@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::fan::FanCurves;
+
 /// ASUS performance modes exposed by the Ally firmware.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -26,6 +28,21 @@ pub struct AutoTdpSettings {
     pub max_temp_c: Option<u32>,
 }
 
+impl AutoTdpSettings {
+    /// The settings with every wattage brought into the device's `(min, max)`
+    /// range; `None` when the minimum ends up above the maximum or the
+    /// target is 0.
+    pub fn clamped(self, (low, high): (u32, u32)) -> Option<Self> {
+        let settings = Self {
+            min_watts: self.min_watts.clamp(low, high),
+            max_watts: self.max_watts.clamp(low, high),
+            battery_max_watts: self.battery_max_watts.map(|w| w.clamp(low, high)),
+            ..self
+        };
+        (settings.min_watts <= settings.max_watts && settings.target_fps > 0).then_some(settings)
+    }
+}
+
 impl Default for AutoTdpSettings {
     fn default() -> Self {
         Self {
@@ -40,7 +57,7 @@ impl Default for AutoTdpSettings {
 }
 
 /// Settings applied automatically while a given game is in the foreground.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Profile {
     /// Executable name, compared case-insensitively (for example `eldenring.exe`).
     pub exe: String,
@@ -48,10 +65,82 @@ pub struct Profile {
     /// Wattage auto TDP last settled on for this game: the next session starts there.
     #[serde(default)]
     pub learned_watts: Option<u32>,
+    /// Fan curves for this game; `None` keeps the global ones.
+    #[serde(default)]
+    pub fan_curves: Option<FanCurves>,
+    /// Frame rate cap for this game; `None` keeps the global setting.
+    #[serde(default)]
+    pub fps_limit: Option<u32>,
 }
 
 impl Profile {
     pub fn matches(&self, exe: &str) -> bool {
         self.exe.eq_ignore_ascii_case(exe)
+    }
+}
+
+/// shows "OFF").
+pub const FPS_LIMIT_RANGE: (u32, u32) = (30, 120);
+
+/// Mode of the Ally's built-in controller, as the firmware names them
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ControllerMode {
+    /// XInput gamepad.
+    Gamepad,
+    /// Keyboard: sticks and buttons send keys.
+    Wasd,
+    /// Desktop: the right stick moves the mouse.
+    Mouse,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn auto_tdp_clamps_to_the_device() {
+        let settings = AutoTdpSettings {
+            min_watts: 3,
+            max_watts: 40,
+            battery_max_watts: Some(50),
+            ..AutoTdpSettings::default()
+        };
+        let clamped = settings.clamped((5, 30)).unwrap();
+        assert_eq!(
+            (
+                clamped.min_watts,
+                clamped.max_watts,
+                clamped.battery_max_watts
+            ),
+            (5, 30, Some(30))
+        );
+        let inverted = AutoTdpSettings {
+            min_watts: 20,
+            max_watts: 10,
+            ..AutoTdpSettings::default()
+        };
+        assert_eq!(inverted.clamped((5, 30)), None);
+        let no_target = AutoTdpSettings {
+            target_fps: 0,
+            ..AutoTdpSettings::default()
+        };
+        assert_eq!(no_target.clamped((5, 30)), None);
+    }
+
+    #[test]
+    fn older_profiles_still_load() {
+        let json = r#"{"exe":"game.exe","auto_tdp":{"enabled":true,"target_fps":40,"min_watts":7,"max_watts":20}}"#;
+        let profile: Profile = serde_json::from_str(json).unwrap();
+        assert_eq!(profile.fan_curves, None);
+        assert_eq!(profile.fps_limit, None);
+    }
+
+    #[test]
+    fn controller_modes_in_json() {
+        assert_eq!(
+            serde_json::to_string(&ControllerMode::Wasd).unwrap(),
+            r#""wasd""#
+        );
     }
 }

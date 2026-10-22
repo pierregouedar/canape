@@ -4,8 +4,9 @@
 //! one of them should run.
 
 use std::ffi::c_void;
+use std::time::{Duration, Instant};
 
-use canape_core::PerformanceMode;
+use canape_core::{ControllerMode, Fan, FanCurve, PerformanceMode};
 use windows_sys::Win32::Foundation::{
     CloseHandle, GENERIC_READ, GENERIC_WRITE, HANDLE, INVALID_HANDLE_VALUE,
 };
@@ -18,7 +19,7 @@ use windows_sys::Win32::System::Registry::{HKEY_LOCAL_MACHINE, RRF_RT_REG_SZ, Re
 
 use crate::adl::Adl;
 use crate::atk::{self, Model};
-use crate::{Device, HwError, Result, Telemetry};
+use crate::{Device, HwError, Result, Telemetry, hid, pad};
 
 fn wide(s: &str) -> Vec<u16> {
     s.encode_utf16().chain(Some(0)).collect()
@@ -55,6 +56,11 @@ pub struct AllyDevice {
     adl: Option<Adl>,
     /// Why ADL is unavailable, for the service log.
     adl_error: Option<String>,
+    /// Last [`atk::PERFORMANCE_MODE`] value written, and when: fan curves
+    /// wait after it, and a curve reset writes it again.
+    firmware_mode: Option<(u32, Instant)>,
+    /// The init report goes once, before the first controller command.
+    controller_ready: bool,
 }
 
 // The handle is only used behind the service's handler lock.
@@ -89,6 +95,8 @@ impl AllyDevice {
             model,
             adl,
             adl_error,
+            firmware_mode: None,
+            controller_ready: false,
         })
     }
 
@@ -128,6 +136,32 @@ impl AllyDevice {
     fn get(&self, device_id: u32) -> Result<Option<u32>> {
         Ok(atk::get_value(&self.call(&atk::get_buffer(device_id))?))
     }
+
+    fn write_mode(&mut self, value: u32) -> Result<()> {
+        self.set(atk::PERFORMANCE_MODE, value)?;
+        self.firmware_mode = Some((value, Instant::now()));
+        Ok(())
+    }
+
+    /// The mode last written, else balanced (the firmware's default).
+    fn current_mode(&self) -> u32 {
+        self.firmware_mode
+            .map_or(atk::mode::BALANCED, |(value, _)| value)
+    }
+
+    fn fan_rpm(&self, fan: Fan) -> Option<u32> {
+        let output = self.call(&atk::get_buffer(atk::fan_speed_id(fan))).ok()?;
+        atk::fan_rpm(&output)
+    }
+}
+
+fn mode_value(mode: PerformanceMode) -> u32 {
+    match mode {
+        PerformanceMode::Silent => atk::mode::SILENT,
+        PerformanceMode::Performance => atk::mode::BALANCED,
+        PerformanceMode::Turbo => atk::mode::TURBO,
+        PerformanceMode::Manual => atk::mode::MANUAL,
+    }
 }
 
 impl Drop for AllyDevice {
@@ -142,11 +176,24 @@ impl Device for AllyDevice {
     }
 
     fn diagnostics(&self) -> Vec<String> {
-        vec![match (&self.adl, &self.adl_error) {
+        let mut lines = vec![match (&self.adl, &self.adl_error) {
             (Some(adl), _) => adl.describe(),
             (None, Some(err)) => format!("adl unavailable: {err}"),
             (None, None) => "adl unavailable".into(),
-        }]
+        }];
+        if let Some(adl) = &self.adl {
+            lines.push(adl.describe_fps_limit());
+        }
+        let present = |id| matches!(self.get(id), Ok(Some(_)));
+        lines.push(format!(
+            "atk: fan curves cpu {} gpu {} mid {}, fan speeds {:?} / {:?} rpm",
+            present(atk::FAN_CURVE_CPU),
+            present(atk::FAN_CURVE_GPU),
+            present(atk::FAN_MID),
+            self.fan_rpm(Fan::Cpu),
+            self.fan_rpm(Fan::Gpu),
+        ));
+        lines
     }
 
     fn tdp_range(&self) -> (u32, u32) {
@@ -170,13 +217,7 @@ impl Device for AllyDevice {
     }
 
     fn set_performance_mode(&mut self, mode: PerformanceMode) -> Result<()> {
-        let value = match mode {
-            PerformanceMode::Silent => atk::mode::SILENT,
-            PerformanceMode::Performance => atk::mode::BALANCED,
-            PerformanceMode::Turbo => atk::mode::TURBO,
-            PerformanceMode::Manual => atk::mode::MANUAL,
-        };
-        self.set(atk::PERFORMANCE_MODE, value)
+        self.write_mode(mode_value(mode))
     }
 
     fn set_battery_charge_limit(&mut self, percent: u8) -> Result<()> {
@@ -207,10 +248,73 @@ impl Device for AllyDevice {
             power_watts,
             battery_percent,
             on_battery,
+            cpu_fan_rpm: self.fan_rpm(Fan::Cpu),
+            gpu_fan_rpm: self.fan_rpm(Fan::Gpu),
         })
     }
 
     fn frame_rate(&mut self) -> Option<f32> {
         self.adl.as_ref().and_then(Adl::fps)
+    }
+
+    /// back to the "fan range" IDs, and if that fails too it writes the mode
+    /// range fallback is for laptops without curves; on the Ally we go
+    /// straight to the reset.
+    fn set_fan_curve(&mut self, fan: Fan, curve: &FanCurve) -> Result<()> {
+        curve.validate().map_err(HwError::OutOfRange)?;
+        if fan == Fan::Mid && self.get(atk::FAN_MID)?.is_none() {
+            return Err(HwError::Unsupported("no mid fan on this model"));
+        }
+        if let Some((_, written)) = self.firmware_mode {
+            let delay = Duration::from_millis(atk::FAN_CURVE_DELAY_MS);
+            if let Some(wait) = delay.checked_sub(written.elapsed()) {
+                std::thread::sleep(wait);
+            }
+        }
+        let output = self.call(&atk::fan_curve_buffer(fan, curve))?;
+        if atk::set_succeeded(&output) {
+            return Ok(());
+        }
+        let reset = self.write_mode(self.current_mode());
+        Err(HwError::Firmware(format!(
+            "DEVS 0x{:08X} (fan curve {curve:?}) returned {}; mode written again: {reset:?}",
+            atk::fan_curve_id(fan),
+            atk::result(&output)
+        )))
+    }
+
+    /// firmware then also applies the mode's power limits.
+    fn reset_fan_curves(&mut self) -> Result<()> {
+        self.write_mode(self.current_mode())
+    }
+
+    fn default_fan_curve(&mut self, fan: Fan, mode: PerformanceMode) -> Result<Option<FanCurve>> {
+        let output = self.call(&atk::fan_curve_read_buffer(fan, mode_value(mode)))?;
+        Ok(FanCurve::from_bytes(&output))
+    }
+
+    fn set_fps_limit(&mut self, fps: Option<u32>) -> Result<()> {
+        let adl = self
+            .adl
+            .as_ref()
+            .ok_or(HwError::Unsupported("no AMD driver (ADL)"))?;
+        adl.set_fps_limit(fps).map_err(HwError::Driver)
+    }
+
+    /// UNTESTED on the device. The init report once, then the mode command
+    /// writes its button bindings after the mode; Canape keeps the
+    /// firmware's.
+    fn set_controller_mode(&mut self, mode: ControllerMode) -> Result<()> {
+        let init = !self.controller_ready;
+        hid::write_input(|len| {
+            let mut reports = Vec::new();
+            if init {
+                reports.push(pad::init_report(len));
+            }
+            reports.push(pad::mode_report(mode, len));
+            reports
+        })?;
+        self.controller_ready = true;
+        Ok(())
     }
 }

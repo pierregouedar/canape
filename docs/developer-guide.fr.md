@@ -105,13 +105,13 @@ flowchart BT
 
 | Crate | Type | Rôle | Fichiers clés |
 |---|---|---|---|
-| `canape-core` | bibliothèque | Protocole (`Request`, `Response`, `Status`), réglages (`AutoTdpSettings`, `PerformanceMode`, `Profile`), banc d'essai (`BenchPlan`, `BenchReport` et ses recommandations), journal minimal | `protocol.rs`, `settings.rs`, `bench.rs`, `log.rs` |
+| `canape-core` | bibliothèque | Protocole (`Request`, `Response`, `Status`), réglages (`AutoTdpSettings`, `PerformanceMode`, `Profile`, `ControllerMode`), courbes de ventilateurs (validation, préréglages), banc d'essai (`BenchPlan`, `BenchReport` et ses recommandations), journal minimal | `protocol.rs`, `settings.rs`, `fan.rs`, `bench.rs`, `log.rs` |
 | `canape-autotdp` | bibliothèque | Contrôleur d'auto TDP : machine à états pure, nourrie d'un `Sample` par seconde, sans dépendance au système | `lib.rs` |
-| `canape-hw` | bibliothèque | Trait `Device` ; backend Ally (Windows) au-dessus d'ATKACPI et d'ADL ; `MockDevice` pour le reste | `lib.rs`, `atk.rs`, `windows.rs`, `adl.rs`, `mock.rs` |
-| `canape-ipc` | bibliothèque | Une `Connection` qui envoie et reçoit des lignes JSON ; named pipe sous Windows, socket Unix ailleurs | `lib.rs`, `windows.rs`, `unix.rs` |
+| `canape-hw` | bibliothèque | Trait `Device` ; backend Ally (Windows) au-dessus d'ATKACPI, d'ADL et de l'interface HID de la manette ; `MockDevice` pour le reste | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs` |
+| `canape-ipc` | bibliothèque | Une `Connection` qui envoie et reçoit des lignes JSON ; named pipe sous Windows, socket Unix ailleurs ; ACL du pipe | `lib.rs`, `windows.rs`, `unix.rs`, `acl.rs` |
 | `canape-service` | binaire | Service Windows : état, auto TDP, profils, banc d'essai, détection des conflits, serveur IPC, persistance | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
 | `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : 5 pages, graphes de puissance et de GPU en direct, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `ui/*.slint`, `i18n.rs`, `report.rs`, `nav.rs`, `foreground.rs`, `history.rs`, `accent.rs` |
-| `canape-ctl` | binaire | Envoie une requête JSON, ou `watch` pour suivre le statut | `main.rs` |
+| `canape-ctl` | binaire | Envoie une requête JSON, ou `watch` pour suivre le statut ; `--pretty` indente le JSON | `main.rs` |
 
 Le shell dépend de `canape-hw` sous Windows uniquement pour `arm_frame_metrics()` (démarrer le comptage des images du pilote AMD depuis la session utilisateur) ; il n'écrit jamais dans le firmware.
 
@@ -155,7 +155,7 @@ Les types sont définis dans [`crates/canape-core/src/protocol.rs`](../crates/ca
 |---|---|---|
 | Canal | Named pipe `\\.\pipe\canape` | Socket Unix : `$CANAPE_SOCKET`, sinon `$XDG_RUNTIME_DIR/canape.sock`, sinon `<tmp>/canape.sock` |
 | Format | Un objet JSON par ligne (UTF-8, terminé par `\n`) | idem |
-| Sécurité | DACL `D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;GRGW;;;IU)(A;;GRGW;;;AC)S:(ML;;NW;;;LW)` : contrôle total pour SYSTEM et les administrateurs, lecture / écriture pour l'utilisateur interactif et **toutes** les apps AppContainer, étiquette d'intégrité basse pour que le widget puisse écrire. Clients distants refusés, première instance exclusive (personne d'autre ne peut servir ce nom). | Droits du fichier socket |
+| Sécurité | DACL `D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;GRGW;;;IU)(A;;GRGW;;;<SID du widget>)S:(ML;;NW;;;LW)` : contrôle total pour SYSTEM et les administrateurs, lecture / écriture pour l'utilisateur interactif et **le seul AppContainer du widget Canapé**, étiquette d'intégrité basse pour que le widget puisse écrire. Si le SID du widget ne peut pas être dérivé, `AC` (tous les AppContainers) le remplace. Le service journalise lequel au démarrage (`pipe: …`). Clients distants refusés, première instance exclusive (personne d'autre ne peut servir ce nom). Voir [ACL du pipe](#acl-du-pipe). | Droits du fichier socket |
 
 Les messages sont des enums Serde à étiquette interne : le champ `type` donne la variante en `snake_case`, les autres champs sont à côté. Un `Option` vide s'écrit `null`.
 
@@ -190,9 +190,9 @@ sequenceDiagram
 | `hello` | `protocol_version: u32` | `hello` ou `error` | Vérifie la version (actuelle : `1`). |
 | `get_status` | — | `status` | Statut courant. |
 | `subscribe` | — | `status`, puis un `status` environ chaque seconde | La connexion devient « push » seulement. |
-| `set_performance_mode` | `mode` : `silent` \| `performance` \| `turbo` \| `manual` | `ok` / `error` | Désactive l'auto TDP. Un mode firmware remet `tdp_watts` à `null`. Refusé pendant un banc d'essai. |
+| `set_performance_mode` | `mode` : `silent` \| `performance` \| `turbo` \| `manual` | `ok` / `error` | Désactive l'auto TDP. Un mode firmware remet `tdp_watts` à `null`. Le firmware abandonne les courbes de ventilateurs personnalisées à chaque écriture du mode : le service les réécrit (une courbe qu'il ne peut pas réécrire est oubliée). Refusé pendant un banc d'essai. |
 | `set_tdp` | `watts: u32` | `ok` / `error` | TDP manuel (sPPT, SPL, fPPT), mode `manual`, auto TDP désactivé. Refusé hors de la plage du modèle et pendant un banc d'essai. |
-| `set_auto_tdp` | `settings: AutoTdpSettings` | `ok` / `error` | Active (ou désactive avec `enabled: false`) l'auto TDP. Pendant un profil, modifie le profil. Refusé pendant un banc d'essai. |
+| `set_auto_tdp` | `settings: AutoTdpSettings` | `ok` / `error` | Active (ou désactive avec `enabled: false`) l'auto TDP. `min_watts`, `max_watts` et `battery_max_watts` sont bornés à la plage du modèle ; le statut et le profil gardent les valeurs bornées. Pendant un profil, modifie le profil. Refusé pendant un banc d'essai. |
 | `set_battery_charge_limit` | `percent: u8` (40 à 100) | `ok` / `error` | Limite de charge de la batterie. |
 | `foreground_app` | `exe: string \| null` | `ok` | Programme au premier plan (envoyé par le shell) ; applique ou quitte le profil correspondant. |
 | `save_profile` | `profile: Profile` | `ok` / `error` | Crée ou remplace le profil de `profile.exe` (casse ignorée) ; le réapplique s'il est actif. |
@@ -202,6 +202,10 @@ sequenceDiagram
 | `cancel_bench` | — | `ok` / `error` | Arrête le banc d'essai en gardant un rapport partiel. |
 | `get_bench_report` | — | `bench` | Le dernier rapport terminé ou annulé (pendant un banc d'essai, le précédent). |
 | `set_accent` | `color: string` (`#rrggbb`) | `ok` / `error` | Couleur d'accent de l'interface, partagée par le shell et le widget. Validée (`#` et six chiffres hexadécimaux, sinon une erreur), stockée en minuscules, enregistrée dans `state.json` et poussée dans `status.accent`. |
+| `set_fan_curve` | `fan` : `cpu` \| `gpu` \| `mid`, `curve: FanCurve` | `ok` / `error` | Courbe personnalisée d'un ventilateur, [validée](#courbes-de-ventilateurs) (plancher de sécurité compris). Conservée aux changements de mode, enregistrée dans `state.json`. Pendant un profil qui a ses propres courbes, modifie le profil ; sinon les courbes globales. |
+| `get_fan_curves` | — | `fan_curves` | Les courbes personnalisées et celles du firmware pour le mode courant (point de départ d'un éditeur). |
+| `set_fps_limit` | `fps: u32 \| null` (30 à 120) | `ok` / `error` | Plafond de FPS du pilote AMD (secteur et batterie, tous les jeux) ; `null` le retire. Enregistré ; pendant un profil qui a son propre plafond, modifie le profil. **Non testé depuis la session 0 du service.** |
+| `set_controller_mode` | `mode` : `gamepad` \| `wasd` \| `mouse` | `ok` / `error` | Mode de la manette intégrée (HID). Enregistré et réappliqué au démarrage. Global, pas par profil. **Non testé sur l'appareil.** |
 
 Exemples :
 
@@ -215,6 +219,12 @@ Exemples :
 {"type":"delete_profile","exe":"eldenring.exe"}
 {"type":"start_bench","plan":{"from_watts":25,"to_watts":7,"step_watts":3,"settle_secs":5,"measure_secs":15}}
 {"type":"set_accent","color":"#14b8a6"}
+{"type":"set_fan_curve","fan":"cpu","curve":[[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]]}
+{"type":"reset_fan_curves"}
+{"type":"get_fan_curves"}
+{"type":"set_fps_limit","fps":40}
+{"type":"set_fps_limit","fps":null}
+{"type":"set_controller_mode","mode":"mouse"}
 ```
 
 ### Réponses
@@ -227,6 +237,7 @@ Exemples :
 | `error` | `message` (anglais, non traduit) | `{"type":"error","message":"a bench is running: cancel it first"}` |
 | `profiles` | `profiles: [Profile]` | `{"type":"profiles","profiles":[…]}` |
 | `bench` | `report: BenchReport \| null` | `{"type":"bench","report":null}` |
+| `fan_curves` | `custom: FanCurves`, `defaults: FanCurves` | `{"type":"fan_curves","custom":{"cpu":null,"gpu":null,"mid":null},"defaults":{"cpu":[[58,8],[61,17],…],"gpu":[…],"mid":null}}` |
 
 ### Le statut
 
@@ -247,7 +258,14 @@ Exemples :
   "on_battery": true,
   "thermal_limited": false,
   "bench": null,
-  "accent": "#ff3d5e"
+  "accent": "#ff3d5e",
+  "tdp_min_watts": 5,
+  "tdp_max_watts": 30,
+  "cpu_fan_rpm": 3400,
+  "gpu_fan_rpm": 3100,
+  "fan_curves": {"cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": null, "mid": null},
+  "fps_limit": 40,
+  "controller_mode": "gamepad"
 }
 ```
 
@@ -255,7 +273,7 @@ Exemples :
 |---|---|---|
 | `tdp_watts` | `u32 \| null` | Limite appliquée par Canapé. `null` en mode firmware (le firmware ne la communique pas) ou avant tout réglage. |
 | `performance_mode` | `string \| null` | `silent`, `performance`, `turbo`, `manual`, ou `null` si rien n'a encore été appliqué. |
-| `auto_tdp` | `AutoTdpSettings` | Réglages en vigueur : globaux, ou ceux du profil actif. Valeurs telles que réglées (non bornées au modèle). |
+| `auto_tdp` | `AutoTdpSettings` | Réglages en vigueur : globaux, ou ceux du profil actif. Puissances bornées à la plage du modèle à l'application. |
 | `fps` | `f32 \| null` | FPS du dernier tick (pilote AMD). |
 | `gpu_util` | `f32 \| null` | Activité GPU entre 0 et 1. |
 | `power_watts` | `f32 \| null` | Ce que l'APU consomme réellement, en watts (`tdp_watts` n'en est que la limite). Tracé face à la limite dans les graphes du shell et du widget. Facultatif en entrée. |
@@ -267,6 +285,11 @@ Exemples :
 | `thermal_limited` | `bool` | L'auto TDP retient la puissance à cause de la limite de température. |
 | `bench` | `BenchProgress \| null` | Progression du banc d'essai en cours. |
 | `accent` | `string \| null` | Couleur d'accent `#rrggbb`, dès qu'un client en a choisi une (`set_accent`). Le shell l'adopte quand elle change ailleurs et donne la sienne à un service qui n'en a pas ; le widget la suit. Facultatif en entrée. |
+| `tdp_min_watts`, `tdp_max_watts` | `u32 \| null` | Plage de puissance soutenue du modèle (5–30 W sur RC71L / RC72LA, 5–35 W sur RC73 ; 7–30 W dans le simulateur) : les bornes d'un sélecteur de TDP. `null` avec un service plus ancien. |
+| `cpu_fan_rpm`, `gpu_fan_rpm` | `u32 \| null` | Vitesse des ventilateurs, par pas de 100 tr/min ; `null` quand le firmware ne donne pas de lecture valable. |
+| `fan_curves` | `FanCurves` | Courbes personnalisées en vigueur (globales ou du profil actif) ; un ventilateur à `null` suit la courbe du mode. |
+| `fps_limit` | `u32 \| null` | Plafond de FPS posé par Canapé (`null` : aucun posé par Canapé ; le logiciel AMD peut en avoir un). |
+| `controller_mode` | `string \| null` | `gamepad`, `wasd`, `mouse`, ou `null` si Canapé ne l'a pas réglé. |
 
 ### Types imbriqués
 
@@ -281,7 +304,28 @@ Exemples :
 | `battery_max_watts` | `u32 \| null` | `null` | facultatif en entrée |
 | `max_temp_c` | `u32 \| null` | `null` | facultatif en entrée |
 
-**`Profile`** : `exe` (string, comparé sans la casse), `auto_tdp` (`AutoTdpSettings`), `learned_watts` (`u32 | null`, facultatif).
+**`Profile`** : `exe` (string, comparé sans la casse), `auto_tdp` (`AutoTdpSettings`), `learned_watts` (`u32 | null`, facultatif), `fan_curves` (`FanCurves | null`, facultatif : `null` garde les courbes globales), `fps_limit` (`u32 | null`, facultatif : `null` garde le plafond global ; un profil ne peut pas imposer « aucun plafond » quand un plafond global existe).
+
+```json
+{"exe":"eldenring.exe","auto_tdp":{"enabled":true,"target_fps":40,"min_watts":7,"max_watts":20},"learned_watts":14,"fan_curves":{"cpu":[[30,35],[40,45],[50,55],[60,65],[70,80],[75,90],[80,100],[85,100]]},"fps_limit":40}
+```
+
+**`FanCurve`** : huit paires `[température °C, rapport cyclique %]`, pour le ventilateur CPU comme pour le GPU. Les règles (`FanCurve::validate` dans `canape-core/src/fan.rs`, vérifiées aussi par le backend Ally avant l'écriture) :
+
+- rapports de 0 à 100 %, jamais décroissants ;
+- **plancher de sécurité** : le rapport du dernier point à 80 °C ou en dessous doit valoir au moins 25 %, à 90 °C au moins 30 %, à 100 °C au moins 40 % ; s'il n'y a aucun point à ou sous l'une de ces températures, il compte pour 0 %. Cette borne basse tient que le firmware interpole ou procède par paliers entre les points. Les valeurs sont juste sous les courbes Silencieux d'ASUS (28 / 34 / 41 % pour le ventilateur CPU) : une courbe peut être aussi discrète que le mode Silencieux d'usine, jamais plus quand il fait chaud. 0 % à 90 °C est donc impossible.
+
+**`FanCurves`** : `{"cpu": FanCurve | null, "gpu": FanCurve | null, "mid": FanCurve | null}`, chaque champ facultatif. `mid` n'existe que sur certains portables : l'Ally le refuse.
+
+**Préréglages** (`FanPreset` dans `canape-core`, des données pour les interfaces, valides par construction) :
+
+| Préréglage | Points |
+|---|---|
+| `silent` | `[[30,0],[45,0],[55,10],[62,15],[68,20],[75,26],[85,34],[95,45]]` |
+| `balanced` | `[[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]]` |
+| `max_cooling` | `[[30,35],[40,45],[50,55],[60,65],[70,80],[75,90],[80,100],[85,100]]` |
+
+**`ControllerMode`** : `gamepad` (XInput), `wasd` (clavier), `mouse` (bureau).
 
 **`BenchPlan`** : `from_watts` (25), `to_watts` (7), `step_watts` (3), `settle_secs` (5), `measure_secs` (15).
 
@@ -315,13 +359,18 @@ Exemples :
 | `no bench is running` | `cancel_bench` sans banc d'essai |
 | `no frame rate: start a game before the bench` | `start_bench` sous 5 FPS |
 | `not a #RRGGBB colour: …` | `set_accent` avec autre chose que `#` et six chiffres hexadécimaux |
-| `value out of range: …` | Watts hors de la plage du modèle, limite de charge hors de 40 à 100 % |
-| `firmware refused: DEVS 0x… = … returned …` | Le firmware n'a pas renvoyé 1 |
+| `fan curve: …` | `set_fan_curve` qui enfreint une [règle](#types-imbriqués) (ordre, plage, rapport décroissant, plancher de sécurité) |
+| `frame rate limit not in 30..=120 FPS` | `set_fps_limit` hors plage |
+| `not supported on this device: …` | Pas de ventilateur central, pas de pilote AMD, pas d'interface HID de la manette, ou fonction absente du simulateur |
+| `GPU driver refused: ADL2_FPS_Settings_Set(…) on adapter … returned …` | Le pilote AMD a refusé le plafond (code dans le message) |
+| `fan curves reset, but the TDP was not applied again: …` | `reset_fan_curves` en mode manuel, échec de la réécriture du TDP |
+| `value out of range: …` | Watts hors de la plage du modèle, limite de charge hors de 40 à 100 %, courbe invalide arrivée jusqu'au backend |
+| `firmware refused: DEVS 0x… = … returned …` | Le firmware n'a pas renvoyé 1 (pour une courbe, le mode est alors réécrit pour retrouver les courbes d'usine) |
 | `device I/O failed: …` | `DeviceIoControl` a échoué |
 
 ### Faire évoluer le protocole
 
-- Un nouveau champ de `Status` ou de `AutoTdpSettings` prend `#[serde(default)]` : les anciens clients l'ignorent, et un ancien `state.json` reste lisible.
+- Un nouveau champ de `Status`, `AutoTdpSettings` ou `Profile` prend `#[serde(default)]` : les anciens clients l'ignorent, et un ancien `state.json` reste lisible. `Profile` dérive `Default` : les clients Rust le construisent avec `..Profile::default()` pour qu'un nouveau champ ne les casse pas.
 - Une nouvelle requête est une nouvelle variante de `Request` ; pensez à l'ajouter à la liste des requêtes en lecture seule de `server.rs` si elle ne modifie rien (sinon elle est journalisée et déclenche un enregistrement).
 - Un changement incompatible augmente `PROTOCOL_VERSION`, côté Rust **et** dans `CanapeLink.cs`.
 - Le widget ne réécrit que les champs qu'il connaît : `set_auto_tdp` renvoie l'objet `auto_tdp` reçu en entier, en ne changeant que `enabled` et `target_fps`.
@@ -348,7 +397,7 @@ rustup target add x86_64-pc-windows-msvc   # une fois
 cargo check --target x86_64-pc-windows-msvc --all-targets
 ```
 
-`cargo test` lance 64 tests à ce jour : contrôleur d'auto TDP (dont une simulation du cas d'oscillation de M4), handler du service (profils, banc d'essai, persistance), banc d'essai, ATKACPI, IPC, navigation à la manette, suivi du premier plan, langues et complétude des catalogues. Le `cargo check` Windows attrape le code `#[cfg(windows)]` que Linux ne compile pas, sans pouvoir l'exécuter.
+`cargo test` lance plus de 90 tests à ce jour : contrôleur d'auto TDP (dont une simulation du cas d'oscillation de M4), handler du service (profils, banc d'essai, persistance), banc d'essai, tampons ATKACPI, règles et préréglages des courbes de ventilateurs, rapports de la manette, SDDL du pipe et hachage de l'éditeur, IPC, navigation à la manette, suivi du premier plan, langues et complétude des catalogues. Le `cargo check` Windows attrape le code `#[cfg(windows)]` que Linux ne compile pas, sans pouvoir l'exécuter.
 
 ### Service et shell avec le simulateur
 
@@ -359,12 +408,13 @@ CANAPE_MOCK_FPS=60 cargo run -p canape-service -- --console
 # Terminal 2 : suivre le statut, envoyer des commandes
 cargo run -p canape-ctl -- watch
 cargo run -p canape-ctl -- '{"type":"set_auto_tdp","settings":{"enabled":true,"target_fps":60,"min_watts":7,"max_watts":25}}'
+cargo run -p canape-ctl -- --pretty '{"type":"get_fan_curves"}'
 
 # Terminal 3 : le shell dans une fenêtre
 CANAPE_WINDOWED=1 cargo run -p canape-shell
 ```
 
-Le simulateur : plage de 7 à 30 W, activité GPU 70 %, 55 °C, batterie 80 % sur secteur, limite de charge 40 à 100 %. Les FPS restent ceux de `CANAPE_MOCK_FPS` quelle que soit la puissance : l'auto TDP descend donc jusqu'au minimum (un objectif à 60 avec 60 FPS et 70 % de GPU déclenche la règle du GPU au repos).
+Le simulateur : plage de 7 à 30 W, activité GPU 70 %, 55 °C, batterie 80 % sur secteur, limite de charge 40 à 100 %. Ventilateurs : CPU et GPU (pas de central), courbes par mode tirées des préréglages (silencieux → `silent`, turbo → `max_cooling`, sinon `balanced`), une écriture du mode efface les courbes personnalisées comme sur l'Ally, vitesse = rapport × 6000 tr/min. Un plafond de FPS plafonne les FPS simulés. Les FPS restent ceux de `CANAPE_MOCK_FPS` quelle que soit la puissance : l'auto TDP descend donc jusqu'au minimum (un objectif à 60 avec 60 FPS et 70 % de GPU déclenche la règle du GPU au repos).
 
 Au clavier, le shell se pilote comme à la manette : Tab / Maj+Tab, Entrée ou Espace, Échap, Page préc. / Page suiv.
 
@@ -543,6 +593,9 @@ Le firmware ASUS s'atteint par `\\.\ATKACPI` (ouverture en lecture / écriture, 
 | `0x001200C1` | fPPT (boost rapide) | TDP, écrit en dernier, seulement si `DSTS` le dit présent |
 | `0x00120057` | Limite de charge | 40 à 100 % |
 | `0x00120094` | Température CPU | Lecture, valeurs de 1 à 124 °C |
+| `0x00110013` / `0x00110014` | Vitesse ventilateur CPU / GPU | Lecture, voir [Courbes de ventilateurs](#courbes-de-ventilateurs) |
+| `0x00110031` | Vitesse ventilateur central | Lecture ; sert aussi de test de présence |
+| `0x00110024` / `0x00110025` / `0x00110032` | Courbe CPU / GPU / centrale | Écriture et lecture sur 16 octets, voir [Courbes de ventilateurs](#courbes-de-ventilateurs) |
 
 
 ### Modèles
@@ -571,13 +624,41 @@ Le modèle est lu dans `HKLM\HARDWARE\DESCRIPTION\System\BIOS\SystemProductName`
 
 D'où la solution : au démarrage, le shell appelle `canape_hw::arm_frame_metrics()` (un seul `FrameMetrics_Start`, ligne `adl: …` dans `shell.log`) ; le comptage est global au pilote et le service lit ensuite les FPS. L'adaptateur choisi est l'iGPU AMD intégré qui existe, en préférant un adaptateur `present`. Diagnostic détaillé : [m4-report.md](m4-report.md).
 
-### Pas encore implémenté (M5)
+> [!WARNING]
+
+### Courbes de ventilateurs
+
+
+| Sujet | Fait |
+|---|---|
+| Ventilateur central | Seulement si `DSTS 0x00110031` répond (`IsMidFanSupported`). |
+
+
+> [!CAUTION]
+> Écrire une courbe retire les ventilateurs du contrôle d'ASUS. Le plancher de sécurité interdit une courbe muette quand il fait chaud, et l'APU se bride toujours seul à sa limite de température, mais une courbe trop discrète rend l'appareil brûlant en main. En cas d'erreur du firmware, le service réécrit le mode pour retrouver les courbes d'usine.
+
+### Plafond de FPS (ADL)
+
+
+
+### Manette (HID)
+
+| Sujet | Fait |
+|---|---|
+| Initialisation | `0x5A` + `ASUS Tech.Inc.` en ASCII, une fois avant la première commande (`InitInput`). |
+| Mode | `[0x5A, 0xD1, 0x01, 0x01, mode]`, `1` manette, `2` WASD, `3` souris, puis `HidD_SetFeature`. |
+
+
+### ACL du pipe
+
+Le SID AppContainer du widget est dérivé par Windows (`DeriveAppContainerSidFromAppContainerName`) de son nom de famille de paquet, que Canapé calcule à partir de `widget/CanapeWidget/Package.appxmanifest` : `Canape.Widget` + `_` + le hachage de l'éditeur `CN=Canape Dev` (SHA-256 de l'éditeur en UTF-16LE, 8 premiers octets, 13 caractères en base32 de Crockford), soit `Canape.Widget_84zrj1c9kn010`, le nom observé sur l'Ally (un test unitaire le vérifie). Si la dérivation échoue, le service revient à `AC` et journalise pourquoi. Changer l'éditeur du widget change le SID : mettre à jour `WIDGET_PUBLISHER` dans `crates/canape-ipc/src/acl.rs`.
+
+### Pas encore implémenté
 
 | Fonction | Interface prévue |
 |---|---|
-| Courbes de ventilateurs | ATKACPI `0x00110024` / `0x00110025` (8 températures + 8 % de PWM) |
 | Fréquence de l'écran | `ChangeDisplaySettingsEx` sur l'écran interne |
-| Mode de la manette, boutons spéciaux | HID ASUS (VID `0x0B05`, rapport `0x5A`) |
+| Boutons spéciaux, associations | HID ASUS (rapport `0x5A`, commandes `0xD1 0x02`) |
 
 ## Conventions
 

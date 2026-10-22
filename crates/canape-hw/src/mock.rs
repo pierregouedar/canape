@@ -1,6 +1,9 @@
-use canape_core::PerformanceMode;
+use canape_core::{ControllerMode, Fan, FanCurve, FanCurves, FanPreset, PerformanceMode};
 
 use crate::{Device, HwError, Result, Telemetry};
+
+/// Fan speed at 100 % duty, for the simulated RPM.
+const MAX_RPM: u32 = 6000;
 
 /// In-memory device used off the Ally and in tests.
 #[derive(Debug)]
@@ -12,6 +15,11 @@ pub struct MockDevice {
     pub gpu_util: Option<f32>,
     pub cpu_temp_c: f32,
     pub on_battery: bool,
+    /// Custom curves the "firmware" holds; a mode write clears them, as on
+    /// the Ally.
+    pub fan_curves: FanCurves,
+    pub fps_limit: Option<u32>,
+    pub controller_mode: Option<ControllerMode>,
 }
 
 impl Default for MockDevice {
@@ -24,7 +32,34 @@ impl Default for MockDevice {
             gpu_util: Some(0.7),
             cpu_temp_c: 55.0,
             on_battery: false,
+            fan_curves: FanCurves::default(),
+            fps_limit: None,
+            controller_mode: None,
         }
+    }
+}
+
+impl MockDevice {
+    /// The curve the fan follows: the custom one, else the mode's default.
+    fn curve(&self, fan: Fan) -> FanCurve {
+        self.fan_curves
+            .get(fan)
+            .copied()
+            .unwrap_or_else(|| mode_curve(self.mode))
+    }
+
+    fn rpm(&self, fan: Fan) -> u32 {
+        let duty = self.curve(fan).duty_at(self.cpu_temp_c as u8);
+        MAX_RPM * u32::from(duty) / 100
+    }
+}
+
+/// Stand-ins for the firmware's per-mode curves.
+fn mode_curve(mode: PerformanceMode) -> FanCurve {
+    match mode {
+        PerformanceMode::Silent => FanPreset::Silent.curve(),
+        PerformanceMode::Turbo => FanPreset::MaxCooling.curve(),
+        PerformanceMode::Performance | PerformanceMode::Manual => FanPreset::Balanced.curve(),
     }
 }
 
@@ -51,6 +86,7 @@ impl Device for MockDevice {
 
     fn set_performance_mode(&mut self, mode: PerformanceMode) -> Result<()> {
         self.mode = mode;
+        self.fan_curves = FanCurves::default();
         Ok(())
     }
 
@@ -72,11 +108,44 @@ impl Device for MockDevice {
             power_watts: Some(self.tdp_watts as f32 * 0.9),
             battery_percent: Some(80),
             on_battery: Some(self.on_battery),
+            cpu_fan_rpm: Some(self.rpm(Fan::Cpu)),
+            gpu_fan_rpm: Some(self.rpm(Fan::Gpu)),
         })
     }
 
     fn frame_rate(&mut self) -> Option<f32> {
-        self.fps
+        // A cap shows in the frame rate, as with the AMD driver.
+        match (self.fps, self.fps_limit) {
+            (Some(fps), Some(limit)) => Some(fps.min(limit as f32)),
+            (fps, _) => fps,
+        }
+    }
+
+    fn set_fan_curve(&mut self, fan: Fan, curve: &FanCurve) -> Result<()> {
+        if fan == Fan::Mid {
+            return Err(HwError::Unsupported("no mid fan"));
+        }
+        curve.validate().map_err(HwError::OutOfRange)?;
+        self.fan_curves.set(fan, Some(*curve));
+        Ok(())
+    }
+
+    fn reset_fan_curves(&mut self) -> Result<()> {
+        self.set_performance_mode(self.mode)
+    }
+
+    fn default_fan_curve(&mut self, fan: Fan, mode: PerformanceMode) -> Result<Option<FanCurve>> {
+        Ok((fan != Fan::Mid).then(|| mode_curve(mode)))
+    }
+
+    fn set_fps_limit(&mut self, fps: Option<u32>) -> Result<()> {
+        self.fps_limit = fps;
+        Ok(())
+    }
+
+    fn set_controller_mode(&mut self, mode: ControllerMode) -> Result<()> {
+        self.controller_mode = Some(mode);
+        Ok(())
     }
 }
 
@@ -91,5 +160,23 @@ mod tests {
         assert!(device.set_tdp(12).is_ok());
         assert_eq!(device.tdp_watts, 12);
         assert_eq!(device.mode, PerformanceMode::Manual);
+    }
+
+    #[test]
+    fn a_mode_write_drops_custom_curves() {
+        let mut device = MockDevice::default();
+        let curve = FanPreset::MaxCooling.curve();
+        device.set_fan_curve(Fan::Cpu, &curve).unwrap();
+        let fast = device.telemetry().unwrap().cpu_fan_rpm.unwrap();
+        device
+            .set_performance_mode(PerformanceMode::Silent)
+            .unwrap();
+        assert!(device.fan_curves.is_empty());
+        let slow = device.telemetry().unwrap().cpu_fan_rpm.unwrap();
+        assert!(slow < fast, "{slow} < {fast}");
+        assert!(device.set_fan_curve(Fan::Mid, &curve).is_err());
+        let mut bad = curve;
+        bad.0[7].1 = 0;
+        assert!(device.set_fan_curve(Fan::Gpu, &bad).is_err());
     }
 }

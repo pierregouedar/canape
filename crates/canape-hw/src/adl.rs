@@ -38,6 +38,34 @@ struct AdapterInfo {
 // Sizes from the ADL SDK headers: a mismatch would corrupt memory.
 const _: () = assert!(size_of::<AdapterInfo>() == 1572);
 const _: () = assert!(size_of::<PmLogDataOutput>() == 4 + 8 * PMLOG_MAX_SENSORS);
+const _: () = assert!(size_of::<FpsSettingsOutput>() == 36);
+const _: () = assert!(size_of::<FpsSettingsInput>() == 40);
+
+pub const FPS_LIMIT_OFF: u32 = 240;
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct FpsSettingsOutput {
+    size: i32,
+    ac_enabled: i32,
+    dc_enabled: i32,
+    ac_current: i32,
+    dc_current: i32,
+    ac_maximum: i32,
+    ac_minimum: i32,
+    dc_maximum: i32,
+    dc_minimum: i32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct FpsSettingsInput {
+    size: i32,
+    global_settings: i32,
+    ac_current: i32,
+    dc_current: i32,
+    reserved: [i32; 6],
+}
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -62,6 +90,10 @@ type AsicFamily = unsafe extern "C" fn(Context, i32, *mut i32, *mut i32) -> i32;
 type FrameMetricsStart = unsafe extern "C" fn(Context, i32, i32) -> i32;
 type FrameMetricsGet = unsafe extern "C" fn(Context, i32, i32, *mut f32) -> i32;
 type PmLogGet = unsafe extern "C" fn(Context, i32, *mut PmLogDataOutput) -> i32;
+type FpsSettingsGet = unsafe extern "C" fn(Context, i32, *mut FpsSettingsOutput) -> i32;
+// app/Gpu/AMD/AmdAdl2.cs:598-599); on x64 that is a pointer to a copy,
+// which Rust's C ABI produces the same way.
+type FpsSettingsSet = unsafe extern "C" fn(Context, i32, FpsSettingsInput) -> i32;
 
 /// The ADL entry points Canape uses.
 struct Api {
@@ -72,6 +104,9 @@ struct Api {
     frame_metrics_start: FrameMetricsStart,
     frame_metrics_get: FrameMetricsGet,
     pmlog_get: PmLogGet,
+    /// Optional: an older driver without them still gives FPS and activity.
+    fps_settings_get: Option<FpsSettingsGet>,
+    fps_settings_set: Option<FpsSettingsSet>,
 }
 
 /// ADL asks the caller to allocate the buffers it returns.
@@ -91,15 +126,17 @@ fn load_api() -> Option<Api> {
     if module.is_null() {
         return None;
     }
-    macro_rules! symbol {
+    macro_rules! optional {
         ($name:literal as $ty:ty) => {
             // SAFETY: the signatures above match the ADL SDK headers.
-            unsafe {
-                std::mem::transmute::<unsafe extern "system" fn() -> isize, $ty>(GetProcAddress(
-                    module,
-                    concat!($name, "\0").as_ptr(),
-                )?)
-            }
+            unsafe { GetProcAddress(module, concat!($name, "\0").as_ptr()) }.map(|f| unsafe {
+                std::mem::transmute::<unsafe extern "system" fn() -> isize, $ty>(f)
+            })
+        };
+    }
+    macro_rules! symbol {
+        ($name:literal as $ty:ty) => {
+            optional!($name as $ty)?
         };
     }
     Some(Api {
@@ -110,6 +147,8 @@ fn load_api() -> Option<Api> {
         frame_metrics_start: symbol!("ADL2_Adapter_FrameMetrics_Start" as FrameMetricsStart),
         frame_metrics_get: symbol!("ADL2_Adapter_FrameMetrics_Get" as FrameMetricsGet),
         pmlog_get: symbol!("ADL2_New_QueryPMLogData_Get" as PmLogGet),
+        fps_settings_get: optional!("ADL2_FPS_Settings_Get" as FpsSettingsGet),
+        fps_settings_set: optional!("ADL2_FPS_Settings_Set" as FpsSettingsSet),
     })
 }
 
@@ -234,5 +273,55 @@ impl Adl {
         let gpu = read(PMLOG_INFO_ACTIVITY_GFX).map(|v| (v.clamp(0, 100) as f32) / 100.0);
         let power = read(PMLOG_ASIC_POWER).filter(|&w| w > 0).map(|w| w as f32);
         (gpu, power)
+    }
+
+    /// The driver's frame rate limiter, as one log line.
+    pub fn describe_fps_limit(&self) -> String {
+        let Some(get) = self.api.fps_settings_get else {
+            return "adl: no ADL2_FPS_Settings_Get in this driver".into();
+        };
+        let mut settings = FpsSettingsOutput::default();
+        let code = unsafe { get(self.context, self.adapter, &mut settings) };
+        if code != ADL_OK {
+            return format!("adl: ADL2_FPS_Settings_Get returned {code}");
+        }
+        format!(
+            "adl: FPS limit AC {} (enabled {}, range {}..={}), DC {} (enabled {})",
+            settings.ac_current,
+            settings.ac_enabled,
+            settings.ac_minimum,
+            settings.ac_maximum,
+            settings.dc_current,
+            settings.dc_enabled
+        )
+    }
+
+    /// Caps the frame rate on AC and battery, for every game ("global"
+    /// reserved fields at 0: so do we, to send the exact call known to work.
+    ///
+    /// PMLog works from the service, FrameMetrics_Start does not
+    /// (docs/m4-report.md). If the driver refuses here, the fallback is to
+    /// make the same call from the shell (session 1), which already loads
+    /// ADL for `arm_frame_metrics`: the shell would apply `status.fps_limit`
+    /// whenever it changes. The error carries the ADL code for the log.
+    pub fn set_fps_limit(&self, fps: Option<u32>) -> Result<(), String> {
+        let set = self
+            .api
+            .fps_settings_set
+            .ok_or("no ADL2_FPS_Settings_Set in this driver")?;
+        let fps = fps.unwrap_or(FPS_LIMIT_OFF) as i32;
+        let settings = FpsSettingsInput {
+            global_settings: 1,
+            ac_current: fps,
+            dc_current: fps,
+            ..FpsSettingsInput::default()
+        };
+        match unsafe { set(self.context, self.adapter, settings) } {
+            ADL_OK => Ok(()),
+            code => Err(format!(
+                "ADL2_FPS_Settings_Set({fps}) on adapter {} returned {code} (session 0)",
+                self.adapter
+            )),
+        }
     }
 }

@@ -2,12 +2,15 @@
 //! backend lives in `windows` (on top of [`atk`]) and a [`mock::MockDevice`]
 //! serves development and tests on any OS.
 
-use canape_core::PerformanceMode;
+use canape_core::{ControllerMode, Fan, FanCurve, PerformanceMode};
 
 #[cfg(windows)]
 mod adl;
 pub mod atk;
+#[cfg(windows)]
+mod hid;
 pub mod mock;
+pub mod pad;
 #[cfg(windows)]
 pub mod windows;
 
@@ -19,6 +22,8 @@ pub enum HwError {
     OutOfRange(String),
     #[error("firmware refused: {0}")]
     Firmware(String),
+    #[error("GPU driver refused: {0}")]
+    Driver(String),
     #[error("device I/O failed: {0}")]
     Io(#[from] std::io::Error),
 }
@@ -34,6 +39,8 @@ pub struct Telemetry {
     pub power_watts: Option<f32>,
     pub battery_percent: Option<u8>,
     pub on_battery: Option<bool>,
+    pub cpu_fan_rpm: Option<u32>,
+    pub gpu_fan_rpm: Option<u32>,
 }
 
 pub trait Device: Send {
@@ -51,6 +58,29 @@ pub trait Device: Send {
     /// Frame rate of what is on screen, when the GPU driver reports it.
     fn frame_rate(&mut self) -> Option<f32> {
         None
+    }
+    /// Writes a custom curve. Callers validate it first
+    /// ([`FanCurve::validate`]); backends check again. A performance mode
+    /// write resets every curve to the mode's own: callers write them again.
+    fn set_fan_curve(&mut self, _fan: Fan, _curve: &FanCurve) -> Result<()> {
+        Err(HwError::Unsupported("fan curves"))
+    }
+    /// Every fan back to the current performance mode's curve. May also
+    /// reset the power limits: callers apply a manual TDP again.
+    fn reset_fan_curves(&mut self) -> Result<()> {
+        Err(HwError::Unsupported("fan curves"))
+    }
+    /// The firmware's own curve for `mode`, when it reports one.
+    fn default_fan_curve(&mut self, _fan: Fan, _mode: PerformanceMode) -> Result<Option<FanCurve>> {
+        Ok(None)
+    }
+    /// GPU driver frame rate cap; `None` removes it. Callers check the range
+    /// ([`canape_core::settings::FPS_LIMIT_RANGE`]).
+    fn set_fps_limit(&mut self, _fps: Option<u32>) -> Result<()> {
+        Err(HwError::Unsupported("frame rate limit"))
+    }
+    fn set_controller_mode(&mut self, _mode: ControllerMode) -> Result<()> {
+        Err(HwError::Unsupported("controller mode"))
     }
 }
 

@@ -70,6 +70,8 @@ pub fn spawn(
     }
 
     let mut listener = Listener::bind()?;
+    #[cfg(windows)]
+    log(&format!("pipe: {}", listener.security()));
     let shared = Shared {
         handler: Arc::new(Mutex::new(handler)),
         subscribers: Arc::default(),
@@ -133,6 +135,7 @@ fn serve(mut conn: Connection, shared: &Shared) -> io::Result<()> {
                 | Request::Subscribe
                 | Request::ListProfiles
                 | Request::GetBenchReport
+                | Request::GetFanCurves
         );
         let subscribe = request == Request::Subscribe;
         let described = changes_state.then(|| format!("{request:?}"));

@@ -1,9 +1,10 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use canape_autotdp::{Config, Controller};
+use canape_core::settings::FPS_LIMIT_RANGE;
 use canape_core::{
-    AutoTdpSettings, BenchPlan, BenchReport, PerformanceMode, Profile, Request, Response, Status,
-    protocol,
+    AutoTdpSettings, BenchPlan, BenchReport, ControllerMode, Fan, FanCurve, FanCurves,
+    PerformanceMode, Profile, Request, Response, Status, protocol,
 };
 use canape_hw::{Device, Telemetry};
 use serde::{Deserialize, Serialize};
@@ -27,6 +28,11 @@ pub struct Saved {
     pub profiles: Vec<Profile>,
     pub last_bench: Option<BenchReport>,
     pub accent: Option<String>,
+    /// Global custom fan curves (a profile may override them).
+    pub fan_curves: FanCurves,
+    /// Global frame rate cap (a profile may override it).
+    pub fps_limit: Option<u32>,
+    pub controller_mode: Option<ControllerMode>,
 }
 
 /// Service state and request dispatch, independent of the transport.
@@ -51,6 +57,11 @@ pub struct Handler {
     before_bench: Option<Saved>,
     last_bench: Option<BenchReport>,
     accent: Option<String>,
+    /// Custom curves in effect: the global ones, or the active profile's.
+    fan_curves: FanCurves,
+    /// Frame rate cap in effect: the global one, or the active profile's.
+    fps_limit: Option<u32>,
+    controller_mode: Option<ControllerMode>,
     /// Something worth saving changed outside a request (learned watts, bench).
     dirty: bool,
 }
@@ -75,6 +86,9 @@ impl Handler {
             before_bench: None,
             last_bench: None,
             accent: None,
+            fan_curves: FanCurves::default(),
+            fps_limit: None,
+            controller_mode: None,
             dirty: false,
         }
     }
@@ -98,7 +112,7 @@ impl Handler {
                     return error;
                 }
                 self.disable_auto_tdp();
-                self.apply(
+                let response = self.apply(
                     |d| d.set_performance_mode(mode),
                     |s| {
                         s.mode = Some(mode);
@@ -107,7 +121,12 @@ impl Handler {
                             s.tdp_watts = None;
                         }
                     },
-                )
+                );
+                if response == Response::Ok {
+                    // A mode write resets the fan curves: write ours again.
+                    self.rewrite_fan_curves();
+                }
+                response
             }
             Request::SetTdp { watts } => {
                 if let Some(error) = self.bench_running() {
@@ -122,7 +141,7 @@ impl Handler {
                 }
                 let response = self.set_auto_tdp(settings, None);
                 if response == Response::Ok {
-                    self.remember_auto_tdp(settings);
+                    self.remember_auto_tdp(self.auto_tdp);
                 }
                 response
             }
@@ -179,6 +198,41 @@ impl Handler {
             Request::GetBenchReport => Response::Bench {
                 report: self.last_bench.clone(),
             },
+            Request::SetFanCurve { fan, curve } => {
+                if let Err(message) = curve.validate() {
+                    return Response::Error { message };
+                }
+                let response = self.write_fan_curve(fan, curve);
+                if response == Response::Ok {
+                    self.remember_fan_curves();
+                }
+                response
+            }
+            Request::ResetFanCurves => {
+                let response = self.reset_fan_curves();
+                if response == Response::Ok {
+                    self.remember_fan_curves();
+                }
+                response
+            }
+            Request::GetFanCurves => self.fan_curves_response(),
+            Request::SetFpsLimit { fps } => {
+                let (low, high) = FPS_LIMIT_RANGE;
+                if fps.is_some_and(|fps| !(low..=high).contains(&fps)) {
+                    return Response::Error {
+                        message: format!("frame rate limit not in {low}..={high} FPS"),
+                    };
+                }
+                let response = self.write_fps_limit(fps);
+                if response == Response::Ok {
+                    self.remember_fps_limit();
+                }
+                response
+            }
+            Request::SetControllerMode { mode } => self.apply(
+                |d| d.set_controller_mode(mode),
+                |s| s.controller_mode = Some(mode),
+            ),
         }
     }
 
@@ -250,6 +304,7 @@ impl Handler {
             Some(telemetry) => telemetry,
             None => self.device.telemetry().unwrap_or_default(),
         };
+        let (tdp_min, tdp_max) = self.device.tdp_range();
         Status {
             tdp_watts: self.tdp_watts,
             performance_mode: self.mode,
@@ -269,6 +324,13 @@ impl Handler {
                 .is_some_and(Controller::thermal_limited),
             bench: self.bench.as_ref().map(BenchRun::progress),
             accent: self.accent.clone(),
+            tdp_min_watts: Some(tdp_min),
+            tdp_max_watts: Some(tdp_max),
+            cpu_fan_rpm: telemetry.cpu_fan_rpm,
+            gpu_fan_rpm: telemetry.gpu_fan_rpm,
+            fan_curves: self.fan_curves.clone(),
+            fps_limit: self.fps_limit,
+            controller_mode: self.controller_mode,
         }
     }
 
@@ -295,6 +357,9 @@ impl Handler {
             profiles: Vec::new(),
             last_bench: None,
             accent: None,
+            fan_curves: self.fan_curves.clone(),
+            fps_limit: self.fps_limit,
+            controller_mode: None,
         };
         let global = self
             .before_bench
@@ -307,6 +372,7 @@ impl Handler {
             profiles: self.profiles.clone(),
             last_bench: self.last_bench.clone(),
             accent: self.accent.clone(),
+            controller_mode: self.controller_mode,
             ..global
         }
     }
@@ -317,11 +383,18 @@ impl Handler {
         self.last_bench = saved.last_bench.clone();
         self.accent = saved.accent.clone();
         let mut errors = self.apply_power_state(saved);
-        if let Some(percent) = saved.battery_limit
-            && let Response::Error { message } =
-                self.handle(Request::SetBatteryChargeLimit { percent })
-        {
-            errors.push(message);
+        errors.extend(self.apply_fans_and_fps(&saved.fan_curves, saved.fps_limit));
+        let mut requests = Vec::new();
+        if let Some(percent) = saved.battery_limit {
+            requests.push(Request::SetBatteryChargeLimit { percent });
+        }
+        if let Some(mode) = saved.controller_mode {
+            requests.push(Request::SetControllerMode { mode });
+        }
+        for request in requests {
+            if let Response::Error { message } = self.handle(request) {
+                errors.push(message);
+            }
         }
         errors
     }
@@ -371,19 +444,18 @@ impl Handler {
     fn set_auto_tdp(&mut self, settings: AutoTdpSettings, start: Option<u32>) -> Response {
         if !settings.enabled {
             self.disable_auto_tdp();
-            self.auto_tdp = settings;
+            self.auto_tdp = settings
+                .clamped(self.device.tdp_range())
+                .unwrap_or(settings);
             return Response::Ok;
         }
-        let (dev_min, dev_max) = self.device.tdp_range();
-        let (min_watts, max_watts) = (
-            settings.min_watts.max(dev_min),
-            settings.max_watts.min(dev_max),
-        );
-        if min_watts > max_watts || settings.target_fps == 0 {
+        // Bounded by the model; the status shows the clamped values.
+        let Some(settings) = settings.clamped(self.device.tdp_range()) else {
             return Response::Error {
                 message: "invalid auto TDP settings".into(),
             };
-        }
+        };
+        let (min_watts, max_watts) = (settings.min_watts, settings.max_watts);
         let config = Config {
             target_fps: settings.target_fps as f32,
             min_watts,
@@ -438,14 +510,22 @@ impl Handler {
                 if self.bench.is_none() {
                     let _ = self.set_auto_tdp(profile.auto_tdp, profile.learned_watts);
                 }
+                // What the profile leaves unset follows the global state.
+                let global = self.before_profile.as_ref().expect("set above");
+                let curves = profile
+                    .fan_curves
+                    .unwrap_or_else(|| global.fan_curves.clone());
+                let fps_limit = profile.fps_limit.or(global.fps_limit);
+                self.apply_fans_and_fps(&curves, fps_limit);
             }
             Some(_) => {}
             None => {
                 self.active_profile = None;
-                if let Some(global) = self.before_profile.take()
-                    && self.bench.is_none()
-                {
-                    self.apply_power_state(&global);
+                if let Some(global) = self.before_profile.take() {
+                    if self.bench.is_none() {
+                        self.apply_power_state(&global);
+                    }
+                    self.apply_fans_and_fps(&global.fan_curves, global.fps_limit);
                 }
             }
         }
@@ -510,6 +590,130 @@ impl Handler {
         self.follow_foreground();
     }
 
+    fn write_fan_curve(&mut self, fan: Fan, curve: FanCurve) -> Response {
+        self.apply(
+            |d| d.set_fan_curve(fan, &curve),
+            |s| s.fan_curves.set(fan, Some(curve)),
+        )
+    }
+
+    /// Every fan back to the mode's curve. The firmware applies the mode's
+    /// power limits too, so a manual TDP is written again.
+    fn reset_fan_curves(&mut self) -> Response {
+        let response = self.apply(
+            |d| d.reset_fan_curves(),
+            |s| s.fan_curves = FanCurves::default(),
+        );
+        if response == Response::Ok
+            && self.mode == Some(PerformanceMode::Manual)
+            && let Some(watts) = self.tdp_watts
+            && let Err(err) = self.device.set_tdp(watts)
+        {
+            return Response::Error {
+                message: format!("fan curves reset, but the TDP was not applied again: {err}"),
+            };
+        }
+        response
+    }
+
+    /// After a performance mode write: the firmware dropped the custom
+    /// curves. One that cannot be written again is forgotten, so the status
+    /// shows the fan on the mode's curve.
+    fn rewrite_fan_curves(&mut self) {
+        for (fan, curve) in self.fan_curves.clone().iter() {
+            if self.device.set_fan_curve(fan, &curve).is_err() {
+                self.fan_curves.set(fan, None);
+                self.dirty = true;
+            }
+        }
+    }
+
+    /// Moves to `curves` and `fps_limit`, writing only what differs.
+    fn apply_fans_and_fps(&mut self, curves: &FanCurves, fps_limit: Option<u32>) -> Vec<String> {
+        let mut errors = Vec::new();
+        if *curves != self.fan_curves {
+            // Going back to a firmware curve needs a reset, which drops all.
+            let dropped = Fan::ALL
+                .into_iter()
+                .any(|fan| self.fan_curves.get(fan).is_some() && curves.get(fan).is_none());
+            if dropped && let Response::Error { message } = self.reset_fan_curves() {
+                errors.push(message);
+            }
+            for (fan, curve) in curves.iter() {
+                if self.fan_curves.get(fan) != Some(&curve)
+                    && let Response::Error { message } = self.write_fan_curve(fan, curve)
+                {
+                    errors.push(message);
+                }
+            }
+        }
+        if fps_limit != self.fps_limit
+            && let Response::Error { message } = self.write_fps_limit(fps_limit)
+        {
+            errors.push(message);
+        }
+        errors
+    }
+
+    fn write_fps_limit(&mut self, fps: Option<u32>) -> Response {
+        self.apply(|d| d.set_fps_limit(fps), |s| s.fps_limit = fps)
+    }
+
+    /// The global state being held aside, by a profile and / or a bench.
+    fn global_snapshots(&mut self) -> impl Iterator<Item = &mut Saved> {
+        self.before_bench
+            .iter_mut()
+            .chain(self.before_profile.iter_mut())
+    }
+
+    /// A curve change belongs to the active profile when it has its own
+    /// curves, else to the global settings.
+    fn remember_fan_curves(&mut self) {
+        let curves = self.fan_curves.clone();
+        if let Some(profile) = self.active_profile_mut()
+            && profile.fan_curves.is_some()
+        {
+            profile.fan_curves = Some(curves);
+            return;
+        }
+        for saved in self.global_snapshots() {
+            saved.fan_curves = curves.clone();
+        }
+    }
+
+    /// Same rule as [`Self::remember_fan_curves`].
+    fn remember_fps_limit(&mut self) {
+        let fps_limit = self.fps_limit;
+        if let Some(profile) = self.active_profile_mut()
+            && profile.fps_limit.is_some()
+        {
+            // `None` there means "follow the global cap" from the next
+            // activation on.
+            profile.fps_limit = fps_limit;
+            return;
+        }
+        for saved in self.global_snapshots() {
+            saved.fps_limit = fps_limit;
+        }
+    }
+
+    fn active_profile_mut(&mut self) -> Option<&mut Profile> {
+        let exe = self.active_profile.as_deref()?;
+        self.profiles.iter_mut().find(|p| p.matches(exe))
+    }
+
+    fn fan_curves_response(&mut self) -> Response {
+        let mode = self.mode.unwrap_or(PerformanceMode::Performance);
+        let mut defaults = FanCurves::default();
+        for fan in Fan::ALL {
+            defaults.set(fan, self.device.default_fan_curve(fan, mode).ok().flatten());
+        }
+        Response::FanCurves {
+            custom: self.fan_curves.clone(),
+            defaults,
+        }
+    }
+
     fn apply(
         &mut self,
         write: impl FnOnce(&mut dyn Device) -> canape_hw::Result<()>,
@@ -530,6 +734,7 @@ impl Handler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use canape_core::FanPreset;
     use canape_hw::mock::MockDevice;
 
     fn handler_with(fps: Option<f32>, gpu_util: Option<f32>) -> Handler {
@@ -562,7 +767,19 @@ mod tests {
                 ..AutoTdpSettings::default()
             },
             learned_watts: learned,
+            ..Profile::default()
         }
+    }
+
+    fn set_curve(fan: Fan, preset: FanPreset) -> Request {
+        Request::SetFanCurve {
+            fan,
+            curve: preset.curve(),
+        }
+    }
+
+    fn custom(h: &mut Handler) -> FanCurves {
+        h.status().fan_curves
     }
 
     #[test]
@@ -808,5 +1025,189 @@ mod tests {
         };
         assert!(!report.completed);
         assert!(h.status().bench.is_none());
+    }
+
+    #[test]
+    fn status_reports_the_model_range_and_clamped_auto_tdp() {
+        let mut h = handler();
+        let settings = AutoTdpSettings {
+            enabled: true,
+            min_watts: 3,
+            max_watts: 50,
+            battery_max_watts: Some(40),
+            ..AutoTdpSettings::default()
+        };
+        assert_eq!(h.handle(Request::SetAutoTdp { settings }), Response::Ok);
+        let status = h.status();
+        assert_eq!(
+            (status.tdp_min_watts, status.tdp_max_watts),
+            (Some(7), Some(30))
+        );
+        let auto = status.auto_tdp;
+        assert_eq!((auto.min_watts, auto.max_watts), (7, 30));
+        assert_eq!(auto.battery_max_watts, Some(30));
+        assert_eq!(status.tdp_watts, Some(30), "starts at the clamped ceiling");
+        assert_eq!(h.saved().auto_tdp, auto);
+    }
+
+    #[test]
+    fn fan_curves_are_validated_shown_and_survive_a_mode_change() {
+        let mut h = handler();
+        let mut bad = FanPreset::Silent.curve();
+        bad.0[7] = (95, 0);
+        assert!(matches!(
+            h.handle(Request::SetFanCurve {
+                fan: Fan::Cpu,
+                curve: bad
+            }),
+            Response::Error { .. }
+        ));
+        assert!(matches!(
+            h.handle(set_curve(Fan::Mid, FanPreset::Silent)),
+            Response::Error { .. }
+        ));
+        assert_eq!(
+            h.handle(set_curve(Fan::Cpu, FanPreset::MaxCooling)),
+            Response::Ok
+        );
+        assert_eq!(custom(&mut h).cpu, Some(FanPreset::MaxCooling.curve()));
+        let fast = h.status().cpu_fan_rpm.unwrap();
+        // The mock, like the firmware, drops curves on a mode write; the
+        // handler writes them again.
+        h.handle(Request::SetPerformanceMode {
+            mode: PerformanceMode::Silent,
+        });
+        assert_eq!(custom(&mut h).cpu, Some(FanPreset::MaxCooling.curve()));
+        h.tick();
+        assert_eq!(h.status().cpu_fan_rpm, Some(fast));
+
+        let Response::FanCurves { custom, defaults } = h.handle(Request::GetFanCurves) else {
+            panic!("expected fan curves");
+        };
+        assert!(custom.cpu.is_some());
+        assert_eq!(defaults.cpu, Some(FanPreset::Silent.curve()));
+        assert_eq!(defaults.mid, None);
+    }
+
+    #[test]
+    fn resetting_fan_curves_keeps_a_manual_tdp() {
+        let mut h = handler();
+        h.handle(Request::SetTdp { watts: 12 });
+        h.handle(set_curve(Fan::Gpu, FanPreset::Balanced));
+        assert_eq!(h.handle(Request::ResetFanCurves), Response::Ok);
+        assert!(custom(&mut h).is_empty());
+        assert!(h.saved().fan_curves.is_empty());
+        assert_eq!(h.status().tdp_watts, Some(12));
+        assert_eq!(h.status().performance_mode, Some(PerformanceMode::Manual));
+    }
+
+    #[test]
+    fn fps_limit_and_controller_mode() {
+        let mut h = handler_with(Some(90.0), Some(0.7));
+        for fps in [Some(10), Some(500)] {
+            assert!(matches!(
+                h.handle(Request::SetFpsLimit { fps }),
+                Response::Error { .. }
+            ));
+        }
+        assert_eq!(
+            h.handle(Request::SetFpsLimit { fps: Some(40) }),
+            Response::Ok
+        );
+        h.tick();
+        assert_eq!(h.status().fps_limit, Some(40));
+        assert_eq!(h.status().fps, Some(40.0), "the mock caps its frame rate");
+        assert_eq!(
+            h.handle(Request::SetControllerMode {
+                mode: ControllerMode::Mouse
+            }),
+            Response::Ok
+        );
+        assert_eq!(h.status().controller_mode, Some(ControllerMode::Mouse));
+        assert_eq!(h.handle(Request::SetFpsLimit { fps: None }), Response::Ok);
+        assert_eq!(h.status().fps_limit, None);
+    }
+
+    #[test]
+    fn new_settings_round_trip_through_state() {
+        let mut h = handler();
+        h.handle(set_curve(Fan::Cpu, FanPreset::Silent));
+        h.handle(Request::SetFpsLimit { fps: Some(45) });
+        h.handle(Request::SetControllerMode {
+            mode: ControllerMode::Wasd,
+        });
+        let saved = h.saved();
+        assert_eq!(saved.fps_limit, Some(45));
+        assert_eq!(saved.controller_mode, Some(ControllerMode::Wasd));
+        let json = serde_json::to_string(&saved).unwrap();
+        let mut restored = handler();
+        assert!(
+            restored
+                .restore(&serde_json::from_str(&json).unwrap())
+                .is_empty()
+        );
+        assert_eq!(restored.saved(), saved);
+        assert_eq!(
+            restored.status().fan_curves.cpu,
+            Some(FanPreset::Silent.curve())
+        );
+
+        // A state.json from before these settings still loads.
+        let old: Saved = serde_json::from_str(r#"{"mode":"turbo","profiles":[]}"#).unwrap();
+        assert!(old.fan_curves.is_empty());
+        assert_eq!(old.fps_limit, None);
+    }
+
+    #[test]
+    fn a_profile_brings_its_fans_and_cap_and_hands_back() {
+        let mut h = handler();
+        h.handle(set_curve(Fan::Cpu, FanPreset::Balanced));
+        h.handle(Request::SetFpsLimit { fps: Some(60) });
+        let mut curves = FanCurves::default();
+        curves.set(Fan::Gpu, Some(FanPreset::MaxCooling.curve()));
+        h.handle(Request::SaveProfile {
+            profile: Profile {
+                fan_curves: Some(curves.clone()),
+                fps_limit: Some(40),
+                ..profile("game.exe", 40, None)
+            },
+        });
+        h.handle(Request::SaveProfile {
+            profile: profile("other.exe", 40, None),
+        });
+
+        h.handle(Request::ForegroundApp {
+            exe: Some("game.exe".into()),
+        });
+        assert_eq!(custom(&mut h), curves, "the global CPU curve is reset");
+        assert_eq!(h.status().fps_limit, Some(40));
+        // Changes during the game belong to the profile.
+        h.handle(set_curve(Fan::Gpu, FanPreset::Balanced));
+        h.handle(Request::SetFpsLimit { fps: Some(50) });
+        let saved = h.saved();
+        assert_eq!(saved.fan_curves.cpu, Some(FanPreset::Balanced.curve()));
+        assert_eq!(saved.fps_limit, Some(60));
+        let game = &saved.profiles[0];
+        assert_eq!(game.fps_limit, Some(50));
+        assert_eq!(
+            game.fan_curves.as_ref().and_then(|c| c.gpu),
+            Some(FanPreset::Balanced.curve())
+        );
+
+        // A profile without its own settings follows the global ones, and a
+        // change there is global.
+        h.handle(Request::ForegroundApp {
+            exe: Some("other.exe".into()),
+        });
+        assert_eq!(custom(&mut h).cpu, Some(FanPreset::Balanced.curve()));
+        assert_eq!(custom(&mut h).gpu, None);
+        assert_eq!(h.status().fps_limit, Some(60));
+        h.handle(Request::SetFpsLimit { fps: Some(30) });
+        assert_eq!(h.saved().fps_limit, Some(30));
+        assert_eq!(h.saved().profiles[1].fps_limit, None);
+
+        h.handle(Request::ForegroundApp { exe: None });
+        assert_eq!(custom(&mut h).cpu, Some(FanPreset::Balanced.curve()));
+        assert_eq!(h.status().fps_limit, Some(30));
     }
 }
