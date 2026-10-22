@@ -77,6 +77,14 @@ fn main() -> Result<(), slint::PlatformError> {
         env!("CARGO_PKG_VERSION")
     ));
 
+    // A copy started by the running shell to start the driver's frame
+    // metrics again (frames.rs).
+    #[cfg(windows)]
+    if args.iter().any(|a| a == frames::ARM_ARG) {
+        frames::arm();
+        return Ok(());
+    }
+
     if !instance::acquire() {
         log("already running: activation forwarded");
         return Ok(());

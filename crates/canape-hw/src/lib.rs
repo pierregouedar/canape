@@ -101,14 +101,6 @@ impl FrameMetrics {
     pub fn describe(&self) -> String {
         self.0.describe()
     }
-
-    /// Starts them again from a fresh driver handle, as at startup. The
-    /// driver stops reporting a game that comes back from the background
-    /// after another fullscreen window covered it for a while.
-    pub fn rearm(&mut self) -> std::result::Result<(), String> {
-        self.0 = adl::Adl::open()?;
-        Ok(())
-    }
 }
 
 /// Reads the Ally's own buttons (Command Center, Armoury, back paddles)
