@@ -69,4 +69,4 @@ if ($dependencies.Count -gt 0) {
 } else {
     Add-AppxPackage -Path $package.FullName -ForceUpdateFromAnyVersion
 }
-Write-Host "Done: open Game Bar (Win+G or the Xbox button), Widgets menu, Canapé."
+Write-Host "Done: open Game Bar (Win+G or the Xbox button), Widgets menu, Canape."
