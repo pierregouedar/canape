@@ -141,32 +141,30 @@ export component AppWindow inherits Window {
         }
 
         // The selected game's colour behind the library, fading out
-        // towards the shelves.
+        // towards the shelves: drawn by library.rs at the window's size, so
+        // it is copied, never scaled.
         Rectangle {
             opacity: root.page == 0 ? 1 : 0;
             visible: self.opacity > 0;
             animate opacity { duration: 220ms; }
 
             Image {
-                width: 100%;
-                height: 100%;
+                x: 0;
+                y: 0;
+                width: self.source.width * 1phx;
+                height: self.source.height * 1phx;
                 source: Library.backdrop-a;
-                image-fit: fill;
             }
 
             Image {
-                width: 100%;
-                height: 100%;
+                x: 0;
+                y: 0;
+                width: self.source.width * 1phx;
+                height: self.source.height * 1phx;
                 source: Library.backdrop-b;
-                image-fit: fill;
                 opacity: Library.backdrop-b-front ? 1 : 0;
                 visible: self.opacity > 0;
                 animate opacity { duration: 320ms; easing: ease-in-out; }
-            }
-
-            Rectangle {
-                // Eased over many stops: a single bend shows as a line.
-                background: @linear-gradient(180deg, Theme.background.with-alpha(0) 0%, Theme.background.with-alpha(0.04) 15%, Theme.background.with-alpha(0.12) 26%, Theme.background.with-alpha(0.25) 36%, Theme.background.with-alpha(0.41) 45%, Theme.background.with-alpha(0.58) 53%, Theme.background.with-alpha(0.74) 61%, Theme.background.with-alpha(0.87) 68%, Theme.background.with-alpha(0.96) 74%, Theme.background 80%);
             }
         }
 

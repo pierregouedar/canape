@@ -28,8 +28,8 @@ use canape_library::cache::{self, Recent};
 use canape_library::install::{self, Event, Install, Tools};
 use canape_library::{Game, Launch, Played, Roots, online, tools};
 use slint::{
-    ComponentHandle, Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, Timer, TimerMode,
-    VecModel, Weak,
+    ComponentHandle, Image, Model, ModelRc, Rgb8Pixel, Rgba8Pixel, SharedPixelBuffer, Timer,
+    TimerMode, VecModel, Weak,
 };
 
 use crate::backdrop;
@@ -40,6 +40,8 @@ use crate::{AppWindow, GameView, Library, ShelfView};
 /// How long "Launching…" shows: the game's window usually covers the shell
 /// before that.
 const LAUNCH_SHOWN: Duration = Duration::from_secs(5);
+/// Theme.background in theme.slint: the backdrop fades into it.
+const BACKGROUND: [u8; 3] = [0x0b, 0x0c, 0x0f];
 /// Corner radius of the cover tiles in library.slint, logical pixels.
 const COVER_RADIUS: f32 = 10.0;
 /// Coming back to the page rescans if the last scan is older than this.
@@ -143,6 +145,8 @@ struct State {
     backdrop: Option<(String, [u8; 3])>,
     /// The backdrop's second layer is in front.
     backdrop_b_front: bool,
+    /// The backdrop's shape for the window size it was drawn for.
+    backdrop_mask: Option<(u32, u32, backdrop::Mask)>,
 }
 
 thread_local! {
@@ -413,13 +417,30 @@ impl State {
             .get(&id)
             .copied()
             .unwrap_or_else(|| backdrop::fallback(&id));
+        let Some(ui) = self.ui.upgrade() else { return };
+        let size = ui.window().size();
+        let (width, height) = if size.width > 0 && size.height > 0 {
+            (size.width, size.height)
+        } else {
+            let scale = ui.window().scale_factor();
+            ((1280.0 * scale) as u32, (720.0 * scale) as u32)
+        };
+        if self
+            .backdrop_mask
+            .as_ref()
+            .is_none_or(|(w, h, _)| (*w, *h) != (width, height))
+        {
+            self.backdrop_mask = Some((width, height, backdrop::mask(width, height)));
+            self.backdrop = None;
+        }
         if self.backdrop.as_ref() == Some(&(id.clone(), color)) {
             return;
         }
-        let (pixels, width, height) = backdrop::render(color);
-        if let Some(ui) = self.ui.upgrade() {
-            let buffer = SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(&pixels, width, height);
-            let image = Image::from_rgba8(buffer);
+        if let Some((_, _, mask)) = &self.backdrop_mask {
+            let pixels = backdrop::paint(mask, color, BACKGROUND);
+            let buffer =
+                SharedPixelBuffer::<Rgb8Pixel>::clone_from_slice(&pixels, mask.width, mask.height);
+            let image = Image::from_rgb8(buffer);
             let library = ui.global::<Library>();
             // The first colour shows at once; later ones fade in over it.
             if self.backdrop.is_none() {
@@ -1031,6 +1052,7 @@ pub fn start(ui: &AppWindow) {
         tints: HashMap::new(),
         backdrop: None,
         backdrop_b_front: false,
+        backdrop_mask: None,
     };
     state.rebuild(None);
     state.scan();
@@ -1046,6 +1068,8 @@ pub fn start(ui: &AppWindow) {
             height: height.round().max(1.0) as u32,
         };
         with_state(|state| {
+            // The window may have changed size.
+            state.show_backdrop();
             if state.view == Some(view) {
                 return;
             }

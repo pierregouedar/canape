@@ -285,7 +285,9 @@ export component LibraryPage inherits Rectangle {
     }
 
     function report() {
-        Library.view(Math.ceil(root.width / root.pitch) + 1, 128px / 1phx, 192px / 1phx);
+        // Decoded at the size of a cover not selected, so that only the
+        // selected one is scaled when drawn.
+        Library.view(Math.ceil(root.width / root.pitch) + 1, 116px / 1phx, 174px / 1phx);
     }
     function act() {
         root.pressed = true;
