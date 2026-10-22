@@ -171,7 +171,7 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 | **Récents** | Les jeux installés, les derniers joués en premier (puis par nom). La jaquette sélectionnée est plus grande, opaque et entourée de blanc ; les autres sont atténuées. Un jeu sans image affiche son titre sur une carte teintée. |
 | **À installer · N** | En bas, l'étagère suivante dépasse : les jeux Steam et Epic que vous possédez sans les avoir installés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). |
 
-**Se déplacer** : gauche et droite parcourent l'étagère, qui défile pour garder deux jeux visibles avant la sélection. Haut ou bas fait passer l'autre étagère devant : le bandeau décrit alors le jeu à installer et le bouton devient **Installer**. **A** lance le jeu sélectionné ; Canapé affiche « Lancement… » quelques secondes, puis place le jeu en tête de l'étagère.
+**Se déplacer** : gauche et droite parcourent l'étagère, qui défile pour garder deux jeux visibles avant la sélection. Haut ou bas fait passer l'autre étagère devant (« À installer » n'est proposée que si elle contient des jeux, ou tant qu'aucune boutique n'est configurée, pour expliquer comment le faire) : le bandeau décrit alors le jeu à installer et le bouton devient **Installer**. **A** lance le jeu sélectionné ; Canapé affiche « Lancement… » quelques secondes, puis place le jeu en tête de l'étagère.
 
 **D'où viennent les jeux**
 
@@ -192,7 +192,7 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 
 Un jeu sans image sur l'appareil peut en récupérer une sur Internet après chaque scan (**Réglages → Télécharger les jaquettes manquantes**, activé par défaut) :
 
-- **Jeux Steam** : le portrait 600×900 des serveurs publics de la boutique Steam, sans compte. Utile pour un jeu dont Steam n'a pas encore mis l'image en cache.
+- **Jeux Steam** : le portrait 600×900 des serveurs publics de la boutique Steam, sans compte. Utile pour un jeu dont Steam n'a pas encore mis l'image en cache, ou dont il n'a que l'image large (en-tête) : le portrait la remplace.
 - **Toutes les boutiques** (Epic, GOG et Xbox compris), avec une clé d'API **SteamGridDB** gratuite : créez un compte sur [steamgriddb.com](https://www.steamgriddb.com), copiez la clé depuis *Preferences → API*, et ajoutez-la dans `%LOCALAPPDATA%\Canape\shell.json` sous la forme `"steamgriddb_key": "…"`. Les jeux Steam sont cherchés par leur identifiant Steam, les autres par leur titre ; seules les images fixes au format portrait sont retenues (pas d'animations, ni d'images NSFW ou humoristiques). La clé n'est envoyée qu'à l'API de SteamGridDB.
 
 Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutilisées ; un jeu sans image nulle part est redemandé au bout d'une semaine. 60 téléchargements au plus par scan. Désactiver le réglage garde les jaquettes déjà téléchargées mais n'en récupère plus.

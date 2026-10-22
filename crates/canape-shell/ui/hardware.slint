@@ -15,7 +15,8 @@ component Curve inherits Rectangle {
     in property <string> area;
     clip: true;
 
-    Rectangle {
+    // The half-scale guide, only under a curve: it would cross the text.
+    if root.line != "": Rectangle {
         y: parent.height / 2;
         height: 1px;
         background: Theme.stroke.with-alpha(0.45);

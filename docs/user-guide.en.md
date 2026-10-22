@@ -171,7 +171,7 @@ The first section, the one Canapé opens on: the selected game large, then a she
 | **Recent** | The installed games, the most recently played first (then by name). The selected cover is larger, opaque and outlined in white; the others are dimmed. A game without art shows its title on a tinted card. |
 | **To install · N** | At the bottom, the next shelf peeks in: the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)). |
 
-**Moving around**: left and right move along the shelf, which scrolls to keep two games visible before the selection. Up or down brings the other shelf to the front: the header then describes the game to install and the button becomes **Install**. **A** launches the selected game; Canapé shows "Launching…" for a few seconds, then puts the game first on the shelf.
+**Moving around**: left and right move along the shelf, which scrolls to keep two games visible before the selection. Up or down brings the other shelf to the front ("To install" is only offered when it holds games, or while no store is set up, to explain how): the header then describes the game to install and the button becomes **Install**. **A** launches the selected game; Canapé shows "Launching…" for a few seconds, then puts the game first on the shelf.
 
 **Where the games come from**
 
@@ -192,7 +192,7 @@ The first section, the one Canapé opens on: the selected game large, then a she
 
 A game with no art on the device can get one from the internet after each scan (**Settings → Download missing covers**, on by default):
 
-- **Steam games**: the 600×900 portrait from Steam's public store servers, no account needed. Useful for a game whose art Steam has not cached yet.
+- **Steam games**: the 600×900 portrait from Steam's public store servers, no account needed. Useful for a game whose art Steam has not cached yet, or for which it only has the wide header image: the portrait replaces it.
 - **Every store** (Epic, GOG, Xbox included), with a free **SteamGridDB** API key: create an account on [steamgriddb.com](https://www.steamgriddb.com), copy the key from *Preferences → API*, and put it in `%LOCALAPPDATA%\Canape\shell.json` as `"steamgriddb_key": "…"`. Steam games are looked up by their Steam id, the others by title; only static portrait images are taken (no animated, NSFW or humour grids). The key is only ever sent to SteamGridDB's API.
 
 Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no art anywhere is asked for again after a week. At most 60 downloads per scan. Turning the setting off keeps the covers already downloaded but fetches no more.

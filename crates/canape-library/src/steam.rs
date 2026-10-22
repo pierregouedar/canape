@@ -178,6 +178,15 @@ pub fn cover(steam: &Path, appid: u32) -> Option<PathBuf> {
     candidates.into_iter().find(|p| p.is_file())
 }
 
+/// The cover found by [`cover`] is one of Steam's landscape images: a
+/// portrait one is worth downloading.
+pub fn landscape(cover: &Path) -> bool {
+    cover
+        .file_name()
+        .and_then(|n| n.to_str())
+        .is_some_and(|n| n.ends_with("library_hero.jpg") || n.ends_with("header.jpg"))
+}
+
 /// SteamID64 of the account last signed in, from
 /// `config/loginusers.vdf`: the one marked `MostRecent`, else the latest
 /// `Timestamp`.
@@ -352,6 +361,15 @@ pub fn scan(steam: &Path) -> Vec<Game> {
 mod tests {
     use super::*;
     use crate::test_util::fixture;
+
+    #[test]
+    fn landscape_covers_are_told_apart() {
+        let cache = Path::new("librarycache").join("400");
+        assert!(landscape(&cache.join("header.jpg")));
+        assert!(landscape(&cache.join("library_hero.jpg")));
+        assert!(!landscape(&cache.join("library_600x900.jpg")));
+        assert!(!landscape(Path::new("grid/400p.png")));
+    }
 
     #[test]
     fn steam_id_prefers_the_most_recent_account() {

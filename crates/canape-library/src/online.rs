@@ -177,10 +177,17 @@ pub fn cached(dir: &Path, id: &str) -> Option<PathBuf> {
         .find(|path| path.is_file())
 }
 
-/// Gives games without a cover the one downloaded earlier, if any.
+/// No cover, or only a landscape one from Steam's cache.
+fn wants_art(game: &Game) -> bool {
+    game.cover.as_deref().is_none_or(crate::steam::landscape)
+}
+
+/// Gives games without a portrait cover the one downloaded earlier, if any.
 pub fn attach(games: &mut [Game], dir: &Path) {
-    for game in games.iter_mut().filter(|g| g.cover.is_none()) {
-        game.cover = cached(dir, &game.id);
+    for game in games.iter_mut().filter(|g| wants_art(g)) {
+        if let Some(path) = cached(dir, &game.id) {
+            game.cover = Some(path);
+        }
     }
 }
 
@@ -219,7 +226,7 @@ fn find(game: &Game, art: Option<&str>, settings: &Settings, http: &dyn Http) ->
     http.get(&parse_grids(&grids)?, None).ok()
 }
 
-/// Downloads the covers of games that have none, at most
+/// Downloads the covers of games that have none (or only a landscape one), at most
 /// [`MAX_PER_SCAN`]. `art` maps game ids to art links their store gave
 /// (Epic). Returns the ids that got one.
 pub fn download_missing(
@@ -237,7 +244,7 @@ pub fn download_missing(
     let now = SystemTime::now();
     let wanted = games
         .iter()
-        .filter(|g| g.cover.is_none() && cached(dir, &g.id).is_none())
+        .filter(|g| wants_art(g) && cached(dir, &g.id).is_none())
         .filter(|g| !missed_recently(dir, &g.id, now))
         .take(MAX_PER_SCAN);
     for game in wanted {
@@ -372,6 +379,8 @@ mod tests {
             game("gog:1", "Fabrikam Quest", Source::Gog),
             game("epic:x", "Nowhere", Source::Epic),
         ];
+        // Only Steam's landscape header on the device: a portrait is wanted.
+        games[0].cover = Some(Path::new("librarycache").join("400").join("header.jpg"));
         let got = download_missing(&games, &HashMap::new(), &dir, &settings, &http).unwrap();
         assert_eq!(got, ["steam:400", "gog:1"]);
         // The key only goes to the SteamGridDB API, never to a CDN.
