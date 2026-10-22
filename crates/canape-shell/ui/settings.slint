@@ -195,7 +195,7 @@ export component SettingsPage inherits Rectangle {
 
             SettingLine {
                 label: @tr("Epic Games account");
-                value: Library.epic-busy ? "…" : Library.epic-account != "" ? Library.epic-account : @tr("Sign in");
+                value: Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? Library.epic-account : @tr("Sign in");
                 chevrons: false;
                 focused: root.line-focused(3);
                 clicked => {
@@ -214,6 +214,19 @@ export component SettingsPage inherits Rectangle {
                     root.focus-row = 4;
                     root.activate();
                 }
+
+            // A failed sign-in or download, also shown on the games page.
+            if Library.install-error != "": HorizontalLayout {
+                padding-left: 16px;
+                padding-right: 16px;
+                padding-top: 10px;
+                Text {
+                    text: Library.install-error;
+                    color: Theme.warn;
+                    font-size: 13px;
+                    wrap: word-wrap;
+                }
+            }
             }
         }
 

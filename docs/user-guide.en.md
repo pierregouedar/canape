@@ -223,7 +223,7 @@ Canapé asks for the list of the account last signed in to Steam on this device 
 1. Pick **Epic Games account** in [Settings](#settings).
 2. The first time, Canapé downloads **Legendary**, an open-source Epic client (GPL-3 licence) that stays a separate program, from its official releases on GitHub, into `%LOCALAPPDATA%\Canape\tools`. The file is checked against the SHA-256 digest GitHub publishes: without a digest, or if it does not match, nothing is saved and the error shows at the top of the library.
 3. Legendary opens its own Epic sign-in window, with a console next to it (without WebView2, Legendary asks for a code there instead). These windows are not made for the gamepad: the touch screen and the touch keyboard may be needed.
-4. Once the window is closed, Canapé asks for the list of games again. The button then reads "Epic: <account> (sign in again)".
+4. An error (download, sign-in) shows in yellow under the Settings lines and in the Games page header. Once the window is closed, Canapé asks for the list of games again. The button then reads "Epic: <account> (sign in again)".
 
 Epic games that install through another store (Ubisoft, EA) are left out: Legendary cannot install them.
 
@@ -233,7 +233,7 @@ Epic games that install through another store (Ubisoft, EA) are left out: Legend
 
 | Store | Install | Progress | At the end |
 |---|---|---|---|
-| **Steam** | Canapé hands the install to Steam, which starts quietly in the notification area if it was not running. Steam only opens its small install window (folder, shortcuts): confirm it (not checked with the gamepad yet). Steam then downloads in the background. | Read every 2 s from the game's manifest. | The game moves to Recent and launches through Steam, like the others. |
+| **Steam** | Canapé hands the install to Steam, which starts quietly in the notification area if it was not running. Steam only opens its small install window (folder, shortcuts): confirm it (not checked with the gamepad yet). Steam then downloads in the background. | Read every 2 s from the game's manifest. | The game moves to Recent, which comes back to the front with the game selected: A launches it, through Steam like the others. |
 | **Epic** | Legendary installs the game silently, without a window or questions, into its default folder. | Read from Legendary's output. | The game moves to Recent and launches through Legendary: the Epic launcher is never opened. |
 
 - While installing, the cover shows a progress bar, and the header "Installing… N %" when the game is selected. You can keep moving around and install other games.

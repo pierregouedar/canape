@@ -15,7 +15,11 @@ use crate::online::Http;
 pub const LEGENDARY_RELEASE: &str = "https://api.github.com/repos/derrod/legendary/releases/latest";
 /// Only files from Legendary's own releases are accepted.
 const LEGENDARY_DOWNLOADS: &str = "https://github.com/derrod/legendary/releases/download/";
+/// Name of the downloaded executable in Canapé's folder.
 const LEGENDARY_ASSET: &str = "legendary.exe";
+/// Names of the Windows executable among a release's files, newest naming
+/// first (it was `legendary.exe` up to 0.20).
+const LEGENDARY_RELEASE_ASSETS: [&str; 2] = ["legendary_windows_x64.exe", LEGENDARY_ASSET];
 /// Largest executable accepted (the PyInstaller build is about 20 MB).
 const MAX_TOOL_BYTES: usize = 80 * 1024 * 1024;
 
@@ -52,11 +56,11 @@ pub struct Download {
 /// published digest, or with a link outside Legendary's releases, nothing
 /// is downloaded.
 pub fn parse_release(json: &[u8]) -> Option<Download> {
-    let release: Release = serde_json::from_slice(json).ok()?;
-    let asset = release
-        .assets
-        .into_iter()
-        .find(|a| a.name == LEGENDARY_ASSET)?;
+    let mut release: Release = serde_json::from_slice(json).ok()?;
+    let asset = LEGENDARY_RELEASE_ASSETS.iter().find_map(|name| {
+        let i = release.assets.iter().position(|a| a.name == *name)?;
+        Some(release.assets.swap_remove(i))
+    })?;
     let sha256 = asset.digest?.strip_prefix("sha256:")?.to_ascii_lowercase();
     let valid = sha256.len() == 64 && sha256.bytes().all(|b| b.is_ascii_hexdigit());
     (valid && asset.browser_download_url.starts_with(LEGENDARY_DOWNLOADS)).then_some(Download {
@@ -130,6 +134,20 @@ mod tests {
         assert!(parse_release(&release(&url, "sha256:1234")).is_none());
         assert!(parse_release(&release(&url, "md5:abcd")).is_none());
         assert!(parse_release(b"{}").is_none());
+    }
+
+    #[test]
+    fn the_new_windows_asset_name_is_preferred() {
+        let digest = format!("sha256:{}", "cd".repeat(32));
+        let json = format!(
+            r#"{{"tag_name":"0.21.1","assets":[
+                {{"name":"legendary_linux_x64","browser_download_url":"{LEGENDARY_DOWNLOADS}0.21.1/legendary_linux_x64","digest":"{digest}"}},
+                {{"name":"legendary_windows_arm64.exe","browser_download_url":"{LEGENDARY_DOWNLOADS}0.21.1/legendary_windows_arm64.exe","digest":"{digest}"}},
+                {{"name":"legendary_windows_x64.exe","browser_download_url":"{LEGENDARY_DOWNLOADS}0.21.1/legendary_windows_x64.exe","digest":"{digest}"}}]}}"#
+        );
+        let found = parse_release(json.as_bytes()).unwrap();
+        assert!(found.url.ends_with("/legendary_windows_x64.exe"));
+        assert_eq!(found.version, "0.21.1");
     }
 
     #[test]

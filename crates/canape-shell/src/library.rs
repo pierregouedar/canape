@@ -129,6 +129,9 @@ struct State {
     tools_dir: PathBuf,
     /// Clears the install or store error after a while.
     error_timer: Timer,
+    /// A game just installed: once the scan lists it, the installed shelf
+    /// comes to the front with it selected.
+    just_installed: Option<String>,
     /// Colour of each decoded cover, for the backdrop.
     tints: HashMap<String, [u8; 3]>,
     /// Game whose colour the backdrop shows, and that colour.
@@ -439,6 +442,7 @@ impl State {
                 crate::log(&format!("library: {id} installed"));
                 self.installing.remove(id);
                 // The new game shows up in the installed list.
+                self.just_installed = Some(id.to_owned());
                 self.scan();
             }
             Event::Failed(message) => {
@@ -718,7 +722,18 @@ fn publish(cache_path: &Path, games: Vec<Game>) {
             state.scanning = false;
             state.last_scan = Some(Instant::now());
             state.all = canape_library::merge(games, &state.recent.launched);
-            let keep = state.selected_id();
+            let mut keep = state.selected_id();
+            // Leave the games to install for the one just installed, rather
+            // than land on another one A would install.
+            if let Some(id) = state.just_installed.take()
+                && state.all.iter().any(|g| g.id == id)
+            {
+                state.to_install = false;
+                if let Some(ui) = state.ui.upgrade() {
+                    ui.global::<Library>().set_mode(0);
+                }
+                keep = Some(id);
+            }
             state.rebuild(keep);
             if let Some(ui) = state.ui.upgrade() {
                 let library = ui.global::<Library>();
@@ -858,6 +873,7 @@ pub fn start(ui: &AppWindow) {
         installing: HashMap::new(),
         tools_dir,
         error_timer: Timer::default(),
+        just_installed: None,
         tints: HashMap::new(),
         backdrop: None,
     };
