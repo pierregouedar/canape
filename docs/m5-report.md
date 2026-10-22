@@ -74,6 +74,9 @@ The measure is disturbed: Sonic Mania, on its title screen in Silent mode (9–1
 
 ## Not done (part 2)
 
+Before part 2, install **Unigine Heaven** and **FurMark 2** on the Ally (free, from their official sites; not shipped with Canapé). They give steadier loads than the light Aquarium (capped at 120 FPS) and Sonic Mania's title screen (dropping on its own), see [Choosing a test load](auto-tdp.en.md#choosing-a-test-load): Heaven for the bench, auto TDP and the frame rate limit, FurMark 2 for the fan and temperature curves.
+
+
 - Installing games without the launchers: Steam (API key in `shell.json`) and Epic (Legendary download, sign-in, install, launch).
 - The widget by hand (style, graphs, ±1 W bounds, accent), and its memory.
 - Memory at rest and in a real game.

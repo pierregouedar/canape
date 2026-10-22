@@ -34,6 +34,7 @@ Reports of the tests on the ROG Ally RC71L: what works, what was fixed, measurem
 |---|---|---|
 | [M1](m1-report.md) | M0 (`16819fa`) | Le paquet d'identité s'installe ; le FSE lance `canape-shell.exe` au démarrage via `windows.gaming:///home`. Smart App Control repéré. · The identity package installs; the FSE launches `canape-shell.exe` at boot through `windows.gaming:///home`. Smart App Control spotted. |
 | [M3](m3-report.md) | `c24e6e4` | Widget Game Bar compilé, installé et relié au service ; pipe ouvert depuis l'AppContainer. · Game Bar widget built, installed and connected to the service; pipe opened from the AppContainer. |
+| [M5, 1ʳᵉ partie · part 1](m5-report.md) | `6412cb0`, correctifs `d65b0fa`, `c5fd2e3` | Shell, page Matériel, boutons, bibliothèque et bench sur l'Ally ; auto TDP en dents de scie corrigé, jeux Steam en double, limite de FPS ; prochains bancs avec Unigine Heaven et FurMark 2. · Shell, Hardware page, buttons, library and bench on the Ally; low-target sawtooth fixed, duplicated Steam games, frame rate limit; next benches with Unigine Heaven and FurMark 2. |
 | [M2.5 / M4](m4-report.md) | `c617cf3`, retest `99cad07` | Persistance, conflits, build release, mémoire (service 1,4 Mo, shell 11 Mo), ADL depuis la session 0, auto TDP réel : fin des dents de scie. · Persistence, conflicts, release build, memory (service 1.4 MB, shell 11 MB), ADL from session 0, real auto TDP: sawtooth fixed. |
 
 ## Captures · Screenshots

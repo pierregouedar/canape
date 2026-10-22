@@ -29,6 +29,7 @@ Cette page explique comment Canapé règle tout seul la puissance de la ROG Ally
 - [Profils par jeu](#profils-par-jeu)
   - [Limite de FPS et auto TDP](#limite-de-fps-et-auto-tdp)
 - [Le banc d'essai](#le-banc-dessai)
+  - [Choisir une charge de test](#choisir-une-charge-de-test)
 - [Persistance : `state.json`](#persistance--statejson)
 - [Résultats mesurés sur l'Ally](#résultats-mesurés-sur-lally)
 - [Conseils de réglage](#conseils-de-réglage)
@@ -315,6 +316,19 @@ Les paliers vont de la plus haute à la plus basse puissance. Ils sont alignés 
 
 Durée totale = nombre de paliers × (stabilisation + mesure). Le service ramène « de » et « à » dans la plage du modèle.
 
+### Choisir une charge de test
+
+Le banc d'essai et l'auto TDP lisent les FPS de ce qui est au premier plan. Pour comparer des passages, la charge doit rester la même d'une seconde à l'autre, et les FPS ne doivent pas buter sur les 120 Hz de l'écran.
+
+| Charge | À utiliser pour | Remarques |
+|---|---|---|
+| **Unigine Heaven** (gratuit, benchmark.unigine.com) | Le banc d'essai et l'auto TDP dans une scène proche d'un jeu | En plein écran, DirectX 11, synchronisation verticale coupée ; la caméra refait le même vol en boucle. Les FPS varient avec la scène : prenez **30 s** par palier. |
+| **FurMark 2** (gratuit, geeks3d.com) | Les courbes de puissance, de température et des ventilateurs | En plein écran : une charge GPU constante et maximale, donc des FPS très stables. Plus chaud que n'importe quel jeu : gardez la limite de température, et ne lisez pas ses FPS comme une performance en jeu. |
+| WebGL Aquarium dans Edge | Un contrôle rapide sans rien installer | Avec peu de poissons, il reste à 120 FPS quelle que soit la puissance, ce qui ne dit rien ; avec 30 000 poissons, c'est une charge lourde utilisable. |
+| Un vrai jeu | Le dernier mot pour ce jeu | Choisissez une scène exigeante et stable ; menus et écrans titres peuvent chuter ou plafonner d'eux-mêmes (sur l'Ally, l'écran titre de Sonic Mania est tombé seul de 60 à 27 FPS). |
+
+`m5-check.ps1 -Game <exe>` et les profils par jeu ont besoin du nom de l'exécutable : cherchez-le dans le Gestionnaire des tâches (onglet Détails) pendant que le programme tourne. Aucun des deux outils n'est fourni avec Canapé.
+
 ### Déroulement
 
 1. **Démarrage** : il faut qu'un jeu tourne (dernière mesure ≥ 5 FPS), sinon `no frame rate: start a game before the bench`. Le service mémorise l'état actuel, coupe l'auto TDP et applique le premier palier.
@@ -420,7 +434,7 @@ Le firmware ne sait pas relire le mode ni les limites. Le service garde donc le 
 
 ## Résultats mesurés sur l'Ally
 
-Mesures du [rapport M4](m4-report.md), sur ROG Ally RC71L, avec WebGL Aquarium dans Edge (écran 120 Hz, synchronisation verticale), objectif 60 FPS. Aucun vrai jeu n'a encore été mesuré.
+Mesures du [rapport M4](m4-report.md), sur ROG Ally RC71L, avec WebGL Aquarium dans Edge (écran 120 Hz, synchronisation verticale), objectif 60 FPS, puis du [rapport M5](m5-report.md). Aucun vrai jeu n'a encore été mesuré ; les prochains passages utiliseront Unigine Heaven et FurMark 2 (voir [Choisir une charge de test](#choisir-une-charge-de-test)).
 
 ### Charge lourde (30 000 poissons, 5 min)
 
@@ -441,6 +455,10 @@ Le changement entre les deux versions : la baisse sous l'objectif n'a plus lieu 
 
 Les optimisations de `fceaf22` visent ces deux défauts (à-coup isolé sans plancher, libération du plancher quand la charge baisse, baisse au plafond seulement si la mesure brute est aussi à l'objectif). Une simulation du cas M4 (`power_limited_game_settles_without_sawtooth`) vérifie qu'après stabilisation la puissance reste dans une plage de 3 W avec au plus 12 changements en 13 minutes, pour une moyenne d'au moins 57 FPS. **Ces optimisations n'ont pas encore été mesurées sur l'Ally.**
 
+### Banc d'essai M5 (WebGL Aquarium chargé)
+
+D'après le [rapport M5](m5-report.md), avec `m5-check` (paliers de 6 W, 3 s de stabilisation, 8 s de mesure) : 7 W 19 FPS (minimum 17), 13 W 43 (40), 19 W 61 (61), 25 W 69 (69) ; 47, 53 et 64 °C sur les trois premiers paliers. La même charge avec un objectif de 40 FPS se stabilise à 13 W et l'apprend en une minute depuis `d65b0fa`.
+
 ## Conseils de réglage
 
 > [!TIP]
@@ -452,7 +470,7 @@ Les optimisations de `fceaf22` visent ces deux défauts (à-coup isolé sans pla
 - **Sur batterie** : 15 W est un bon équilibre ; 10 W pour les jeux légers.
 - **Limite de température** : 85 °C laisse de la marge. La puissance ne remonte qu'une fois la température redescendue 3 °C sous la limite.
 - **Profils** : enregistrez le profil après une session où l'auto TDP s'est stabilisé ; la suivante démarrera aux watts appris.
-- **Banc d'essai** : dans une scène exigeante et stable (pas un menu ni une cinématique). Prenez 30 s par palier pour les jeux dont les FPS varient beaucoup.
+- **Banc d'essai** : dans une scène exigeante et stable (pas un menu ni une cinématique), ou avec Unigine Heaven (voir [Choisir une charge de test](#choisir-une-charge-de-test)). Prenez 30 s par palier pour les jeux dont les FPS varient beaucoup.
 - **Vérifiez les FPS** sur l'Accueil : s'ils restent à « — », l'auto TDP ne fait rien (voir le [dépannage](user-guide.fr.md#problèmes-courants)).
 
 ## Limites connues
