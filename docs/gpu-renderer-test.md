@@ -38,7 +38,7 @@ Toujours en release, sur la page Jeux, avec la vraie bibliothèque :
 
 ## Décision
 
-On passe à un rendu par la carte graphique seulement s'il rend l'accueil fluide là où le rendu logiciel n'y arrive pas, sans dépasser l'objectif de 80 Mo et sans coûter de FPS en jeu. Sinon, on garde le rendu logiciel et on traite la synchronisation avec l'écran.
+On passe à un rendu par la carte graphique seulement s'il rend l'accueil fluide là où le rendu logiciel n'y arrive pas, sans dépasser l'objectif de 80 Mo et sans coûter de FPS en jeu. Sinon, on garde le rendu logiciel, synchronisé avec l'écran.
 
 ## Résultats
 
