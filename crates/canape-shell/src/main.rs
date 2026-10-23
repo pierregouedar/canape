@@ -81,6 +81,19 @@ fn main() -> Result<(), slint::PlatformError> {
         return Ok(());
     }
 
+    // A test build with the GPU renderers: CANAPE_RENDERER picks one of
+    // software, femtovg (OpenGL) or femtovg-wgpu (Direct3D 12 on Windows);
+    // software when unset, as in the normal build.
+    #[cfg(feature = "gpu-renderers")]
+    {
+        let name = std::env::var("CANAPE_RENDERER").unwrap_or_else(|_| "software".to_owned());
+        log(&format!("renderer: {name}"));
+        slint::BackendSelector::new()
+            .backend_name("winit".to_owned())
+            .renderer_name(name)
+            .select()?;
+    }
+
     let ui = AppWindow::new()?;
     if std::env::var_os("CANAPE_WINDOWED").is_none() {
         ui.window().set_fullscreen(true);
