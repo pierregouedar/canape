@@ -7,7 +7,7 @@ Le shell dessine avec le rendu logiciel de Slint (voir [architecture.md](archite
 - **Rendu logiciel** : 11 Mo privés au premier plan, 14 Mo avec un jeu devant (M4, M5). Sous Windows, il ne redessine que les zones qui changent.
 - **OpenGL** : les 115 Mo de M2 mêlaient build debug et OpenGL ; jamais mesuré en release.
 - **Direct3D** : dans Slint 1.18, seulement par wgpu (Direct3D 12), une option encore instable. Skia sous Windows passe par OpenGL ; il n'est pas dans l'essai (le plus lourd, et pas de Direct3D sans wgpu).
-- **Fluidité** : le rendu logiciel n'est pas synchronisé avec l'écran. La copie à l'écran se fait par GDI, et le rythme vient d'un minuteur de 8 ms (125 Hz). Une saccade à 120 Hz peut donc venir de là, même quand le rendu est assez rapide.
+- **Fluidité** : le rendu logiciel n'était pas synchronisé avec l'écran. La copie à l'écran se fait par GDI, et le rythme vient d'un minuteur de 8 ms (125 Hz). Une saccade à 120 Hz pouvait donc venir de là, même quand le rendu est assez rapide. Le shell attend maintenant la composition suivante de Windows après chaque image (`vsync.rs`, `DwmFlush` après `WM_PAINT`) ; `CANAPE_NO_VSYNC=1` le désactive pour comparer.
 
 ## Version de test
 
@@ -34,6 +34,7 @@ Toujours en release, sur la page Jeux, avec la vraie bibliothèque :
 3. **CPU** du shell : au repos sur Jeux pendant 20 s, puis pendant la navigation.
 4. **Avec un jeu devant**, 1 min après son lancement : mémoire privée et mémoire GPU du shell, et FPS du jeu comparés à une partie sans le shell.
 5. **Ressenti** : fluidité des animations à 120 Hz (Pierre), et netteté du texte et des jaquettes.
+6. **Rendu logiciel seulement** : refaire 2, 3 et 5 avec `CANAPE_NO_VSYNC=1`, pour voir ce qu'apporte la synchronisation avec l'écran.
 
 ## Décision
 

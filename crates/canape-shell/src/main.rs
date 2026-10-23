@@ -30,6 +30,7 @@ mod nav;
 mod report;
 mod screen;
 mod shelves;
+mod vsync;
 
 use std::rc::Rc;
 use std::time::Duration;
@@ -152,6 +153,13 @@ fn main() -> Result<(), slint::PlatformError> {
             Err(err) => log(&format!("adl: {err}")),
         });
     }
+    // The window only exists once the event loop runs.
+    let vsync_timer = Timer::default();
+    vsync_timer.start(
+        TimerMode::SingleShot,
+        std::time::Duration::from_millis(500),
+        vsync::install,
+    );
     ui.run()
 }
 
