@@ -664,8 +664,20 @@ msgstr "게임 폴더"
 msgid "{} GB free"
 msgstr "{} GB 남음"
 
-msgid "Main story ~{} h"
-msgstr "메인 스토리 약 {}시간"
+msgid "Time to beat"
+msgstr "플레이 시간"
 
-msgid "Main story ~{} min"
-msgstr "메인 스토리 약 {}분"
+msgid "Main story"
+msgstr "메인 스토리"
+
+msgid "Main + extras"
+msgstr "메인 + 부가 요소"
+
+msgid "Completionist"
+msgstr "완전 정복"
+
+msgid "~{} h"
+msgstr "약 {}시간"
+
+msgid "~{} min"
+msgstr "약 {}분"

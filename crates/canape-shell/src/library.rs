@@ -573,7 +573,9 @@ impl State {
             },
             folder: folder.to_string_lossy().as_ref().into(),
             minutes: minutes.map_or(-1, |m| m as i32),
-            beat_minutes: self.beat.minutes(&game.id),
+            beat_rushed: self.beat.all(&game.id).rushed,
+            beat_minutes: self.beat.all(&game.id).main,
+            beat_complete: self.beat.all(&game.id).complete,
             exe: self
                 .recent
                 .exes
@@ -671,15 +673,19 @@ impl State {
             let outcome = timetobeat::lookup(&id, &title, token, &token_path);
             let _ = slint::invoke_from_event_loop(move || {
                 with_state(|state| {
-                    let minutes = state.beat.finish(&id, outcome);
+                    let times = state.beat.finish(&id, outcome);
                     if state.detail.as_deref() != Some(id.as_str()) {
                         return;
                     }
                     if let Some(ui) = state.ui.upgrade() {
                         let library = ui.global::<Library>();
                         let mut view = library.get_detail_view();
-                        if view.beat_minutes != minutes {
-                            view.beat_minutes = minutes;
+                        if (view.beat_rushed, view.beat_minutes, view.beat_complete)
+                            != (times.rushed, times.main, times.complete)
+                        {
+                            view.beat_rushed = times.rushed;
+                            view.beat_minutes = times.main;
+                            view.beat_complete = times.complete;
                             library.set_detail_view(view);
                         }
                     }

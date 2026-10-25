@@ -468,7 +468,7 @@ export component GyroPage inherits Rectangle {
             return;
         }
         if root.focus-row == 0 {
-            App.set-gyro-activation(root.activations[clamp(root.activation-index + d, 0, 3)]);
+            App.set-gyro-activation(root.activations[Math.mod(root.activation-index + d + 4, 4)]);
         } else if root.focus-row == 1 {
             App.change-gyro-sensitivity(d);
         } else if root.focus-row == 2 {

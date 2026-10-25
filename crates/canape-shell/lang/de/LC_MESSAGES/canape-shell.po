@@ -664,8 +664,20 @@ msgstr "Spieleordner"
 msgid "{} GB free"
 msgstr "{} GB frei"
 
-msgid "Main story ~{} h"
-msgstr "Story ~{} Std."
+msgid "Time to beat"
+msgstr "Spieldauer"
 
-msgid "Main story ~{} min"
-msgstr "Story ~{} Min."
+msgid "Main story"
+msgstr "Hauptstory"
+
+msgid "Main + extras"
+msgstr "Story + Extras"
+
+msgid "Completionist"
+msgstr "Komplettist"
+
+msgid "~{} h"
+msgstr "~{} Std."
+
+msgid "~{} min"
+msgstr "~{} Min."

@@ -55,8 +55,11 @@ export struct DetailView {
     folder: string,
     // Minutes played, -1 when unknown.
     minutes: int,
-    // Minutes to finish the main story (IGDB), -1 when unknown.
+    // Minutes to finish the game (IGDB), -1 when unknown: rushing through
+    // the main story, the main story, and everything.
+    beat-rushed: int,
     beat-minutes: int,
+    beat-complete: int,
     // The game's executable, once seen after a launch from Canapé; its
     // profile, if any, shows on the page. "" when not known yet.
     exe: string,
@@ -434,14 +437,13 @@ component GamePage inherits Rectangle {
             }
         }
 
-        // When it was played, for how long, how long its story takes, and
-        // its size: only what is known.
+        // When it was played, for how long, and its size: only what is
+        // known.
         facts := RevealLine {
             order: 2;
             Text {
                 text: (root.game.installed ? Library.played-text(root.game.played) : @tr("Not installed"))
                     + (root.view.minutes >= 60 ? " · " + @tr("{} h played", Math.round(root.view.minutes / 60)) : root.view.minutes > 0 ? " · " + @tr("{} min played", root.view.minutes) : "")
-                    + (root.view.beat-minutes >= 60 ? " · " + @tr("Main story ~{} h", Math.round(root.view.beat-minutes / 60)) : root.view.beat-minutes > 0 ? " · " + @tr("Main story ~{} min", root.view.beat-minutes) : "")
                     + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "")
                     + (!root.game.installed && root.view.free-tenths >= 0 ? " · " + @tr("{} GB free in {}", App.tenths(root.view.free-tenths), root.view.folder) : "");
                 color: Theme.text.mix(Theme.dim, 0.6);
@@ -477,13 +479,61 @@ component GamePage inherits Rectangle {
         }
     }
 
+    // Under the cover's column: how long the game takes (IGDB), then the
+    // game's profile, each when known.
+    property <bool> beat-known: root.view.beat-rushed > 0 || root.view.beat-minutes > 0 || root.view.beat-complete > 0;
+    property <length> panel-y: 96px + 360px + 32px;
+
+    if root.beat-known: Rectangle {
+        x: 280px;
+        y: root.panel-y;
+        width: 420px;
+        height: 88px;
+        border-radius: 12px;
+        background: Theme.surface.with-alpha(0.85);
+
+        VerticalLayout {
+            padding-left: 16px;
+            padding-right: 16px;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            spacing: 6px;
+            Text {
+                text: @tr("Time to beat");
+                color: Theme.dim;
+                font-size: 13px;
+            }
+
+            HorizontalLayout {
+                spacing: 16px;
+                for time[i] in [root.view.beat-rushed, root.view.beat-minutes, root.view.beat-complete]: VerticalLayout {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    spacing: 2px;
+                    Text {
+                        text: time >= 60 ? @tr("~{} h", Math.round(time / 60)) : time > 0 ? @tr("~{} min", time) : "—";
+                        color: time > 0 ? Theme.text : Theme.dim;
+                        font-size: 22px;
+                        font-weight: 600;
+                    }
+                    Text {
+                        text: i == 0 ? @tr("Main story") : i == 1 ? @tr("Main + extras") : @tr("Completionist");
+                        color: Theme.dim;
+                        font-size: 12px;
+                        overflow: elide;
+                    }
+                }
+            }
+        }
+    }
+
     // The game's profile, once its executable is known and has one: every
     // profile is laid at the same place, only the matching one shows.
     for profile in App.profiles: Rectangle {
-        x: 280px;
-        y: 96px + 360px + 32px;
-        width: min(560px, root.width - 280px);
-        height: 64px;
+        x: root.beat-known ? 280px + 420px + 16px : 280px;
+        y: root.panel-y;
+        width: min(420px, root.width - self.x);
+        height: 88px;
         border-radius: 12px;
         background: Theme.surface.with-alpha(0.85);
         visible: root.view.exe != "" && profile.exe.to-lowercase() == root.view.exe.to-lowercase();
@@ -491,8 +541,9 @@ component GamePage inherits Rectangle {
         VerticalLayout {
             padding-left: 16px;
             padding-right: 16px;
-            alignment: center;
-            spacing: 4px;
+            padding-top: 12px;
+            alignment: start;
+            spacing: 6px;
             Text {
                 text: @tr("This game's profile");
                 color: Theme.dim;

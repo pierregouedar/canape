@@ -664,8 +664,20 @@ msgstr "Folder gier"
 msgid "{} GB free"
 msgstr "{} GB wolne"
 
-msgid "Main story ~{} h"
-msgstr "Fabuła ~{} godz."
+msgid "Time to beat"
+msgstr "Czas gry"
 
-msgid "Main story ~{} min"
-msgstr "Fabuła ~{} min"
+msgid "Main story"
+msgstr "Fabuła"
+
+msgid "Main + extras"
+msgstr "Fabuła + dodatki"
+
+msgid "Completionist"
+msgstr "Na 100%"
+
+msgid "~{} h"
+msgstr "~{} godz."
+
+msgid "~{} min"
+msgstr "~{} min"

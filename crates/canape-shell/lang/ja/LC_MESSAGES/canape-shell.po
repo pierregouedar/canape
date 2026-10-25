@@ -664,8 +664,20 @@ msgstr "ゲームフォルダー"
 msgid "{} GB free"
 msgstr "空き {} GB"
 
-msgid "Main story ~{} h"
-msgstr "メインストーリー 約 {} 時間"
+msgid "Time to beat"
+msgstr "クリア時間"
 
-msgid "Main story ~{} min"
-msgstr "メインストーリー 約 {} 分"
+msgid "Main story"
+msgstr "メインストーリー"
+
+msgid "Main + extras"
+msgstr "メイン + やり込み"
+
+msgid "Completionist"
+msgstr "完全クリア"
+
+msgid "~{} h"
+msgstr "約 {} 時間"
+
+msgid "~{} min"
+msgstr "約 {} 分"

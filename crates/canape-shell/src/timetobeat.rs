@@ -46,9 +46,24 @@ pub struct Lookups {
 
 /// Minutes of a main story, -1 when unknown.
 fn minutes(times: Option<&TimeToBeat>) -> i32 {
-    times
-        .and_then(TimeToBeat::main_story)
+    to_minutes(times.and_then(TimeToBeat::main_story))
+}
+
+/// Seconds to whole minutes, -1 when unknown.
+fn to_minutes(secs: Option<u64>) -> i32 {
+    secs.filter(|s| *s > 0)
         .map_or(-1, |secs| ((secs + 30) / 60).min(i32::MAX as u64) as i32)
+}
+
+/// The three times of a game, in minutes, -1 for each one unknown.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Minutes {
+    /// Rushing through the main story.
+    pub rushed: i32,
+    /// The main story, as [`TimeToBeat::main_story`].
+    pub main: i32,
+    /// Everything.
+    pub complete: i32,
 }
 
 impl Lookups {
@@ -73,10 +88,14 @@ impl Lookups {
         }
     }
 
-    /// Minutes of the main story of `id`, from the cache (even an old
-    /// entry); -1 when unknown.
-    pub fn minutes(&self, id: &str) -> i32 {
-        minutes(self.cache.games.get(id).and_then(|e| e.times.as_ref()))
+    /// All the times of `id`, from the cache (even an old entry).
+    pub fn all(&self, id: &str) -> Minutes {
+        let times = self.cache.games.get(id).and_then(|e| e.times.as_ref());
+        Minutes {
+            rushed: to_minutes(times.and_then(|t| t.hastily)),
+            main: minutes(times),
+            complete: to_minutes(times.and_then(|t| t.completely)),
+        }
     }
 
     /// Whether `id` should be looked up now; if so, the lookup counts as
@@ -109,9 +128,9 @@ impl Lookups {
         (self.token.clone(), self.token_path.clone())
     }
 
-    /// Takes the outcome of the lookup of `id`; returns the minutes now
+    /// Takes the outcome of the lookup of `id`; returns the times now
     /// known for it.
-    pub fn finish(&mut self, id: &str, outcome: Outcome) -> i32 {
+    pub fn finish(&mut self, id: &str, outcome: Outcome) -> Minutes {
         self.busy = false;
         match outcome {
             // Keys added to shell.json are seen after the pause.
@@ -128,7 +147,7 @@ impl Lookups {
                 self.paused_until = Some(Instant::now() + PAUSE);
             }
         }
-        self.minutes(id)
+        self.all(id)
     }
 }
 
@@ -228,11 +247,15 @@ mod tests {
         };
         assert_eq!(
             lookups.finish("steam:1", Outcome::Found(Some(times), None)),
-            60
+            Minutes {
+                rushed: -1,
+                main: 60,
+                complete: -1
+            }
         );
         // Cached now, and saved.
         assert!(!lookups.start("steam:1", now));
-        assert_eq!(Lookups::new(&dir, "", false).minutes("steam:1"), 60);
+        assert_eq!(Lookups::new(&dir, "", false).all("steam:1").main, 60);
         for i in 2..=PER_MINUTE {
             assert!(lookups.start(&format!("gog:{i}"), now));
             lookups.finish(&format!("gog:{i}"), Outcome::Found(None, None));
@@ -250,6 +273,6 @@ mod tests {
         let dir = temp("fixture");
         let mut lookups = Lookups::new(&dir, "-fixture", true);
         assert!(!lookups.start("steam:1", Instant::now()));
-        assert_eq!(lookups.minutes("steam:1"), -1);
+        assert_eq!(lookups.all("steam:1").main, -1);
     }
 }
