@@ -669,3 +669,9 @@ msgstr "메인 스토리 약 {}시간"
 
 msgid "Main story ~{} min"
 msgstr "메인 스토리 약 {}분"
+
+msgid "M1, right"
+msgstr "M1 (오른쪽)"
+
+msgid "M2, left"
+msgstr "M2 (왼쪽)"

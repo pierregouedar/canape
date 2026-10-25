@@ -220,7 +220,7 @@ La page 3 (`ui/hardware.slint`) ne fait qu'envoyer des requêtes : le service va
 | Ligne Visée au gyroscope | `open-gyro()` | aucune : ouvre la page 6, la sous-page Visée au gyroscope (`GyroPage` dans `pages.slint`) |
 | Lignes de la page gyroscope | `set-gyro-activation(nom)`, `change-gyro-sensitivity(pas)`, `toggle-gyro-roll()`, `toggle-gyro-invert()` | `set_gyro` avec `status.gyro` modifié (`update_gyro`) |
 | Ligne Boutons arrière et éclairage | `open-controller()` | aucune : ouvre la sous-page 7, `ui/controller.slint` (B revient à la page Matériel) |
-| Lignes M1 / M2 (sous-page) | `set-back-button(button, index)` | `set_back_button` avec `ButtonTarget::ALL[index]`, envoyé à chaque gauche / droite |
+| Lignes M1 / M2 (sous-page) | `set-back-button(button, index)` | `set_back_button` avec `ButtonTarget::ALL[index]`, envoyé sur A seulement : gauche / droite changent le choix affiché (`m1-pick`, `m2-pick`), dessiné en attente (`SettingLine.pending` : point d'accent, italique) jusqu'à ce que l'état le confirme ; quitter la ligne l'abandonne. La ligne de luminosité fait de même. |
 | Rétablir les boutons d'origine (sous-page) | `reset-back-buttons()` | `reset_back_buttons` |
 | Ligne Luminosité (sous-page) | `set-lighting(level, color)` | `set_lighting` : Par défaut → `null` ; Désactivé, Faible, Moyenne, Forte → niveaux 0 à 3 avec la couleur actuelle |
 | Pastilles de couleur (sous-page) | `set-lighting(level, color)` | `set_lighting` avec cette couleur (la première pastille, un anneau, `color: null` : suivre l'accent), au niveau affiché, Forte si les anneaux étaient éteints ou sur Par défaut |

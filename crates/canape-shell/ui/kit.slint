@@ -387,6 +387,9 @@ export component SettingLine inherits Rectangle {
     in property <bool> enabled: true;
     // Left and right change the value; otherwise A acts on the line.
     in property <bool> chevrons: true;
+    // The value shown is not applied yet (A applies it): drawn in the
+    // text colour, in italics, after an accent dot.
+    in property <bool> pending;
     callback clicked();
     callback step(int);
     height: 54px;
@@ -424,11 +427,23 @@ export component SettingLine inherits Rectangle {
                 }
             }
         }
+        if root.pending: Rectangle {
+            width: 14px;
+            Rectangle {
+                x: 0;
+                y: (parent.height - self.height) / 2;
+                width: 6px;
+                height: 6px;
+                border-radius: 3px;
+                background: Theme.accent;
+            }
+        }
         Text {
             text: root.value;
-            color: root.focused && root.chevrons ? Theme.accent-line : Theme.text.mix(Theme.dim, 0.6);
+            color: root.pending ? Theme.text : root.focused && root.chevrons ? Theme.accent-line : Theme.text.mix(Theme.dim, 0.6);
             font-size: 16px;
             font-weight: root.focused ? 600 : 500;
+            font-italic: root.pending;
             vertical-alignment: center;
         }
 

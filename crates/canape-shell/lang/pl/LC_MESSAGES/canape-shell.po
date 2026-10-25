@@ -669,3 +669,9 @@ msgstr "Fabuła ~{} godz."
 
 msgid "Main story ~{} min"
 msgstr "Fabuła ~{} min"
+
+msgid "M1, right"
+msgstr "M1, prawy"
+
+msgid "M2, left"
+msgstr "M2, lewy"

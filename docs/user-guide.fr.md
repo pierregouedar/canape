@@ -439,7 +439,7 @@ Ouverte depuis la rangée **Visée au gyroscope** de la page Matériel ; **B** y
 
 #### Boutons arrière et éclairage
 
-Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairage ›** ouvre une page qui choisit ce qu'envoient M1 et M2, les deux boutons du dos (à gauche), et l'éclairage des anneaux autour des sticks (à droite). Gauche et droite parcourent les choix et appliquent chacun tout de suite ; B revient à la page Matériel.
+Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairage ›** ouvre une page qui choisit ce qu'envoient M1 et M2, les deux boutons du dos (à gauche), et l'éclairage des anneaux autour des sticks (à droite). Les lignes sont M1, droite et M2, gauche : les boutons arrière droit et gauche. Gauche et droite parcourent les choix ; un choix pas encore appliqué s'affiche en italique après un point, et **A** l'applique (quitter la ligne l'abandonne). B revient à la page Matériel.
 
 | Choix | Le bouton envoie |
 |---|---|
@@ -462,7 +462,7 @@ Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairag
 
 **Éclairage des sticks**
 
-- **Luminosité** : Par défaut, Désactivé, Faible, Moyenne, Forte, appliquée tout de suite. **Par défaut** laisse les anneaux à la manette : Canapé cesse de les changer, et l'éclairage propre de la manette devrait revenir au prochain redémarrage.
+- **Luminosité** : Par défaut, Désactivé, Faible, Moyenne, Forte, appliquée avec A. **Par défaut** laisse les anneaux à la manette : Canapé cesse de les changer, et l'éclairage propre de la manette devrait revenir au prochain redémarrage.
 - **Couleur** : la première pastille, un anneau, suit la couleur d'accent choisie dans les Réglages (et change avec elle) ; les autres sont des couleurs fixes, le blanc d'abord. A applique celle qui a le focus ; choisie alors que les anneaux sont éteints ou sur Par défaut, elle les allume en Forte.
 - Une seule couleur pour les deux anneaux, sans effet. Le choix est général, mémorisé et réécrit au démarrage du service.
 

@@ -669,3 +669,9 @@ msgstr "Hikâye ~{} sa"
 
 msgid "Main story ~{} min"
 msgstr "Hikâye ~{} dk"
+
+msgid "M1, right"
+msgstr "M1, sağ"
+
+msgid "M2, left"
+msgstr "M2, sol"

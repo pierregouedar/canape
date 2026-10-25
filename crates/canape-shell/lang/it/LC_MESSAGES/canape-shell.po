@@ -669,3 +669,9 @@ msgstr "Storia ~{} h"
 
 msgid "Main story ~{} min"
 msgstr "Storia ~{} min"
+
+msgid "M1, right"
+msgstr "M1, destro"
+
+msgid "M2, left"
+msgstr "M2, sinistro"

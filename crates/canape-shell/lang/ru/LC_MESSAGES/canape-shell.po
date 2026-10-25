@@ -669,3 +669,9 @@ msgstr "Сюжет ~{} ч"
 
 msgid "Main story ~{} min"
 msgstr "Сюжет ~{} мин"
+
+msgid "M1, right"
+msgstr "M1, правая"
+
+msgid "M2, left"
+msgstr "M2, левая"

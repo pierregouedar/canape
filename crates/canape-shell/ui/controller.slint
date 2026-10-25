@@ -1,7 +1,8 @@
 // Controller sub-page (from the hardware page): what the back buttons
 // send on the left, the light of the stick rings on the right. Up and
-// down change line, left and right change the value (sent at once), A
-// acts on a line without a value or picks a colour:
+// down change line, left and right change the value shown, A applies it
+// (one write to the controller), acts on a line without a value or picks
+// a colour. Leaving a line drops a choice not applied:
 //   0 M1, 1 M2, 2 restore the default buttons, 3 ring brightness,
 //   4 ring colour.
 
@@ -112,7 +113,7 @@ export component ControllerPage inherits Rectangle {
         root.level-pick = root.level-status;
     }
     in-out property <int> color-col: 0;
-    // Shown at once; the status confirms.
+    // The choice shown; A applies it and the status confirms.
     in-out property <int> m1-pick: App.status.m1;
     in-out property <int> m2-pick: App.status.m2;
     property <int> m1-status: App.status.m1;
@@ -128,13 +129,10 @@ export component ControllerPage inherits Rectangle {
         let count = root.target-names.length;
         if row == 0 {
             root.m1-pick = Math.mod(root.m1-pick + d + count, count);
-            App.set-back-button("m1", root.m1-pick);
         } else if row == 1 {
             root.m2-pick = Math.mod(root.m2-pick + d + count, count);
-            App.set-back-button("m2", root.m2-pick);
         } else if row == 3 {
             root.level-pick = clamp(root.level-pick + d, 0, root.levels.length - 1);
-            App.set-lighting(root.level-pick - 1, App.status.lighting-color);
         } else if row == 4 {
             root.color-col = clamp(root.color-col + d, 0, root.colors.length - 1);
         }
@@ -147,11 +145,33 @@ export component ControllerPage inherits Rectangle {
         App.set-lighting(level, root.colors[i].hex);
     }
     function activate() {
-        if root.focus-row == 2 {
+        if root.focus-row == 0 && root.m1-pick != root.m1-status {
+            App.set-back-button("m1", root.m1-pick);
+        } else if root.focus-row == 1 && root.m2-pick != root.m2-status {
+            App.set-back-button("m2", root.m2-pick);
+        } else if root.focus-row == 2 {
             App.reset-back-buttons();
+        } else if root.focus-row == 3 && root.level-pick != root.level-status {
+            App.set-lighting(root.level-pick - 1, App.status.lighting-color);
         } else if root.focus-row == 4 {
             root.pick-color(root.color-col);
         }
+    }
+    // Moves to line `r`, dropping the choices not applied.
+    function go(r: int) {
+        if r != root.focus-row {
+            root.m1-pick = root.m1-status;
+            root.m2-pick = root.m2-status;
+            root.level-pick = root.level-status;
+        }
+        root.focus-row = r;
+    }
+    // A tap on the focused line applies its choice, like A.
+    function tap(r: int) {
+        if root.focus-row == r && root.active {
+            root.activate();
+        }
+        root.go(r);
     }
     function line-focused(r: int) -> bool {
         root.active && root.focus-row == r
@@ -163,11 +183,11 @@ export component ControllerPage inherits Rectangle {
         }
         key-pressed(event) => {
             if event.text == Key.UpArrow {
-                root.focus-row = max(0, root.focus-row - 1);
+                root.go(max(0, root.focus-row - 1));
                 return accept;
             }
             if event.text == Key.DownArrow {
-                root.focus-row = min(4, root.focus-row + 1);
+                root.go(min(4, root.focus-row + 1));
                 return accept;
             }
             if !App.status.connected {
@@ -196,7 +216,8 @@ export component ControllerPage inherits Rectangle {
 
         VerticalLayout {
             horizontal-stretch: 1;
-            preferred-width: 10px;
+            // Fixed halves: the values must not move the columns.
+            width: (root.width - 40px) / 2;
             spacing: 2px;
             alignment: start;
 
@@ -207,32 +228,34 @@ export component ControllerPage inherits Rectangle {
             }
 
             SettingLine {
-                label: "M1";
+                label: @tr("M1, right");
                 value: root.target-names[root.m1-pick];
+                pending: root.m1-pick != root.m1-status;
                 enabled: App.status.connected;
                 focused: root.line-focused(0);
                 clicked => {
-                    root.focus-row = 0;
+                    root.tap(0);
                     fs.focus();
                 }
                 step(d) => {
-                    root.focus-row = 0;
+                    root.go(0);
                     root.step(0, d);
                     fs.focus();
                 }
             }
 
             SettingLine {
-                label: "M2";
+                label: @tr("M2, left");
                 value: root.target-names[root.m2-pick];
+                pending: root.m2-pick != root.m2-status;
                 enabled: App.status.connected;
                 focused: root.line-focused(1);
                 clicked => {
-                    root.focus-row = 1;
+                    root.tap(1);
                     fs.focus();
                 }
                 step(d) => {
-                    root.focus-row = 1;
+                    root.go(1);
                     root.step(1, d);
                     fs.focus();
                 }
@@ -245,7 +268,7 @@ export component ControllerPage inherits Rectangle {
                 enabled: App.status.connected && (App.status.m1 != 0 || App.status.m2 != 0);
                 focused: root.line-focused(2);
                 clicked => {
-                    root.focus-row = 2;
+                    root.go(2);
                     root.activate();
                     fs.focus();
                 }
@@ -254,7 +277,8 @@ export component ControllerPage inherits Rectangle {
 
         VerticalLayout {
             horizontal-stretch: 1;
-            preferred-width: 10px;
+            // Fixed halves: the values must not move the columns.
+            width: (root.width - 40px) / 2;
             spacing: 2px;
             alignment: start;
 
@@ -267,14 +291,15 @@ export component ControllerPage inherits Rectangle {
             SettingLine {
                 label: @tr("Brightness");
                 value: root.levels[root.level-pick];
+                pending: root.level-pick != root.level-status;
                 enabled: App.status.connected;
                 focused: root.line-focused(3);
                 clicked => {
-                    root.focus-row = 3;
+                    root.tap(3);
                     fs.focus();
                 }
                 step(d) => {
-                    root.focus-row = 3;
+                    root.go(3);
                     root.step(3, d);
                     fs.focus();
                 }
@@ -295,7 +320,7 @@ export component ControllerPage inherits Rectangle {
                             selected: App.status.lighting-level > 0 && App.status.lighting-color == "";
                             focused: root.line-focused(4) && root.color-col == 0;
                             clicked => {
-                                root.focus-row = 4;
+                                root.go(4);
                                 root.color-col = 0;
                                 root.pick-color(0);
                                 fs.focus();
@@ -306,7 +331,7 @@ export component ControllerPage inherits Rectangle {
                             selected: App.status.lighting-level > 0 && App.status.lighting-color == c.hex;
                             focused: root.line-focused(4) && root.color-col == i;
                             clicked => {
-                                root.focus-row = 4;
+                                root.go(4);
                                 root.color-col = i;
                                 root.pick-color(i);
                                 fs.focus();

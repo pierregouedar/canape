@@ -220,7 +220,7 @@ Page 3 (`ui/hardware.slint`) only sends requests: the service validates and writ
 | Gyro aiming line | `open-gyro()` | none: opens page 6, the Gyro aiming sub-page (`GyroPage` in `pages.slint`) |
 | Gyro page lines | `set-gyro-activation(name)`, `change-gyro-sensitivity(delta)`, `toggle-gyro-roll()`, `toggle-gyro-invert()` | `set_gyro` with `status.gyro` changed (`update_gyro`) |
 | Back buttons and lighting line | `open-controller()` | none: opens sub-page 7, `ui/controller.slint` (B goes back to the Hardware page) |
-| M1 / M2 lines (sub-page) | `set-back-button(button, index)` | `set_back_button` with `ButtonTarget::ALL[index]`, sent at each left / right |
+| M1 / M2 lines (sub-page) | `set-back-button(button, index)` | `set_back_button` with `ButtonTarget::ALL[index]`, sent on A only: left / right change the choice shown (`m1-pick`, `m2-pick`), drawn as pending (`SettingLine.pending`: accent dot, italics) until the status confirms it; leaving the line drops it. The brightness line works the same way. |
 | Restore the default buttons (sub-page) | `reset-back-buttons()` | `reset_back_buttons` |
 | Brightness line (sub-page) | `set-lighting(level, color)` | `set_lighting`: Default → `null`; Off, Low, Medium, High → levels 0 to 3 with the current colour |
 | Colour swatches (sub-page) | `set-lighting(level, color)` | `set_lighting` with that colour (the first swatch, a ring, `color: null`: follow the accent), at the level shown, High when the rings were off or on Default |

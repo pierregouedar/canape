@@ -669,3 +669,9 @@ msgstr "主线约 {} 小时"
 
 msgid "Main story ~{} min"
 msgstr "主线约 {} 分钟"
+
+msgid "M1, right"
+msgstr "M1（右）"
+
+msgid "M2, left"
+msgstr "M2（左）"

@@ -439,7 +439,7 @@ Opened from the **Gyro aiming** row of the Hardware page; **B** goes back. While
 
 #### Back buttons and lighting
 
-On the page's last row, on the right, **Back buttons and lighting ›** opens a page that chooses what M1 and M2, the two buttons on the back, send (on the left), and the light of the rings around the sticks (on the right). Left and right go through the choices and apply each one at once; B goes back to the Hardware page.
+On the page's last row, on the right, **Back buttons and lighting ›** opens a page that chooses what M1 and M2, the two buttons on the back, send (on the left), and the light of the rings around the sticks (on the right). The lines are M1, right and M2, left: the right and left back buttons. Left and right go through the choices; a choice not applied yet shows in italics after a dot, and **A** applies it (leaving the line drops it). B goes back to the Hardware page.
 
 | Choice | The button sends |
 |---|---|
@@ -462,7 +462,7 @@ On the page's last row, on the right, **Back buttons and lighting ›** opens a 
 
 **Stick lighting**
 
-- **Brightness**: Default, Off, Low, Medium, High, applied at once. **Default** leaves the rings to the controller: Canapé stops changing them, and the controller's own lighting should come back at the next restart.
+- **Brightness**: Default, Off, Low, Medium, High, applied with A. **Default** leaves the rings to the controller: Canapé stops changing them, and the controller's own lighting should come back at the next restart.
 - **Colour**: the first swatch, a ring, follows the accent colour picked in Settings (and changes with it); the others are fixed colours, white first. A applies the focused one; picked while the rings are off or on Default, it lights them on High.
 - One colour for both rings, without effects. The choice is global, remembered and written again when the service starts.
 
