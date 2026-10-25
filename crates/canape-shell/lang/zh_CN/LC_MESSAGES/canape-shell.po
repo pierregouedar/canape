@@ -747,3 +747,171 @@ msgstr "已解锁"
 
 msgid "{} % of players"
 msgstr "{} % 的玩家"
+
+msgid "Windows tweaks"
+msgstr "Windows 优化"
+
+msgid "Apply the recommended settings"
+msgstr "应用推荐设置"
+
+msgid "Copilot and ads"
+msgstr "Copilot 和广告"
+
+msgid "Privacy"
+msgstr "隐私"
+
+msgid "Security"
+msgstr "安全"
+
+msgid "Preinstalled apps"
+msgstr "预装应用"
+
+msgid "Copilot"
+msgstr "Copilot"
+
+msgid "Widgets"
+msgstr "小组件"
+
+msgid "Web results in search"
+msgstr "搜索中的网页结果"
+
+msgid "Suggestions and ads"
+msgstr "建议和广告"
+
+msgid "Tips on the lock screen"
+msgstr "锁屏上的提示"
+
+msgid "Tips and welcome screens"
+msgstr "提示和欢迎屏幕"
+
+msgid "Diagnostic data"
+msgstr "诊断数据"
+
+msgid "Store apps in the background"
+msgstr "后台的应用商店应用"
+
+msgid "Game Mode"
+msgstr "游戏模式"
+
+msgid "Hardware-accelerated GPU scheduling"
+msgstr "硬件加速 GPU 计划"
+
+msgid "Optimizations for windowed games"
+msgstr "窗口化游戏优化"
+
+msgid "Exclude game folders from Defender scans"
+msgstr "从 Defender 扫描中排除游戏文件夹"
+
+msgid "Defender real-time protection"
+msgstr "Defender 实时保护"
+
+msgid "Memory integrity"
+msgstr "内存完整性"
+
+msgid "News"
+msgstr "资讯"
+
+msgid "Weather"
+msgstr "天气"
+
+msgid "Get Help"
+msgstr "获取帮助"
+
+msgid "Tips"
+msgstr "提示"
+
+msgid "Feedback Hub"
+msgstr "反馈中心"
+
+msgid "Mail and Calendar"
+msgstr "邮件和日历"
+
+msgid "People"
+msgstr "人脉"
+
+msgid "Maps"
+msgstr "地图"
+
+msgid "Sticky Notes"
+msgstr "便笺"
+
+msgid "Phone Link"
+msgstr "手机连接"
+
+msgid "Sound Recorder"
+msgstr "录音机"
+
+msgid "Calculator"
+msgstr "计算器"
+
+msgid "Photos"
+msgstr "照片"
+
+msgid "Quick Assist"
+msgstr "快速助手"
+
+msgid "Movies & TV"
+msgstr "电影和电视"
+
+msgid "All applied"
+msgstr "已全部应用"
+
+msgid "{} to apply"
+msgstr "待应用 {} 项"
+
+msgid "Reinstall"
+msgstr "重新安装"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "Unavailable"
+msgstr "不可用"
+
+msgid "Minimum"
+msgstr "最低"
+
+msgid "Removed for this account only; each one can be installed again from the Microsoft Store."
+msgstr "仅为此账户移除；每个应用都可以从 Microsoft Store 重新安装。"
+
+msgid "Also excludes the game folders from Defender scans."
+msgstr "同时将游戏文件夹从 Defender 扫描中排除。"
+
+msgid "Turn off Tamper Protection in Windows Security first."
+msgstr "请先在 Windows 安全中心关闭篡改防护。"
+
+msgid "Locked by the firmware or by a policy."
+msgstr "已被固件或策略锁定。"
+
+msgid "No game folder found."
+msgstr "未找到游戏文件夹。"
+
+msgid "Not supported on this system."
+msgstr "此系统不支持。"
+
+msgid "Restart Windows to apply."
+msgstr "重启 Windows 后生效。"
+
+msgid "Home and Pro editions keep the required level."
+msgstr "家庭版和专业版保持在必需级别。"
+
+msgid "Except Xbox, the Game Bar, the Store and Canapé's widget."
+msgstr "Xbox、Game Bar、应用商店和 Canapé 小组件除外。"
+
+msgid "Takes effect after a restart."
+msgstr "重启后生效。"
+
+msgid "{} game folders"
+msgstr "{} 个游戏文件夹"
+
+msgid "Leaves the device without antivirus protection. Windows may turn it back on."
+msgstr "设备将失去病毒防护。Windows 可能会重新开启它。"
+
+msgid "Less protection against malicious drivers. Restart needed."
+msgstr "对恶意驱动程序的防护减弱。需要重启。"
+
+msgid "Press A again"
+msgstr "再按一次 A"
+
+msgid "Can be installed again from the Microsoft Store."
+msgstr "可以从 Microsoft Store 重新安装。"

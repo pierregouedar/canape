@@ -747,3 +747,171 @@ msgstr "Получено"
 
 msgid "{} % of players"
 msgstr "{} % игроков"
+
+msgid "Windows tweaks"
+msgstr "Настройки Windows"
+
+msgid "Apply the recommended settings"
+msgstr "Применить рекомендуемые настройки"
+
+msgid "Copilot and ads"
+msgstr "Copilot и реклама"
+
+msgid "Privacy"
+msgstr "Конфиденциальность"
+
+msgid "Security"
+msgstr "Безопасность"
+
+msgid "Preinstalled apps"
+msgstr "Предустановленные приложения"
+
+msgid "Copilot"
+msgstr "Copilot"
+
+msgid "Widgets"
+msgstr "Мини-приложения"
+
+msgid "Web results in search"
+msgstr "Результаты из интернета в поиске"
+
+msgid "Suggestions and ads"
+msgstr "Рекомендации и реклама"
+
+msgid "Tips on the lock screen"
+msgstr "Советы на экране блокировки"
+
+msgid "Tips and welcome screens"
+msgstr "Советы и экраны приветствия"
+
+msgid "Diagnostic data"
+msgstr "Диагностические данные"
+
+msgid "Store apps in the background"
+msgstr "Приложения Store в фоне"
+
+msgid "Game Mode"
+msgstr "Игровой режим"
+
+msgid "Hardware-accelerated GPU scheduling"
+msgstr "Планирование GPU с аппаратным ускорением"
+
+msgid "Optimizations for windowed games"
+msgstr "Оптимизация для игр в окне"
+
+msgid "Exclude game folders from Defender scans"
+msgstr "Исключить папки игр из проверок Defender"
+
+msgid "Defender real-time protection"
+msgstr "Защита Defender в реальном времени"
+
+msgid "Memory integrity"
+msgstr "Целостность памяти"
+
+msgid "News"
+msgstr "Новости"
+
+msgid "Weather"
+msgstr "Погода"
+
+msgid "Get Help"
+msgstr "Техническая поддержка"
+
+msgid "Tips"
+msgstr "Советы"
+
+msgid "Feedback Hub"
+msgstr "Центр отзывов"
+
+msgid "Mail and Calendar"
+msgstr "Почта и Календарь"
+
+msgid "People"
+msgstr "Люди"
+
+msgid "Maps"
+msgstr "Карты"
+
+msgid "Sticky Notes"
+msgstr "Записки"
+
+msgid "Phone Link"
+msgstr "Связь с телефоном"
+
+msgid "Sound Recorder"
+msgstr "Звукозапись"
+
+msgid "Calculator"
+msgstr "Калькулятор"
+
+msgid "Photos"
+msgstr "Фотографии"
+
+msgid "Quick Assist"
+msgstr "Быстрая помощь"
+
+msgid "Movies & TV"
+msgstr "Кино и ТВ"
+
+msgid "All applied"
+msgstr "Всё применено"
+
+msgid "{} to apply"
+msgstr "Осталось применить: {}"
+
+msgid "Reinstall"
+msgstr "Переустановить"
+
+msgid "Remove"
+msgstr "Удалить"
+
+msgid "Unavailable"
+msgstr "Недоступно"
+
+msgid "Minimum"
+msgstr "Минимум"
+
+msgid "Removed for this account only; each one can be installed again from the Microsoft Store."
+msgstr "Удаляются только для этой учётной записи; каждое можно снова установить из Microsoft Store."
+
+msgid "Also excludes the game folders from Defender scans."
+msgstr "Также исключает папки игр из проверок Defender."
+
+msgid "Turn off Tamper Protection in Windows Security first."
+msgstr "Сначала отключите защиту от подделки в «Безопасности Windows»."
+
+msgid "Locked by the firmware or by a policy."
+msgstr "Заблокировано прошивкой или политикой."
+
+msgid "No game folder found."
+msgstr "Папки игр не найдены."
+
+msgid "Not supported on this system."
+msgstr "Не поддерживается в этой системе."
+
+msgid "Restart Windows to apply."
+msgstr "Перезапустите Windows, чтобы применить."
+
+msgid "Home and Pro editions keep the required level."
+msgstr "Выпуски «Домашняя» и Pro остаются на обязательном уровне."
+
+msgid "Except Xbox, the Game Bar, the Store and Canapé's widget."
+msgstr "Кроме Xbox, Game Bar, Store и виджета Canapé."
+
+msgid "Takes effect after a restart."
+msgstr "Действует после перезапуска."
+
+msgid "{} game folders"
+msgstr "Папок игр: {}"
+
+msgid "Leaves the device without antivirus protection. Windows may turn it back on."
+msgstr "Устройство остаётся без антивирусной защиты. Windows может снова её включить."
+
+msgid "Less protection against malicious drivers. Restart needed."
+msgstr "Меньше защиты от вредоносных драйверов. Нужен перезапуск."
+
+msgid "Press A again"
+msgstr "Нажмите A ещё раз"
+
+msgid "Can be installed again from the Microsoft Store."
+msgstr "Можно снова установить из Microsoft Store."

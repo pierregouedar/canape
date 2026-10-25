@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use canape_autotdp::{Config, Controller};
@@ -5,12 +6,15 @@ use canape_core::settings::{DEFAULT_ACCENT, FPS_LIMIT_RANGE, GYRO_SENSITIVITY_RA
 use canape_core::{
     AutoTdpSettings, BackButtons, BenchPlan, BenchProgress, BenchReport, ControllerMode, Fan,
     FanCurve, FanCurves, FanPreset, GyroSettings, Lighting, PerformanceMode, Profile, ProfilePart,
-    Request, Response, Status, protocol,
+    Request, Response, Status, TweakId, protocol,
 };
 use canape_hw::{Device, HwError, Telemetry};
 use serde::{Deserialize, Serialize};
 
 use crate::bench_run::{BenchRun, Reading, Step};
+#[cfg(test)]
+use crate::tweaks;
+use crate::tweaks::{Applied, System, Tweaks};
 
 /// Below this frame rate nothing is being played (desktop, idle shell).
 const MIN_GAME_FPS: f32 = 5.0;
@@ -43,6 +47,8 @@ pub struct Saved {
     pub gyro: GyroSettings,
     pub back_buttons: BackButtons,
     pub lighting: Option<Lighting>,
+    /// Windows tweaks Canapé applied, and what they replaced.
+    pub tweaks: BTreeMap<TweakId, Applied>,
 }
 
 /// Service state and request dispatch, independent of the transport.
@@ -79,12 +85,19 @@ pub struct Handler {
     gyro: GyroSettings,
     back_buttons: BackButtons,
     lighting: Option<Lighting>,
+    tweaks: Tweaks,
     /// Something worth saving changed outside a request (learned watts, bench).
     dirty: bool,
 }
 
 impl Handler {
+    /// With a simulated Windows for the tweaks.
+    #[cfg(test)]
     pub fn new(device: Box<dyn Device>) -> Self {
+        Self::with_system(device, Box::new(tweaks::SimSystem::new(true)))
+    }
+
+    pub fn with_system(device: Box<dyn Device>, system: Box<dyn System>) -> Self {
         Self {
             device,
             tdp_watts: None,
@@ -110,6 +123,7 @@ impl Handler {
             gyro: GyroSettings::default(),
             back_buttons: BackButtons::default(),
             lighting: None,
+            tweaks: Tweaks::new(system),
             dirty: false,
         }
     }
@@ -357,6 +371,17 @@ impl Handler {
                 Ok(lighting) => self.write_lighting(lighting),
                 Err(message) => Response::Error { message },
             },
+            Request::ListTweaks => Response::Tweaks {
+                tweaks: self.tweaks.list(),
+            },
+            Request::SetTweak { id, on } => match self.tweaks.set(id, on) {
+                Ok(()) => Response::Ok,
+                Err(message) => Response::Error { message },
+            },
+            Request::RevertTweaks => match self.tweaks.revert_all() {
+                Ok(()) => Response::Ok,
+                Err(message) => Response::Error { message },
+            },
             Request::SetGyro { settings } => {
                 let (low, high) = GYRO_SENSITIVITY_RANGE;
                 if !(low..=high).contains(&settings.sensitivity) {
@@ -526,6 +551,7 @@ impl Handler {
             gyro: self.gyro,
             back_buttons: BackButtons::default(),
             lighting: None,
+            tweaks: BTreeMap::new(),
         };
         let global = self
             .before_bench
@@ -541,6 +567,7 @@ impl Handler {
             controller_mode: self.controller_mode,
             back_buttons: self.back_buttons,
             lighting: self.lighting.clone(),
+            tweaks: self.tweaks.saved(),
             ..global
         }
     }
@@ -551,6 +578,7 @@ impl Handler {
         self.last_bench = saved.last_bench.clone();
         self.accent = saved.accent.clone();
         self.gyro = saved.gyro;
+        self.tweaks.restore(saved.tweaks.clone());
         let mut errors = self.apply_power_state(saved);
         errors.extend(self.apply_fans_and_fps(&saved.fan_curves, saved.fps_limit));
         let mut requests = Vec::new();

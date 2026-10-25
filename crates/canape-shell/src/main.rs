@@ -37,6 +37,7 @@ mod report;
 mod screen;
 mod shelves;
 mod timetobeat;
+mod tweaks;
 
 use std::rc::Rc;
 use std::time::Duration;
@@ -141,6 +142,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     let link = Link::start(ui.as_weak(), accent);
     connect(&ui, &link);
+    tweaks::connect(&ui, &link);
 
     #[cfg(windows)]
     {

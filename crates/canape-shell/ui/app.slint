@@ -14,6 +14,7 @@ import { GameView, Library, LibraryPage } from "library.slint";
 import { HardwarePage } from "hardware.slint";
 import { ControllerPage } from "controller.slint";
 import { Reveal } from "kit.slint";
+import { TweaksPage } from "tweaks.slint";
 
 // Plus Jakarta Sans, embedded (OFL, see fonts/OFL.txt). Scripts it lacks,
 // such as Cyrillic or CJK, fall back to the system fonts.
@@ -24,6 +25,7 @@ import "fonts/PlusJakartaSans-Bold.ttf";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
+export { Tweaks, TweakRow } from "tweaks.slint";
 export { Library, GameView, ShelfView, DetailView, AddGameView, AchievementView } from "library.slint";
 
 // A section name; the current one is brighter and underlined.
@@ -92,8 +94,8 @@ export component AppWindow inherits Window {
 
     // Sections 0 Games, 1 Performance, 2 Hardware, 3 Settings; then the
     // sub-pages 4 Profiles (from Settings), 5 Bench (from Performance),
-    // 6 Gyro and 7 Controller (both from Hardware), 8 Add a game (from
-    // Settings).
+    // 6 Gyro and 7 Controller (both from Hardware), 8 Add a game and
+    // 9 Windows tweaks (both from Settings).
     in-out property <int> page: 0;
     property <int> section: root.section-of(root.page);
     // The selected game on the shelf in front, for the hints.
@@ -110,7 +112,7 @@ export component AppWindow inherits Window {
     property <int> hardware-more-col: 0;
     property <int> settings-row: 0;
     pure function section-of(page: int) -> int {
-        page == 4 || page == 8 ? 3 : page == 5 ? 1 : page == 6 || page == 7 ? 2 : page
+        page == 4 || page == 8 || page == 9 ? 3 : page == 5 ? 1 : page == 6 || page == 7 ? 2 : page
     }
     function go(page: int) {
         let to-section = root.section-of(page);
@@ -346,6 +348,9 @@ export component AppWindow inherits Window {
                         open-add-games => {
                             root.go(8);
                         }
+                        open-tweaks => {
+                            root.go(9);
+                        }
                     }
                 }
                 if root.page == 4: Reveal {
@@ -393,6 +398,15 @@ export component AppWindow inherits Window {
                     from-y: root.enter-y;
                     AddGamesPage { }
                 }
+                if root.page == 9: Reveal {
+                    x: 32px;
+                    y: 28px;
+                    width: parent.width - 80px;
+                    height: parent.height - 28px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    TweaksPage { }
+                }
             }
 
             HorizontalLayout {
@@ -419,7 +433,7 @@ export component AppWindow inherits Window {
                     glyph: "updown";
                     text: @tr("Setting");
                 }
-                if root.page >= 1 && root.page != 4 && root.page != 8: Hint {
+                if root.page >= 1 && root.page != 4 && root.page != 8 && root.page != 9: Hint {
                     glyph: "leftright";
                     text: @tr("Value");
                 }

@@ -47,6 +47,9 @@ pub struct ShellSettings {
     /// Where Legendary and gogdl install games; empty for the default
     /// (see `canape_library::disk::default_games_dir`).
     pub games_folder: String,
+    /// Packages removed from the Windows tweaks page, to install again
+    /// from the Store (the uninstall script lists them).
+    pub removed_apps: Vec<String>,
 }
 
 impl Default for ShellSettings {
@@ -62,6 +65,7 @@ impl Default for ShellSettings {
             refresh_hz: 0,
             ally_buttons: true,
             games_folder: String::new(),
+            removed_apps: Vec::new(),
         }
     }
 }

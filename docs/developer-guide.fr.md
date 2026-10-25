@@ -13,6 +13,7 @@ Ce guide décrit l'architecture de Canapé, le protocole entre ses composants, l
     - [Installer les jeux possédés](#installer-les-jeux-possédés)
   - [La page Matériel](#la-page-matériel)
   - [Le service de l'intérieur](#le-service-de-lintérieur)
+  - [Optimisations Windows](#optimisations-windows)
 - [Protocole IPC](#protocole-ipc)
   - [Transport](#transport)
   - [Requêtes](#requêtes)
@@ -114,7 +115,7 @@ flowchart BT
 | `canape-autotdp` | bibliothèque | Contrôleur d'auto TDP : machine à états pure, nourrie d'un `Sample` par seconde, sans dépendance au système | `lib.rs` |
 | `canape-hw` | bibliothèque | Trait `Device` ; backend Ally (Windows) au-dessus d'ATKACPI, d'ADL et de l'interface HID de la manette ; `MockDevice` pour le reste. Pour la session de l'utilisateur : l'écran (`display`) et le gyroscope (`motion` : trait `Gyro`, `MockGyro`, `motion::open()`) | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs`, `display.rs`, `motion.rs`, `gyro.rs` |
 | `canape-ipc` | bibliothèque | Une `Connection` qui envoie et reçoit des lignes JSON ; named pipe sous Windows, socket Unix ailleurs ; ACL du pipe | `lib.rs`, `windows.rs`, `unix.rs`, `acl.rs` |
-| `canape-service` | binaire | Service Windows : état, auto TDP, profils, banc d'essai, détection des conflits, serveur IPC, persistance | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
+| `canape-service` | binaire | Service Windows : état, auto TDP, profils, banc d'essai, détection des conflits, serveur IPC, persistance | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs`, `tweaks/` (catalogue des optimisations Windows, `windows.rs`, `sim.rs`) |
 | `canape-library` | bibliothèque | Jeux installés : recherche Steam, Epic, GOG et Xbox, fusion et tri, décodage des jaquettes, jaquettes téléchargées, lancement, fichiers de cache. Jeux possédés et leur installation (Steam, Epic par Legendary). Analyseurs purs testés sous Linux ; les parties Windows (registre, lecteurs, `ShellExecuteW`, WinHTTP) derrière `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `legendary.rs`, `install.rs`, `tools.rs`, `online.rs`, `igdb.rs`, `achievements.rs`, `http.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
 | `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : quatre sections (Jeux, Performance, Matériel, Réglages) et cinq sous-pages (Profils de jeu et Ajouter un jeu depuis Réglages, Banc d'essai depuis Performance, Visée au gyroscope et Boutons arrière et éclairage depuis Matériel), barre d'état (W, FPS, batterie, heure), graphes de puissance en direct, préréglages et courbe des ventilateurs, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `library.rs`, `addgames.rs` (la sous-page Ajouter un jeu), `shelves.rs` (composition des étagères, pure et testée : Récents, Installés, une par boutique (installés et à installer mélangés, Autres en dernier), À installer ; chaque étagère a son modèle et sa sélection, une jaquette décodée sert à toutes les étagères qui montrent le jeu), `backdrop.rs` (lueur de la couleur du jeu derrière la bibliothèque, et `fade_art` qui fond la grande image d'un jeu dans le fond), fiche du jeu (`GamePage` dans `library.slint` ; le profil s'affiche par l'exécutable que `learn_exe` retient dans `recent.json` (`Recent::exes`) quand un programme plein écran passe devant dans les 2 min suivant un lancement, `canape_library::is_store_program` écartant clients et lanceurs ; `open_detail` / `close_detail` : taille et temps de jeu tout de suite, grande jaquette et image large Steam décodées sur un thread puis libérées 400 ms après la fermeture), `grid.rs`, `clock.rs`, `hardware.rs`, `ui/*.slint` : `app.slint` (cadre, sections, aides), `kit.slint` (rangées, tuiles, réglettes, lignes de réglage partagées ; `Reveal` fait apparaître en fondu et glissé ce que crée un `if` ou un `for`, qui n'animent rien d'eux-mêmes : pages selon le sens de LB/RB ; `RevealLine` fait entrer une ligne de gauche à droite avec un délai selon son rang, pour les lignes du titre du jeu ; le fond de la bibliothèque, dessiné opaque à la taille de la fenêtre par `backdrop.rs` pour n'être que copié, passe d'une couleur à l'autre sur deux calques, `backdrop-a` et `backdrop-b` ; les jaquettes sont décodées à la taille d'une jaquette non sélectionnée, seule la sélectionnée est agrandie ; le rendu logiciel ne redessine que ce qui change, alors les animations touchent le moins de surface possible : une étagère ne défile qu'au bord, la jaquette sélectionnée grandit sur place sans pousser les autres, et le fond ne change qu'une fois la sélection posée, `BACKDROP_DELAY` ; il ne passe en fondu qu'après une pause, `BACKDROP_FADE_AFTER`, et change d'un coup pendant qu'on parcourt ; son image commence là où la lueur arrive, `Mask::x`), `fonts/` (Plus Jakarta Sans embarquée, licence OFL, chiffres tabulaires par défaut, espace élargie ; le cyrillique et le CJK retombent sur les polices système ; le widget lie les mêmes fichiers), une page par fichier (`library.slint`, `performance.slint`, `hardware.slint`, `settings.slint`, sous-pages dans `pages.slint`). Toutes les pages se parcourent aux flèches : chacune tient le focus dans un seul `FocusScope` et déplace elle-même sa rangée et sa colonne ; `App.arrow-focus` dit à la manette d'envoyer des flèches plutôt que Tab (`library::arrow_navigation`). X et Y arrivent en F2 et F3, `i18n.rs`, `report.rs`, `nav.rs` (`Navigator::quiet` : manette ignorée 2 s (`keys::FIRST_QUIET`) au premier passage au premier plan, boutons tenus ignorés jusqu'au relâchement), `keys.rs` (`KeyGate`, filtre des événements clavier de winit (`on_winit_window_event`) avec les mêmes règles : une touche qui se répète sans avoir été vue descendre était tenue avant le focus ; journalise chaque Entrée et Échap avec sa source, `keys: pad` ou `keys: keyboard`), `foreground.rs`, `history.rs`, `accent.rs`, `gyro.rs` (visée au gyroscope, voir [La page Matériel](#la-page-matériel)) |
 | `canape-ctl` | binaire | Envoie une requête JSON, ou `watch` pour suivre le statut ; `--pretty` indente le JSON | `main.rs` |
@@ -268,6 +269,45 @@ flowchart TB
 | `--stdio` | Lit des requêtes JSON sur stdin et répond sur stdout, sans thread tick (ni auto TDP, ni statut poussé). Pour des essais rapides. |
 | `install` / `uninstall` | Windows, administrateur : enregistre (et démarre) ou supprime le service `CanapeService`. |
 
+### Optimisations Windows
+
+Sous-page 9 (`ui/tweaks.slint`, `canape-shell/src/tweaks.rs`), ouverte depuis Réglages. **Pas encore essayé sur l'Ally** : testé avec le simulateur seulement.
+
+**Modèle de sécurité.** Aucun client n'envoie de clé, de chemin ni de commande. Le shell nomme une optimisation (`TweakId`, une énumération : un nom inconnu échoue au décodage et la connexion se ferme), le service détient le catalogue fixe (`canape-service/src/tweaks/mod.rs`, `CATALOGUE`) et fait les écritures. Seule exception, le retrait des applications préinstallées : les paquets appartiennent à l'utilisateur connecté, donc le shell les retire lui-même, en intégrité moyenne, depuis la liste fixe `canape_core::tweaks::REMOVABLE_APPS` (jamais un paquet de `PROTECTED_PACKAGES` : applis Xbox, Game Bar et ses dépendances, Gaming Services, Store, Edge, WebView2, Sécurité Windows, runtimes, Canapé).
+
+- **PowerShell** n'exécute que des scripts constants à la compilation, masqués (`CREATE_NO_WINDOW`), depuis `%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe` avec `-NoProfile -NonInteractive`. Les données variables (dossiers, nom du paquet) leur arrivent par une variable d'environnement (`CANAPE_FOLDERS`, un par ligne ; `CANAPE_PACKAGE`), jamais dans le texte du script.
+- **Exclusions Defender** : le service trouve les dossiers lui-même (`WinSystem::game_folders`) : Steam (`HKLM\SOFTWARE\WOW6432Node\Valve\Steam\InstallPath`, puis `libraryfolders.vdf`) → `<bibliothèque>\steamapps\common` ; les dossiers qui contiennent des jeux Epic (manifestes du lanceur dans `%ProgramData%`) et GOG (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games\*\path`) ; `Games` à la racine de chaque lecteur interne. `exclusion_folders` ne garde que les dossiers existants et sûrs (`safe_to_exclude` : jamais une racine de lecteur, `Windows`, `ProgramData`, `Program Files` lui-même, `Users`, un profil, ni ses `AppData`, `Downloads`, `Desktop`, `Documents`, `OneDrive`), une fois chacun, sans dossiers imbriqués. Ces sources sont des fichiers qu'un processus utilisateur peut écrire : un programme en intégrité moyenne pourrait déclarer un dossier à lui comme « bibliothèque Steam » et demander les exclusions. Les règles ci-dessus limitent ce qu'il y gagne, les dossiers sont listés dans la réponse (`paths`), et l'optimisation n'est appliquée que sur demande.
+- **Les valeurs par utilisateur** sont écrites par le service dans la ruche de l'utilisateur connecté à la console (`HKEY_USERS\<SID>`, SID tiré de `WTSQueryUserToken(WTSGetActiveConsoleSessionId())`, l'utilisateur du processus lancé à la main, une erreur si personne n'est connecté).
+
+**Persistance et retour en arrière.** Appliquer une optimisation enregistre, pour chaque valeur, ce qu'elle contenait avant (`Prior` : portée, clé, nom, donnée ou absence) dans `state.json` (`tweaks`), ainsi que les exclusions Defender ajoutées par Canapé (`paths`). La rétablir remet ces valeurs ; une optimisation que Canapé n'a pas appliquée revient au défaut de Windows (valeur supprimée ; pour `DirectXUserGlobalSettings`, seule son entrée est retirée). Seules les exclusions de Canapé sont retirées. `revert_tweaks` les rétablit toutes (`packaging/uninstall-dev.ps1`, étape 1). Rien n'est réécrit au démarrage : Windows garde les réglages.
+
+**État.** `applied` = toutes les valeurs *vérifiées* correspondent (celles que Windows peut refuser selon la version sont écrites si possible, sans être vérifiées) ; exclusions Defender : chaque dossier trouvé est exclu ; protection en temps réel : Defender la dit coupée. `reboot_pending` = une optimisation à redémarrage dont l'état a changé depuis le démarrage du service.
+
+**Catalogue** (`HKLM` = machine, `HKCU` = la ruche de l'utilisateur de la console ; valeurs DWORD ; *non vérifiées* en italique) :
+
+| Id | Valeurs écrites (activé) | Redémarrage |
+|---|---|---|
+| `copilot_off` | `HKLM` et `HKCU\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot\TurnOffWindowsCopilot = 1` ; *`HKCU\…\Explorer\Advanced\ShowCopilotButton = 0`* | non |
+| `widgets_off` | `HKLM\SOFTWARE\Policies\Microsoft\Dsh\AllowNewsAndInterests = 0` ; *`HKCU\…\Explorer\Advanced\TaskbarDa = 0`* | non |
+| `web_search_off` | `HKCU\Software\Policies\Microsoft\Windows\Explorer\DisableSearchBoxSuggestions = 1` ; `HKCU\Software\Microsoft\Windows\CurrentVersion\Search\BingSearchEnabled = 0` ; `HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\EnableDynamicContentInWSB = 0` | non |
+| `suggestions_off` | `HKCU\…\ContentDeliveryManager` : `SystemPaneSuggestionsEnabled`, `SubscribedContent-338388Enabled`, `-338393Enabled`, `-353694Enabled`, `-353696Enabled`, `SilentInstalledAppsEnabled` = 0 ; `HKCU\…\Explorer\Advanced` : `Start_IrisRecommendations`, `Start_AccountNotifications`, `ShowSyncProviderNotifications` = 0 ; `HKCU\…\CurrentVersion\AdvertisingInfo\Enabled = 0` ; `HKLM\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo\DisabledByGroupPolicy = 1` | non |
+| `lock_screen_tips_off` | `HKCU\…\ContentDeliveryManager` : `RotatingLockScreenOverlayEnabled`, `SubscribedContent-338387Enabled` = 0 | non |
+| `tips_off` | `HKCU\…\ContentDeliveryManager` : `SubscribedContent-338389Enabled`, `SoftLandingEnabled`, `SubscribedContent-310093Enabled` = 0 ; `HKCU\…\CurrentVersion\UserProfileEngagement\ScoobeSystemSettingEnabled = 0` | non |
+| `telemetry_min` | `HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection` : `AllowTelemetry = 0`, `DoNotShowFeedbackNotifications = 1` ; `HKCU\…\CurrentVersion\Privacy\TailoredExperiencesWithDiagnosticDataEnabled = 0` | non |
+| `background_apps_off` | `HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy` : `LetAppsRunInBackground = 2` (refus forcé), `LetAppsRunInBackground_ForceAllowTheseApps` (REG_MULTI_SZ : Game Bar, app Xbox, Gaming Services, Xbox Identity Provider, Xbox TCUI, Store, Sécurité Windows, la famille du widget) | non |
+| `game_mode_on` | `HKCU\Software\Microsoft\GameBar` : `AutoGameModeEnabled = 1`, `AllowAutoGameMode = 1` | non |
+| `gpu_scheduling_on` | `HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\HwSchMode = 2` | **oui** |
+| `windowed_optimizations_on` | `HKCU\Software\Microsoft\DirectX\UserGpuPreferences\DirectXUserGlobalSettings` (REG_SZ, liste `nom=valeur;`) : `SwapEffectUpgradeEnable=1;` posé, autres entrées gardées (`set_entry`, testé) | non |
+| `defender_exclusions` | `Add-MpPreference -ExclusionPath` avec les dossiers trouvés ; retour : `Remove-MpPreference` avec ceux de Canapé ; vérification : `HKLM\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths` | non |
+| `defender_realtime_off` | *`HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection\DisableRealtimeMonitoring = 1`*, puis `Set-MpPreference -DisableRealtimeMonitoring $true` (retour : `$false`). Indisponible tant que `HKLM\SOFTWARE\Microsoft\Windows Defender\Features\TamperProtection` a le bit 0 (5 = activée, 4 = désactivée) ; si Defender la dit encore active après coup, l'erreur demande de couper la protection contre les falsifications | non |
+| `memory_integrity_off` | `HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity\Enabled = 0` ; `HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\EnableVirtualizationBasedSecurity = 0`. Indisponible si `…\HypervisorEnforcedCodeIntegrity\Locked = 1` ou si `HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard\EnableVirtualizationBasedSecurity` existe | **oui** |
+
+*Recommandées* (`TweakInfo::recommended`) : toutes sauf `background_apps_off`, `defender_realtime_off` et `memory_integrity_off`. *Sécurité* (second A demandé) : les trois optimisations Defender / intégrité de la mémoire.
+
+**Applications** (shell, `tweaks.rs`) : installée = `GetPackagesByPackageFamily(famille)` renvoie un paquet pour l'utilisateur courant ; retrait = `Get-AppxPackage -Name $env:CANAPE_PACKAGE | Remove-AppxPackage` (utilisateur courant seulement, pas de déprovisionnement) ; « Réinstaller » ouvre `ms-windows-store://pdp/?PFN=<famille>`. Les paquets retirés sont gardés dans `shell.json` (`removed_apps`) pour que le script de désinstallation les liste ; un paquet réinstallé en sort au scan suivant.
+
+**Simulateur** (`SimSystem`) : un registre en mémoire, la protection contre les falsifications active sauf `CANAPE_MOCK_TAMPER=0`, trois dossiers de jeux, exclusions Defender et protection en temps réel en mémoire (ignorée tant que la protection contre les falsifications est active, comme sous Windows). Utilisé par les tests, hors Windows, et sous Windows avec `CANAPE_MOCK_TWEAKS`. Hors Windows, le shell simule les applications : toutes installées sauf celles de `shell.json` `removed_apps` ; un retrait prend 0,6 s.
+
 ## Protocole IPC
 
 Les types sont définis dans [`crates/canape-core/src/protocol.rs`](../crates/canape-core/src/protocol.rs). Le widget C# reproduit la même chose à la main dans `widget/CanapeWidget/CanapeLink.cs`.
@@ -335,6 +375,9 @@ sequenceDiagram
 | `set_back_button` | `button` : `m1` \| `m2`, `target: ButtonTarget` | `ok` / `error` | Ce qu'envoie un bouton arrière, écrit dans la manette (HID) avec toute la table des associations et le mode réglé par Canapé (manette s'il n'en a réglé aucun, ce qui met la manette en mode manette). Enregistré, réappliqué au démarrage et après chaque `set_controller_mode`. `error` en mode WASD, dont les associations d'usine ne sont pas connues (les boutons enregistrés reviennent avec un autre mode). Global. **Non testé sur l'appareil.** |
 | `reset_back_buttons` | — | `ok` / `error` | Les deux boutons arrière reviennent à leurs propres touches (l'association d'usine est écrite). |
 | `set_lighting` | `lighting: Lighting \| null` | `ok` / `error` | Éclairage des anneaux des sticks (HID). Enregistré et réécrit au démarrage ; sans couleur, les anneaux prennent l'accent (`set_accent` les réécrit, `#ff3d5e` avant tout accent). Avec un effet, la manette le garde, même après un redémarrage. `null` : Canapé cesse de les écrire, rien n'est envoyé (le dernier effet écrit reste). **Non testé sur l'appareil.** |
+| `list_tweaks` | — | `tweaks` | Toutes les [optimisations Windows](#optimisations-windows) du catalogue, dans l'ordre d'affichage, avec leur état. Lecture seule. |
+| `set_tweak` | `id: TweakId`, `on: bool` | `ok` / `error` | Applique ou rétablit une optimisation du catalogue fixe ; un `id` inconnu ne se décode pas. Enregistre ce qu'elle remplace dans `state.json`. **Non testé sur l'appareil.** |
+| `revert_tweaks` | — | `ok` / `error` | Rétablit toutes les optimisations appliquées par Canapé (désinstallation). |
 
 Exemples :
 
@@ -368,6 +411,7 @@ Exemples :
 | `profiles` | `profiles: [Profile]` | `{"type":"profiles","profiles":[…]}` |
 | `bench` | `report: BenchReport \| null` | `{"type":"bench","report":null}` |
 | `fan_curves` | `custom: FanCurves`, `defaults: FanCurves` | `{"type":"fan_curves","custom":{"cpu":null,"gpu":null,"mid":null},"defaults":{"cpu":[[58,8],[61,17],…],"gpu":[…],"mid":null}}` |
+| `tweaks` | `tweaks: [TweakState]` | `{"type":"tweaks","tweaks":[{"id":"defender_realtime_off","applied":false,"by_canape":false,"unavailable":"tamper_protection","reboot_pending":false,"paths":[]}]}` |
 
 ### Le statut
 
@@ -513,6 +557,11 @@ Exemples :
 | `value out of range: …` | Watts hors de la plage du modèle, limite de charge hors de 40 à 100 %, courbe invalide arrivée jusqu'au backend |
 | `firmware refused: DEVS 0x… = … returned …` | Le firmware n'a pas renvoyé 1 (pour une courbe, le mode est alors réécrit pour retrouver les courbes d'usine) |
 | `device I/O failed: …` | `DeviceIoControl` a échoué |
+| `Tamper Protection is on: turn it off in Windows Security first` | `set_tweak` `defender_realtime_off` avec la protection contre les falsifications active |
+| `Windows kept real-time protection on: …` | Defender dit la protection en temps réel encore active après le changement |
+| `locked by the firmware or by a policy` / `no game folder found` | `set_tweak` sur une optimisation indisponible |
+| `Microsoft Defender refused: …` | `Add-MpPreference`, `Remove-MpPreference` ou `Set-MpPreference` a échoué (première ligne de son erreur) |
+| `writing <clé>\<valeur>: error N` / `no user is signed in` | Une écriture dans le registre a échoué, ou une optimisation par utilisateur sans personne de connecté à la console |
 
 ### Faire évoluer le protocole
 
@@ -580,8 +629,10 @@ Hors Windows, les journaux et l'état vont dans `<tmp>/Canape/` (`service.log`, 
 | `CANAPE_MOCK_FPS` | service (simulateur) | FPS simulés, par exemple `60`. Sans elle, `fps` vaut `null` et l'auto TDP ne bouge pas. Sert aussi sous Windows quand le simulateur est utilisé. |
 | `CANAPE_SOCKET` | service, shell, `canape-ctl` (hors Windows) | Chemin du socket Unix. |
 | `CANAPE_WINDOWED` | shell | Présente (n'importe quelle valeur) : fenêtre au lieu du plein écran. |
-| `CANAPE_PAGE` | shell | Page ouverte au démarrage : 0 Jeux, 1 Performance, 2 Matériel, 3 Réglages, 4 Profils de jeu, 5 Banc d'essai, 6 Visée au gyroscope, 7 Boutons arrière et éclairage, 8 Ajouter un jeu. |
+| `CANAPE_PAGE` | shell | Page ouverte au démarrage : 0 Jeux, 1 Performance, 2 Matériel, 3 Réglages, 4 Profils de jeu, 5 Banc d'essai, 6 Visée au gyroscope, 7 Boutons arrière et éclairage, 8 Ajouter un jeu, 9 Optimisations Windows. |
 | `CANAPE_MOCK_GYRO` | shell (`canape_hw::motion::open`) | `x,y,z` en degrés par seconde : un gyroscope simulé qui tourne à cette vitesse, à la place du capteur Windows. |
+| `CANAPE_MOCK_TWEAKS` | service (Windows) | Présente : le Windows simulé (`SimSystem`) pour les optimisations au lieu du registre et de Defender. Toujours le cas hors Windows. |
+| `CANAPE_MOCK_TAMPER` | service (simulateur) | `0` : protection contre les falsifications désactivée dans le Windows simulé (activée par défaut, comme à l'installation de Windows). |
 | `CANAPE_LIBRARY_FIXTURE` | shell (builds de debug) | Une fausse bibliothèque à la place des boutiques installées : voir [La bibliothèque de jeux](#la-bibliothèque-de-jeux). |
 | `LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG` | shell (hors Windows) | Langue en mode Automatique, dans cet ordre de priorité. |
 | `TMPDIR` | tous (hors Windows) | Dossier temporaire, donc emplacement de `Canape/`. |

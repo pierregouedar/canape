@@ -13,6 +13,7 @@ use canape_ipc::{Connection, Listener, Writer};
 
 use crate::conflicts;
 use crate::handler::{Handler, Saved};
+use crate::tweaks::System;
 
 const TICK: Duration = Duration::from_secs(1);
 /// Conflicting programs are looked for every this many ticks.
@@ -52,11 +53,12 @@ impl Shared {
 /// background threads.
 pub fn spawn(
     device: Box<dyn Device>,
+    system: Box<dyn System>,
     state_path: PathBuf,
     log: impl Fn(&str) + Send + Sync + 'static,
 ) -> io::Result<()> {
     let log: Log = Arc::new(log);
-    let mut handler = Handler::new(device);
+    let mut handler = Handler::with_system(device, system);
     if let Ok(json) = std::fs::read_to_string(&state_path) {
         match serde_json::from_str::<Saved>(&json) {
             Ok(saved) => {
@@ -136,8 +138,11 @@ fn serve(mut conn: Connection, shared: &Shared) -> io::Result<()> {
                 | Request::ListProfiles
                 | Request::GetBenchReport
                 | Request::GetFanCurves
+                | Request::ListTweaks
         );
         let subscribe = request == Request::Subscribe;
+        // A tweak that failed halfway still records what it replaced.
+        let tweak = matches!(request, Request::SetTweak { .. } | Request::RevertTweaks);
         let described = changes_state.then(|| format!("{request:?}"));
         let response = shared.handler.lock().unwrap().handle(request);
         conn.send(&response)?;
@@ -149,7 +154,7 @@ fn serve(mut conn: Connection, shared: &Shared) -> io::Result<()> {
         }
         if let Some(request) = described {
             (shared.log)(&format!("{request} -> {response:?}"));
-            if response == Response::Ok {
+            if response == Response::Ok || tweak {
                 shared.save();
             }
             shared.broadcast_status();

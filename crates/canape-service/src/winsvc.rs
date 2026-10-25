@@ -56,7 +56,12 @@ fn run() -> windows_service::Result<()> {
     for line in device.diagnostics() {
         crate::log(&line);
     }
-    if let Err(err) = crate::server::spawn(device, crate::state_path(), crate::log) {
+    if let Err(err) = crate::server::spawn(
+        device,
+        crate::tweaks::system(),
+        crate::state_path(),
+        crate::log,
+    ) {
         crate::log(&format!("cannot serve the pipe: {err}"));
         let mut stopped = status(ServiceState::Stopped, ServiceControlAccept::empty());
         stopped.exit_code = ServiceExitCode::Win32(err.raw_os_error().unwrap_or(1) as u32);

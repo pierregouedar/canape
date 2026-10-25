@@ -7,6 +7,7 @@ pub mod fan;
 pub mod log;
 pub mod protocol;
 pub mod settings;
+pub mod tweaks;
 
 pub use bench::{BenchPlan, BenchPoint, BenchProgress, BenchReport};
 pub use fan::{Fan, FanCurve, FanCurves, FanPreset};
@@ -15,3 +16,4 @@ pub use settings::{
     AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, GyroActivation,
     GyroAxis, GyroSettings, Lighting, LightingEffect, LightingSpeed, PerformanceMode, Profile,
 };
+pub use tweaks::{TweakGroup, TweakId, TweakState, Unavailable};

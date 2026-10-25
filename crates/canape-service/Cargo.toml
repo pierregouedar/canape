@@ -11,6 +11,8 @@ canape-core.workspace = true
 canape-hw.workspace = true
 canape-autotdp.workspace = true
 canape-ipc.workspace = true
+# Pure parsers for the game folders (Steam libraries, Epic manifests).
+canape-library = { path = "../canape-library" }
 serde.workspace = true
 serde_json.workspace = true
 
@@ -18,5 +20,10 @@ serde_json.workspace = true
 windows-service.workspace = true
 windows-sys = { workspace = true, features = [
     "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
     "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_Registry",
+    "Win32_System_RemoteDesktop",
+    "Win32_System_Threading",
 ] }

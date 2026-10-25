@@ -747,3 +747,171 @@ msgstr "解除済み"
 
 msgid "{} % of players"
 msgstr "プレイヤーの {} %"
+
+msgid "Windows tweaks"
+msgstr "Windows の最適化"
+
+msgid "Apply the recommended settings"
+msgstr "推奨設定を適用"
+
+msgid "Copilot and ads"
+msgstr "Copilot と広告"
+
+msgid "Privacy"
+msgstr "プライバシー"
+
+msgid "Security"
+msgstr "セキュリティ"
+
+msgid "Preinstalled apps"
+msgstr "プリインストール アプリ"
+
+msgid "Copilot"
+msgstr "Copilot"
+
+msgid "Widgets"
+msgstr "ウィジェット"
+
+msgid "Web results in search"
+msgstr "検索での Web の結果"
+
+msgid "Suggestions and ads"
+msgstr "おすすめと広告"
+
+msgid "Tips on the lock screen"
+msgstr "ロック画面のヒント"
+
+msgid "Tips and welcome screens"
+msgstr "ヒントとようこそ画面"
+
+msgid "Diagnostic data"
+msgstr "診断データ"
+
+msgid "Store apps in the background"
+msgstr "バックグラウンドの Store アプリ"
+
+msgid "Game Mode"
+msgstr "ゲーム モード"
+
+msgid "Hardware-accelerated GPU scheduling"
+msgstr "ハードウェアアクセラレータによる GPU スケジューリング"
+
+msgid "Optimizations for windowed games"
+msgstr "ウィンドウ表示のゲームの最適化"
+
+msgid "Exclude game folders from Defender scans"
+msgstr "ゲーム フォルダーを Defender のスキャンから除外"
+
+msgid "Defender real-time protection"
+msgstr "Defender のリアルタイム保護"
+
+msgid "Memory integrity"
+msgstr "メモリ整合性"
+
+msgid "News"
+msgstr "ニュース"
+
+msgid "Weather"
+msgstr "天気"
+
+msgid "Get Help"
+msgstr "問い合わせ"
+
+msgid "Tips"
+msgstr "ヒント"
+
+msgid "Feedback Hub"
+msgstr "フィードバック Hub"
+
+msgid "Mail and Calendar"
+msgstr "メールとカレンダー"
+
+msgid "People"
+msgstr "連絡先"
+
+msgid "Maps"
+msgstr "マップ"
+
+msgid "Sticky Notes"
+msgstr "付箋"
+
+msgid "Phone Link"
+msgstr "スマートフォン連携"
+
+msgid "Sound Recorder"
+msgstr "サウンド レコーダー"
+
+msgid "Calculator"
+msgstr "電卓"
+
+msgid "Photos"
+msgstr "フォト"
+
+msgid "Quick Assist"
+msgstr "クイック アシスト"
+
+msgid "Movies & TV"
+msgstr "映画 & テレビ"
+
+msgid "All applied"
+msgstr "すべて適用済み"
+
+msgid "{} to apply"
+msgstr "未適用: {}"
+
+msgid "Reinstall"
+msgstr "再インストール"
+
+msgid "Remove"
+msgstr "削除"
+
+msgid "Unavailable"
+msgstr "利用不可"
+
+msgid "Minimum"
+msgstr "最小"
+
+msgid "Removed for this account only; each one can be installed again from the Microsoft Store."
+msgstr "このアカウントからのみ削除されます。Microsoft Store から再インストールできます。"
+
+msgid "Also excludes the game folders from Defender scans."
+msgstr "ゲーム フォルダーも Defender のスキャンから除外します。"
+
+msgid "Turn off Tamper Protection in Windows Security first."
+msgstr "先に Windows セキュリティで改ざん防止をオフにしてください。"
+
+msgid "Locked by the firmware or by a policy."
+msgstr "ファームウェアまたはポリシーでロックされています。"
+
+msgid "No game folder found."
+msgstr "ゲーム フォルダーが見つかりません。"
+
+msgid "Not supported on this system."
+msgstr "このシステムではサポートされていません。"
+
+msgid "Restart Windows to apply."
+msgstr "適用するには Windows を再起動してください。"
+
+msgid "Home and Pro editions keep the required level."
+msgstr "Home と Pro エディションは必須レベルのままです。"
+
+msgid "Except Xbox, the Game Bar, the Store and Canapé's widget."
+msgstr "Xbox、Game Bar、Store、Canapé のウィジェットは除きます。"
+
+msgid "Takes effect after a restart."
+msgstr "再起動後に有効になります。"
+
+msgid "{} game folders"
+msgstr "ゲーム フォルダー {} 個"
+
+msgid "Leaves the device without antivirus protection. Windows may turn it back on."
+msgstr "デバイスはウイルスから保護されなくなります。Windows が再びオンにすることがあります。"
+
+msgid "Less protection against malicious drivers. Restart needed."
+msgstr "悪意のあるドライバーからの保護が弱まります。再起動が必要です。"
+
+msgid "Press A again"
+msgstr "もう一度 A を押す"
+
+msgid "Can be installed again from the Microsoft Store."
+msgstr "Microsoft Store から再インストールできます。"

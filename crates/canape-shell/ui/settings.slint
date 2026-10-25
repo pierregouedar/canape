@@ -4,7 +4,7 @@
 //   0 language (A applies the one shown), 1 the Ally's buttons, 2 online
 //   covers, 3 Epic account, 4 GOG account, 5 games folder, 6 game
 //   profiles, 7 add a game, 8 accent presets, 9 hue, 10 saturation,
-//   11 brightness.
+//   11 brightness, 12 Windows tweaks (shown after line 7).
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
@@ -17,6 +17,8 @@ export component SettingsPage inherits Rectangle {
     callback open-profiles();
     // Opens the list of games to add.
     callback open-add-games();
+    // Opens the Windows tweaks (line 12, after "Add a game").
+    callback open-tweaks();
     in-out property <int> focus-row: 0;
     property <bool> active: fs.has-focus;
     property <[{ code: string, name: string }]> languages: [
@@ -107,6 +109,8 @@ export component SettingsPage inherits Rectangle {
             root.open-add-games();
         } else if root.focus-row == 8 {
             App.pick-accent(root.presets[root.preset-col].hex);
+        } else if root.focus-row == 12 {
+            root.open-tweaks();
         }
     }
     function line-focused(r: int) -> bool {
@@ -119,11 +123,11 @@ export component SettingsPage inherits Rectangle {
         }
         key-pressed(event) => {
             if event.text == Key.UpArrow {
-                root.focus-row = max(0, root.focus-row - 1);
+                root.focus-row = root.focus-row == 12 ? 7 : root.focus-row == 8 ? 12 : max(0, root.focus-row - 1);
                 return accept;
             }
             if event.text == Key.DownArrow {
-                root.focus-row = min(11, root.focus-row + 1);
+                root.focus-row = root.focus-row == 7 ? 12 : root.focus-row == 12 ? 8 : min(11, root.focus-row + 1);
                 return accept;
             }
             if event.text == Key.LeftArrow {
@@ -290,6 +294,17 @@ export component SettingsPage inherits Rectangle {
                 focused: root.line-focused(7);
                 clicked => {
                     root.focus-row = 7;
+                    root.activate();
+                }
+            }
+
+            SettingLine {
+                label: @tr("Windows tweaks");
+                value: "›";
+                chevrons: false;
+                focused: root.line-focused(12);
+                clicked => {
+                    root.focus-row = 12;
                     root.activate();
                 }
             }

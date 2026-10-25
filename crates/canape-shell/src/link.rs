@@ -69,7 +69,10 @@ pub struct Link {
 fn is_background(request: &Request) -> bool {
     matches!(
         request,
-        Request::ForegroundApp { .. } | Request::ListProfiles | Request::GetBenchReport
+        Request::ForegroundApp { .. }
+            | Request::ListProfiles
+            | Request::GetBenchReport
+            | Request::ListTweaks
     )
 }
 
@@ -99,7 +102,12 @@ impl Link {
             let mut conn: Option<Connection> = None;
             for request in rx {
                 let background = is_background(&request);
-                let notice = match send(&mut conn, &request) {
+                let answer = send(&mut conn, &request);
+                // A tweak changed (or failed): show its new state.
+                if matches!(request, Request::SetTweak { .. }) {
+                    let _ = again.send(Request::ListTweaks);
+                }
+                let notice = match answer {
                     Ok(Response::Profiles { profiles }) => {
                         *state.profiles.lock().unwrap() = profiles.clone();
                         show_profiles(&ui, &profiles);
@@ -108,6 +116,10 @@ impl Link {
                     Ok(Response::Bench { report }) => {
                         *state.report.lock().unwrap() = report;
                         show_report(&ui, &state);
+                        continue;
+                    }
+                    Ok(Response::Tweaks { tweaks }) => {
+                        crate::tweaks::show(&ui, tweaks);
                         continue;
                     }
                     Ok(Response::Error { message }) => {

@@ -747,3 +747,171 @@ msgstr "Odblokowane"
 
 msgid "{} % of players"
 msgstr "{} % graczy"
+
+msgid "Windows tweaks"
+msgstr "Optymalizacje Windows"
+
+msgid "Apply the recommended settings"
+msgstr "Zastosuj zalecane ustawienia"
+
+msgid "Copilot and ads"
+msgstr "Copilot i reklamy"
+
+msgid "Privacy"
+msgstr "Prywatność"
+
+msgid "Security"
+msgstr "Zabezpieczenia"
+
+msgid "Preinstalled apps"
+msgstr "Preinstalowane aplikacje"
+
+msgid "Copilot"
+msgstr "Copilot"
+
+msgid "Widgets"
+msgstr "Widżety"
+
+msgid "Web results in search"
+msgstr "Wyniki z sieci w wyszukiwaniu"
+
+msgid "Suggestions and ads"
+msgstr "Sugestie i reklamy"
+
+msgid "Tips on the lock screen"
+msgstr "Porady na ekranie blokady"
+
+msgid "Tips and welcome screens"
+msgstr "Porady i ekrany powitalne"
+
+msgid "Diagnostic data"
+msgstr "Dane diagnostyczne"
+
+msgid "Store apps in the background"
+msgstr "Aplikacje ze Sklepu w tle"
+
+msgid "Game Mode"
+msgstr "Tryb gry"
+
+msgid "Hardware-accelerated GPU scheduling"
+msgstr "Planowanie GPU z akceleracją sprzętową"
+
+msgid "Optimizations for windowed games"
+msgstr "Optymalizacje gier w oknie"
+
+msgid "Exclude game folders from Defender scans"
+msgstr "Wyklucz foldery gier ze skanowania Defendera"
+
+msgid "Defender real-time protection"
+msgstr "Ochrona w czasie rzeczywistym Defendera"
+
+msgid "Memory integrity"
+msgstr "Integralność pamięci"
+
+msgid "News"
+msgstr "Wiadomości"
+
+msgid "Weather"
+msgstr "Pogoda"
+
+msgid "Get Help"
+msgstr "Uzyskaj pomoc"
+
+msgid "Tips"
+msgstr "Porady"
+
+msgid "Feedback Hub"
+msgstr "Centrum opinii"
+
+msgid "Mail and Calendar"
+msgstr "Poczta i Kalendarz"
+
+msgid "People"
+msgstr "Kontakty"
+
+msgid "Maps"
+msgstr "Mapy"
+
+msgid "Sticky Notes"
+msgstr "Karteczki samoprzylepne"
+
+msgid "Phone Link"
+msgstr "Łącze z telefonem"
+
+msgid "Sound Recorder"
+msgstr "Rejestrator dźwięku"
+
+msgid "Calculator"
+msgstr "Kalkulator"
+
+msgid "Photos"
+msgstr "Zdjęcia"
+
+msgid "Quick Assist"
+msgstr "Szybka pomoc"
+
+msgid "Movies & TV"
+msgstr "Filmy i TV"
+
+msgid "All applied"
+msgstr "Wszystko zastosowane"
+
+msgid "{} to apply"
+msgstr "Do zastosowania: {}"
+
+msgid "Reinstall"
+msgstr "Zainstaluj ponownie"
+
+msgid "Remove"
+msgstr "Usuń"
+
+msgid "Unavailable"
+msgstr "Niedostępne"
+
+msgid "Minimum"
+msgstr "Minimum"
+
+msgid "Removed for this account only; each one can be installed again from the Microsoft Store."
+msgstr "Usuwane tylko dla tego konta; każdą można ponownie zainstalować ze Sklepu Microsoft."
+
+msgid "Also excludes the game folders from Defender scans."
+msgstr "Wyklucza też foldery gier ze skanowania Defendera."
+
+msgid "Turn off Tamper Protection in Windows Security first."
+msgstr "Najpierw wyłącz ochronę przed naruszeniami w Zabezpieczeniach Windows."
+
+msgid "Locked by the firmware or by a policy."
+msgstr "Zablokowane przez oprogramowanie układowe lub zasady."
+
+msgid "No game folder found."
+msgstr "Nie znaleziono folderu gier."
+
+msgid "Not supported on this system."
+msgstr "Nieobsługiwane w tym systemie."
+
+msgid "Restart Windows to apply."
+msgstr "Uruchom ponownie Windows, aby zastosować."
+
+msgid "Home and Pro editions keep the required level."
+msgstr "Wersje Home i Pro zostają na poziomie wymaganym."
+
+msgid "Except Xbox, the Game Bar, the Store and Canapé's widget."
+msgstr "Poza Xbox, Game Bar, Sklepem i widżetem Canapé."
+
+msgid "Takes effect after a restart."
+msgstr "Działa po ponownym uruchomieniu."
+
+msgid "{} game folders"
+msgstr "Foldery gier: {}"
+
+msgid "Leaves the device without antivirus protection. Windows may turn it back on."
+msgstr "Urządzenie zostaje bez ochrony antywirusowej. Windows może ją ponownie włączyć."
+
+msgid "Less protection against malicious drivers. Restart needed."
+msgstr "Mniejsza ochrona przed złośliwymi sterownikami. Wymagany restart."
+
+msgid "Press A again"
+msgstr "Naciśnij ponownie A"
+
+msgid "Can be installed again from the Microsoft Store."
+msgstr "Można ją ponownie zainstalować ze Sklepu Microsoft."

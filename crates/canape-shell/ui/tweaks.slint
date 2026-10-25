@@ -1,0 +1,322 @@
+// Windows tweaks sub-page (from Settings): one list the D-pad moves
+// through, grouped by theme. The service owns the catalogue and applies
+// the Windows settings; the shell removes the preinstalled apps of the
+// signed-in user (tweaks.rs). Up and down change line, A acts on it. A
+// line that lowers the protection, removes an app or applies the
+// recommended set asks for a second A; leaving the line cancels.
+
+import { Theme } from "theme.slint";
+import { App } from "state.slint";
+import { SectionTitle } from "kit.slint";
+
+// One line of the page, built by tweaks.rs.
+export struct TweakRow {
+    // 0 heading, 1 the recommended set, 2 a tweak, 3 an app.
+    kind: int,
+    // Heading: the group ("clutter", "privacy", "games", "security",
+    // "apps"); tweak: its protocol name; app: its package name.
+    id: string,
+    // App: its English name, for the names Windows does not translate.
+    name: string,
+    // Tweak: applied; app: removed; recommended set: all applied.
+    applied: bool,
+    // Tweak: "" or why it cannot change ("tamper_protection", "locked",
+    // "no_game_folders", "not_supported").
+    unavailable: string,
+    // Tweak: changed, and only effective after a restart.
+    reboot-pending: bool,
+    // Tweak: lowers the protection; asks for confirmation.
+    security: bool,
+    // Defender exclusions: game folders; recommended set: tweaks left.
+    count: int,
+}
+
+export global Tweaks {
+    in property <[TweakRow]> rows;
+    // Row waiting for its outcome (a removal, a change), -1 when none.
+    in property <int> busy: -1;
+    // Last failure of an app removal, untranslated.
+    in property <string> error;
+    callback open();
+    // Applies (true) or reverts one tweak, by protocol name.
+    callback set(string, bool);
+    callback apply-recommended();
+    callback remove-app(string);
+    // Opens the app's Microsoft Store page.
+    callback reinstall-app(string);
+
+    public pure function label(row: TweakRow) -> string {
+        if row.kind == 1 {
+            return @tr("Apply the recommended settings");
+        }
+        if row.kind == 3 {
+            return root.app-name(row.id, row.name);
+        }
+        if row.kind == 0 {
+            return row.id == "clutter" ? @tr("Copilot and ads") : row.id == "privacy" ? @tr("Privacy") : row.id == "games" ? @tr("Games") : row.id == "security" ? @tr("Security") : @tr("Preinstalled apps");
+        }
+        row.id == "copilot_off" ? @tr("Copilot") : row.id == "widgets_off" ? @tr("Widgets") : row.id == "web_search_off" ? @tr("Web results in search") : row.id == "suggestions_off" ? @tr("Suggestions and ads") : row.id == "lock_screen_tips_off" ? @tr("Tips on the lock screen") : row.id == "tips_off" ? @tr("Tips and welcome screens") : row.id == "telemetry_min" ? @tr("Diagnostic data") : row.id == "background_apps_off" ? @tr("Store apps in the background") : row.id == "game_mode_on" ? @tr("Game Mode") : row.id == "gpu_scheduling_on" ? @tr("Hardware-accelerated GPU scheduling") : row.id == "windowed_optimizations_on" ? @tr("Optimizations for windowed games") : row.id == "defender_exclusions" ? @tr("Exclude game folders from Defender scans") : row.id == "defender_realtime_off" ? @tr("Defender real-time protection") : row.id == "memory_integrity_off" ? @tr("Memory integrity") : row.id
+    }
+
+    // Names Windows shows translated; the others are brands.
+    public pure function app-name(package: string, name: string) -> string {
+        package == "Microsoft.BingNews" ? @tr("News") : package == "Microsoft.BingWeather" ? @tr("Weather") : package == "Microsoft.GetHelp" ? @tr("Get Help") : package == "Microsoft.Getstarted" ? @tr("Tips") : package == "Microsoft.WindowsFeedbackHub" ? @tr("Feedback Hub") : package == "microsoft.windowscommunicationsapps" ? @tr("Mail and Calendar") : package == "Microsoft.People" ? @tr("People") : package == "Microsoft.WindowsMaps" ? @tr("Maps") : package == "Microsoft.MicrosoftStickyNotes" ? @tr("Sticky Notes") : package == "Microsoft.YourPhone" ? @tr("Phone Link") : package == "Microsoft.WindowsSoundRecorder" ? @tr("Sound Recorder") : package == "Microsoft.WindowsCalculator" ? @tr("Calculator") : package == "Microsoft.Windows.Photos" ? @tr("Photos") : package == "MicrosoftCorporationII.QuickAssist" ? @tr("Quick Assist") : package == "Microsoft.ZuneVideo" ? @tr("Movies & TV") : name
+    }
+
+    // The setting's state in Windows' own terms.
+    public pure function value(row: TweakRow) -> string {
+        if row.kind == 1 {
+            return row.applied ? @tr("All applied") : @tr("{} to apply", row.count);
+        }
+        if row.kind == 3 {
+            return row.applied ? @tr("Reinstall") : @tr("Remove");
+        }
+        if row.unavailable != "" {
+            return @tr("Unavailable");
+        }
+        if row.id == "telemetry_min" {
+            return row.applied ? @tr("Minimum") : @tr("Default");
+        }
+        // The *_off tweaks turn a feature off; the others turn one on.
+        (row.applied != (row.id == "copilot_off" || row.id == "widgets_off" || row.id == "web_search_off" || row.id == "suggestions_off" || row.id == "lock_screen_tips_off" || row.id == "tips_off" || row.id == "background_apps_off" || row.id == "defender_realtime_off" || row.id == "memory_integrity_off")) ? @tr("On") : @tr("Off")
+    }
+
+    // A consequence that is not obvious, "" when there is none.
+    public pure function note(row: TweakRow, armed: bool) -> string {
+        if row.kind == 0 {
+            return row.id == "apps" ? @tr("Removed for this account only; each one can be installed again from the Microsoft Store.") : "";
+        }
+        if row.kind == 1 {
+            return armed ? @tr("Also excludes the game folders from Defender scans.") : "";
+        }
+        if row.kind == 3 {
+            return armed ? @tr("Can be installed again from the Microsoft Store.") : "";
+        }
+        if row.unavailable == "tamper_protection" {
+            return @tr("Turn off Tamper Protection in Windows Security first.");
+        }
+        if row.unavailable == "locked" {
+            return @tr("Locked by the firmware or by a policy.");
+        }
+        if row.unavailable == "no_game_folders" {
+            return @tr("No game folder found.");
+        }
+        if row.unavailable != "" {
+            return @tr("Not supported on this system.");
+        }
+        if row.reboot-pending {
+            return @tr("Restart Windows to apply.");
+        }
+        row.id == "telemetry_min" ? @tr("Home and Pro editions keep the required level.") : row.id == "background_apps_off" ? @tr("Except Xbox, the Game Bar, the Store and Canapé's widget.") : row.id == "gpu_scheduling_on" ? @tr("Takes effect after a restart.") : row.id == "defender_exclusions" ? @tr("{} game folders", row.count) : row.id == "defender_realtime_off" ? @tr("Leaves the device without antivirus protection. Windows may turn it back on.") : row.id == "memory_integrity_off" ? @tr("Less protection against malicious drivers. Restart needed.") : ""
+    }
+}
+
+// A line: the label, its consequence below when there is one, the value
+// on the right.
+component TweakLine inherits Rectangle {
+    in property <string> label;
+    in property <string> note;
+    in property <string> value;
+    in property <bool> focused;
+    in property <bool> enabled: true;
+    // Waiting for a second A: the value and the note turn to warnings.
+    in property <bool> armed;
+    in property <bool> warn-note;
+    callback clicked();
+    border-radius: 10px;
+    background: root.focused ? Theme.surface : transparent;
+    opacity: root.enabled ? 1 : 0.4;
+    animate background { duration: 120ms; }
+
+    HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        spacing: 16px;
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 2px;
+            Text {
+                text: root.label;
+                color: Theme.text;
+                font-size: 16px;
+                font-weight: 500;
+                overflow: elide;
+            }
+
+            if root.note != "": Text {
+                text: root.note;
+                color: root.armed || root.warn-note ? Theme.warn : Theme.dim;
+                font-size: 13px;
+                overflow: elide;
+            }
+        }
+
+        Text {
+            text: root.armed ? @tr("Press A again") : root.value;
+            color: root.armed ? Theme.warn : root.focused ? Theme.accent-line : Theme.text.mix(Theme.dim, 0.6);
+            font-size: 16px;
+            font-weight: root.focused ? 600 : 500;
+            vertical-alignment: center;
+        }
+    }
+
+    if root.focused: Rectangle {
+        border-radius: 10px;
+        border-width: 2px;
+        border-color: root.armed ? Theme.warn : Theme.focus;
+    }
+
+    TouchArea {
+        z: -1;
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+export component TweaksPage inherits Rectangle {
+    in-out property <int> focus-row: 0;
+    // Row waiting for a second A, -1 when none.
+    in-out property <int> armed: -1;
+    property <bool> active: fs.has-focus;
+    property <length> pitch: 58px;
+    property <int> count: Tweaks.rows.length;
+    init => {
+        Tweaks.open();
+    }
+    changed focus-row => {
+        root.armed = -1;
+        // Keep the focused line in view, its heading too: the gamepad
+        // cannot scroll.
+        let top = (root.focus-row - (root.focus-row > 0 && Tweaks.rows[root.focus-row - 1].kind == 0 ? 1 : 0)) * root.pitch;
+        let y = root.focus-row * root.pitch;
+        if top + list.content-y < 0 {
+            list.content-y = -top;
+        }
+        if y + root.pitch + list.content-y > list.height {
+            // Whole lines only: no heading cut in half at the top.
+            list.content-y = -Math.ceil((y + root.pitch - list.height) / root.pitch) * root.pitch;
+        }
+    }
+
+    // Up (-1) or down (1), over the headings.
+    function move(d: int) {
+        let n = root.focus-row + d;
+        let m = n >= 0 && n < root.count && Tweaks.rows[n].kind == 0 ? n + d : n;
+        if m >= 0 && m < root.count && Tweaks.rows[m].kind != 0 {
+            root.focus-row = m;
+        }
+    }
+    function confirms(row: TweakRow) -> bool {
+        row.kind == 1 ? !row.applied : row.kind == 3 ? !row.applied : row.security && !row.applied
+    }
+    function activate() {
+        if root.focus-row >= root.count || Tweaks.busy >= 0 {
+            return;
+        }
+        let row = Tweaks.rows[root.focus-row];
+        if row.kind == 0 || (row.kind != 3 && !App.status.connected) || (row.kind == 2 && row.unavailable != "") || (row.kind == 1 && row.applied) {
+            return;
+        }
+        if root.confirms(row) && root.armed != root.focus-row {
+            root.armed = root.focus-row;
+            return;
+        }
+        root.armed = -1;
+        if row.kind == 1 {
+            Tweaks.apply-recommended();
+        } else if row.kind == 2 {
+            Tweaks.set(row.id, !row.applied);
+        } else if row.applied {
+            Tweaks.reinstall-app(row.id);
+        } else {
+            Tweaks.remove-app(row.id);
+        }
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        key-pressed(event) => {
+            if event.text == Key.UpArrow {
+                root.move(-1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.move(1);
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                root.activate();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    VerticalLayout {
+        x: 0;
+        width: 860px;
+        height: parent.height;
+        spacing: 2px;
+
+        SectionTitle {
+            height: 36px;
+            x: 16px;
+            text: @tr("Windows tweaks");
+        }
+
+        if Tweaks.error != "": Text {
+            x: 16px;
+            text: Tweaks.error;
+            color: Theme.warn;
+            font-size: 13px;
+            wrap: word-wrap;
+        }
+
+        list := Flickable {
+            vertical-stretch: 1;
+            content-height: root.count * root.pitch;
+            animate content-y { duration: 160ms; easing: ease-out; }
+            for row[i] in Tweaks.rows: Rectangle {
+                y: i * root.pitch;
+                width: list.width;
+                height: root.pitch - 4px;
+
+                if row.kind == 0: VerticalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-bottom: 4px;
+                    alignment: end;
+                    spacing: 2px;
+                    SectionTitle {
+                        text: Tweaks.label(row);
+                    }
+
+                    if Tweaks.note(row, false) != "": Text {
+                        text: Tweaks.note(row, false);
+                        color: Theme.dim;
+                        font-size: 13px;
+                        overflow: elide;
+                    }
+                }
+                if row.kind != 0: TweakLine {
+                    label: Tweaks.label(row);
+                    note: Tweaks.note(row, root.armed == i);
+                    value: Tweaks.busy == i ? "…" : Tweaks.value(row);
+                    focused: root.active && root.focus-row == i;
+                    enabled: row.kind == 3 || App.status.connected;
+                    armed: root.armed == i;
+                    warn-note: row.kind == 2 && row.security && row.id != "defender_exclusions" && (row.applied || root.armed == i);
+                    clicked => {
+                        root.focus-row = i;
+                        root.activate();
+                        fs.focus();
+                    }
+                }
+            }
+        }
+    }
+}

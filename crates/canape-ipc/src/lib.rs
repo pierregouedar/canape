@@ -24,6 +24,11 @@ use unix as sys;
 
 pub use sys::Listener;
 
+/// Package family name of the Game Bar widget, `Canape.Widget_<hash>`.
+pub fn widget_family_name() -> String {
+    acl::package_family_name(acl::WIDGET_PACKAGE_NAME, acl::WIDGET_PUBLISHER)
+}
+
 /// A bidirectional connection; both ends speak through it.
 pub struct Connection {
     reader: BufReader<sys::Stream>,
