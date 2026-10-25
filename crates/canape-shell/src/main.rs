@@ -23,6 +23,7 @@ mod hardware;
 mod history;
 mod i18n;
 mod instance;
+mod keys;
 mod library;
 mod link;
 #[cfg(any(windows, test))]
@@ -82,6 +83,7 @@ fn main() -> Result<(), slint::PlatformError> {
     }
 
     let ui = AppWindow::new()?;
+    keys::install(ui.window());
     if std::env::var_os("CANAPE_WINDOWED").is_none() {
         ui.window().set_fullscreen(true);
     }

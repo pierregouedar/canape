@@ -22,9 +22,6 @@ const POLL: Duration = Duration::from_millis(33);
 const IDLE: Duration = Duration::from_millis(250);
 /// Stick deflection that counts as a direction.
 const STICK_THRESHOLD: i32 = 20_000;
-/// Pad ignored when the shell first comes to the front, e.g. at boot while
-/// buttons are being pressed to get through the sign-in.
-const FIRST_QUIET: Duration = Duration::from_secs(1);
 
 /// State of the first connected pad.
 fn read_pad() -> Option<Pad> {
@@ -56,7 +53,7 @@ fn read_pad() -> Option<Pad> {
 pub fn spawn(ui: Weak<AppWindow>) {
     thread::spawn(move || {
         let mut nav = Navigator::default();
-        let mut first = true;
+        let mut first_front = None;
         let mut front = false;
         loop {
             if !crate::instance::is_foreground() {
@@ -68,14 +65,20 @@ pub fn spawn(ui: Weak<AppWindow>) {
             if !front {
                 front = true;
                 nav.reset();
-                let quiet = if first { FIRST_QUIET } else { Duration::ZERO };
-                nav.quiet(Instant::now() + quiet);
-                first = false;
+                let now = Instant::now();
+                let quiet = if first_front.is_none() {
+                    first_front = Some(now);
+                    crate::keys::FIRST_QUIET
+                } else {
+                    Duration::ZERO
+                };
+                nav.quiet(now + quiet);
             }
             match read_pad() {
                 Some(pad) => {
                     for key in nav.update(pad, Instant::now(), crate::library::arrow_navigation()) {
-                        press(&ui, key);
+                        let since = first_front.map_or(0, |t: Instant| t.elapsed().as_millis());
+                        press(&ui, key, since);
                     }
                     thread::sleep(POLL);
                 }
@@ -85,7 +88,13 @@ pub fn spawn(ui: Weak<AppWindow>) {
     });
 }
 
-fn press(ui: &Weak<AppWindow>, key: Key) {
+/// Sends `key`, `since` ms after the shell first came to the front.
+fn press(ui: &Weak<AppWindow>, key: Key, since: u128) {
+    if matches!(key, Key::Return | Key::Escape) {
+        crate::log(&format!(
+            "keys: pad {key:?} {since} ms after the first focus"
+        ));
+    }
     let text = SharedString::from(key);
     let _ = ui.upgrade_in_event_loop(move |ui| {
         let window = ui.window();
