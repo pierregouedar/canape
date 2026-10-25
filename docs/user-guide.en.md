@@ -315,7 +315,9 @@ Canapé asks for the list of the account last signed in to Steam on this device 
 3. Canapé opens Epic's sign-in page in the browser. Sign in (touch and the touch keyboard are needed): the page then shows a small JSON text with an `authorizationCode`. Copy the page (select all, copy) or just the code's value: Canapé watches the clipboard for 10 minutes, finds the code and signs Legendary in without a window. A again while waiting reads the clipboard at once, or opens the page again.
 4. An error (download, sign-in) shows in yellow under the Settings lines and in the Games page header. Once signed in, Canapé asks for the list of games again. The button then reads "Epic: <account> (sign in again)".
 
-Epic games that install through another store (Ubisoft, EA) are left out: Legendary cannot install them.
+Epic games that install through another store (Ubisoft, EA) are left out: Legendary cannot install them. So are add-ons Epic lists as products (a director's cut upgrade, for example).
+
+**Duplicates**: a store that lists one game twice (two Epic entries with the same title) shows it once, the copy with a cover. A game owned on two stores (Death Stranding on Steam and on Epic) stays on each store's shelf, but shows only once on **To install**: the Steam copy, else GOG, Epic, Xbox. A different game whose title starts the same (Death Stranding Director's Cut) is kept. Not yet tried on the Ally.
 
 **GOG: sign in once**
 

@@ -113,6 +113,9 @@ struct Metadata {
     key_images: Vec<KeyImage>,
     #[serde(default, rename = "customAttributes")]
     custom_attributes: HashMap<String, serde_json::Value>,
+    /// Set on DLC and add-ons: the game they belong to.
+    #[serde(default, rename = "mainGameItem")]
+    main_game_item: Option<serde_json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -217,7 +220,8 @@ pub fn catalog_ids(config: &Path, app: &str) -> Vec<String> {
 
 /// Games of a `legendary list --json` answer, as entries to install.
 /// Games installed through another store (Ubisoft, EA) are left out:
-/// Legendary cannot install them.
+/// Legendary cannot install them; so are add-ons (an upgrade to a
+/// director's cut, for example), which are not games of their own.
 pub fn parse_list(json: &[u8]) -> Option<Vec<Owned>> {
     let listed: Vec<Listed> = serde_json::from_slice(json).ok()?;
     Some(
@@ -226,7 +230,8 @@ pub fn parse_list(json: &[u8]) -> Option<Vec<Owned>> {
             .filter(|g| !g.app_title.is_empty())
             .filter(|g| {
                 g.metadata.as_ref().is_none_or(|m| {
-                    !m.custom_attributes.contains_key("ThirdPartyManagedApp")
+                    m.main_game_item.as_ref().is_none_or(|v| v.is_null())
+                        && !m.custom_attributes.contains_key("ThirdPartyManagedApp")
                         && !m
                             .custom_attributes
                             .contains_key("ThirdPartyManagedProvider")
@@ -349,7 +354,9 @@ mod tests {
                 "customAttributes": {}}},
             {"app_name": "Ubi", "app_title": "A Ubisoft game", "metadata": {
                 "customAttributes": {"ThirdPartyManagedApp": {"type": "STRING", "value": "Uplay"}}}},
-            {"app_name": "Bare", "app_title": "No metadata"}
+            {"app_name": "Bare", "app_title": "No metadata"},
+            {"app_name": "Upgrade", "app_title": "World of Goo Director's Cut Upgrade", "metadata": {
+                "mainGameItem": {"id": "item", "namespace": "ns"}}}
         ]"#;
         let owned = parse_list(json).unwrap();
         assert_eq!(owned.len(), 2);

@@ -315,7 +315,9 @@ Canapé demande la liste du compte connecté en dernier à Steam sur cet apparei
 3. Canapé ouvre la page de connexion d'Epic dans le navigateur. Connectez-vous (l'écran tactile et le clavier tactile sont nécessaires) : la page affiche ensuite un petit texte JSON avec un `authorizationCode`. Copiez cette page (tout sélectionner, copier) ou seulement la valeur du code : Canapé surveille le presse-papiers pendant 10 minutes, y trouve le code et connecte Legendary sans fenêtre. A de nouveau pendant l'attente relit le presse-papiers tout de suite, ou rouvre la page.
 4. Une erreur (téléchargement, connexion) s'affiche en jaune sous les lignes de Réglages et dans le bandeau de la page Jeux. Une fois connecté, Canapé redemande la liste des jeux. Le bouton affiche ensuite « Epic : <compte> (se reconnecter) ».
 
-Les jeux Epic qui s'installent par une autre boutique (Ubisoft, EA) sont écartés : Legendary ne sait pas les installer.
+Les jeux Epic qui s'installent par une autre boutique (Ubisoft, EA) sont écartés : Legendary ne sait pas les installer. De même les extensions qu'Epic liste comme des produits (la mise à niveau vers un director's cut, par exemple).
+
+**Doublons** : une boutique qui liste deux fois un même jeu (deux entrées Epic au même titre) ne le montre qu'une fois, l'exemplaire qui a une jaquette. Un jeu possédé sur deux boutiques (Death Stranding sur Steam et sur Epic) reste sur l'étagère de chaque boutique, mais n'apparaît qu'une fois dans **À installer** : l'exemplaire Steam, sinon GOG, Epic, Xbox. Un autre jeu dont le titre commence pareil (Death Stranding Director's Cut) est gardé. Pas encore essayé sur l'Ally.
 
 **GOG : se connecter une fois**
 

@@ -90,9 +90,11 @@ pub fn build(installed: &[Game], mut to_install: Vec<Game>) -> Vec<Shelf> {
         games: all,
     });
     shelves.extend(by_store);
+    // A game owned on two stores shows on each store's shelf, but once
+    // here: the store that comes first (Steam).
     shelves.push(Shelf {
         kind: Kind::ToInstall,
-        games: to_install,
+        games: canape_library::one_per_title(&to_install),
     });
     shelves
 }
@@ -193,6 +195,28 @@ mod tests {
         let alone = [game("other:1", Source::Other, None)];
         let kinds: Vec<Kind> = build(&alone, Vec::new()).iter().map(|s| s.kind).collect();
         assert_eq!(kinds, [Kind::Installed, Kind::ToInstall]);
+    }
+
+    #[test]
+    fn a_game_owned_twice_is_to_install_once() {
+        let mut epic = game("epic:ds", Source::Epic, None);
+        epic.title = "DEATH STRANDING".into();
+        let mut steam = game("steam:1190460", Source::Steam, None);
+        steam.title = "Death Stranding".into();
+        let shelves = build(&[], vec![epic, steam]);
+        let kinds: Vec<Kind> = shelves.iter().map(|s| s.kind).collect();
+        assert_eq!(
+            kinds,
+            [
+                Kind::Installed,
+                Kind::Store(Source::Steam),
+                Kind::Store(Source::Epic),
+                Kind::ToInstall
+            ]
+        );
+        assert_eq!(ids(&shelves[1]), ["steam:1190460"]);
+        assert_eq!(ids(&shelves[2]), ["epic:ds"]);
+        assert_eq!(ids(&shelves[3]), ["steam:1190460"]);
     }
 
     #[test]
