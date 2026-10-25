@@ -456,3 +456,15 @@ msgstr "Planken"
 
 msgid "Nothing to install"
 msgstr "Niets te installeren"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "{} h played"
+msgstr "{} u gespeeld"
+
+msgid "{} min played"
+msgstr "{} min gespeeld"
+
+msgid "{} GB"
+msgstr "{} GB"

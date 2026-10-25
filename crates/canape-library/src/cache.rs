@@ -112,6 +112,8 @@ mod tests {
                 cwd: r"C:\A".into(),
             },
             last_played: Some(7),
+            size: None,
+            playtime: None,
         }];
         save(&path, &games).unwrap();
         assert_eq!(load(&path), games);

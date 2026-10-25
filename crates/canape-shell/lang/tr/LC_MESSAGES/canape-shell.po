@@ -456,3 +456,15 @@ msgstr "Raflar"
 
 msgid "Nothing to install"
 msgstr "Yüklenecek oyun yok"
+
+msgid "Details"
+msgstr "Ayrıntılar"
+
+msgid "{} h played"
+msgstr "{} sa oynandı"
+
+msgid "{} min played"
+msgstr "{} dk oynandı"
+
+msgid "{} GB"
+msgstr "{} GB"

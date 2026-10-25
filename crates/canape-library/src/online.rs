@@ -299,6 +299,8 @@ mod tests {
             cover: None,
             launch: Launch::Uri { uri: String::new() },
             last_played: None,
+            size: None,
+            playtime: None,
         }
     }
 

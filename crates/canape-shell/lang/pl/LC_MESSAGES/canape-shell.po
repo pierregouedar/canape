@@ -456,3 +456,15 @@ msgstr "Półki"
 
 msgid "Nothing to install"
 msgstr "Nic do zainstalowania"
+
+msgid "Details"
+msgstr "Szczegóły"
+
+msgid "{} h played"
+msgstr "{} godz. gry"
+
+msgid "{} min played"
+msgstr "{} min gry"
+
+msgid "{} GB"
+msgstr "{} GB"

@@ -456,3 +456,15 @@ msgstr "Полки"
 
 msgid "Nothing to install"
 msgstr "Нечего устанавливать"
+
+msgid "Details"
+msgstr "Подробнее"
+
+msgid "{} h played"
+msgstr "{} ч в игре"
+
+msgid "{} min played"
+msgstr "{} мин в игре"
+
+msgid "{} GB"
+msgstr "{} ГБ"

@@ -35,7 +35,7 @@ use slint::{
 use crate::backdrop;
 use crate::grid;
 use crate::shelves::{self, Kind, Shelf};
-use crate::{AppWindow, GameView, Library, ShelfView};
+use crate::{AppWindow, DetailView, GameView, Library, ShelfView};
 
 /// How long "Launching…" shows: the game's window usually covers the shell
 /// before that.
@@ -155,6 +155,10 @@ struct State {
     backdrop: Option<(String, [u8; 3])>,
     /// The backdrop's second layer is in front.
     backdrop_b_front: bool,
+    /// The game whose page is open.
+    detail: Option<String>,
+    /// Releases the game page's images once it has faded out.
+    detail_timer: Timer,
     /// When the backdrop last changed colour.
     backdrop_at: Option<Instant>,
     /// The backdrop's shape for the window size it was drawn for.
@@ -498,6 +502,123 @@ impl State {
             self.backdrop_at = Some(Instant::now());
         }
         self.backdrop = Some((id, color));
+    }
+
+    /// Opens the page of the game `index` on the shelf in front: what is
+    /// known at once, then its large cover and wide art from a thread.
+    fn open_detail(&mut self, index: usize) {
+        let Some(game) = self
+            .shelves
+            .get(self.focus)
+            .and_then(|s| s.games.get(index))
+            .cloned()
+        else {
+            return;
+        };
+        let Some(ui) = self.ui.upgrade() else { return };
+        self.detail_timer.stop();
+        // Minutes played come from the owned list (Steam), for installed
+        // games too.
+        let minutes = game.playtime.or_else(|| {
+            self.owned
+                .iter()
+                .find(|g| g.id == game.id)
+                .and_then(|g| g.playtime)
+        });
+        let library = ui.global::<Library>();
+        library.set_detail_view(DetailView {
+            cover: Image::default(),
+            size_tenths: game.size.map_or(-1, |b| (b as f64 / 1e8).round() as i32),
+            minutes: minutes.map_or(-1, |m| m as i32),
+        });
+        library.set_detail_art(Image::default());
+        library.set_detail(true);
+        self.detail = Some(game.id.clone());
+
+        let scale = ui.window().scale_factor();
+        let width = ui.window().size().width.max(1);
+        let hero = match (&self.roots.steam, game.id.strip_prefix("steam:")) {
+            (Some(steam), Some(appid)) => appid
+                .parse()
+                .ok()
+                .and_then(|appid| canape_library::steam::hero(steam, appid)),
+            _ => None,
+        };
+        let cover = game.cover.clone();
+        let id = game.id;
+        thread::spawn(move || {
+            let (cw, ch) = ((240.0 * scale) as u32, (360.0 * scale) as u32);
+            let cover = cover.and_then(|path| {
+                canape_library::cover::load(&path, cw, ch)
+                    .map_err(|err| crate::log(&format!("library: cover {}: {err}", path.display())))
+                    .ok()
+                    .map(|rgb| {
+                        (
+                            canape_library::cover::rounded(&rgb, 12.0 * scale),
+                            rgb.width,
+                            rgb.height,
+                        )
+                    })
+            });
+            // Steam's art is about 3.1 times as wide as high.
+            let art = hero.and_then(|path| {
+                canape_library::cover::load(&path, width, (width as f32 / 3.1) as u32)
+                    .map_err(|err| crate::log(&format!("library: art {}: {err}", path.display())))
+                    .ok()
+                    .map(|mut rgb| {
+                        backdrop::fade_art(&mut rgb.pixels, rgb.width, BACKGROUND);
+                        rgb
+                    })
+            });
+            let _ = slint::invoke_from_event_loop(move || {
+                with_state(|state| {
+                    if state.detail.as_deref() != Some(id.as_str()) {
+                        return;
+                    }
+                    let Some(ui) = state.ui.upgrade() else { return };
+                    let library = ui.global::<Library>();
+                    if let Some((rgba, w, h)) = cover {
+                        let mut view = library.get_detail_view();
+                        view.cover = Image::from_rgba8(
+                            SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(&rgba, w, h),
+                        );
+                        library.set_detail_view(view);
+                    }
+                    if let Some(rgb) = art {
+                        library.set_detail_art(Image::from_rgb8(
+                            SharedPixelBuffer::<Rgb8Pixel>::clone_from_slice(
+                                &rgb.pixels,
+                                rgb.width,
+                                rgb.height,
+                            ),
+                        ));
+                    }
+                });
+            });
+        });
+    }
+
+    /// Back to the shelf; the page's images go once it has faded out.
+    fn close_detail(&mut self) {
+        self.detail = None;
+        let Some(ui) = self.ui.upgrade() else { return };
+        ui.global::<Library>().set_detail(false);
+        let ui = ui.as_weak();
+        self.detail_timer.start(
+            TimerMode::SingleShot,
+            Duration::from_millis(400),
+            move || {
+                if let Some(ui) = ui.upgrade() {
+                    let library = ui.global::<Library>();
+                    if !library.get_detail() {
+                        library.set_detail_art(Image::default());
+                        let mut view = library.get_detail_view();
+                        view.cover = Image::default();
+                        library.set_detail_view(view);
+                    }
+                }
+            },
+        );
     }
 
     fn cover_ready(&mut self, id: &str, image: Image, tint: [u8; 3]) {
@@ -1098,6 +1219,8 @@ pub fn start(ui: &AppWindow) {
         backdrop_b_front: false,
         backdrop_mask: None,
         backdrop_at: None,
+        detail: None,
+        detail_timer: Timer::default(),
     };
     state.rebuild(None);
     state.scan();
@@ -1156,6 +1279,12 @@ pub fn start(ui: &AppWindow) {
         }
     });
     library.on_epic_login(epic_login);
+    library.on_open_detail(|index| {
+        if let Ok(index) = usize::try_from(index) {
+            with_state(|state| state.open_detail(index));
+        }
+    });
+    library.on_close_detail(|| with_state(State::close_detail));
     library.on_focus_changed(|focused| LIBRARY_FOCUSED.store(focused, Ordering::Relaxed));
     library.on_shown(|shown| {
         set_shown(shown);

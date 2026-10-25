@@ -99,6 +99,12 @@ pub struct Game {
     /// Unix seconds, from the store or from Canapé's own launches.
     #[serde(default)]
     pub last_played: Option<u64>,
+    /// Bytes on disk, from the store's install manifest.
+    #[serde(default)]
+    pub size: Option<u64>,
+    /// Minutes played, from the store's account data (Steam).
+    #[serde(default)]
+    pub playtime: Option<u32>,
 }
 
 /// Where to look for games.
@@ -349,6 +355,8 @@ mod tests {
             cover: None,
             launch: Launch::Uri { uri: id.into() },
             last_played,
+            size: None,
+            playtime: None,
         }
     }
 

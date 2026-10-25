@@ -456,3 +456,15 @@ msgstr "선반"
 
 msgid "Nothing to install"
 msgstr "설치할 게임 없음"
+
+msgid "Details"
+msgstr "상세 정보"
+
+msgid "{} h played"
+msgstr "{}시간 플레이"
+
+msgid "{} min played"
+msgstr "{}분 플레이"
+
+msgid "{} GB"
+msgstr "{} GB"

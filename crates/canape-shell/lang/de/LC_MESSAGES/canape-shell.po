@@ -456,3 +456,15 @@ msgstr "Regale"
 
 msgid "Nothing to install"
 msgstr "Nichts zu installieren"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "{} h played"
+msgstr "{} Std. gespielt"
+
+msgid "{} min played"
+msgstr "{} Min. gespielt"
+
+msgid "{} GB"
+msgstr "{} GB"

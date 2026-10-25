@@ -456,3 +456,15 @@ msgstr "货架"
 
 msgid "Nothing to install"
 msgstr "没有待安装的游戏"
+
+msgid "Details"
+msgstr "详情"
+
+msgid "{} h played"
+msgstr "已玩 {} 小时"
+
+msgid "{} min played"
+msgstr "已玩 {} 分钟"
+
+msgid "{} GB"
+msgstr "{} GB"

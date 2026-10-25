@@ -456,3 +456,15 @@ msgstr "Scaffali"
 
 msgid "Nothing to install"
 msgstr "Niente da installare"
+
+msgid "Details"
+msgstr "Dettagli"
+
+msgid "{} h played"
+msgstr "{} h di gioco"
+
+msgid "{} min played"
+msgstr "{} min di gioco"
+
+msgid "{} GB"
+msgstr "{} GB"

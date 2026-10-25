@@ -30,6 +30,8 @@ struct Installed {
     install_path: String,
     #[serde(default)]
     is_dlc: bool,
+    #[serde(default)]
+    install_size: u64,
 }
 
 /// Games listed in an `installed.json`, launched through `exe`.
@@ -51,6 +53,8 @@ pub fn parse_installed(json: &str, exe: &Path) -> Vec<Game> {
                 cwd: PathBuf::from(g.install_path),
             },
             last_played: None,
+            size: Some(g.install_size).filter(|&s| s > 0),
+            playtime: None,
         })
         .collect();
     games.sort_by(|a, b| a.id.cmp(&b.id));
@@ -131,6 +135,8 @@ pub fn parse_list(json: &[u8]) -> Option<Vec<Owned>> {
                             install: Install::Epic { app: g.app_name },
                         },
                         last_played: None,
+                        size: None,
+                        playtime: None,
                     },
                     art_url,
                 }

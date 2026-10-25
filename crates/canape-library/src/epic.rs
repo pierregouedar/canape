@@ -29,6 +29,7 @@ struct Item {
     app_categories: Vec<String>,
     #[serde(rename = "bIsIncompleteInstall")]
     is_incomplete_install: bool,
+    install_size: u64,
 }
 
 /// A game from one manifest, if it is a complete game install.
@@ -66,6 +67,8 @@ pub fn parse_item(text: &str) -> Option<Game> {
             ),
         },
         last_played: None,
+        size: Some(item.install_size).filter(|&s| s > 0),
+        playtime: None,
     })
 }
 

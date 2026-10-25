@@ -456,3 +456,15 @@ msgstr "Estantes"
 
 msgid "Nothing to install"
 msgstr "Nada que instalar"
+
+msgid "Details"
+msgstr "Detalles"
+
+msgid "{} h played"
+msgstr "{} h jugadas"
+
+msgid "{} min played"
+msgstr "{} min jugados"
+
+msgid "{} GB"
+msgstr "{} GB"

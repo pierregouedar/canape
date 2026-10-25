@@ -456,3 +456,15 @@ msgstr "Étagères"
 
 msgid "Nothing to install"
 msgstr "Rien à installer"
+
+msgid "Details"
+msgstr "Détails"
+
+msgid "{} h played"
+msgstr "{} h de jeu"
+
+msgid "{} min played"
+msgstr "{} min de jeu"
+
+msgid "{} GB"
+msgstr "{} Go"

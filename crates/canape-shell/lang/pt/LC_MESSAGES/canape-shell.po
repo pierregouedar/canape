@@ -456,3 +456,15 @@ msgstr "Prateleiras"
 
 msgid "Nothing to install"
 msgstr "Nada para instalar"
+
+msgid "Details"
+msgstr "Detalhes"
+
+msgid "{} h played"
+msgstr "{} h jogadas"
+
+msgid "{} min played"
+msgstr "{} min jogados"
+
+msgid "{} GB"
+msgstr "{} GB"
