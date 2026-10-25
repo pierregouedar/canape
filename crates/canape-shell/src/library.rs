@@ -46,6 +46,8 @@ const BACKGROUND: [u8; 3] = [0x0b, 0x0c, 0x0f];
 const COVER_RADIUS: f32 = 10.0;
 /// Coming back to the page rescans if the last scan is older than this.
 const RESCAN_AFTER: Duration = Duration::from_secs(60);
+/// How long the selection rests before the backdrop takes its colour.
+const BACKDROP_DELAY: Duration = Duration::from_millis(150);
 /// How long an install or store error stays in the header.
 const ERROR_SHOWN: Duration = Duration::from_secs(10);
 /// The owned lists are asked for again after this.
@@ -101,6 +103,11 @@ struct State {
     shelf_model: Rc<VecModel<ShelfView>>,
     /// Selected game on each shelf.
     picks: Vec<usize>,
+    /// First game in view on each shelf (library.slint scrolls a shelf
+    /// only when its selection reaches an edge).
+    firsts: Vec<usize>,
+    /// Shows the selected game's colour once the selection rests.
+    backdrop_timer: Timer,
     /// The shelf in front.
     focus: usize,
     recent: Recent,
@@ -242,6 +249,7 @@ impl State {
                 store: shelf.kind.store().into(),
                 games: ModelRc::from(model.clone()),
                 selected: pick as i32,
+                first: pick.saturating_sub(1) as i32,
             });
         }
 
@@ -260,15 +268,17 @@ impl State {
         {
             picks[focus] = i;
             rows[focus].selected = i as i32;
+            rows[focus].first = i.saturating_sub(1) as i32;
         }
 
         let rows_changed = !same_kinds
             || rows.iter().enumerate().any(|(i, r)| {
                 self.shelf_model
                     .row_data(i)
-                    .is_none_or(|old| old.selected != r.selected)
+                    .is_none_or(|old| old.selected != r.selected || old.first != r.first)
             });
         self.shelves = shelves;
+        self.firsts = rows.iter().map(|r| r.first as usize).collect();
         self.picks = picks;
         self.focus = focus;
         if !same_kinds {
@@ -282,6 +292,7 @@ impl State {
             let library = ui.global::<Library>();
             library.set_total(self.all.len() as i32);
             library.set_shelf(self.focus as i32);
+            library.set_first(self.firsts[self.focus] as i32);
             library.set_selected(self.picks[self.focus] as i32);
         }
         self.refresh_covers();
@@ -320,31 +331,46 @@ impl State {
         // The shelf left behind shows where it was.
         let old = self.focus;
         if let Some(mut row) = self.shelf_model.row_data(old)
-            && row.selected != self.picks[old] as i32
+            && (row.selected, row.first) != (self.picks[old] as i32, self.firsts[old] as i32)
         {
             row.selected = self.picks[old] as i32;
+            row.first = self.firsts[old] as i32;
             self.shelf_model.set_row_data(old, row);
         }
         self.focus = index;
         if let Some(ui) = self.ui.upgrade() {
             let library = ui.global::<Library>();
             library.set_shelf(index as i32);
+            library.set_first(self.firsts[index] as i32);
             library.set_selected(self.picks[index] as i32);
         }
         if self.shelves[index].kind == Kind::ToInstall {
             self.refresh_owned(false);
         }
         self.refresh_covers();
-        self.show_backdrop();
+        self.backdrop_later();
     }
 
-    /// The game `index` of the shelf in front was selected.
-    fn select(&mut self, index: usize) {
+    /// The game `index` of the shelf in front was selected; `first` is the
+    /// first game in view.
+    fn select(&mut self, index: usize, first: usize) {
         if let Some(pick) = self.picks.get_mut(self.focus) {
             *pick = index;
         }
+        if let Some(f) = self.firsts.get_mut(self.focus) {
+            *f = first;
+        }
         self.refresh_covers();
-        self.show_backdrop();
+        self.backdrop_later();
+    }
+
+    /// Changes the backdrop once the selection rests: its crossfade
+    /// redraws most of the window, too much on every step of a fast scroll.
+    fn backdrop_later(&mut self) {
+        self.backdrop_timer
+            .start(TimerMode::SingleShot, BACKDROP_DELAY, || {
+                with_state(State::show_backdrop)
+            });
     }
 
     /// Queues the covers around the selection of the shelf in front and of
@@ -356,10 +382,8 @@ impl State {
         let near = self.focus.saturating_sub(1)..(self.focus + 2).min(self.shelves.len());
         for s in near {
             let games = &self.shelves[s].games;
-            // As library.slint scrolls: two covers before the selected one.
-            let first = self.picks[s]
-                .saturating_sub(2)
-                .min(games.len().saturating_sub(view.visible.saturating_sub(1)));
+            let first =
+                self.firsts[s].min(games.len().saturating_sub(view.visible.saturating_sub(1)));
             let rows = grid::wanted_rows(first, view.visible, games.len());
             for g in &games[grid::kept_rows(&rows, games.len())] {
                 kept.insert(&g.id);
@@ -1024,6 +1048,8 @@ pub fn start(ui: &AppWindow) {
         models: Vec::new(),
         shelf_model,
         picks: Vec::new(),
+        firsts: Vec::new(),
+        backdrop_timer: Timer::default(),
         focus: 0,
         recent,
         view: None,
@@ -1100,9 +1126,9 @@ pub fn start(ui: &AppWindow) {
             with_state(|state| state.launch(index));
         }
     });
-    library.on_select(|index| {
-        if let Ok(index) = usize::try_from(index) {
-            with_state(|state| state.select(index));
+    library.on_select(|index, first| {
+        if let (Ok(index), Ok(first)) = (usize::try_from(index), usize::try_from(first)) {
+            with_state(|state| state.select(index, first));
         }
     });
     library.on_focus_shelf(|index| {

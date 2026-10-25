@@ -47,8 +47,14 @@ if ($BinariesDir) {
     # which splatting then passes character by character.
     $cargoProfile = @()
     if ($BuildProfile -eq "release") { $cargoProfile += "--release" }
-    cargo build @cargoProfile -p canape-shell -p canape-service -p canape-ctl --manifest-path "$repo\Cargo.toml"
-    if ($LASTEXITCODE -ne 0) { throw "cargo build failed" }
+    # Cargo reports progress on stderr. With the output redirected,
+    # PowerShell 5.1 turns each of those lines into an error, which "Stop"
+    # would make fatal: only the exit code tells a failed build.
+    $ErrorActionPreference = "Continue"
+    cargo build @cargoProfile -p canape-shell -p canape-service -p canape-ctl --manifest-path "$repo\Cargo.toml" 2>&1 | ForEach-Object { "$_" }
+    $built = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
+    if ($built -ne 0) { throw "cargo build failed" }
     $binaries = "$repo\target\$BuildProfile"
 }
 

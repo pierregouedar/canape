@@ -173,7 +173,7 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 | **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N** | Each store's games, with its logo, installed and to install mixed in alphabetical order. Only stores that have games (a lone store with nothing to install gets no shelf: it would repeat Installed). |
 | **To install · N** | Always last: the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)). Empty, it explains how to set up Steam and Epic. |
 
-**Moving around**: left and right move along the shelf, which scrolls to keep two games visible before the selection. Up and down go to the previous or next shelf: it slides to the top, the next one peeks in at the bottom, dimmed. Each shelf remembers its selected game when you leave it. On To install, the header describes the game to install and the button becomes **Install**. **A** launches the selected game; Canapé shows "Launching…" for a few seconds, then puts the game first on Recent, which comes back to the front.
+**Moving around**: left and right move along the shelf; it only scrolls when the selection reaches an edge, keeping one game visible beside it. The backdrop takes the selected game's colour once you stop on it. Up and down go to the previous or next shelf: it slides to the top, the next one peeks in at the bottom, dimmed. Each shelf remembers its selected game when you leave it. On To install, the header describes the game to install and the button becomes **Install**. **A** launches the selected game; Canapé shows "Launching…" for a few seconds, then puts the game first on Recent, which comes back to the front.
 
 **Where the games come from**
 

@@ -34,16 +34,18 @@ export struct ShelfView {
     // The store of a store's shelf (see GameView.source), "" otherwise.
     store: string,
     games: [GameView],
-    // Selected game while the shelf is not in front.
+    // Selected game and first game in view while the shelf is not in front.
     selected: int,
+    first: int,
 }
 
 export global Library {
     // Top to bottom.
     in property <[ShelfView]> shelves;
-    // The shelf in front, and its selected game.
+    // The shelf in front, its selected game and its first game in view.
     in property <int> shelf;
     in-out property <int> selected;
+    in-out property <int> first;
     // Every installed game.
     in property <int> total;
     in property <bool> scanning;
@@ -79,8 +81,9 @@ export global Library {
     callback focus-shelf(int);
     callback epic-login();
     callback launch(int);
-    // The game at this index of the shelf in front was selected.
-    callback select(int);
+    // The game at this index of the shelf in front was selected, with the
+    // first game in view.
+    callback select(int, int);
     // A shelf shows this many covers across, of this size in physical
     // pixels.
     callback view(int, float, float);
@@ -279,9 +282,18 @@ export component LibraryPage inherits Rectangle {
     property <length> hero-from: 0;
     // A was just pressed: the button shows it for a moment.
     property <bool> pressed;
+    // Covers fully in view across a shelf.
+    property <int> in-view: Math.floor((root.width + 48px) / root.pitch);
     changed sel => {
         Library.armed = "";
-        Library.select(self.sel);
+        // The shelf only scrolls when the selection reaches an edge, keeping
+        // one game beside it: a step then redraws two covers, not the row.
+        if self.sel < Library.first + 1 {
+            Library.first = max(0, self.sel - 1);
+        } else if self.sel > Library.first + root.in-view - 2 {
+            Library.first = self.sel - root.in-view + 2;
+        }
+        Library.select(self.sel, Library.first);
     }
 
     function report() {
@@ -309,7 +321,7 @@ export component LibraryPage inherits Rectangle {
     }
     init => {
         self.report();
-        Library.select(Library.selected);
+        Library.select(Library.selected, Library.first);
     }
     changed width => {
         self.report();
@@ -445,13 +457,13 @@ export component LibraryPage inherits Rectangle {
             width: parent.width - root.margin;
             y: -Library.shelf * root.shelf-pitch;
             height: Library.shelves.length * root.shelf-pitch;
-            animate y { duration: 280ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+            animate y { duration: 200ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
 
             for shelf[si] in Library.shelves: Rectangle {
                 property <bool> in-front: si == Library.shelf;
                 property <int> pick: self.in-front ? Library.selected : shelf.selected;
-                // Two games stay visible before the selected one.
-                property <length> scroll: max(0, min((self.pick - 2) * root.pitch, shelf.games.length * root.pitch + 12px - root.width));
+                property <int> first: self.in-front ? Library.first : shelf.first;
+                property <length> scroll: max(0, min(self.first * root.pitch, shelf.games.length * root.pitch + 12px - root.width));
                 y: si * root.shelf-pitch;
                 height: root.shelf-pitch;
                 // Only the shelves around the one in front are drawn.
@@ -474,7 +486,8 @@ export component LibraryPage inherits Rectangle {
                 }
 
                 for game[i] in shelf.games: Cover {
-                    x: i * root.pitch + (parent.in-front && i > parent.pick ? 12px : 0) - parent.scroll;
+                    // The selected cover grows on its own spot.
+                    x: i * root.pitch - parent.scroll - (self.selected ? 6px : 0);
                     y: 46px + 200px - self.height - 8px;
                     game: game;
                     selected: parent.in-front && i == parent.pick;
@@ -495,10 +508,11 @@ export component LibraryPage inherits Rectangle {
                     }
                 }
 
-                // The shelves behind the one in front are dimmed.
+                // The shelves behind the one in front are dimmed. Ends with
+                // the covers: the shelf above would show a band of it.
                 Rectangle {
                     y: 40px;
-                    height: 210px;
+                    height: 46px + 200px - 8px - 40px;
                     background: Theme.background.with-alpha(parent.in-front ? 0 : 0.45);
                     animate background { duration: 220ms; }
                 }
