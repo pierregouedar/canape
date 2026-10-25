@@ -284,10 +284,14 @@ impl State {
     /// shelf. Unchanged shelves keep their models, so their covers stay.
     fn rebuild(&mut self, keep: Option<(Kind, String)>) {
         let keep = keep.or_else(|| self.current());
+        // A shelf still on its first game stays on its first game: games
+        // arriving later (the owned list before the scan) do not leave the
+        // selection in the middle.
         let previous: HashMap<Kind, String> = self
             .shelves
             .iter()
             .zip(&self.picks)
+            .filter(|(_, i)| **i > 0)
             .filter_map(|(shelf, &i)| {
                 shelf
                     .games
