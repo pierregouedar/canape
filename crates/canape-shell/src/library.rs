@@ -49,6 +49,8 @@ const RESCAN_AFTER: Duration = Duration::from_secs(60);
 /// A backdrop change this soon after the last one is part of browsing: it
 /// switches at once instead of crossfading.
 const BACKDROP_FADE_AFTER: Duration = Duration::from_millis(800);
+/// A program that comes to the front this soon after a launch is the game.
+const LEARN_WITHIN: Duration = Duration::from_secs(120);
 /// How long the selection rests before the backdrop takes its colour.
 const BACKDROP_DELAY: Duration = Duration::from_millis(150);
 /// How long an install or store error stays in the header.
@@ -155,6 +157,9 @@ struct State {
     backdrop: Option<(String, [u8; 3])>,
     /// The backdrop's second layer is in front.
     backdrop_b_front: bool,
+    /// A game just launched, waiting to come to the front: the program
+    /// that does is that game's executable.
+    awaiting: Option<(String, Instant)>,
     /// The game whose page is open.
     detail: Option<String>,
     /// Releases the game page's images once it has faded out.
@@ -530,6 +535,13 @@ impl State {
             cover: Image::default(),
             size_tenths: game.size.map_or(-1, |b| (b as f64 / 1e8).round() as i32),
             minutes: minutes.map_or(-1, |m| m as i32),
+            exe: self
+                .recent
+                .exes
+                .get(&game.id)
+                .cloned()
+                .unwrap_or_default()
+                .into(),
         });
         library.set_detail_art(Image::default());
         library.set_detail(true);
@@ -596,6 +608,29 @@ impl State {
                 });
             });
         });
+    }
+
+    /// `exe` came to the front: right after a launch, it is the game's.
+    fn learn_exe(&mut self, exe: &str) {
+        let Some((id, at)) = self.awaiting.take() else {
+            return;
+        };
+        if at.elapsed() > LEARN_WITHIN {
+            return;
+        }
+        // The store's client first, then the game: keep waiting.
+        if canape_library::is_store_program(exe) {
+            self.awaiting = Some((id, at));
+            return;
+        }
+        if self.recent.exes.get(&id).map(String::as_str) == Some(exe) {
+            return;
+        }
+        crate::log(&format!("library: {id} runs as {exe}"));
+        self.recent.learn(&id, exe);
+        if let Err(err) = self.recent.save(&self.recent_path) {
+            crate::log(&format!("library: saving recent launches: {err}"));
+        }
     }
 
     /// Back to the shelf; the page's images go once it has faded out.
@@ -704,6 +739,7 @@ impl State {
         library.set_launching(game.id.as_str().into());
         library.set_failed("".into());
         self.recent.record(&game.id, canape_library::now());
+        self.awaiting = Some((game.id.clone(), Instant::now()));
         if let Err(err) = self.recent.save(&self.recent_path) {
             crate::log(&format!("library: saving recent launches: {err}"));
         }
@@ -1194,6 +1230,13 @@ fn spawn_decoder(wanted: Arc<Mutex<HashSet<String>>>) -> Sender<Job> {
     tx
 }
 
+/// The game in front changed (see foreground.rs).
+#[cfg_attr(not(windows), allow(dead_code))]
+pub fn foreground_seen(exe: Option<String>) {
+    let Some(exe) = exe else { return };
+    let _ = slint::invoke_from_event_loop(move || with_state(|state| state.learn_exe(&exe)));
+}
+
 /// Tells whether the library page is the one shown.
 pub fn set_shown(shown: bool) {
     LIBRARY_SHOWN.store(shown, Ordering::Relaxed);
@@ -1261,6 +1304,7 @@ pub fn start(ui: &AppWindow) {
         backdrop_at: None,
         detail: None,
         detail_timer: Timer::default(),
+        awaiting: None,
     };
     state.rebuild(None);
     state.scan();

@@ -191,6 +191,7 @@ mod windows {
                 let alive = game.as_ref().is_some_and(Process::alive);
                 let program = matches!(&seen, Seen::Program(exe) if !super::is_host(exe));
                 if let Some(exe) = tracker.update(seen, alive) {
+                    crate::library::foreground_seen(exe.clone());
                     link.set_foreground(exe);
                 }
                 if program {

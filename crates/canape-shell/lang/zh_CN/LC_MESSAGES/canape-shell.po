@@ -462,3 +462,6 @@ msgstr "已玩 {} 分钟"
 
 msgid "{} GB"
 msgstr "{} GB"
+
+msgid "This game's profile"
+msgstr "此游戏的配置"

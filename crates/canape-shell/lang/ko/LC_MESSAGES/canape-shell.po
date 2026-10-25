@@ -462,3 +462,6 @@ msgstr "{}분 플레이"
 
 msgid "{} GB"
 msgstr "{} GB"
+
+msgid "This game's profile"
+msgstr "이 게임의 프로필"

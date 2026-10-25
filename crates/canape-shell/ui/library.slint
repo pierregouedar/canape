@@ -48,6 +48,9 @@ export struct DetailView {
     size-tenths: int,
     // Minutes played, -1 when unknown.
     minutes: int,
+    // The game's executable, once seen after a launch from Canapé; its
+    // profile, if any, shows on the page. "" when not known yet.
+    exe: string,
 }
 
 export global Library {
@@ -414,6 +417,38 @@ component GamePage inherits Rectangle {
                     font-size: 14px;
                     overflow: elide;
                 }
+            }
+        }
+    }
+
+    // The game's profile, once its executable is known and has one: every
+    // profile is laid at the same place, only the matching one shows.
+    for profile in App.profiles: Rectangle {
+        x: 280px;
+        y: 96px + 360px + 32px;
+        width: min(560px, root.width - 280px);
+        height: 64px;
+        border-radius: 12px;
+        background: Theme.surface.with-alpha(0.85);
+        visible: root.view.exe != "" && profile.exe.to-lowercase() == root.view.exe.to-lowercase();
+
+        VerticalLayout {
+            padding-left: 16px;
+            padding-right: 16px;
+            alignment: center;
+            spacing: 4px;
+            Text {
+                text: @tr("This game's profile");
+                color: Theme.dim;
+                font-size: 13px;
+            }
+
+            Text {
+                text: (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "");
+                color: Theme.text;
+                font-size: 16px;
+                font-weight: 600;
+                overflow: elide;
             }
         }
     }

@@ -198,6 +198,30 @@ pub fn scan(roots: &Roots) -> Vec<Game> {
     games
 }
 
+/// Programs of the stores themselves (clients, launchers, their helpers):
+/// what comes to the front after a launch, before the game, and is never
+/// the game.
+pub fn is_store_program(exe: &str) -> bool {
+    const STORE: &[&str] = &[
+        "steam.exe",
+        "steamwebhelper.exe",
+        "steamservice.exe",
+        "epicgameslauncher.exe",
+        "epicwebhelper.exe",
+        "legendary.exe",
+        "galaxyclient.exe",
+        "galaxyclient helper.exe",
+        "gamingservices.exe",
+        "xboxpcapp.exe",
+        "eadesktop.exe",
+        "upc.exe",
+        "battle.net.exe",
+        "unitycrashhandler64.exe",
+        "crashreportclient.exe",
+    ];
+    STORE.iter().any(|s| s.eq_ignore_ascii_case(exe))
+}
+
 /// Folds a title for comparison: `DOOM Eternal™` and `Doom Eternal` match.
 pub(crate) fn title_key(title: &str) -> String {
     title
@@ -367,6 +391,13 @@ mod tests {
             size: None,
             playtime: None,
         }
+    }
+
+    #[test]
+    fn store_programs_are_not_games() {
+        assert!(is_store_program("steam.exe"));
+        assert!(is_store_program("EpicGamesLauncher.exe"));
+        assert!(!is_store_program("Among Us.exe"));
     }
 
     fn ids(games: &[Game]) -> Vec<&str> {

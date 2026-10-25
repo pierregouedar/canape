@@ -462,3 +462,6 @@ msgstr "{} dk oynandı"
 
 msgid "{} GB"
 msgstr "{} GB"
+
+msgid "This game's profile"
+msgstr "Bu oyunun profili"
