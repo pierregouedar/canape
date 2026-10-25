@@ -16,6 +16,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 pub mod achievements;
+pub mod appinfo;
 pub mod cache;
 pub mod cover;
 pub mod disk;
@@ -33,6 +34,7 @@ pub mod online;
 mod sha256;
 pub mod shortcut;
 pub mod steam;
+pub mod steam_queue;
 pub mod tools;
 pub mod vdf;
 #[cfg(windows)]
