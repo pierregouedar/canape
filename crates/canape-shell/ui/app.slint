@@ -149,7 +149,7 @@ export component AppWindow inherits Window {
             animate opacity { duration: 220ms; }
 
             Image {
-                x: 0;
+                x: Library.backdrop-x * 1phx;
                 y: 0;
                 width: self.source.width * 1phx;
                 height: self.source.height * 1phx;
@@ -157,14 +157,14 @@ export component AppWindow inherits Window {
             }
 
             Image {
-                x: 0;
+                x: Library.backdrop-x * 1phx;
                 y: 0;
                 width: self.source.width * 1phx;
                 height: self.source.height * 1phx;
                 source: Library.backdrop-b;
                 opacity: Library.backdrop-b-front ? 1 : 0;
                 visible: self.opacity > 0;
-                animate opacity { duration: 320ms; easing: ease-in-out; }
+                animate opacity { duration: 240ms; easing: ease-in-out; }
             }
         }
 

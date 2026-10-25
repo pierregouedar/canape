@@ -46,6 +46,9 @@ const BACKGROUND: [u8; 3] = [0x0b, 0x0c, 0x0f];
 const COVER_RADIUS: f32 = 10.0;
 /// Coming back to the page rescans if the last scan is older than this.
 const RESCAN_AFTER: Duration = Duration::from_secs(60);
+/// A backdrop change this soon after the last one is part of browsing: it
+/// switches at once instead of crossfading.
+const BACKDROP_FADE_AFTER: Duration = Duration::from_millis(800);
 /// How long the selection rests before the backdrop takes its colour.
 const BACKDROP_DELAY: Duration = Duration::from_millis(150);
 /// How long an install or store error stays in the header.
@@ -152,6 +155,8 @@ struct State {
     backdrop: Option<(String, [u8; 3])>,
     /// The backdrop's second layer is in front.
     backdrop_b_front: bool,
+    /// When the backdrop last changed colour.
+    backdrop_at: Option<Instant>,
     /// The backdrop's shape for the window size it was drawn for.
     backdrop_mask: Option<(u32, u32, backdrop::Mask)>,
 }
@@ -466,10 +471,22 @@ impl State {
                 SharedPixelBuffer::<Rgb8Pixel>::clone_from_slice(&pixels, mask.width, mask.height);
             let image = Image::from_rgb8(buffer);
             let library = ui.global::<Library>();
-            // The first colour shows at once; later ones fade in over it.
+            library.set_backdrop_x(mask.x as i32);
+            // The first colour shows at once, and so does each colour while
+            // browsing: a crossfade redraws most of the window on every
+            // frame. After a pause, the new colour fades in over the last.
+            let browsing = self
+                .backdrop_at
+                .is_some_and(|at| at.elapsed() < BACKDROP_FADE_AFTER);
             if self.backdrop.is_none() {
                 library.set_backdrop_a(image.clone());
                 library.set_backdrop_b(image);
+            } else if browsing {
+                if self.backdrop_b_front {
+                    library.set_backdrop_b(image);
+                } else {
+                    library.set_backdrop_a(image);
+                }
             } else if self.backdrop_b_front {
                 library.set_backdrop_a(image);
                 library.set_backdrop_b_front(false);
@@ -478,6 +495,7 @@ impl State {
                 library.set_backdrop_b_front(true);
             }
             self.backdrop_b_front = library.get_backdrop_b_front();
+            self.backdrop_at = Some(Instant::now());
         }
         self.backdrop = Some((id, color));
     }
@@ -1079,6 +1097,7 @@ pub fn start(ui: &AppWindow) {
         backdrop: None,
         backdrop_b_front: false,
         backdrop_mask: None,
+        backdrop_at: None,
     };
     state.rebuild(None);
     state.scan();

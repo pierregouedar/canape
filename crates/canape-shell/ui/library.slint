@@ -66,6 +66,9 @@ export global Library {
     in property <image> backdrop-a;
     in property <image> backdrop-b;
     in property <bool> backdrop-b-front;
+    // Where the layers start, in physical pixels: left of it the glow is
+    // gone and the window's background shows.
+    in property <int> backdrop-x;
     // A Steam Web API key is set in shell.json.
     in property <bool> steam-key;
     // Signed-in Epic account (through Legendary), "" when none.

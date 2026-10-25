@@ -39,8 +39,11 @@ pub fn fallback(id: &str) -> [u8; 3] {
 }
 
 /// How much of the colour each pixel takes, 0 to 255, for one window
-/// size: computed once, then [`paint`]ed in each game's colour.
+/// size: computed once, then [`paint`]ed in each game's colour. Starts at
+/// column `x`: left of it the glow is gone and the window's background
+/// shows, which saves drawing those pixels on every frame of a crossfade.
 pub struct Mask {
+    pub x: u32,
     pub width: u32,
     pub height: u32,
     weights: Vec<u8>,
@@ -64,8 +67,18 @@ pub fn mask(width: u32, window_height: u32) -> Mask {
             weights.push((alpha * 255.0).round() as u8);
         }
     }
+    // The first column the glow reaches.
+    let x = (0..width as usize)
+        .find(|&x| (0..height as usize).any(|y| weights[y * width as usize + x] > 0))
+        .unwrap_or(0);
+    let cropped = width as usize - x;
+    let weights = weights
+        .chunks_exact(width as usize)
+        .flat_map(|row| row[x..].iter().copied())
+        .collect::<Vec<u8>>();
     Mask {
-        width,
+        x: x as u32,
+        width: cropped as u32,
         height,
         weights,
     }
@@ -144,12 +157,15 @@ mod tests {
     fn glow_fades_from_the_top_right() {
         let mask = mask(320, 180);
         assert_eq!(mask.height, 144);
+        // Cropped where the glow ends, a quarter of the way across.
+        assert!(mask.x > 40 && mask.x < 100, "{}", mask.x);
+        assert_eq!(mask.x + mask.width, 320);
         let pixels = paint(&mask, [255, 0, 0], [11, 12, 15]);
-        assert_eq!(pixels.len(), (320 * 144 * 3) as usize);
-        let red = |x: u32, y: u32| pixels[((y * 320 + x) * 3) as usize];
+        assert_eq!(pixels.len(), (mask.width * 144 * 3) as usize);
+        let red = |x: u32, y: u32| pixels[((y * mask.width + x - mask.x) * 3) as usize];
         assert!(red(320 * 74 / 100, 180 * 22 / 100) > 80);
-        // Faded into the background at the bottom and on the left.
-        assert_eq!(red(0, 143), 11);
+        // Faded into the background at the bottom and on the left edge.
+        assert!(red(mask.x, 143) <= 12);
         assert!(red(319, 143) <= 12);
     }
 }
