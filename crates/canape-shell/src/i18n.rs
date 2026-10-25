@@ -47,6 +47,10 @@ pub struct ShellSettings {
     /// Where Legendary and gogdl install games; empty for the default
     /// (see `canape_library::disk::default_games_dir`).
     pub games_folder: String,
+    /// The first-run tour was finished or put off (see onboarding.rs).
+    pub onboarded: bool,
+    /// Step of the tour to come back to after a restart.
+    pub onboarding_step: u32,
 }
 
 impl Default for ShellSettings {
@@ -62,6 +66,8 @@ impl Default for ShellSettings {
             refresh_hz: 0,
             ally_buttons: true,
             games_folder: String::new(),
+            onboarded: false,
+            onboarding_step: 0,
         }
     }
 }

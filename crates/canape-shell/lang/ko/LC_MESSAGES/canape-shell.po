@@ -747,3 +747,123 @@ msgstr "달성"
 
 msgid "{} % of players"
 msgstr "플레이어의 {} %"
+
+msgid "Not set"
+msgstr "설정 안 됨"
+
+msgid "Welcome to Canapé"
+msgstr "Canapé에 오신 것을 환영합니다"
+
+msgid "Another tool drives the hardware"
+msgstr "다른 도구가 하드웨어를 제어하고 있습니다"
+
+msgid "Game stores"
+msgstr "게임 스토어"
+
+msgid "The Ally's buttons"
+msgstr "Ally 버튼"
+
+msgid "Windows optimisations"
+msgstr "Windows 최적화"
+
+msgid "All set"
+msgstr "준비 완료"
+
+msgid "A few choices to start with. Each stays in Settings."
+msgstr "시작하기 전에 몇 가지를 고릅니다. 모두 설정에 남아 있습니다."
+
+msgid "{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it."
+msgstr "{}이(가) Canapé와 같은 설정(전력, 팬, 컨트롤러)을 바꿔 서로의 변경을 되돌립니다. 종료하거나 제거하세요."
+
+msgid "Installed games show up by themselves. Accounts add the games you own but have not installed."
+msgstr "설치된 게임은 자동으로 표시됩니다. 계정을 추가하면 보유했지만 설치하지 않은 게임도 표시됩니다."
+
+msgid "Where Epic and GOG games install. Steam keeps its own folders."
+msgstr "Epic 및 GOG 게임이 설치되는 위치입니다. Steam은 자체 폴더를 사용합니다."
+
+msgid "The Canapé service is not running: power, fans and controller settings are unavailable. Install it with packaging\\install-dev.ps1 in an administrator Terminal, or start CanapeService in Services. You can go on without it."
+msgstr "Canapé 서비스가 실행 중이 아닙니다. 전력, 팬, 컨트롤러 설정을 사용할 수 없습니다. 관리자 터미널에서 packaging\\install-dev.ps1로 설치하거나 서비스에서 CanapeService를 시작하세요. 서비스 없이 계속할 수 있습니다."
+
+msgid "Apply the recommended set"
+msgstr "권장 설정 적용"
+
+msgid "Go to the games"
+msgstr "게임으로 이동"
+
+msgid "Continue"
+msgstr "계속"
+
+msgid "Later"
+msgstr "나중에"
+
+msgid "Skip"
+msgstr "건너뛰기"
+
+msgid "Running now"
+msgstr "실행 중"
+
+msgid "Steam not found"
+msgstr "Steam을 찾을 수 없음"
+
+msgid "{} games installed"
+msgstr "{}개 설치됨"
+
+msgid "Steam Web API key"
+msgstr "Steam Web API 키"
+
+msgid "The clipboard holds no key."
+msgstr "클립보드에 키가 없습니다."
+
+msgid "This is not a key: nothing was saved."
+msgstr "키가 아닙니다. 저장된 내용이 없습니다."
+
+msgid "Lists the Steam games you own but have not installed.\n1. On steamcommunity.com/dev/apikey, sign in.\n2. Enter any domain name (localhost), then copy the key.\n3. A to type it here, Y to paste it."
+msgstr "보유했지만 설치하지 않은 Steam 게임을 표시합니다.\n1. steamcommunity.com/dev/apikey에서 로그인합니다.\n2. 아무 도메인 이름(localhost)이나 입력한 뒤 키를 복사합니다.\n3. A로 여기에 입력, Y로 붙여넣기."
+
+msgid "Time to beat (IGDB)"
+msgstr "플레이 시간 (IGDB)"
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Client secret"
+msgstr "Client secret"
+
+msgid "Optional: how long games take to finish.\n1. On dev.twitch.tv/console, sign in (two-factor authentication on).\n2. Register an application: any name, redirect http://localhost, category Application Integration, Confidential.\n3. Copy its Client ID, then New Secret: A to type, Y to paste."
+msgstr "선택 사항: 게임을 끝내는 데 걸리는 시간.\n1. dev.twitch.tv/console에서 로그인합니다(2단계 인증 필요).\n2. 애플리케이션 등록: 아무 이름, 리디렉션 http://localhost, 카테고리 Application Integration, Confidential.\n3. Client ID를 복사한 뒤 New Secret: A로 입력, Y로 붙여넣기."
+
+msgid "Armoury (right, under the screen)"
+msgstr "Armoury (오른쪽, 화면 아래)"
+
+msgid "Brings Canapé to the front from a game, or back to Games."
+msgstr "게임 중에는 Canapé를 앞으로 가져오고, 그 외에는 게임으로 돌아갑니다."
+
+msgid "Command Center (left)"
+msgstr "Command Center (왼쪽)"
+
+msgid "Opens the Xbox Game Bar, where the Canapé widget lives."
+msgstr "Canapé 위젯이 있는 Xbox Game Bar를 엽니다."
+
+msgid "Off when another program should get them: otherwise both react."
+msgstr "다른 프로그램이 받아야 하면 끄세요. 그렇지 않으면 둘 다 반응합니다."
+
+msgid "Games, Performance, Hardware, Settings"
+msgstr "게임, 성능, 하드웨어, 설정"
+
+msgid "Choose, play"
+msgstr "선택, 플레이"
+
+msgid "Save for this game (Performance, Hardware)"
+msgstr "이 게임용으로 저장 (성능, 하드웨어)"
+
+msgid "A game's options, on its page"
+msgstr "게임 페이지에서 게임 옵션"
+
+msgid "Save"
+msgstr "저장"
+
+msgid "Paste"
+msgstr "붙여넣기"
+
+msgid "Welcome tour"
+msgstr "환영 투어"

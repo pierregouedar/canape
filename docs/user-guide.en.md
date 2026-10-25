@@ -18,6 +18,7 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
   - [Checking the installation](#checking-the-installation)
 - [Making Canapé the FSE home app](#making-canapé-the-fse-home-app)
   - [Going back to Winhanced or the Xbox app](#going-back-to-winhanced-or-the-xbox-app)
+- [First launch](#first-launch)
 - [Using Canapé with the gamepad](#using-canapé-with-the-gamepad)
   - [Controls](#controls)
   - [Shared elements](#shared-elements)
@@ -134,6 +135,45 @@ To do it from the command line, put back the previous `GamingHomeApp` value. For
 Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration" -Name GamingHomeApp -Value "Winhanced_2wdva71107yvr!App"
 ```
 
+
+## First launch
+
+<img src="images/en/onboarding-welcome.png" alt="First launch: welcome" width="720">
+
+> [!NOTE]
+> **Not tried on the Ally yet.** The tour was only run on Linux, with the hardware simulator and the fake library; the screenshots come from there. On the Ally, the touch keyboard, the clipboard and the sign-ins in the browser over the FSE are still to be checked.
+
+The first time Canapé opens, a short tour replaces the sections. Each step changes the same settings as the [Settings](#settings) page, applied at once; **A** continues, **X** skips the step ("Later" on the first one closes the whole tour), **B** goes back to the previous step, the D-pad moves on the right. The dots at the top left show where you are. The step reached is saved: after a restart, Canapé comes back to it. Once finished (or put off), the tour does not show again; **Settings → Welcome tour** shows it again from the start.
+
+| Step | What it does |
+|---|---|
+| **Welcome** | Says whether the service answers. If it does not after 3 s: power, fans and controller settings are unavailable; install it with `packaging\install-dev.ps1` (see [Installing Canapé](#installing-canapé)) or start `CanapeService` in Services. You can go on without it. |
+| **Language** | Automatic or one of the 13 languages, in two columns; the interface switches as the D-pad moves. |
+| **Accent colour** | The eight swatches of the settings page; left and right apply them at once. |
+| **Game stores** | Steam: whether the client was found and how many Steam games are installed, then the **Steam Web API key** (to list the owned games that are not installed). Epic and GOG: **A** starts the same sign-in as in Settings (browser, then the clipboard) and the line shows the account once signed in. **Time to beat (IGDB)**: the Twitch application's **Client ID** and **Client secret**, optional. |
+| **Games folder** | Where Epic and GOG games install and its free space; left and right change it (as in Settings). |
+| **The Ally's buttons** | What the Armoury and Command Center buttons do with Canapé, and **Use the Ally's buttons** on or off. |
+| **All set** | The main gestures: LB / RB the sections, A choose or play, B back, X save for this game (Performance, Hardware), Y a game's options on its page. **A** goes to the games. |
+
+| Game stores | Typing a key |
+|---|---|
+| <img src="images/en/onboarding-stores.png" alt="Game stores step" width="400"> | <img src="images/en/onboarding-stores-key.png" alt="Typing the Steam key" width="400"> |
+
+**Keys**: **A** on a key line opens a text field and brings up the Windows touch keyboard (Canapé asks for it explicitly, as Windows does not do it for this window); **A** (Enter) saves, **B** cancels. **Y** pastes the key from the clipboard instead: copy it in the browser, come back to Canapé, Y. A Steam key is 32 letters and digits (the page's "Key: …" line can be copied whole); a Twitch value is one word of letters and digits. Anything else is refused ("This is not a key: nothing was saved."). An empty field removes the key. Saved keys only show their last four characters, and are never written to the log. Everything goes to `shell.json` (`steam_api_key`, `igdb_client_id`, `igdb_client_secret`), as if written by hand.
+
+- **Steam**: on [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey), sign in, enter any domain name (`localhost`), copy the key. The owned list is asked for again as soon as the key is saved.
+- **IGDB**: on [dev.twitch.tv/console](https://dev.twitch.tv/console) (two-factor authentication on), register an application (any name, redirect `http://localhost`, category Application Integration, Confidential), copy its Client ID, then **New Secret** (details in [Games](#games), "Time to beat").
+
+| Without the service | Other tool | Last step |
+|---|---|---|
+| <img src="images/en/onboarding-welcome-offline.png" alt="Welcome without the service" width="260"> | <img src="images/en/onboarding-conflicts.png" alt="Another tool drives the hardware" width="260"> | <img src="images/en/onboarding-done.png" alt="All set" width="260"> |
+
+<sub>Other steps: [language](images/en/onboarding-language.png), [accent colour](images/en/onboarding-accent.png), [games folder](images/en/onboarding-folder.png), [the Ally's buttons](images/en/onboarding-buttons.png). The "other tool" capture is simulated: off Windows the service never reports one.</sub>
+
+> [!NOTE]
+> A **Windows optimisations** step ("Apply the recommended set" / "Later") is planned between the Ally's buttons and the end: it stays hidden until Canapé has that set.
+
+An installation that already had a `shell.json` from an earlier version also gets the tour, once.
 
 ## Using Canapé with the gamepad
 
@@ -505,6 +545,7 @@ Setting lines: up and down move from one to the next (the left column, then the 
 | **Games folder** | Where Epic and GOG games are installed, and its free space. By default, the folder that already holds most of the games installed by Canapé or the Epic launcher, else `Games` on the drive with the most free space. Left and right (or A) go through the folders that already hold games and `Games` on each internal drive; the choice is saved in `shell.json` (`games_folder`). Not tried on the Ally yet. |
 | **Game profiles** | The number of profiles; **A** opens the [Game profiles](#game-profiles) sub-page. |
 | **Add a game** | The number of games in `games.json`; **A** opens the list of games to add (see [Adding other games](#adding-other-games)). Not tried on the Ally yet. |
+| **Welcome tour** (right column, under Brightness) | **A** shows the [first-launch tour](#first-launch) again from the start. Not tried on the Ally yet. |
 | **Accent colour** | Eight ready-made swatches (left and right, A picks) and three lines **Hue**, **Saturation** and **Brightness** that left and right move. The whole interface follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the Game Bar widget follows the accent colour**. |
 
 Bottom right: Canapé's version, the state of the connection to the service and whether a Steam API key is in `shell.json` (its validity is not checked).
@@ -654,7 +695,7 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%ProgramData%\Canape\service.log` | Service log: detected model, ADL state at startup, every command that changes the state and its response (`SetTdp { watts: 12 } -> Ok`), conflicting programs, errors. |
 | `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, back buttons, stick lighting, profiles, last bench. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Shell log: launches (with their arguments), chosen language, ADL state, service errors. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `igdb_client_id`, `igdb_client_secret`, `refresh_hz`, `ally_buttons`. |
+| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `igdb_client_id`, `igdb_client_secret`, `refresh_hz`, `ally_buttons`, `games_folder`, and for the [first-launch tour](#first-launch) `onboarded` (finished or put off) and `onboarding_step` (the step to come back to). |
 | `%LOCALAPPDATA%\Canape\games.json` | The games added by hand or from **Settings → Add a game** (see [Adding other games](#adding-other-games)). |
 | `%LOCALAPPDATA%\Canape\covers\` | Downloaded covers (`<store>_<id>.jpg` / `.png`, `.miss` markers). |
 | `%LOCALAPPDATA%\Canape\library.json` | The games of the last scan, shown at once on the next start. Can be deleted: the next scan writes it again. |

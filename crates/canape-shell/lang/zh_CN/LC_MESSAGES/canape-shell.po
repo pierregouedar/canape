@@ -747,3 +747,123 @@ msgstr "已解锁"
 
 msgid "{} % of players"
 msgstr "{} % 的玩家"
+
+msgid "Not set"
+msgstr "未设置"
+
+msgid "Welcome to Canapé"
+msgstr "欢迎使用 Canapé"
+
+msgid "Another tool drives the hardware"
+msgstr "另一个工具正在控制硬件"
+
+msgid "Game stores"
+msgstr "游戏商店"
+
+msgid "The Ally's buttons"
+msgstr "Ally 按键"
+
+msgid "Windows optimisations"
+msgstr "Windows 优化"
+
+msgid "All set"
+msgstr "一切就绪"
+
+msgid "A few choices to start with. Each stays in Settings."
+msgstr "先做几个选择。它们都保留在设置中。"
+
+msgid "{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it."
+msgstr "{} 会更改与 Canapé 相同的设置（功率、风扇、手柄），两者会互相撤销。请关闭或卸载它。"
+
+msgid "Installed games show up by themselves. Accounts add the games you own but have not installed."
+msgstr "已安装的游戏会自动显示。添加账户后，已拥有但未安装的游戏也会显示。"
+
+msgid "Where Epic and GOG games install. Steam keeps its own folders."
+msgstr "Epic 和 GOG 游戏的安装位置。Steam 使用自己的文件夹。"
+
+msgid "The Canapé service is not running: power, fans and controller settings are unavailable. Install it with packaging\\install-dev.ps1 in an administrator Terminal, or start CanapeService in Services. You can go on without it."
+msgstr "Canapé 服务未运行：功率、风扇和手柄设置不可用。请在管理员终端中用 packaging\\install-dev.ps1 安装，或在“服务”中启动 CanapeService。也可以不用它继续。"
+
+msgid "Apply the recommended set"
+msgstr "应用推荐设置"
+
+msgid "Go to the games"
+msgstr "前往游戏"
+
+msgid "Continue"
+msgstr "继续"
+
+msgid "Later"
+msgstr "稍后"
+
+msgid "Skip"
+msgstr "跳过"
+
+msgid "Running now"
+msgstr "正在运行"
+
+msgid "Steam not found"
+msgstr "未找到 Steam"
+
+msgid "{} games installed"
+msgstr "已安装 {} 款游戏"
+
+msgid "Steam Web API key"
+msgstr "Steam Web API 密钥"
+
+msgid "The clipboard holds no key."
+msgstr "剪贴板中没有密钥。"
+
+msgid "This is not a key: nothing was saved."
+msgstr "这不是密钥：未保存任何内容。"
+
+msgid "Lists the Steam games you own but have not installed.\n1. On steamcommunity.com/dev/apikey, sign in.\n2. Enter any domain name (localhost), then copy the key.\n3. A to type it here, Y to paste it."
+msgstr "列出你已拥有但未安装的 Steam 游戏。\n1. 在 steamcommunity.com/dev/apikey 登录。\n2. 填写任意域名（localhost），然后复制密钥。\n3. 按 A 在此输入，按 Y 粘贴。"
+
+msgid "Time to beat (IGDB)"
+msgstr "通关时长 (IGDB)"
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Client secret"
+msgstr "Client secret"
+
+msgid "Optional: how long games take to finish.\n1. On dev.twitch.tv/console, sign in (two-factor authentication on).\n2. Register an application: any name, redirect http://localhost, category Application Integration, Confidential.\n3. Copy its Client ID, then New Secret: A to type, Y to paste."
+msgstr "可选：游戏通关所需时间。\n1. 在 dev.twitch.tv/console 登录（需开启两步验证）。\n2. 注册应用：名称任意，重定向 http://localhost，类别 Application Integration，Confidential。\n3. 复制其 Client ID，然后点 New Secret：按 A 输入，按 Y 粘贴。"
+
+msgid "Armoury (right, under the screen)"
+msgstr "Armoury（右侧，屏幕下方）"
+
+msgid "Brings Canapé to the front from a game, or back to Games."
+msgstr "在游戏中将 Canapé 切到前台，否则返回游戏页。"
+
+msgid "Command Center (left)"
+msgstr "Command Center（左侧）"
+
+msgid "Opens the Xbox Game Bar, where the Canapé widget lives."
+msgstr "打开 Xbox Game Bar，Canapé 小组件就在其中。"
+
+msgid "Off when another program should get them: otherwise both react."
+msgstr "若应由其他程序处理请关闭：否则两者都会响应。"
+
+msgid "Games, Performance, Hardware, Settings"
+msgstr "游戏、性能、硬件、设置"
+
+msgid "Choose, play"
+msgstr "选择、开始游戏"
+
+msgid "Save for this game (Performance, Hardware)"
+msgstr "为此游戏保存（性能、硬件）"
+
+msgid "A game's options, on its page"
+msgstr "游戏页面上的游戏选项"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Paste"
+msgstr "粘贴"
+
+msgid "Welcome tour"
+msgstr "欢迎导览"

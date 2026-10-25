@@ -747,3 +747,123 @@ msgstr "Freigeschaltet"
 
 msgid "{} % of players"
 msgstr "{} % der Spieler"
+
+msgid "Not set"
+msgstr "Nicht festgelegt"
+
+msgid "Welcome to Canapé"
+msgstr "Willkommen bei Canapé"
+
+msgid "Another tool drives the hardware"
+msgstr "Ein anderes Programm steuert die Hardware"
+
+msgid "Game stores"
+msgstr "Spiele-Stores"
+
+msgid "The Ally's buttons"
+msgstr "Die Tasten des Ally"
+
+msgid "Windows optimisations"
+msgstr "Windows-Optimierungen"
+
+msgid "All set"
+msgstr "Alles bereit"
+
+msgid "A few choices to start with. Each stays in Settings."
+msgstr "Ein paar Entscheidungen zum Start. Alle bleiben in den Einstellungen."
+
+msgid "{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it."
+msgstr "{} ändert dieselben Einstellungen wie Canapé (Leistung, Lüfter, Controller): Die beiden machen sich gegenseitig rückgängig. Schließen oder deinstallieren Sie es."
+
+msgid "Installed games show up by themselves. Accounts add the games you own but have not installed."
+msgstr "Installierte Spiele erscheinen von selbst. Konten fügen Spiele hinzu, die Sie besitzen, aber nicht installiert haben."
+
+msgid "Where Epic and GOG games install. Steam keeps its own folders."
+msgstr "Hier werden Epic- und GOG-Spiele installiert. Steam behält seine eigenen Ordner."
+
+msgid "The Canapé service is not running: power, fans and controller settings are unavailable. Install it with packaging\\install-dev.ps1 in an administrator Terminal, or start CanapeService in Services. You can go on without it."
+msgstr "Der Canapé-Dienst läuft nicht: Leistungs-, Lüfter- und Controllereinstellungen sind nicht verfügbar. Installieren Sie ihn mit packaging\\install-dev.ps1 in einem Administrator-Terminal oder starten Sie CanapeService unter Dienste. Sie können ohne ihn fortfahren."
+
+msgid "Apply the recommended set"
+msgstr "Empfohlene Auswahl anwenden"
+
+msgid "Go to the games"
+msgstr "Zu den Spielen"
+
+msgid "Continue"
+msgstr "Weiter"
+
+msgid "Later"
+msgstr "Später"
+
+msgid "Skip"
+msgstr "Überspringen"
+
+msgid "Running now"
+msgstr "Läuft gerade"
+
+msgid "Steam not found"
+msgstr "Steam nicht gefunden"
+
+msgid "{} games installed"
+msgstr "{} Spiele installiert"
+
+msgid "Steam Web API key"
+msgstr "Steam-Web-API-Schlüssel"
+
+msgid "The clipboard holds no key."
+msgstr "Die Zwischenablage enthält keinen Schlüssel."
+
+msgid "This is not a key: nothing was saved."
+msgstr "Das ist kein Schlüssel: Nichts wurde gespeichert."
+
+msgid "Lists the Steam games you own but have not installed.\n1. On steamcommunity.com/dev/apikey, sign in.\n2. Enter any domain name (localhost), then copy the key.\n3. A to type it here, Y to paste it."
+msgstr "Listet die Steam-Spiele, die Sie besitzen, aber nicht installiert haben.\n1. Auf steamcommunity.com/dev/apikey anmelden.\n2. Einen beliebigen Domainnamen (localhost) eingeben, dann den Schlüssel kopieren.\n3. A zum Eintippen, Y zum Einfügen."
+
+msgid "Time to beat (IGDB)"
+msgstr "Spieldauer (IGDB)"
+
+msgid "Client ID"
+msgstr "Client-ID"
+
+msgid "Client secret"
+msgstr "Client-Secret"
+
+msgid "Optional: how long games take to finish.\n1. On dev.twitch.tv/console, sign in (two-factor authentication on).\n2. Register an application: any name, redirect http://localhost, category Application Integration, Confidential.\n3. Copy its Client ID, then New Secret: A to type, Y to paste."
+msgstr "Optional: wie lange Spiele bis zum Ende dauern.\n1. Auf dev.twitch.tv/console anmelden (Zwei-Faktor-Authentifizierung an).\n2. Eine Anwendung registrieren: beliebiger Name, Weiterleitung http://localhost, Kategorie Application Integration, Confidential.\n3. Ihre Client-ID kopieren, dann New Secret: A zum Eintippen, Y zum Einfügen."
+
+msgid "Armoury (right, under the screen)"
+msgstr "Armoury (rechts, unter dem Bildschirm)"
+
+msgid "Brings Canapé to the front from a game, or back to Games."
+msgstr "Holt Canapé aus einem Spiel nach vorn oder kehrt zu Spiele zurück."
+
+msgid "Command Center (left)"
+msgstr "Command Center (links)"
+
+msgid "Opens the Xbox Game Bar, where the Canapé widget lives."
+msgstr "Öffnet die Xbox Game Bar mit dem Canapé-Widget."
+
+msgid "Off when another program should get them: otherwise both react."
+msgstr "Aus, wenn ein anderes Programm sie bekommen soll: sonst reagieren beide."
+
+msgid "Games, Performance, Hardware, Settings"
+msgstr "Spiele, Leistung, Hardware, Einstellungen"
+
+msgid "Choose, play"
+msgstr "Auswählen, spielen"
+
+msgid "Save for this game (Performance, Hardware)"
+msgstr "Für dieses Spiel speichern (Leistung, Hardware)"
+
+msgid "A game's options, on its page"
+msgstr "Die Optionen eines Spiels, auf seiner Seite"
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Paste"
+msgstr "Einfügen"
+
+msgid "Welcome tour"
+msgstr "Willkommenstour"

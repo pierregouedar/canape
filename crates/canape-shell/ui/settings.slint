@@ -4,13 +4,14 @@
 //   0 language (A applies the one shown), 1 the Ally's buttons, 2 online
 //   covers, 3 Epic account, 4 GOG account, 5 games folder, 6 game
 //   profiles, 7 add a game, 8 accent presets, 9 hue, 10 saturation,
-//   11 brightness.
+//   11 brightness, 12 the welcome tour again.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
 import { Library } from "library.slint";
 import { Logo } from "widgets.slint";
 import { Row, SectionTitle, SettingLine, Swatch, TrackLine } from "kit.slint";
+import { Onboarding } from "onboarding.slint";
 
 export component SettingsPage inherits Rectangle {
     // Opens the game profiles.
@@ -107,6 +108,8 @@ export component SettingsPage inherits Rectangle {
             root.open-add-games();
         } else if root.focus-row == 8 {
             App.pick-accent(root.presets[root.preset-col].hex);
+        } else if root.focus-row == 12 {
+            Onboarding.replay();
         }
     }
     function line-focused(r: int) -> bool {
@@ -123,7 +126,7 @@ export component SettingsPage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.DownArrow {
-                root.focus-row = min(11, root.focus-row + 1);
+                root.focus-row = min(12, root.focus-row + 1);
                 return accept;
             }
             if event.text == Key.LeftArrow {
@@ -379,6 +382,8 @@ export component SettingsPage inherits Rectangle {
                     fs.focus();
                 }
             }
+
+            SettingLine { label: @tr("Welcome tour"); value: "›"; chevrons: false; focused: root.line-focused(12); clicked => { Onboarding.replay(); } }
 
             Rectangle {
                 vertical-stretch: 1;

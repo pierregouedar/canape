@@ -11,6 +11,7 @@ This guide describes Canapé's architecture, the protocol between its components
   - [Crates](#crates)
   - [The game library](#the-game-library)
     - [Installing owned games](#installing-owned-games)
+  - [The first-run tour](#the-first-run-tour)
   - [The Hardware page](#the-hardware-page)
   - [Inside the service](#inside-the-service)
 - [IPC protocol](#ipc-protocol)
@@ -207,6 +208,20 @@ Not used: `launch` (Canapé starts the executable itself, see below), `import`, 
 
 > [!WARNING]
 > **None of this has been tried on Windows.** The code compiles for `x86_64-pc-windows-msvc`; the parsers (`GetOwnedGames`, manifests mid-download, `legendary list` / `status`, its progress, the GitHub release) and the SHA-256 check are tested on Linux against recorded answers, and the UI with the fake library. Still to check on the Ally: the Steam Web API call, `steam.exe -silent steam://install` and its window with the gamepad, the `legendary.exe` download over WinHTTP, `legendary auth` / `install` / `launch` from the shell and the FSE; for GOG, everything: the gogdl download, the browser over the FSE and the clipboard read, `gogdl auth` / `info` / `download`, GOG's web answers (the GOG fixtures in `tests/fixtures/gog` were written from gogdl 1.3.1's source and GOG's known answer shapes, not recorded: GOG's hosts are not reachable from the cloud session), the `_392.jpg` art and launching a game from its `goggame-<id>.info`; for the games folder, `GetDiskFreeSpaceExW` / `GetLogicalDrives` on the Ally, `legendary info --json` and `--base-path`, and the sizes against what the stores really install.
+
+### The first-run tour
+
+`ui/onboarding.slint` (the `Onboarding` global and `OnboardingFlow`) and `src/onboarding.rs`. Steps, as `Onboarding.step` numbers them: 0 welcome, 1 language, 2 accent colour, 3 other tools driving the hardware, 4 game stores, 5 games folder, 6 the Ally's buttons, 7 Windows optimisations, 8 done. Step 3 only shows while `App.status.conflicts` is not empty; step 7 only when `onboarding::WINDOWS_TWEAKS` is true (false: the hook is there, its `apply-tweaks` callback only logs; whoever adds the recommended set turns the const on and calls it from that callback). `after()` / `before()` skip the hidden steps, and the dots count only the steps shown.
+
+- **Flag and progress** (`shell.json`): `onboarded` (finished, or put off with X on the welcome step) and `onboarding_step`, saved at every change of step (`Onboarding.step-changed`). At startup `onboarding::start` shows the tour when `onboarded` is false, at `resume_step(onboarding_step)` (step 3 resumes at 4, a hidden step 7 at 8: whether they apply is not known yet). `Onboarding.finish` sets `onboarded`, resets the step, goes to page 0. **Settings → Welcome tour** (line 12 of the settings page) calls `Onboarding.replay`: `onboarded` false, step 0. `CANAPE_ONBOARDING=1` shows it whatever the flag (from step 0 when it was finished). An existing `shell.json` has no `onboarded` field, so an existing install sees the tour once.
+- **Placement**: in `app.slint`, `if !Onboarding.active` wraps the header, pages and hints, and `if Onboarding.active: OnboardingFlow { }` takes their place: the library page does not exist meanwhile (it would take the focus) and LB / RB cannot change section (the flow accepts PageUp / PageDown). The flow calls `App.arrow-focus(true)`; `finish` gives the arrows back to the library (`set_page_arrows(false)`).
+- **No logic of its own** for what the steps set: `App.set-language` (live, at each move), `App.pick-accent`, `Library.epic-login` / `gog-login` / `games-folder-step` / `epic-account`…, `App.toggle-ally-buttons`. Steam: `library::steam_summary()` (client found: `steam.exe` in Steam's folder, or the fixture's `steam` folder; installed Steam games in the scan), read every second while the tour shows; `library::steam_key_changed()` after the key is saved (shows it and asks for the owned list again).
+- **Keys** (`KeyLine`): A swaps the line for a `TextInput` that takes the focus and calls `Onboarding.show-keyboard`; Enter (`accepted`) calls `save-entry(kind, text)`, Escape (ignored by `TextInput`, so it reaches the flow's `FocusScope`) cancels; while editing every other key the field leaves is swallowed (no step change). Y calls `paste-entry(kind)` (`clipboard::text`). `onboarding.rs` validates (`steam_key`: a 32-hex-digit word anywhere in the text, upper-cased; `twitch_value`: one alphanumeric word of 20 to 64 characters; empty typed text clears), writes `shell.json`, shows `masked()` values ("•••• " + last four), and logs only which entry was saved. A refused entry sets `Onboarding.refused` and `refused-why` (1 typed, 2 clipboard).
+- **Touch keyboard** (`show_touch_keyboard`, Windows): nothing when the `IPTip_Main_Window` window is visible and enabled; otherwise, on its own thread with COM initialised, `CoCreateInstance` of the touch keyboard host (`4ce576fa-83dc-4f88-951c-9d0782b4e376`, interface `37c994e7-432b-4834-a2f7-dce1f13b834b`, whose fourth vtable entry is `Toggle(HWND)`) and `Toggle(GetDesktopWindow())`; when the host cannot be created, `%CommonProgramFiles%\microsoft shared\ink\TabTip.exe` is started. Slint's winit backend only enables the IME (`set_ime_allowed`), which does not bring the touch keyboard up on Windows.
+- **Development**: `CANAPE_MOCK_CONFLICTS=<names>` (debug builds) stands for `status.conflicts` on step 3; to capture a step, write `{"onboarding_step": N}` in a fresh `shell.json`. The Xvfb captures in `docs/images/<lang>/onboarding-*.png` were made that way, with `xdotool windowfocus` then `xdotool key` to type (the window needs the X focus for XTEST keys; keys are ignored for 2 s after the first focus).
+
+> [!WARNING]
+> **Not tried on the Ally.** Still to check: the touch keyboard call (the toggle closes a keyboard already shown that the visibility test missed: Windows 11 hosts it differently), typing from it and from the gamepad, Y with a key copied in Edge over the FSE, the Epic and GOG sign-ins started from the tour, and the resume after a reboot.
 
 ### The Hardware page
 
@@ -582,6 +597,8 @@ Off Windows, logs and state go to `<tmp>/Canape/` (`service.log`, `state.json`, 
 | `CANAPE_WINDOWED` | shell | Present (any value): a window instead of full screen. |
 | `CANAPE_PAGE` | shell | Page shown at startup: 0 Games, 1 Performance, 2 Hardware, 3 Settings, 4 Game profiles, 5 Bench, 6 Gyro aiming, 7 Back buttons and lighting, 8 Add a game. |
 | `CANAPE_MOCK_GYRO` | shell (`canape_hw::motion::open`) | `x,y,z` in degrees per second: a simulated gyroscope turning at that rate, instead of the Windows sensor. |
+| `CANAPE_ONBOARDING` | shell | Present (any value): shows the [first-run tour](#the-first-run-tour) even when `shell.json` says it was done. |
+| `CANAPE_MOCK_CONFLICTS` | shell (debug builds) | Names shown on the tour's "another tool" step when the service reports none. |
 | `CANAPE_LIBRARY_FIXTURE` | shell (debug builds) | A fake library instead of the installed stores: see [The game library](#the-game-library). |
 | `LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG` | shell (off Windows) | Language in Automatic mode, in this order of priority. |
 | `TMPDIR` | all (off Windows) | Temporary folder, hence where `Canape/` lives. |

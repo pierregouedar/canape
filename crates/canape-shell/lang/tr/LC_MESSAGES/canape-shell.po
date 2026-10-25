@@ -747,3 +747,123 @@ msgstr "Açıldı"
 
 msgid "{} % of players"
 msgstr "Oyuncuların {} %'si"
+
+msgid "Not set"
+msgstr "Ayarlanmadı"
+
+msgid "Welcome to Canapé"
+msgstr "Canapé'ye hoş geldiniz"
+
+msgid "Another tool drives the hardware"
+msgstr "Donanımı başka bir araç yönetiyor"
+
+msgid "Game stores"
+msgstr "Oyun mağazaları"
+
+msgid "The Ally's buttons"
+msgstr "Ally düğmeleri"
+
+msgid "Windows optimisations"
+msgstr "Windows iyileştirmeleri"
+
+msgid "All set"
+msgstr "Her şey hazır"
+
+msgid "A few choices to start with. Each stays in Settings."
+msgstr "Başlamak için birkaç seçim. Hepsi Ayarlar'da kalır."
+
+msgid "{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it."
+msgstr "{}, Canapé ile aynı ayarları değiştiriyor (güç, fanlar, kumanda): biri diğerinin yaptığını geri alır. Kapatın veya kaldırın."
+
+msgid "Installed games show up by themselves. Accounts add the games you own but have not installed."
+msgstr "Yüklü oyunlar kendiliğinden görünür. Hesaplar, sahip olduğunuz ama yüklemediğiniz oyunları ekler."
+
+msgid "Where Epic and GOG games install. Steam keeps its own folders."
+msgstr "Epic ve GOG oyunlarının yüklendiği yer. Steam kendi klasörlerini kullanır."
+
+msgid "The Canapé service is not running: power, fans and controller settings are unavailable. Install it with packaging\\install-dev.ps1 in an administrator Terminal, or start CanapeService in Services. You can go on without it."
+msgstr "Canapé hizmeti çalışmıyor: güç, fan ve kumanda ayarları kullanılamaz. Yönetici Terminal'inde packaging\\install-dev.ps1 ile yükleyin veya Hizmetler'de CanapeService'i başlatın. Onsuz devam edebilirsiniz."
+
+msgid "Apply the recommended set"
+msgstr "Önerilen seti uygula"
+
+msgid "Go to the games"
+msgstr "Oyunlara git"
+
+msgid "Continue"
+msgstr "Devam"
+
+msgid "Later"
+msgstr "Sonra"
+
+msgid "Skip"
+msgstr "Atla"
+
+msgid "Running now"
+msgstr "Şu anda çalışıyor"
+
+msgid "Steam not found"
+msgstr "Steam bulunamadı"
+
+msgid "{} games installed"
+msgstr "{} oyun yüklü"
+
+msgid "Steam Web API key"
+msgstr "Steam Web API anahtarı"
+
+msgid "The clipboard holds no key."
+msgstr "Panoda anahtar yok."
+
+msgid "This is not a key: nothing was saved."
+msgstr "Bu bir anahtar değil: hiçbir şey kaydedilmedi."
+
+msgid "Lists the Steam games you own but have not installed.\n1. On steamcommunity.com/dev/apikey, sign in.\n2. Enter any domain name (localhost), then copy the key.\n3. A to type it here, Y to paste it."
+msgstr "Sahip olduğunuz ama yüklemediğiniz Steam oyunlarını listeler.\n1. steamcommunity.com/dev/apikey adresinde oturum açın.\n2. Herhangi bir alan adı girin (localhost), sonra anahtarı kopyalayın.\n3. Buraya yazmak için A, yapıştırmak için Y."
+
+msgid "Time to beat (IGDB)"
+msgstr "Oynanış süresi (IGDB)"
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Client secret"
+msgstr "Client secret"
+
+msgid "Optional: how long games take to finish.\n1. On dev.twitch.tv/console, sign in (two-factor authentication on).\n2. Register an application: any name, redirect http://localhost, category Application Integration, Confidential.\n3. Copy its Client ID, then New Secret: A to type, Y to paste."
+msgstr "İsteğe bağlı: oyunları bitirmenin ne kadar sürdüğü.\n1. dev.twitch.tv/console adresinde oturum açın (iki adımlı doğrulama açık).\n2. Bir uygulama kaydedin: herhangi bir ad, yönlendirme http://localhost, kategori Application Integration, Confidential.\n3. Client ID'yi kopyalayın, sonra New Secret: yazmak için A, yapıştırmak için Y."
+
+msgid "Armoury (right, under the screen)"
+msgstr "Armoury (sağda, ekranın altında)"
+
+msgid "Brings Canapé to the front from a game, or back to Games."
+msgstr "Bir oyundan Canapé'yi öne getirir veya Oyunlar'a döner."
+
+msgid "Command Center (left)"
+msgstr "Command Center (solda)"
+
+msgid "Opens the Xbox Game Bar, where the Canapé widget lives."
+msgstr "Canapé widget'ının bulunduğu Xbox Game Bar'ı açar."
+
+msgid "Off when another program should get them: otherwise both react."
+msgstr "Başka bir program kullanacaksa kapatın: yoksa ikisi de tepki verir."
+
+msgid "Games, Performance, Hardware, Settings"
+msgstr "Oyunlar, Performans, Donanım, Ayarlar"
+
+msgid "Choose, play"
+msgstr "Seç, oyna"
+
+msgid "Save for this game (Performance, Hardware)"
+msgstr "Bu oyun için kaydet (Performans, Donanım)"
+
+msgid "A game's options, on its page"
+msgstr "Bir oyunun seçenekleri, kendi sayfasında"
+
+msgid "Save"
+msgstr "Kaydet"
+
+msgid "Paste"
+msgstr "Yapıştır"
+
+msgid "Welcome tour"
+msgstr "Hoş geldin turu"
