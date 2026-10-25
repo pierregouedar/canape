@@ -27,7 +27,7 @@ use std::time::{Duration, Instant};
 
 use canape_library::cache::{self, Recent};
 use canape_library::install::{self, Event, Install, Tools};
-use canape_library::{Game, Launch, Played, Roots, legendary, online, tools};
+use canape_library::{Game, Launch, Played, Roots, eac, legendary, online, tools};
 use slint::{
     ComponentHandle, Image, Model, ModelRc, Rgb8Pixel, Rgba8Pixel, SharedPixelBuffer, Timer,
     TimerMode, VecModel, Weak,
@@ -200,6 +200,8 @@ struct State {
     backdrop_at: Option<Instant>,
     /// The backdrop's shape for the window size it was drawn for.
     backdrop_mask: Option<(u32, u32, backdrop::Mask)>,
+    /// Games whose anti-cheat setup the user refused this session.
+    eac_refused: HashSet<String>,
 }
 
 thread_local! {
@@ -621,9 +623,29 @@ impl State {
                 .and_then(|appid| canape_library::steam::hero(steam, appid)),
             _ => None,
         };
+        // An Epic game: Epic's own key art, downloaded once.
+        let epic_wide = game
+            .id
+            .strip_prefix("epic:")
+            .filter(|_| hero.is_none())
+            .map(|app| {
+                (
+                    self.roots
+                        .legendary
+                        .as_ref()
+                        .map(|(config, _)| config.clone()),
+                    app.to_owned(),
+                )
+            });
+        let covers_dir = self.covers_dir.clone();
+        let online = !self.fixture && crate::i18n::ShellSettings::load().online_covers;
         let cover = game.cover.clone();
         let id = game.id;
         thread::spawn(move || {
+            let hero = hero.or_else(|| {
+                let (config, app) = epic_wide?;
+                epic_wide_art(&covers_dir, &id, config.as_deref(), &app, online)
+            });
             let (cw, ch) = ((240.0 * scale) as u32, (360.0 * scale) as u32);
             let cover = cover.and_then(|path| {
                 canape_library::cover::load(&path, cw, ch)
@@ -637,9 +659,10 @@ impl State {
                         )
                     })
             });
-            // Steam's art is about 3.1 times as wide as high.
+            // Steam's art is about 3.1 times as wide as high; Epic's (16:9)
+            // is cropped to the same band.
             let art = hero.and_then(|path| {
-                canape_library::cover::load(&path, width, (width as f32 / 3.1) as u32)
+                canape_library::cover::load_filled(&path, width, (width as f32 / 3.1) as u32)
                     .map_err(|err| crate::log(&format!("library: art {}: {err}", path.display())))
                     .ok()
                     .map(|mut rgb| {
@@ -685,8 +708,18 @@ impl State {
         }
         let (id, title) = (game.id.clone(), game.title.clone());
         let (token, token_path) = self.beat.job();
+        let epic_config = self
+            .roots
+            .legendary
+            .as_ref()
+            .map(|(config, _)| config.clone());
         thread::spawn(move || {
-            let outcome = timetobeat::lookup(&id, &title, token, &token_path);
+            // Epic: the catalog ids Legendary keeps, which IGDB may link.
+            let extra = match (&epic_config, id.strip_prefix("epic:")) {
+                (Some(config), Some(app)) => legendary::catalog_ids(config, app),
+                _ => Vec::new(),
+            };
+            let outcome = timetobeat::lookup(&id, &title, &extra, token, &token_path);
             let _ = slint::invoke_from_event_loop(move || {
                 with_state(|state| {
                     let times = state.beat.finish(&id, outcome);
@@ -966,7 +999,7 @@ impl State {
             ));
             publish(&cache_path, games.clone());
             // A fixture never goes online.
-            if !fixture && download_covers(&games, &HashMap::new(), &covers) {
+            if !fixture && download_covers(&games, &epic_covers(&games, &roots), &covers) {
                 online::attach(&mut games, &covers);
                 publish(&cache_path, games);
             }
@@ -1005,7 +1038,17 @@ impl State {
 
         let fixture = self.fixture;
         let (id, title) = (game.id.clone(), game.title.clone());
+        // A refused anti-cheat prompt is not shown again before every
+        // launch of the session.
+        let anticheat = !fixture && !self.eac_refused.contains(&game.id);
+        let roots = self.roots.clone();
         thread::spawn(move || {
+            if anticheat && let Some(outcome) = ensure_anticheat(&game, &roots) {
+                let (id, title) = (id.clone(), title.clone());
+                let _ = slint::invoke_from_event_loop(move || {
+                    with_state(|state| state.anticheat_done(&id, &title, outcome));
+                });
+            }
             let result = if fixture {
                 Ok(())
             } else {
@@ -1015,6 +1058,35 @@ impl State {
                 with_state(|state| state.launched(id, title, result));
             });
         });
+    }
+
+    /// A game just installed from Epic or GOG that ships Easy Anti-Cheat:
+    /// its setup runs now (Windows asks first) rather than at its first
+    /// launch.
+    fn anticheat_after_install(&mut self, game: Game) {
+        if self.fixture {
+            return;
+        }
+        let roots = self.roots.clone();
+        thread::spawn(move || {
+            if let Some(outcome) = ensure_anticheat(&game, &roots) {
+                let _ = slint::invoke_from_event_loop(move || {
+                    with_state(|state| state.anticheat_done(&game.id, &game.title, outcome));
+                });
+            }
+        });
+    }
+
+    /// The anti-cheat setup of `id` ended (already logged).
+    fn anticheat_done(&mut self, id: &str, title: &str, outcome: eac::Outcome) {
+        match outcome {
+            eac::Outcome::Installed => {}
+            eac::Outcome::Refused => {
+                self.eac_refused.insert(id.to_owned());
+                self.show_error(Failure::AntiCheatRefused, title, "");
+            }
+            eac::Outcome::Failed(why) => self.show_error(Failure::AntiCheatFailed, title, &why),
+        }
     }
 
     /// What the installs need: Steam's folder, Legendary and gogdl, when
@@ -1050,7 +1122,7 @@ impl State {
         }
         self.show_progress(&game.id);
         if let Some(ui) = self.ui.upgrade() {
-            ui.global::<Library>().set_install_error("".into());
+            clear_error(&ui);
         }
         self.error_timer.stop();
         let (id, title, fixture, tools) = (
@@ -1106,20 +1178,26 @@ impl State {
                 crate::log(&format!("library: installing {id}: {message}"));
                 self.installing.remove(id);
                 self.show_progress(id);
-                self.show_error(format!("{title}: {message}"));
+                self.show_error(Failure::Install, title, &message);
             }
         }
     }
 
-    /// Shows an install or store error in the header for a while.
-    fn show_error(&mut self, message: String) {
+    /// Shows an install, store or launch error in the header for a while:
+    /// a short translated message about `subject` (a store, a program, a
+    /// game), with `detail` after it when short (see [`short_detail`]).
+    /// The caller logs the full detail.
+    fn show_error(&mut self, failure: Failure, subject: &str, detail: &str) {
         let Some(ui) = self.ui.upgrade() else { return };
-        ui.global::<Library>().set_install_error(message.into());
+        let library = ui.global::<Library>();
+        library.set_error_subject(subject.into());
+        library.set_error_detail(short_detail(detail).as_str().into());
+        library.set_error_kind(failure as i32);
         let ui = ui.as_weak();
         self.error_timer
             .start(TimerMode::SingleShot, ERROR_SHOWN, move || {
                 if let Some(ui) = ui.upgrade() {
-                    ui.global::<Library>().set_install_error("".into());
+                    clear_error(&ui);
                 }
             });
     }
@@ -1161,7 +1239,7 @@ impl State {
                 fetch_owned(&settings, steam.as_deref(), &tools)
             };
             // A failed store keeps the last list rather than emptying it.
-            if owned.error.is_empty()
+            if owned.errors.is_empty()
                 && let Err(err) = cache::save(&owned_path, &owned.games)
             {
                 crate::log(&format!("library: saving owned games: {err}"));
@@ -1221,11 +1299,14 @@ impl State {
                 "Epic sign-in needs Windows ({})",
                 exe.display()
             )));
-            let result = ready.and_then(|_| {
-                canape_library::launch(&Launch::Uri {
-                    uri: legendary::LOGIN_URL.to_owned(),
-                })
-            });
+            let result = ready
+                .map_err(|err| (Failure::Download, "Legendary", err))
+                .and_then(|_| {
+                    canape_library::launch(&Launch::Uri {
+                        uri: legendary::LOGIN_URL.to_owned(),
+                    })
+                    .map_err(|err| (Failure::SignIn, "Epic", err))
+                });
             let _ = slint::invoke_from_event_loop(move || {
                 with_state(|state| {
                     if let Some(ui) = state.ui.upgrade() {
@@ -1233,9 +1314,9 @@ impl State {
                     }
                     match result {
                         Ok(()) => state.epic_waiting(true),
-                        Err(err) => {
+                        Err((failure, subject, err)) => {
                             crate::log(&format!("library: Epic sign-in: {err}"));
-                            state.show_error(format!("Epic: {err}"));
+                            state.show_error(failure, subject, &err.to_string());
                         }
                     }
                 })
@@ -1295,7 +1376,7 @@ impl State {
                     }
                     if let Err(err) = result {
                         crate::log(&format!("library: Epic sign-in: {err}"));
-                        state.show_error(format!("Epic: {err}"));
+                        state.show_error(Failure::SignIn, "Epic", &err.to_string());
                     }
                     state.refresh_owned(true);
                 })
@@ -1341,11 +1422,14 @@ impl State {
                 "GOG sign-in needs Windows ({})",
                 exe.display()
             )));
-            let result = ready.and_then(|_| {
-                canape_library::launch(&Launch::Uri {
-                    uri: canape_library::gogdl::login_url(),
-                })
-            });
+            let result = ready
+                .map_err(|err| (Failure::Download, "gogdl", err))
+                .and_then(|_| {
+                    canape_library::launch(&Launch::Uri {
+                        uri: canape_library::gogdl::login_url(),
+                    })
+                    .map_err(|err| (Failure::SignIn, "GOG", err))
+                });
             let _ = slint::invoke_from_event_loop(move || {
                 with_state(|state| {
                     if let Some(ui) = state.ui.upgrade() {
@@ -1353,9 +1437,9 @@ impl State {
                     }
                     match result {
                         Ok(()) => state.gog_waiting(true),
-                        Err(err) => {
+                        Err((failure, subject, err)) => {
                             crate::log(&format!("library: GOG sign-in: {err}"));
-                            state.show_error(format!("GOG: {err}"));
+                            state.show_error(failure, subject, &err.to_string());
                         }
                     }
                 })
@@ -1417,7 +1501,7 @@ impl State {
                     }
                     if let Err(err) = result {
                         crate::log(&format!("library: GOG sign-in: {err}"));
-                        state.show_error(format!("GOG: {err}"));
+                        state.show_error(Failure::SignIn, "GOG", &err.to_string());
                     }
                     state.refresh_owned(true);
                 })
@@ -1433,8 +1517,9 @@ impl State {
             if let Some(ui) = self.ui.upgrade() {
                 let library = ui.global::<Library>();
                 library.set_launching("".into());
-                library.set_failed(title.into());
+                library.set_failed(title.as_str().into());
             }
+            self.show_error(Failure::Launch, &title, &err.to_string());
         }
         let ui = self.ui.clone();
         self.launch_timer
@@ -1531,7 +1616,7 @@ fn fetch_owned(
             Ok(games) => owned.extend(games),
             Err(err) => {
                 crate::log(&format!("library: Steam owned games: {err}"));
-                errors.push(format!("Steam: {err}"));
+                errors.push(("Steam", err.to_string()));
             }
         }
     }
@@ -1552,14 +1637,14 @@ fn fetch_owned(
                     }
                     Err(err) => {
                         crate::log(&format!("library: Epic owned games: {err}"));
-                        errors.push(format!("Epic: {err}"));
+                        errors.push(("Epic", err.to_string()));
                     }
                 }
             }
             Ok(None) => {}
             Err(err) => {
                 crate::log(&format!("library: Epic account: {err}"));
-                errors.push(format!("Epic: {err}"));
+                errors.push(("Epic", err.to_string()));
             }
         }
     }
@@ -1589,7 +1674,7 @@ fn fetch_owned(
                         }
                         Err(err) => {
                             crate::log(&format!("library: GOG owned games: {err}"));
-                            errors.push(format!("GOG: {err}"));
+                            errors.push(("GOG", err.to_string()));
                         }
                     }
                 }
@@ -1601,7 +1686,7 @@ fn fetch_owned(
             Ok(None) => {}
             Err(err) => {
                 crate::log(&format!("library: GOG account: {err}"));
-                errors.push(format!("GOG: {err}"));
+                errors.push(("GOG", err.to_string()));
             }
         }
     }
@@ -1610,7 +1695,7 @@ fn fetch_owned(
         art,
         account,
         gog_account,
-        error: errors.join(" · "),
+        errors,
     }
 }
 
@@ -1624,8 +1709,95 @@ struct Owned {
     account: Option<String>,
     /// Signed-in GOG account.
     gog_account: Option<String>,
-    /// Why a store could not be listed, "" when all went well.
-    error: String,
+    /// The stores that could not be listed, and why (already logged).
+    errors: Vec<(&'static str, String)>,
+}
+
+/// What failed, for the short translated message of the page
+/// (`Library.error-kind` in library.slint).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Failure {
+    /// A helper program (Legendary, gogdl) could not be downloaded.
+    Download = 1,
+    SignIn = 2,
+    Install = 3,
+    Launch = 4,
+    /// A store's list of owned games.
+    Owned = 5,
+    /// The anti-cheat setup was refused at Windows' elevation prompt.
+    AntiCheatRefused = 6,
+    AntiCheatFailed = 7,
+}
+
+/// Runs `game`'s Easy Anti-Cheat setup, elevated once the user allows it,
+/// when the game ships one and the anti-cheat service is missing; `None`
+/// when nothing was needed. Blocks until the setup ends: run it on a
+/// thread.
+fn ensure_anticheat(game: &Game, roots: &Roots) -> Option<eac::Outcome> {
+    #[cfg(windows)]
+    {
+        let setup = eac::setup_for(game, roots)?;
+        if eac::service_installed() {
+            return None;
+        }
+        crate::log(&format!(
+            "library: {}: installing Easy Anti-Cheat ({} {})",
+            game.id,
+            setup.exe.display(),
+            setup.args()
+        ));
+        let outcome = eac::install(&setup);
+        crate::log(&format!(
+            "library: {}: Easy Anti-Cheat: {outcome:?}",
+            game.id
+        ));
+        Some(outcome)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (game, roots);
+        None
+    }
+}
+
+/// Longest technical detail shown after a message, in characters.
+const DETAIL_SHOWN: usize = 80;
+
+/// The part of an error worth showing after its translated message: its
+/// first line when short, without anything that looks like a key or a
+/// token; "" otherwise (shell.log has it all).
+fn short_detail(detail: &str) -> String {
+    let line = detail.lines().map(str::trim).find(|l| !l.is_empty());
+    let Some(line) = line else {
+        return String::new();
+    };
+    let secret_like = line
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .any(|word| word.len() >= 24);
+    if secret_like || line.chars().count() > DETAIL_SHOWN {
+        String::new()
+    } else {
+        line.to_owned()
+    }
+}
+
+/// The owned lists that failed, as one message: the stores, and the
+/// detail when only one failed.
+fn owned_failure(errors: &[(&str, String)]) -> Option<(String, String)> {
+    let stores: Vec<&str> = errors.iter().map(|(store, _)| *store).collect();
+    let detail = match errors {
+        [(_, detail)] => detail.clone(),
+        _ => String::new(),
+    };
+    (!stores.is_empty()).then(|| (stores.join(", "), detail))
+}
+
+/// Takes the error off the header.
+fn clear_error(ui: &AppWindow) {
+    let library = ui.global::<Library>();
+    library.set_error_kind(0);
+    library.set_error_subject("".into());
+    library.set_error_detail("".into());
 }
 
 fn post_owned(owned: Owned, covers_only: bool) {
@@ -1636,8 +1808,8 @@ fn post_owned(owned: Owned, covers_only: bool) {
             if !covers_only {
                 state.owned_loading = false;
                 state.owned_at = Some(Instant::now());
-                if !owned.error.is_empty() {
-                    state.show_error(owned.error);
+                if let Some((stores, detail)) = owned_failure(&owned.errors) {
+                    state.show_error(Failure::Owned, &stores, &detail);
                 }
             }
             if let Some(ui) = state.ui.upgrade() {
@@ -1685,9 +1857,10 @@ fn publish(cache_path: &Path, games: Vec<Game>) {
             // Leave the games to install for the one just installed, rather
             // than land on another one A would install.
             if let Some(id) = state.just_installed.take()
-                && state.all.iter().any(|g| g.id == id)
+                && let Some(game) = state.all.iter().find(|g| g.id == id).cloned()
             {
                 keep = Some((Kind::Installed, id));
+                state.anticheat_after_install(game);
             }
             state.rebuild(keep);
             if let Some(ui) = state.ui.upgrade() {
@@ -1738,6 +1911,48 @@ fn download_covers(games: &[Game], art: &HashMap<String, String>, dir: &Path) ->
             false
         }
     }
+}
+
+/// Epic's key art for the game `id` (Legendary's app `app`): downloaded
+/// earlier, else (when covers may be downloaded) from the link in
+/// Legendary's metadata. Blocks: run it on a thread.
+fn epic_wide_art(
+    dir: &Path,
+    id: &str,
+    config: Option<&Path>,
+    app: &str,
+    download: bool,
+) -> Option<PathBuf> {
+    if let Some(path) = online::cached_wide(dir, id) {
+        return Some(path);
+    }
+    let url = legendary::metadata_art(config.filter(|_| download)?, app).wide?;
+    #[cfg(windows)]
+    {
+        let http = canape_library::http::WinHttp::new().ok()?;
+        online::wide_art(dir, id, Some(&url), &http)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = url;
+        None
+    }
+}
+
+/// Links to Epic's box art for the installed Epic games, from Legendary's
+/// metadata: their cover when they have none.
+fn epic_covers(games: &[Game], roots: &Roots) -> HashMap<String, String> {
+    let Some((config, _)) = &roots.legendary else {
+        return HashMap::new();
+    };
+    games
+        .iter()
+        .filter(|g| g.cover.is_none())
+        .filter_map(|g| {
+            let app = g.id.strip_prefix("epic:")?;
+            Some((g.id.clone(), legendary::metadata_art(config, app).tall?))
+        })
+        .collect()
 }
 
 /// Keeps decoding the covers asked for, in order, skipping those no
@@ -1893,6 +2108,7 @@ pub fn start(ui: &AppWindow) {
         beat,
         detail_timer: Timer::default(),
         awaiting: None,
+        eac_refused: HashSet::new(),
     };
     state.rebuild(None);
     state.scan();
@@ -1971,4 +2187,40 @@ pub fn start(ui: &AppWindow) {
             });
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn details_are_short_and_secret_free() {
+        assert_eq!(
+            short_detail("no checked Legendary release found\n"),
+            "no checked Legendary release found"
+        );
+        assert_eq!(
+            short_detail("\n  legendary: first\nsecond"),
+            "legendary: first"
+        );
+        assert_eq!(short_detail(&"x ".repeat(60)), "");
+        assert_eq!(
+            short_detail("legendary auth: code 0123456789abcdef0123456789abcdef refused"),
+            ""
+        );
+        assert_eq!(short_detail(""), "");
+    }
+
+    #[test]
+    fn owned_failures_name_the_stores() {
+        assert_eq!(owned_failure(&[]), None);
+        assert_eq!(
+            owned_failure(&[("Epic", "legendary list failed".into())]),
+            Some(("Epic".into(), "legendary list failed".into()))
+        );
+        assert_eq!(
+            owned_failure(&[("Steam", "a".into()), ("GOG", "b".into())]),
+            Some(("Steam, GOG".into(), String::new()))
+        );
+    }
 }

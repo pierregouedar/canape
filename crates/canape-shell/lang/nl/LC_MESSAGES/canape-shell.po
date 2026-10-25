@@ -750,3 +750,21 @@ msgstr "{} % van de spelers"
 
 msgid "Downloading…"
 msgstr "Downloaden…"
+
+msgid "Could not download {}"
+msgstr "Kan {} niet downloaden"
+
+msgid "{}: sign-in failed"
+msgstr "{}: aanmelden mislukt"
+
+msgid "Could not install {}"
+msgstr "Kan {} niet installeren"
+
+msgid "{}: could not list the owned games"
+msgstr "{}: kan de games in bezit niet ophalen"
+
+msgid "Easy Anti-Cheat was not installed (refused): {} may not start"
+msgstr "Easy Anti-Cheat is niet geïnstalleerd (geweigerd): {} start mogelijk niet"
+
+msgid "Easy Anti-Cheat could not be installed: {} may not start"
+msgstr "Easy Anti-Cheat kon niet worden geïnstalleerd: {} start mogelijk niet"

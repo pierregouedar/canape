@@ -152,7 +152,13 @@ impl Lookups {
 }
 
 /// Looks `id` (titled `title`) up on IGDB. Runs on a thread.
-pub fn lookup(id: &str, title: &str, token: Option<Token>, token_path: &Path) -> Outcome {
+pub fn lookup(
+    id: &str,
+    title: &str,
+    extra: &[String],
+    token: Option<Token>,
+    token_path: &Path,
+) -> Outcome {
     let settings = crate::i18n::ShellSettings::load();
     let Some(credentials) =
         Credentials::new(&settings.igdb_client_id, &settings.igdb_client_secret)
@@ -160,7 +166,7 @@ pub fn lookup(id: &str, title: &str, token: Option<Token>, token_path: &Path) ->
         return Outcome::Off;
     };
     let before = token.clone();
-    let (result, token) = run(&credentials, id, title, token);
+    let (result, token, found) = run(&credentials, id, title, extra, token);
     if token != before
         && let Some(token) = &token
         && let Err(err) = token.save(token_path)
@@ -168,7 +174,17 @@ pub fn lookup(id: &str, title: &str, token: Option<Token>, token_path: &Path) ->
         crate::log(&format!("library: saving the IGDB token: {err}"));
     }
     match result {
-        Ok(times) => Outcome::Found(times, token),
+        Ok(times) => {
+            // Why a game page shows no time.
+            match (found, &times) {
+                (None, _) => crate::log(&format!("library: {id} not found on IGDB")),
+                (Some(game), None) => {
+                    crate::log(&format!("library: {id} is IGDB game {game}, without times"))
+                }
+                _ => {}
+            }
+            Outcome::Found(times, token)
+        }
         Err(err) => {
             // The error is a status or a system message: no secret in it.
             crate::log(&format!("library: time to beat of {id}: {err}"));
@@ -182,15 +198,16 @@ fn run(
     credentials: &Credentials,
     id: &str,
     title: &str,
+    extra: &[String],
     token: Option<Token>,
-) -> (io::Result<Option<TimeToBeat>>, Option<Token>) {
+) -> (io::Result<Option<TimeToBeat>>, Option<Token>, Option<u64>) {
     let http = match canape_library::http::WinHttp::new() {
         Ok(http) => http,
-        Err(err) => return (Err(err), token),
+        Err(err) => return (Err(err), token, None),
     };
     let mut client = canape_library::igdb::Client::new(&http, credentials, token);
-    let result = client.lookup(id, title, canape_library::now());
-    (result, client.token)
+    let result = client.lookup(id, title, extra, canape_library::now());
+    (result, client.token, client.found)
 }
 
 #[cfg(not(windows))]
@@ -198,11 +215,13 @@ fn run(
     _: &Credentials,
     _: &str,
     _: &str,
+    _: &[String],
     token: Option<Token>,
-) -> (io::Result<Option<TimeToBeat>>, Option<Token>) {
+) -> (io::Result<Option<TimeToBeat>>, Option<Token>, Option<u64>) {
     (
         Err(io::Error::new(io::ErrorKind::Unsupported, "no HTTP here")),
         token,
+        None,
     )
 }
 

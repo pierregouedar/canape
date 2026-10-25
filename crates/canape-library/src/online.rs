@@ -231,6 +231,46 @@ fn find(game: &Game, art: Option<&str>, settings: &Settings, http: &dyn Http) ->
     http.get(&parse_grids(&grids)?, None).ok()
 }
 
+/// Wide art downloaded earlier for `id` (the game page's background).
+pub fn cached_wide(dir: &Path, id: &str) -> Option<PathBuf> {
+    let stem = stem(id);
+    ["jpg", "png"]
+        .into_iter()
+        .map(|ext| dir.join(format!("{stem}.wide.{ext}")))
+        .find(|path| path.is_file())
+}
+
+/// The wide art of `id`: downloaded earlier, else from `url` (a link its
+/// store gave) into `dir`, once: a failed download is tried again only
+/// after [`RETRY_AFTER`].
+pub fn wide_art(dir: &Path, id: &str, url: Option<&str>, http: &dyn Http) -> Option<PathBuf> {
+    if let Some(path) = cached_wide(dir, id) {
+        return Some(path);
+    }
+    let url = url?;
+    let stem = stem(id);
+    // Its own miss marker, beside the cover's.
+    let miss_id = format!("{id}:wide");
+    if missed_recently(dir, &miss_id, SystemTime::now()) {
+        return None;
+    }
+    fs::create_dir_all(dir).ok()?;
+    let image = http
+        .get(url, None)
+        .ok()
+        .filter(|b| b.len() <= MAX_BYTES)
+        .and_then(|b| Some((image_extension(&b)?, b)));
+    let Some((ext, bytes)) = image else {
+        let _ = fs::write(dir.join(format!("{}.miss", self::stem(&miss_id))), b"");
+        return None;
+    };
+    let part = dir.join(format!("{stem}.wide.part"));
+    fs::write(&part, &bytes).ok()?;
+    let path = dir.join(format!("{stem}.wide.{ext}"));
+    fs::rename(&part, &path).ok()?;
+    Some(path)
+}
+
 /// Downloads the covers of games that have none (or only a landscape one), at most
 /// [`MAX_PER_SCAN`]. `art` maps game ids to art links their store gave
 /// (Epic). Returns the ids that got one.
@@ -250,7 +290,9 @@ pub fn download_missing(
     let wanted = games
         .iter()
         .filter(|g| wants_art(g) && cached(dir, &g.id).is_none())
-        .filter(|g| !missed_recently(dir, &g.id, now))
+        // A store's own link is worth a try even after the other sources
+        // had nothing.
+        .filter(|g| art.contains_key(&g.id) || !missed_recently(dir, &g.id, now))
         .take(MAX_PER_SCAN);
     for game in wanted {
         let stem = stem(&game.id);
@@ -415,6 +457,29 @@ mod tests {
                 .is_empty()
         );
         assert!(http.asked.borrow().is_empty());
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn wide_art_is_downloaded_once() {
+        let dir = temp_dir("wide");
+        let url = "https://cdn1.epicgames.com/wide.jpg?w=1920&h=1080&resize=1";
+        let http = Fake {
+            answers: HashMap::from([(url.to_owned(), JPEG.to_vec())]),
+            asked: RefCell::new(Vec::new()),
+        };
+        assert_eq!(wide_art(&dir, "epic:A", None, &http), None);
+        let path = wide_art(&dir, "epic:A", Some(url), &http).unwrap();
+        assert_eq!(path, dir.join("epic_A.wide.jpg"));
+        // Not taken for the cover.
+        assert_eq!(cached(&dir, "epic:A"), None);
+        assert_eq!(wide_art(&dir, "epic:A", Some(url), &http), Some(path));
+        assert_eq!(http.asked.borrow().len(), 1);
+        // A failure is not asked again soon.
+        let missing = "https://cdn1.epicgames.com/none.jpg";
+        assert_eq!(wide_art(&dir, "epic:B", Some(missing), &http), None);
+        assert_eq!(wide_art(&dir, "epic:B", Some(missing), &http), None);
+        assert_eq!(http.asked.borrow().len(), 2);
         let _ = fs::remove_dir_all(&dir);
     }
 

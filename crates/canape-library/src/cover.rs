@@ -32,6 +32,21 @@ pub fn load(path: &Path, width: u32, height: u32) -> io::Result<Rgb> {
     Ok(fit(&decode(&bytes)?, width, height))
 }
 
+/// Decodes a JPEG or PNG file and crops it to fill `width` x `height`,
+/// whatever its shape (a game page's wide art).
+pub fn load_filled(path: &Path, width: u32, height: u32) -> io::Result<Rgb> {
+    let src = decode(&std::fs::read(path)?)?;
+    let (w, h) = (width.max(1), height.max(1));
+    if src.width == 0 || src.height == 0 {
+        return Err(invalid("empty image"));
+    }
+    Ok(Rgb {
+        width: w,
+        height: h,
+        pixels: resample(&src, crop(&src, w, h), w, h),
+    })
+}
+
 /// Decodes JPEG or PNG bytes, told apart by their signature.
 pub fn decode(bytes: &[u8]) -> io::Result<Rgb> {
     if bytes.starts_with(&[0xff, 0xd8]) {
@@ -378,5 +393,11 @@ mod tests {
         assert_eq!(px(&png, 4, 4), [255, 255, 255]);
         assert!(decode(b"GIF89a").is_err());
         assert!(decode(&[0xff, 0xd8, 0, 0]).is_err());
+        // Wide art fills its band whatever the image's shape.
+        let wide = load_filled(&fixture("images/cover.jpg"), 310, 100).unwrap();
+        assert_eq!(
+            (wide.width, wide.height, wide.pixels.len()),
+            (310, 100, 310 * 100 * 3)
+        );
     }
 }

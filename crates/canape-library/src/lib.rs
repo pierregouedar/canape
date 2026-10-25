@@ -8,7 +8,9 @@
 //! Every store is read from its own files (or the registry for GOG) with
 //! pure parsers that are tested on Linux; only finding the files and
 //! launching are Windows-specific. Nothing here needs elevation: the shell
-//! scans and launches from the user session, at medium integrity.
+//! scans and launches from the user session, at medium integrity. The one
+//! exception, a game's anti-cheat setup ([`eac`]), runs elevated only once
+//! the user allows it at Windows' prompt.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -20,6 +22,7 @@ pub mod appinfo;
 pub mod cache;
 pub mod cover;
 pub mod disk;
+pub mod eac;
 pub mod epic;
 pub mod external;
 pub mod gog;
@@ -361,16 +364,72 @@ pub fn merge(games: Vec<Game>, launched: &HashMap<String, u64>) -> Vec<Game> {
 }
 
 /// The owned games that are not installed: `owned` minus every game of
-/// `installed` with the same id or the same title.
+/// `installed` with the same id or the same title, and one entry per
+/// store and title (see [`one_per_store`]).
 pub fn not_installed(owned: &[Game], installed: &[Game]) -> Vec<Game> {
     let ids: std::collections::HashSet<&str> = installed.iter().map(|g| g.id.as_str()).collect();
     let titles: std::collections::HashSet<String> =
         installed.iter().map(|g| title_key(&g.title)).collect();
-    owned
-        .iter()
-        .filter(|g| !ids.contains(g.id.as_str()) && !titles.contains(&title_key(&g.title)))
-        .cloned()
-        .collect()
+    one_per_store(
+        owned
+            .iter()
+            .filter(|g| !ids.contains(g.id.as_str()) && !titles.contains(&title_key(&g.title)))
+            .cloned()
+            .collect(),
+    )
+}
+
+/// `games` with one entry per id and per store and title: a store that
+/// lists one game under two ids (two app names of one Epic product) shows
+/// it once, the copy with a cover, else the first. Order kept.
+pub fn one_per_store(games: Vec<Game>) -> Vec<Game> {
+    let mut out: Vec<Game> = Vec::with_capacity(games.len());
+    let mut seen: HashMap<(Source, String), usize> = HashMap::new();
+    for game in games {
+        let key = (game.source, title_key(&game.title));
+        let same = out
+            .iter()
+            .position(|g| g.id == game.id)
+            .or_else(|| seen.get(&key).copied().filter(|_| !key.1.is_empty()));
+        match same {
+            Some(i) => {
+                if out[i].cover.is_none() && game.cover.is_some() {
+                    out[i] = game;
+                }
+            }
+            None => {
+                seen.insert(key, out.len());
+                out.push(game);
+            }
+        }
+    }
+    out
+}
+
+/// `games` with one entry per title across stores: the copy of the store
+/// that comes first (Steam, GOG, Epic, Xbox, Other), else the one with a
+/// cover. Order kept.
+pub fn one_per_title(games: &[Game]) -> Vec<Game> {
+    let mut out: Vec<Game> = Vec::with_capacity(games.len());
+    let mut seen: HashMap<String, usize> = HashMap::new();
+    for game in games {
+        let key = title_key(&game.title);
+        match seen.get(&key).copied().filter(|_| !key.is_empty()) {
+            Some(i) => {
+                let kept = &out[i];
+                let better = (std::cmp::Reverse(game.source.rank()), game.cover.is_some())
+                    > (std::cmp::Reverse(kept.source.rank()), kept.cover.is_some());
+                if better {
+                    out[i] = game.clone();
+                }
+            }
+            None => {
+                seen.insert(key, out.len());
+                out.push(game.clone());
+            }
+        }
+    }
+    out
 }
 
 /// How long ago a game was played, in calendar terms, for the UI.
@@ -532,6 +591,35 @@ mod tests {
         let left = not_installed(&owned, &installed);
         assert_eq!(left.len(), 1);
         assert_eq!(left[0].id, "steam:620");
+    }
+
+    #[test]
+    fn owned_duplicates_collapse_per_store() {
+        let mut covered = game("epic:b", "DEATH STRANDING", Source::Epic, None);
+        covered.cover = Some("ds.jpg".into());
+        let owned = vec![
+            // One Epic product under two app names: the copy with a cover.
+            game("epic:a", "Death Stranding", Source::Epic, None),
+            covered,
+            game("epic:a", "Death Stranding", Source::Epic, None),
+            // The same title on Steam stays, on its own store.
+            game("steam:1190460", "DEATH STRANDING", Source::Steam, None),
+            // Another game, though its title starts the same.
+            game(
+                "epic:c",
+                "DEATH STRANDING DIRECTOR'S CUT",
+                Source::Epic,
+                None,
+            ),
+        ];
+        let left = not_installed(&owned, &[]);
+        assert_eq!(ids(&left), ["epic:b", "steam:1190460", "epic:c"]);
+        // Across stores, once, preferring Steam.
+        assert_eq!(ids(&one_per_title(&left)), ["steam:1190460", "epic:c"]);
+        let mut gog = game("gog:1", "Hades", Source::Gog, None);
+        gog.cover = Some("h.jpg".into());
+        let mixed = [game("epic:h", "HADES", Source::Epic, None), gog];
+        assert_eq!(ids(&one_per_title(&mixed)), ["gog:1"]);
     }
 
     #[test]

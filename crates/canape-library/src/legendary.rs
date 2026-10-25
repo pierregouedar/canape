@@ -76,6 +76,16 @@ pub fn install_paths(config: &Path) -> Vec<PathBuf> {
     paths
 }
 
+/// The folder Legendary installed the game `app` in.
+pub fn install_path(config: &Path, app: &str) -> Option<PathBuf> {
+    let json = std::fs::read_to_string(config.join("installed.json")).ok()?;
+    serde_json::from_str::<HashMap<String, Installed>>(&json)
+        .ok()?
+        .into_values()
+        .find(|g| g.app_name == app && !g.install_path.is_empty())
+        .map(|g| PathBuf::from(g.install_path))
+}
+
 /// Games installed with Legendary, from its config folder.
 pub fn scan(config: &Path, exe: &Path) -> Vec<Game> {
     std::fs::read_to_string(config.join("installed.json"))
@@ -94,10 +104,18 @@ struct Listed {
 
 #[derive(Deserialize)]
 struct Metadata {
+    /// The catalog item id.
+    #[serde(default)]
+    id: String,
+    #[serde(default)]
+    namespace: String,
     #[serde(default, rename = "keyImages")]
     key_images: Vec<KeyImage>,
     #[serde(default, rename = "customAttributes")]
     custom_attributes: HashMap<String, serde_json::Value>,
+    /// Set on DLC and add-ons: the game they belong to.
+    #[serde(default, rename = "mainGameItem")]
+    main_game_item: Option<serde_json::Value>,
 }
 
 #[derive(Deserialize)]
@@ -107,9 +125,103 @@ struct KeyImage {
     url: String,
 }
 
+/// Epic's art for a game, as links sized for Canapé (Epic's image server
+/// scales on request).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Art {
+    /// Landscape key art (16:9), for the game page.
+    pub wide: Option<String>,
+    /// Portrait box art (3:4), for the cover.
+    pub tall: Option<String>,
+}
+
+/// The first image of `images` of one of `kinds`, in that order.
+fn image<'a>(images: &'a [KeyImage], kinds: &[&str]) -> Option<&'a str> {
+    kinds.iter().find_map(|kind| {
+        images
+            .iter()
+            .find(|i| i.kind == *kind && i.url.starts_with("https://"))
+            .map(|i| i.url.as_str())
+    })
+}
+
+fn art_of(images: &[KeyImage]) -> Art {
+    Art {
+        wide: image(
+            images,
+            &["DieselGameBox", "OfferImageWide", "DieselStoreFrontWide"],
+        )
+        .map(|url| format!("{url}?w=1920&h=1080&resize=1")),
+        tall: image(
+            images,
+            &["DieselGameBoxTall", "OfferImageTall", "Thumbnail"],
+        )
+        .map(|url| format!("{url}?w=600&h=900&resize=1")),
+    }
+}
+
+#[derive(Deserialize)]
+struct MetadataFile {
+    #[serde(default)]
+    metadata: Option<Metadata>,
+}
+
+fn parse_metadata(json: &[u8]) -> Option<Metadata> {
+    serde_json::from_slice::<MetadataFile>(json).ok()?.metadata
+}
+
+/// The art of a game's metadata file, as Legendary keeps it for every
+/// owned game (`metadata/<app>.json` in its config folder).
+pub fn parse_metadata_art(json: &[u8]) -> Art {
+    parse_metadata(json)
+        .map(|m| art_of(&m.key_images))
+        .unwrap_or_default()
+}
+
+/// The catalog ids of a game's metadata file: its catalog item id, then
+/// its namespace (those present).
+pub fn parse_catalog_ids(json: &[u8]) -> Vec<String> {
+    parse_metadata(json)
+        .map(|m| {
+            [m.id, m.namespace]
+                .into_iter()
+                .filter(|id| !id.is_empty())
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// The metadata file of the game `app`, as Legendary wrote it.
+fn read_metadata(config: &Path, app: &str) -> Option<Vec<u8>> {
+    // App names are Epic's ids; anything else is not a file name of ours.
+    if app.is_empty()
+        || !app
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"-_.".contains(&b))
+    {
+        return None;
+    }
+    std::fs::read(config.join("metadata").join(format!("{app}.json"))).ok()
+}
+
+/// Epic's art for the game `app`, from Legendary's metadata.
+pub fn metadata_art(config: &Path, app: &str) -> Art {
+    read_metadata(config, app)
+        .map(|json| parse_metadata_art(&json))
+        .unwrap_or_default()
+}
+
+/// The catalog ids of the game `app`, from Legendary's metadata.
+pub fn catalog_ids(config: &Path, app: &str) -> Vec<String> {
+    read_metadata(config, app)
+        .map(|json| parse_catalog_ids(&json))
+        .unwrap_or_default()
+}
+
 /// Games of a `legendary list --json` answer, as entries to install.
 /// Games installed through another store (Ubisoft, EA) are left out:
-/// Legendary cannot install them.
+/// Legendary cannot install them; so are add-ons (an upgrade to a
+/// director's cut, for example), which are not games of their own.
 pub fn parse_list(json: &[u8]) -> Option<Vec<Owned>> {
     let listed: Vec<Listed> = serde_json::from_slice(json).ok()?;
     Some(
@@ -118,21 +230,15 @@ pub fn parse_list(json: &[u8]) -> Option<Vec<Owned>> {
             .filter(|g| !g.app_title.is_empty())
             .filter(|g| {
                 g.metadata.as_ref().is_none_or(|m| {
-                    !m.custom_attributes.contains_key("ThirdPartyManagedApp")
+                    m.main_game_item.as_ref().is_none_or(|v| v.is_null())
+                        && !m.custom_attributes.contains_key("ThirdPartyManagedApp")
                         && !m
                             .custom_attributes
                             .contains_key("ThirdPartyManagedProvider")
                 })
             })
             .map(|g| {
-                let art_url = g.metadata.as_ref().and_then(|m| {
-                    m.key_images
-                        .iter()
-                        .find(|i| i.kind == "DieselGameBoxTall")
-                        .filter(|i| i.url.starts_with("https://"))
-                        // Epic's image server scales on request.
-                        .map(|i| format!("{}?w=600&h=900&resize=1", i.url))
-                });
+                let art_url = g.metadata.as_ref().and_then(|m| art_of(&m.key_images).tall);
                 Owned {
                     game: Game {
                         id: format!("epic:{}", g.app_name),
@@ -248,7 +354,9 @@ mod tests {
                 "customAttributes": {}}},
             {"app_name": "Ubi", "app_title": "A Ubisoft game", "metadata": {
                 "customAttributes": {"ThirdPartyManagedApp": {"type": "STRING", "value": "Uplay"}}}},
-            {"app_name": "Bare", "app_title": "No metadata"}
+            {"app_name": "Bare", "app_title": "No metadata"},
+            {"app_name": "Upgrade", "app_title": "World of Goo Director's Cut Upgrade", "metadata": {
+                "mainGameItem": {"id": "item", "namespace": "ns"}}}
         ]"#;
         let owned = parse_list(json).unwrap();
         assert_eq!(owned.len(), 2);
@@ -264,6 +372,54 @@ mod tests {
             }
         );
         assert!(parse_list(b"{}").is_none());
+    }
+
+    #[test]
+    fn metadata_gives_wide_and_tall_art() {
+        let json = br#"{"app_name": "Anemone", "app_title": "World of Goo",
+            "asset_infos": {}, "base_urls": [],
+            "metadata": {"id": "item", "namespace": "ns", "keyImages": [
+                {"type": "Thumbnail", "url": "https://cdn1.epicgames.com/thumb.jpg"},
+                {"type": "DieselGameBox", "url": "https://cdn1.epicgames.com/wide.jpg"},
+                {"type": "DieselGameBoxTall", "url": "https://cdn1.epicgames.com/tall.jpg"}]}}"#;
+        assert_eq!(
+            parse_metadata_art(json),
+            Art {
+                wide: Some("https://cdn1.epicgames.com/wide.jpg?w=1920&h=1080&resize=1".into()),
+                tall: Some("https://cdn1.epicgames.com/tall.jpg?w=600&h=900&resize=1".into()),
+            }
+        );
+        // Only a thumbnail, and a plain-HTTP wide image: no wide art.
+        let json = br#"{"metadata": {"keyImages": [
+                {"type": "Thumbnail", "url": "https://cdn1.epicgames.com/thumb.jpg"},
+                {"type": "DieselGameBox", "url": "http://cdn1.epicgames.com/wide.jpg"}]}}"#;
+        let art = parse_metadata_art(json);
+        assert_eq!(art.wide, None);
+        assert_eq!(
+            art.tall.as_deref(),
+            Some("https://cdn1.epicgames.com/thumb.jpg?w=600&h=900&resize=1")
+        );
+        assert_eq!(parse_catalog_ids(json), Vec::<String>::new());
+        assert_eq!(parse_metadata_art(b"{}"), Art::default());
+        assert_eq!(parse_metadata_art(b"no"), Art::default());
+
+        let dir = std::env::temp_dir().join(format!("canape-legendary-{}", std::process::id()));
+        std::fs::create_dir_all(dir.join("metadata")).unwrap();
+        std::fs::write(
+            dir.join("metadata/Anemone.json"),
+            br#"{"metadata": {"keyImages": [{"type": "DieselGameBox", "url": "https://e/w.jpg"}]}}"#,
+        )
+        .unwrap();
+        assert!(metadata_art(&dir, "Anemone").wide.is_some());
+        std::fs::write(
+            dir.join("metadata/Kiwi.json"),
+            br#"{"metadata": {"id": "item", "namespace": "ns"}}"#,
+        )
+        .unwrap();
+        assert_eq!(catalog_ids(&dir, "Kiwi"), ["item", "ns"]);
+        assert_eq!(metadata_art(&dir, "../Anemone"), Art::default());
+        assert_eq!(metadata_art(&dir, "Missing"), Art::default());
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
