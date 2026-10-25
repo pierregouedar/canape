@@ -439,7 +439,7 @@ Opened from the **Gyro aiming** row of the Hardware page; **B** goes back. While
 
 #### Back buttons and lighting
 
-On the page's last row, on the right, **Back buttons and lighting ›** opens a page that chooses what M1 and M2, the two buttons on the back, send (on the left), and the light of the rings around the sticks (on the right). The lines are M1, right and M2, left: the right and left back buttons. Left and right go through the choices; a choice not applied yet shows in italics after a dot, and **A** applies it (leaving the line drops it). B goes back to the Hardware page.
+On the page's last row, on the right, **Back buttons and lighting ›** opens a page that chooses what M1 and M2, the two buttons on the back, send (on the left), and the light of the rings around the sticks (on the right). The lines are M1, right and M2, left: the right and left back buttons. **A** on one of them opens a grid of every choice, each with its icon (gamepad buttons, keys, mouse, media), the name of the focused one below; the arrows move, **A** applies the choice, **B** closes the grid without changing anything. On the brightness line, left and right go through the levels; a level not applied yet shows in italics after a dot, and **A** applies it (leaving the line drops it). B goes back to the Hardware page.
 
 | Choice | The button sends |
 |---|---|

@@ -675,3 +675,6 @@ msgstr "M1, sağ"
 
 msgid "M2, left"
 msgstr "M2, sol"
+
+msgid "Media"
+msgstr "Medya"

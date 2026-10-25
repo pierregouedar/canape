@@ -439,7 +439,7 @@ Ouverte depuis la rangée **Visée au gyroscope** de la page Matériel ; **B** y
 
 #### Boutons arrière et éclairage
 
-Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairage ›** ouvre une page qui choisit ce qu'envoient M1 et M2, les deux boutons du dos (à gauche), et l'éclairage des anneaux autour des sticks (à droite). Les lignes sont M1, droite et M2, gauche : les boutons arrière droit et gauche. Gauche et droite parcourent les choix ; un choix pas encore appliqué s'affiche en italique après un point, et **A** l'applique (quitter la ligne l'abandonne). B revient à la page Matériel.
+Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairage ›** ouvre une page qui choisit ce qu'envoient M1 et M2, les deux boutons du dos (à gauche), et l'éclairage des anneaux autour des sticks (à droite). Les lignes sont M1, droite et M2, gauche : les boutons arrière droit et gauche. **A** sur l'une d'elles ouvre une grille de tous les choix, chacun avec son icône (boutons de manette, touches, souris, média), le nom de celui qui a le focus en dessous ; les flèches se déplacent, **A** applique le choix, **B** ferme la grille sans rien changer. Sur la ligne de luminosité, gauche et droite parcourent les niveaux ; un niveau pas encore appliqué s'affiche en italique après un point, et **A** l'applique (quitter la ligne l'abandonne). B revient à la page Matériel.
 
 | Choix | Le bouton envoie |
 |---|---|

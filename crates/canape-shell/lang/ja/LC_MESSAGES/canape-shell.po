@@ -675,3 +675,6 @@ msgstr "M1（右）"
 
 msgid "M2, left"
 msgstr "M2（左）"
+
+msgid "Media"
+msgstr "メディア"

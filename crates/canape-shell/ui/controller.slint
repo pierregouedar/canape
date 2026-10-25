@@ -1,14 +1,17 @@
 // Controller sub-page (from the hardware page): what the back buttons
 // send on the left, the light of the stick rings on the right. Up and
-// down change line, left and right change the value shown, A applies it
-// (one write to the controller), acts on a line without a value or picks
-// a colour. Leaving a line drops a choice not applied:
+// down change line. On M1 and M2, A opens the grid of targets
+// (targets.slint), where A applies one (a single write) and B closes it.
+// On brightness, left and right change the value shown and A applies it;
+// leaving the line drops a choice not applied. A also restores the
+// default buttons and picks a colour. Lines:
 //   0 M1, 1 M2, 2 restore the default buttons, 3 ring brightness,
 //   4 ring colour.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
 import { Row, SectionTitle, SettingLine, Swatch } from "kit.slint";
+import { TargetPicker } from "targets.slint";
 
 // The accent colour as a ring rather than a disc: it follows the accent,
 // so it must not look like the fixed colour it happens to match.
@@ -113,25 +116,11 @@ export component ControllerPage inherits Rectangle {
         root.level-pick = root.level-status;
     }
     in-out property <int> color-col: 0;
-    // The choice shown; A applies it and the status confirms.
-    in-out property <int> m1-pick: App.status.m1;
-    in-out property <int> m2-pick: App.status.m2;
-    property <int> m1-status: App.status.m1;
-    property <int> m2-status: App.status.m2;
-    changed m1-status => {
-        root.m1-pick = root.m1-status;
-    }
-    changed m2-status => {
-        root.m2-pick = root.m2-status;
-    }
+    // The back button whose grid is open: 0 M1, 1 M2, -1 none.
+    in-out property <int> picking: -1;
 
     function step(row: int, d: int) {
-        let count = root.target-names.length;
-        if row == 0 {
-            root.m1-pick = Math.mod(root.m1-pick + d + count, count);
-        } else if row == 1 {
-            root.m2-pick = Math.mod(root.m2-pick + d + count, count);
-        } else if row == 3 {
+        if row == 3 {
             root.level-pick = clamp(root.level-pick + d, 0, root.levels.length - 1);
         } else if row == 4 {
             root.color-col = clamp(root.color-col + d, 0, root.colors.length - 1);
@@ -144,11 +133,17 @@ export component ControllerPage inherits Rectangle {
         root.level-pick = level + 1;
         App.set-lighting(level, root.colors[i].hex);
     }
+    function open-picker(row: int) {
+        root.picking = row;
+        picker.current = row == 0 ? App.status.m1 : App.status.m2;
+    }
+    function apply-picker() {
+        App.set-back-button(root.picking == 0 ? "m1" : "m2", picker.current);
+        root.picking = -1;
+    }
     function activate() {
-        if root.focus-row == 0 && root.m1-pick != root.m1-status {
-            App.set-back-button("m1", root.m1-pick);
-        } else if root.focus-row == 1 && root.m2-pick != root.m2-status {
-            App.set-back-button("m2", root.m2-pick);
+        if root.focus-row <= 1 {
+            root.open-picker(root.focus-row);
         } else if root.focus-row == 2 {
             App.reset-back-buttons();
         } else if root.focus-row == 3 && root.level-pick != root.level-status {
@@ -160,8 +155,6 @@ export component ControllerPage inherits Rectangle {
     // Moves to line `r`, dropping the choices not applied.
     function go(r: int) {
         if r != root.focus-row {
-            root.m1-pick = root.m1-status;
-            root.m2-pick = root.m2-status;
             root.level-pick = root.level-status;
         }
         root.focus-row = r;
@@ -182,6 +175,25 @@ export component ControllerPage inherits Rectangle {
             self.focus();
         }
         key-pressed(event) => {
+            if root.picking >= 0 {
+                if event.text == Key.Escape {
+                    root.picking = -1;
+                    return accept;
+                }
+                if event.text == Key.Return || event.text == " " {
+                    root.apply-picker();
+                    return accept;
+                }
+                if event.text == Key.UpArrow || event.text == Key.DownArrow {
+                    picker.move(0, event.text == Key.UpArrow ? -1 : 1);
+                    return accept;
+                }
+                if event.text == Key.LeftArrow || event.text == Key.RightArrow {
+                    picker.move(event.text == Key.LeftArrow ? -1 : 1, 0);
+                    return accept;
+                }
+                return reject;
+            }
             if event.text == Key.UpArrow {
                 root.go(max(0, root.focus-row - 1));
                 return accept;
@@ -229,34 +241,26 @@ export component ControllerPage inherits Rectangle {
 
             SettingLine {
                 label: @tr("M1, right");
-                value: root.target-names[root.m1-pick];
-                pending: root.m1-pick != root.m1-status;
+                value: root.target-names[App.status.m1];
+                chevrons: false;
                 enabled: App.status.connected;
                 focused: root.line-focused(0);
                 clicked => {
-                    root.tap(0);
-                    fs.focus();
-                }
-                step(d) => {
                     root.go(0);
-                    root.step(0, d);
+                    root.activate();
                     fs.focus();
                 }
             }
 
             SettingLine {
                 label: @tr("M2, left");
-                value: root.target-names[root.m2-pick];
-                pending: root.m2-pick != root.m2-status;
+                value: root.target-names[App.status.m2];
+                chevrons: false;
                 enabled: App.status.connected;
                 focused: root.line-focused(1);
                 clicked => {
-                    root.tap(1);
-                    fs.focus();
-                }
-                step(d) => {
                     root.go(1);
-                    root.step(1, d);
+                    root.activate();
                     fs.focus();
                 }
             }
@@ -350,6 +354,22 @@ export component ControllerPage inherits Rectangle {
                 font-size: 13px;
                 vertical-alignment: center;
             }
+        }
+    }
+
+    picker := TargetPicker {
+        x: 0;
+        y: 0;
+        width: parent.width;
+        height: parent.height;
+        visible: root.picking >= 0;
+        title: root.picking == 0 ? @tr("M1, right") : @tr("M2, left");
+        own-key: root.picking == 0 ? "M1" : "M2";
+        names: root.target-names;
+        applied: root.picking == 0 ? App.status.m1 : App.status.m2;
+        pick(i) => {
+            root.apply-picker();
+            fs.focus();
         }
     }
 }

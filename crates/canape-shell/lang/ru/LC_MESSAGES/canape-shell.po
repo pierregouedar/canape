@@ -675,3 +675,6 @@ msgstr "M1, правая"
 
 msgid "M2, left"
 msgstr "M2, левая"
+
+msgid "Media"
+msgstr "Медиа"

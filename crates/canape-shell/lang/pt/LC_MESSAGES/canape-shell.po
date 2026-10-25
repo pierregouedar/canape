@@ -675,3 +675,6 @@ msgstr "M1, direito"
 
 msgid "M2, left"
 msgstr "M2, esquerdo"
+
+msgid "Media"
+msgstr "Multimédia"
