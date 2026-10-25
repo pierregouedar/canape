@@ -313,9 +313,6 @@ msgstr "Alle deine Spiele sind installiert"
 msgid "Install your games from here"
 msgstr "Installiere deine Spiele von hier"
 
-msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
-msgstr "Steam: Trage deinen Steam-Web-API-Schlüssel (steamcommunity.com/dev/apikey) als steam_api_key in shell.json ein. Epic: Melde dich unten einmal an; Canapé installiert mit Legendary ohne den Epic-Launcher."
-
 msgid "Opening the Epic sign-in…"
 msgstr "Epic-Anmeldung wird geöffnet…"
 
@@ -633,3 +630,36 @@ msgstr "Suche nach Verknüpfungen…"
 
 msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
 msgstr "Keine Verknüpfung zu einem Spiel im Startmenü oder auf dem Desktop. Spiele können auch in games.json in %LOCALAPPDATA%\\Canape eingetragen werden."
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers."
+msgstr "Steam: Trage deinen Steam-Web-API-Schlüssel (steamcommunity.com/dev/apikey) als steam_api_key in shell.json ein. Epic und GOG: Melde dich unten einmal an; Canapé installiert ihre Spiele ohne ihre Launcher."
+
+msgid "Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard."
+msgstr "Melde dich im Browser bei GOG an und kopiere dann die Adresse der Seite, auf der du landest: Canapé liest sie aus der Zwischenablage."
+
+msgid "Opening the GOG sign-in…"
+msgstr "GOG-Anmeldung wird geöffnet…"
+
+msgid "Waiting for the GOG address…"
+msgstr "Warte auf die GOG-Adresse…"
+
+msgid "GOG: {} (sign in again)"
+msgstr "GOG: {} (erneut anmelden)"
+
+msgid "Sign in to GOG"
+msgstr "Bei GOG anmelden"
+
+msgid "GOG account"
+msgstr "GOG-Konto"
+
+msgid "{} GB free in {}"
+msgstr "{} GB frei in {}"
+
+msgid "Not enough space: free some up, or pick another games folder in Settings."
+msgstr "Nicht genug Platz: Gib Speicher frei oder wähle in den Einstellungen einen anderen Spieleordner."
+
+msgid "Games folder"
+msgstr "Spieleordner"
+
+msgid "{} GB free"
+msgstr "{} GB frei"

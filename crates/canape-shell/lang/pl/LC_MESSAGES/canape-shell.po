@@ -313,9 +313,6 @@ msgstr "Wszystkie twoje gry są zainstalowane"
 msgid "Install your games from here"
 msgstr "Instaluj gry stąd"
 
-msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
-msgstr "Steam: dodaj klucz Steam Web API (steamcommunity.com/dev/apikey) jako steam_api_key w shell.json. Epic: zaloguj się raz poniżej; Canapé instaluje przez Legendary bez launchera Epic."
-
 msgid "Opening the Epic sign-in…"
 msgstr "Otwieranie logowania Epic…"
 
@@ -633,3 +630,36 @@ msgstr "Szukanie skrótów…"
 
 msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
 msgstr "Brak skrótów do gier w menu Start ani na pulpicie. Gry można też wpisać do games.json w %LOCALAPPDATA%\\Canape."
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers."
+msgstr "Steam: dodaj klucz Steam Web API (steamcommunity.com/dev/apikey) jako steam_api_key w shell.json. Epic i GOG: zaloguj się raz poniżej; Canapé instaluje ich gry bez ich launcherów."
+
+msgid "Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard."
+msgstr "Zaloguj się do GOG w przeglądarce, a potem skopiuj adres strony, na którą trafisz: Canapé odczyta go ze schowka."
+
+msgid "Opening the GOG sign-in…"
+msgstr "Otwieranie logowania GOG…"
+
+msgid "Waiting for the GOG address…"
+msgstr "Czekam na adres GOG…"
+
+msgid "GOG: {} (sign in again)"
+msgstr "GOG: {} (zaloguj ponownie)"
+
+msgid "Sign in to GOG"
+msgstr "Zaloguj się do GOG"
+
+msgid "GOG account"
+msgstr "Konto GOG"
+
+msgid "{} GB free in {}"
+msgstr "{} GB wolne w {}"
+
+msgid "Not enough space: free some up, or pick another games folder in Settings."
+msgstr "Za mało miejsca: zwolnij trochę albo wybierz inny folder gier w Ustawieniach."
+
+msgid "Games folder"
+msgstr "Folder gier"
+
+msgid "{} GB free"
+msgstr "{} GB wolne"

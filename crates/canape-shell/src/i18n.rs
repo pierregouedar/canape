@@ -40,6 +40,9 @@ pub struct ShellSettings {
     pub refresh_hz: u32,
     /// The Ally's Armoury and Command Center buttons act on Canapé.
     pub ally_buttons: bool,
+    /// Where Legendary and gogdl install games; empty for the default
+    /// (see `canape_library::disk::default_games_dir`).
+    pub games_folder: String,
 }
 
 impl Default for ShellSettings {
@@ -52,6 +55,7 @@ impl Default for ShellSettings {
             steam_api_key: String::new(),
             refresh_hz: 0,
             ally_buttons: true,
+            games_folder: String::new(),
         }
     }
 }

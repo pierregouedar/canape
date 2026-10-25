@@ -45,8 +45,14 @@ export struct ShelfView {
 export struct DetailView {
     // The cover, larger than on the shelf.
     cover: image,
-    // Bytes on disk in tenths of a gigabyte, -1 when unknown.
+    // Bytes on disk in tenths of a gigabyte, -1 when unknown. For a game
+    // to install, what it will take once installed.
     size-tenths: int,
+    // A game to install from Epic or GOG: the free space of the games
+    // folder, in tenths of a gigabyte; -1 otherwise or when unknown.
+    free-tenths: int,
+    // The games folder.
+    folder: string,
     // Minutes played, -1 when unknown.
     minutes: int,
     // The game's executable, once seen after a launch from Canapé; its
@@ -96,6 +102,13 @@ export global Library {
     in property <string> epic-account;
     // Legendary is being downloaded or its sign-in window is open.
     in property <bool> epic-busy;
+    // Signed-in GOG account (through gogdl), "" when none.
+    in property <string> gog-account;
+    // gogdl is being downloaded, or the sign-in code is being checked.
+    in property <bool> gog-busy;
+    // GOG's sign-in page is open in the browser: the clipboard is watched
+    // for the address it lands on.
+    in property <bool> gog-waiting;
     // The owned lists are being fetched.
     in property <bool> owned-loading;
     // Last install or sign-in failure, "" when none.
@@ -111,6 +124,12 @@ export global Library {
     callback open-add-games();
     // A on this line: add the game, or take it out of games.json.
     callback toggle-add-game(int);
+    // Where Legendary and gogdl install games, and its free space in
+    // tenths of a gigabyte (-1 when unknown).
+    in property <string> games-folder;
+    in property <int> games-free-tenths: -1;
+    // Settings: the previous (-1) or next (1) games folder.
+    callback games-folder-step(int);
 
     // Bring this shelf to the front.
     callback focus-shelf(int);
@@ -123,6 +142,7 @@ export global Library {
     callback open-detail(int);
     callback close-detail();
     callback epic-login();
+    callback gog-login();
     callback launch(int);
     // The game at this index of the shelf in front was selected, with the
     // first game in view.
@@ -251,23 +271,25 @@ component Cover inherits Rectangle {
     }
 }
 
-// The main action: white, with the A button.
+// The main action: white, with the A button. A quiet one is another
+// choice, which left or right selects.
 component PrimaryButton inherits Rectangle {
     in property <string> label;
     // Briefly darker after a press of A.
     in property <bool> pressed;
+    in property <bool> quiet;
     callback clicked();
     height: 48px;
-    width: text.preferred-width + 60px;
+    width: text.preferred-width + (root.quiet ? 44px : 60px);
     border-radius: 10px;
-    background: root.pressed || ta.pressed ? Theme.focus.darker(0.3) : Theme.focus;
+    background: root.quiet ? Theme.surface-high.with-alpha(0.7) : root.pressed || ta.pressed ? Theme.focus.darker(0.3) : Theme.focus;
     animate background { duration: 90ms; }
 
     HorizontalLayout {
-        padding-left: 14px;
+        padding-left: root.quiet ? 22px : 14px;
         padding-right: 22px;
         spacing: 10px;
-        VerticalLayout {
+        if !root.quiet: VerticalLayout {
             alignment: center;
             PadGlyph {
                 text: "A";
@@ -277,7 +299,7 @@ component PrimaryButton inherits Rectangle {
 
         text := Text {
             text: root.label;
-            color: Theme.background;
+            color: root.quiet ? Theme.text : Theme.background;
             font-size: 16px;
             font-weight: 600;
             vertical-alignment: center;
@@ -323,6 +345,8 @@ component GamePage inherits Rectangle {
     in property <DetailView> view;
     in property <bool> pressed;
     callback play();
+    // The game does not fit in the games folder.
+    property <bool> short: !root.game.installed && root.view.free-tenths >= 0 && root.view.size-tenths > root.view.free-tenths;
 
     cover := Rectangle {
         x: 0;
@@ -414,7 +438,8 @@ component GamePage inherits Rectangle {
             Text {
                 text: (root.game.installed ? Library.played-text(root.game.played) : @tr("Not installed"))
                     + (root.view.minutes >= 60 ? " · " + @tr("{} h played", Math.round(root.view.minutes / 60)) : root.view.minutes > 0 ? " · " + @tr("{} min played", root.view.minutes) : "")
-                    + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "");
+                    + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "")
+                    + (!root.game.installed && root.view.free-tenths >= 0 ? " · " + @tr("{} GB free in {}", App.tenths(root.view.free-tenths), root.view.folder) : "");
                 color: Theme.text.mix(Theme.dim, 0.6);
                 font-size: 16px;
                 overflow: elide;
@@ -439,8 +464,8 @@ component GamePage inherits Rectangle {
                 alignment: center;
                 Text {
                     opacity: action.shown;
-                    text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
-                    color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
+                    text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.short && root.game.progress < 0 ? @tr("Not enough space: free some up, or pick another games folder in Settings.") : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
+                    color: Library.install-error != "" || Library.failed != "" || (root.short && root.game.progress < 0) ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
                     font-size: 14px;
                     overflow: elide;
                 }
@@ -503,6 +528,9 @@ export component LibraryPage inherits Rectangle {
     property <GameView> current: root.front.games[Library.selected];
     property <bool> has-games: root.front.games.length > 0;
     property <bool> to-install: root.front.kind == 3;
+    // Empty To install: the store to sign in to, 0 Epic, 1 GOG.
+    in-out property <int> account-pick: 0;
+    property <bool> signing-up: !root.has-games && root.to-install;
     property <int> sel: Library.selected;
     property <length> pitch: 132px;
     // From one shelf's title to the next.
@@ -533,13 +561,17 @@ export component LibraryPage inherits Rectangle {
     function act() {
         root.pressed = true;
         if Library.detail {
-            if root.current.progress < 0 {
+            // A game that does not fit is not installed: the page says why.
+            let short = !root.current.installed && Library.detail-view.free-tenths >= 0 && Library.detail-view.size-tenths > Library.detail-view.free-tenths;
+            if root.current.progress < 0 && !short {
                 Library.launch(Library.selected);
             }
         } else if root.has-games {
             Library.open-detail(Library.selected);
-        } else if root.to-install && !Library.epic-busy {
+        } else if root.signing-up && root.account-pick == 0 && !Library.epic-busy {
             Library.epic-login();
+        } else if root.signing-up && root.account-pick == 1 && !Library.gog-busy {
+            Library.gog-login();
         }
     }
     function go-shelf(index: int) {
@@ -572,10 +604,16 @@ export component LibraryPage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.LeftArrow {
+                if root.signing-up {
+                    root.account-pick = 0;
+                }
                 Library.selected = max(0, Library.selected - 1);
                 return accept;
             }
             if event.text == Key.RightArrow {
+                if root.signing-up {
+                    root.account-pick = 1;
+                }
                 Library.selected = max(0, min(root.front.games.length - 1, Library.selected + 1));
                 return accept;
             }
@@ -663,7 +701,7 @@ export component LibraryPage inherits Rectangle {
         title := RevealLine {
             order: 1;
             Text {
-                text: root.has-games ? root.current.title : !root.to-install ? (!Library.ready ? @tr("Looking for games…") : @tr("No games found")) : Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
+                text: root.has-games ? root.current.title : !root.to-install ? (!Library.ready ? @tr("Looking for games…") : @tr("No games found")) : Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" || Library.gog-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
                 color: Theme.text;
                 font-size: 52px;
                 font-weight: 700;
@@ -676,7 +714,7 @@ export component LibraryPage inherits Rectangle {
         note := RevealLine {
             order: 2;
             Text {
-                text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : !root.has-games && root.to-install ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
+                text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.signing-up && Library.gog-waiting ? @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.") : root.signing-up ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
                 color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
                 font-size: 16px;
                 wrap: word-wrap;
@@ -686,15 +724,46 @@ export component LibraryPage inherits Rectangle {
             }
         }
 
-        if root.has-games || root.to-install: button := RevealLine {
+        if root.has-games: button := RevealLine {
             order: 3;
             padding-top: 10px;
             alignment: start;
             PrimaryButton {
                 opacity: button.shown;
                 pressed: root.pressed;
-                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : @tr("Details");
+                label: Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : @tr("Details");
                 clicked => {
+                    root.act();
+                    fs.focus();
+                }
+            }
+        }
+
+        // No game to install yet: sign in to Epic or GOG, left and right
+        // pick one.
+        if root.signing-up: accounts := RevealLine {
+            order: 3;
+            padding-top: 10px;
+            spacing: 12px;
+            alignment: start;
+            PrimaryButton {
+                opacity: accounts.shown;
+                pressed: root.pressed && root.account-pick == 0;
+                quiet: root.account-pick != 0;
+                label: Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games");
+                clicked => {
+                    root.account-pick = 0;
+                    root.act();
+                    fs.focus();
+                }
+            }
+            PrimaryButton {
+                opacity: accounts.shown;
+                pressed: root.pressed && root.account-pick == 1;
+                quiet: root.account-pick != 1;
+                label: Library.gog-busy ? @tr("Opening the GOG sign-in…") : Library.gog-waiting ? @tr("Waiting for the GOG address…") : Library.gog-account != "" ? @tr("GOG: {} (sign in again)", Library.gog-account) : @tr("Sign in to GOG");
+                clicked => {
+                    root.account-pick = 1;
                     root.act();
                     fs.focus();
                 }

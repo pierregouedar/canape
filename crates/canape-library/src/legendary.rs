@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 
 use crate::install::Install;
-use crate::{Game, Launch, Source};
+use crate::{Game, Launch, Owned, Source};
 
 /// Legendary's config folder for the current user.
 pub fn config_dir() -> Option<PathBuf> {
@@ -61,6 +61,21 @@ pub fn parse_installed(json: &str, exe: &Path) -> Vec<Game> {
     games
 }
 
+/// The folders of the games installed with Legendary.
+pub fn install_paths(config: &Path) -> Vec<PathBuf> {
+    let Ok(json) = std::fs::read_to_string(config.join("installed.json")) else {
+        return Vec::new();
+    };
+    let mut paths: Vec<PathBuf> = serde_json::from_str::<HashMap<String, Installed>>(&json)
+        .unwrap_or_default()
+        .into_values()
+        .filter(|g| !g.is_dlc && !g.install_path.is_empty())
+        .map(|g| PathBuf::from(g.install_path))
+        .collect();
+    paths.sort();
+    paths
+}
+
 /// Games installed with Legendary, from its config folder.
 pub fn scan(config: &Path, exe: &Path) -> Vec<Game> {
     std::fs::read_to_string(config.join("installed.json"))
@@ -90,13 +105,6 @@ struct KeyImage {
     #[serde(rename = "type")]
     kind: String,
     url: String,
-}
-
-/// An owned game and its portrait art, if Epic has one.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Owned {
-    pub game: Game,
-    pub art_url: Option<String>,
 }
 
 /// Games of a `legendary list --json` answer, as entries to install.
@@ -151,6 +159,23 @@ pub fn parse_progress(line: &str) -> Option<f32> {
     let rest = &line[line.find("= Progress: ")? + "= Progress: ".len()..];
     let percent: f32 = rest[..rest.find('%')?].trim().parse().ok()?;
     Some((percent / 100.0).clamp(0.0, 1.0))
+}
+
+#[derive(Deserialize)]
+struct Info {
+    manifest: Option<InfoManifest>,
+}
+
+#[derive(Deserialize)]
+struct InfoManifest {
+    #[serde(default)]
+    disk_size: u64,
+}
+
+/// Bytes on disk once installed, from `legendary info <app> --json`.
+pub fn parse_info_size(json: &[u8]) -> Option<u64> {
+    let info: Info = serde_json::from_slice(json).ok()?;
+    info.manifest.map(|m| m.disk_size).filter(|&s| s > 0)
 }
 
 #[derive(Deserialize)]
@@ -216,6 +241,20 @@ mod tests {
             }
         );
         assert!(parse_list(b"{}").is_none());
+    }
+
+    #[test]
+    fn info_gives_the_size_on_disk() {
+        let json = br#"{"game": {"app_name": "Anemone", "title": "World of Goo"},
+            "install": null,
+            "manifest": {"size": 123456, "type": "binary", "disk_size": 1073741824,
+                "download_size": 536870912, "launch_exe": "WorldOfGoo.exe"}}"#;
+        assert_eq!(parse_info_size(json), Some(1_073_741_824));
+        assert_eq!(
+            parse_info_size(br#"{"game": null, "install": null, "manifest": null}"#),
+            None
+        );
+        assert_eq!(parse_info_size(b"no"), None);
     }
 
     #[test]

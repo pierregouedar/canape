@@ -313,9 +313,6 @@ msgstr "Sahip olduğun tüm oyunlar kurulu"
 msgid "Install your games from here"
 msgstr "Oyunlarını buradan kur"
 
-msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
-msgstr "Steam: Steam Web API anahtarını (steamcommunity.com/dev/apikey) shell.json içine steam_api_key olarak ekle. Epic: aşağıdan bir kez giriş yap; Canapé, Epic başlatıcısı olmadan kurmak için Legendary'yi kullanır."
-
 msgid "Opening the Epic sign-in…"
 msgstr "Epic girişi açılıyor…"
 
@@ -633,3 +630,36 @@ msgstr "Kısayollar aranıyor…"
 
 msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
 msgstr "Başlat menüsünde veya masaüstünde oyun kısayolu yok. Oyunlar %LOCALAPPDATA%\\Canape içindeki games.json dosyasına da yazılabilir."
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers."
+msgstr "Steam: Steam Web API anahtarını (steamcommunity.com/dev/apikey) shell.json içine steam_api_key olarak ekle. Epic ve GOG: aşağıdan bir kez giriş yap; Canapé oyunlarını başlatıcıları olmadan kurar."
+
+msgid "Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard."
+msgstr "Tarayıcıda GOG'a giriş yap, ardından açılan sayfanın adresini kopyala: Canapé onu panodan okur."
+
+msgid "Opening the GOG sign-in…"
+msgstr "GOG girişi açılıyor…"
+
+msgid "Waiting for the GOG address…"
+msgstr "GOG adresi bekleniyor…"
+
+msgid "GOG: {} (sign in again)"
+msgstr "GOG: {} (yeniden giriş yap)"
+
+msgid "Sign in to GOG"
+msgstr "GOG'a giriş yap"
+
+msgid "GOG account"
+msgstr "GOG hesabı"
+
+msgid "{} GB free in {}"
+msgstr "{} GB boş ({})"
+
+msgid "Not enough space: free some up, or pick another games folder in Settings."
+msgstr "Yeterli alan yok: biraz yer aç ya da Ayarlar'dan başka bir oyun klasörü seç."
+
+msgid "Games folder"
+msgstr "Oyun klasörü"
+
+msgid "{} GB free"
+msgstr "{} GB boş"

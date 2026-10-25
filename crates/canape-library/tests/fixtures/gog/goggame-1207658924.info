@@ -1,0 +1,38 @@
+{
+    "buildId": "56789012345678901",
+    "clientId": "50225266424144145",
+    "gameId": "1207658924",
+    "language": "English",
+    "languages": [
+        "en-US"
+    ],
+    "name": "Unreal Tournament 2004 Editor's Choice Edition",
+    "playTasks": [
+        {
+            "category": "game",
+            "isPrimary": true,
+            "languages": [
+                "en-US"
+            ],
+            "name": "Unreal Tournament 2004 Editor's Choice Edition",
+            "path": "System\\UT2004.exe",
+            "arguments": "-windowed",
+            "type": "FileTask",
+            "workingDir": "System"
+        },
+        {
+            "category": "document",
+            "name": "Manual",
+            "path": "Manual.pdf",
+            "type": "FileTask"
+        },
+        {
+            "category": "other",
+            "link": "https://www.gog.com/forum/unreal_series",
+            "name": "Forum",
+            "type": "URLTask"
+        }
+    ],
+    "rootGameId": "1207658924",
+    "version": 1
+}

@@ -1,7 +1,9 @@
-//! Helper programs Canapé downloads on demand rather than bundling:
-//! Legendary (GPL-3, run as a separate program) for Epic games. Fetched
-//! from its official GitHub releases into Canapé's own folder, checked
-//! against the SHA-256 digest GitHub publishes for the file.
+//! Helper programs Canapé downloads on demand rather than bundling, both
+//! GPL-3 and run as separate programs: Legendary for Epic games, gogdl for
+//! GOG games. Fetched from their official GitHub releases into Canapé's own
+//! folder and checked against a SHA-256 digest: the one GitHub publishes
+//! for Legendary's latest release, the one written here for gogdl's pinned
+//! release.
 
 use std::fs;
 use std::io;
@@ -22,6 +24,20 @@ const LEGENDARY_ASSET: &str = "legendary.exe";
 const LEGENDARY_RELEASE_ASSETS: [&str; 2] = ["legendary_windows_x64.exe", LEGENDARY_ASSET];
 /// Largest executable accepted (the PyInstaller build is about 20 MB).
 const MAX_TOOL_BYTES: usize = 80 * 1024 * 1024;
+
+/// The gogdl release Canapé uses: its commands and output are what
+/// `gogdl.rs` and `install.rs` expect.
+pub const GOGDL_VERSION: &str = "1.3.1";
+/// Its Windows executable.
+const GOGDL_URL: &str = "https://github.com/Heroic-Games-Launcher/heroic-gogdl/releases/download/v1.3.1/gogdl_windows_x86_64.exe";
+/// SHA-256 of that file, as published on the release.
+const GOGDL_SHA256: &str = "1866e0ead43a4f5a02f1d750c79a69a1d285c09dc05b6fdce3b28c84bb2a4c5f";
+
+/// Where gogdl lives once downloaded; the version is in the name, so a new
+/// pinned release is downloaded again.
+pub fn gogdl_path(tools_dir: &Path) -> PathBuf {
+    tools_dir.join(format!("gogdl-{GOGDL_VERSION}.exe"))
+}
 
 /// Where `legendary.exe` lives once downloaded.
 pub fn legendary_path(tools_dir: &Path) -> PathBuf {
@@ -80,20 +96,37 @@ pub fn fetch_legendary(http: &dyn Http, tools_dir: &Path) -> io::Result<PathBuf>
     let release = http.get(LEGENDARY_RELEASE, None)?;
     let download = parse_release(&release)
         .ok_or_else(|| io::Error::other("no checked Legendary release found"))?;
-    let bytes = http.get_limited(&download.url, None, MAX_TOOL_BYTES)?;
+    let path = legendary_path(tools_dir);
+    fetch_checked(http, &download.url, &download.sha256, &path)
+        .map_err(|err| io::Error::other(format!("legendary.exe {}: {err}", download.version)))?;
+    Ok(path)
+}
+
+/// Downloads gogdl's pinned release into `tools_dir`, checked against its
+/// digest. Returns the executable's path.
+pub fn fetch_gogdl(http: &dyn Http, tools_dir: &Path) -> io::Result<PathBuf> {
+    let path = gogdl_path(tools_dir);
+    fetch_checked(http, GOGDL_URL, GOGDL_SHA256, &path)
+        .map_err(|err| io::Error::other(format!("gogdl {GOGDL_VERSION}: {err}")))?;
+    Ok(path)
+}
+
+/// Downloads `url` to `path` if its SHA-256 is `sha256` (hex); otherwise
+/// writes nothing.
+fn fetch_checked(http: &dyn Http, url: &str, sha256: &str, path: &Path) -> io::Result<()> {
+    let bytes = http.get_limited(url, None, MAX_TOOL_BYTES)?;
     let actual = hex(&crate::sha256::digest(&bytes));
-    if actual != download.sha256 {
+    if actual != sha256 {
         return Err(io::Error::other(format!(
-            "legendary.exe {}: SHA-256 {actual} instead of {}",
-            download.version, download.sha256
+            "SHA-256 {actual} instead of {sha256}"
         )));
     }
-    fs::create_dir_all(tools_dir)?;
-    let path = legendary_path(tools_dir);
+    if let Some(dir) = path.parent() {
+        fs::create_dir_all(dir)?;
+    }
     let part = path.with_extension("part");
     fs::write(&part, &bytes)?;
-    fs::rename(&part, &path)?;
-    Ok(path)
+    fs::rename(&part, path)
 }
 
 #[cfg(test)]
@@ -174,5 +207,23 @@ mod tests {
         let http = Fake(answers, RefCell::new(Vec::new()));
         assert!(fetch_legendary(&http, &dir).is_err());
         assert!(!legendary_path(&dir).exists());
+    }
+
+    #[test]
+    fn gogdl_is_pinned() {
+        assert!(GOGDL_URL.contains(&format!("/v{GOGDL_VERSION}/")));
+        assert!(GOGDL_URL.starts_with(
+            "https://github.com/Heroic-Games-Launcher/heroic-gogdl/releases/download/"
+        ));
+        assert_eq!(GOGDL_SHA256.len(), 64);
+        let dir = std::env::temp_dir().join(format!("canape-gogdl-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        // Any other file than the pinned one is refused.
+        let mut answers = HashMap::new();
+        answers.insert(GOGDL_URL.to_owned(), b"MZ not the release".to_vec());
+        let http = Fake(answers, RefCell::new(Vec::new()));
+        assert!(fetch_gogdl(&http, &dir).is_err());
+        assert!(!gogdl_path(&dir).exists());
+        assert!(gogdl_path(&dir).ends_with("gogdl-1.3.1.exe"));
     }
 }
