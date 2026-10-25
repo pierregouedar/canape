@@ -436,7 +436,7 @@ Le widget donne les réglages rapides sans quitter le jeu. Toute la logique rest
 Le widget n'a ni bouton de banc d'essai, ni liste des profils, ni réglage de la plage de puissance ou de la fréquence de l'écran : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar, et le widget suit la couleur d'accent choisie dans le shell. Taille par défaut 400 × 600, redimensionnable.
 
 > [!NOTE]
-> La **première version** du widget a été validée sur l'Ally (M3) via Win+G sur le bureau. La version à deux onglets n'a pas encore été compilée. **Ouvrir Canapé** passe par le protocole `canape://` du paquet d'identité : il faut réinstaller le paquet (`install-dev.ps1`) pour qu'il existe.
+> La **première version** du widget a été validée sur l'Ally (M3) via Win+G sur le bureau. La version à deux onglets a été validée sur l'Ally le 25 octobre 2026 dans la Game Bar : onglets, ventilateurs, limite de FPS, manette, « Enregistrer pour ce jeu », et **Ouvrir Canapé**, qui ramène le shell devant le jeu. Ce dernier passe par le protocole `canape://` du paquet d'identité : après une mise à jour, réinstaller le paquet (`install-dev.ps1`) pour qu'il existe.
 
 ## Langues
 

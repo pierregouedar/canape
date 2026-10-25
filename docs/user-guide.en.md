@@ -436,7 +436,7 @@ The widget gives you the quick settings without leaving the game. All the logic 
 The widget has no bench button, no profile list, no power range or screen refresh setting: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell. Default size 400 × 600, resizable.
 
 > [!NOTE]
-> The **first version** of the widget was validated on the Ally (M3) through Win+G on the desktop. The two-tab version has not been built yet. **Open Canapé** goes through the identity package's `canape://` protocol: the package must be installed again (`install-dev.ps1`) for it to exist.
+> The **first version** of the widget was validated on the Ally (M3) through Win+G on the desktop. The two-tab version was validated on the Ally on 25 October 2026 in Game Bar: tabs, fans, frame rate limit, controller, Save for this game, and **Open Canapé**, which brings the shell in front of the game. The latter goes through the identity package's `canape://` protocol: after an update, install the package again (`install-dev.ps1`) for it to exist.
 
 ## Languages
 
