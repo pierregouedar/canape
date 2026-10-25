@@ -277,7 +277,7 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 
 > [!NOTE]
 
-Quatre rangées, parcourues comme la page Performance : haut et bas changent de rangée, gauche et droite se déplacent dans les tuiles (A choisit) ou changent la limite de FPS tout de suite, **X** enregistre les ventilateurs, la limite de FPS et la fréquence de l'écran pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)). À droite : la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU. « — » quand le firmware ne donne pas de mesure.
+Cinq rangées, parcourues comme la page Performance : haut et bas changent de rangée, gauche et droite se déplacent dans les tuiles (A choisit) ou changent la limite de FPS tout de suite, **X** enregistre les ventilateurs, la limite de FPS et la fréquence de l'écran pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)). À droite : la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU. « — » quand le firmware ne donne pas de mesure.
 
 **Ventilateurs**
 
@@ -323,6 +323,13 @@ Le mode est général (pas par jeu), mémorisé et réappliqué au démarrage du
 
 > [!WARNING]
 > Canapé lit la manette en XInput. En mode Clavier ou Souris, la manette ne devrait plus se présenter comme une manette Xbox, et Canapé risque de ne plus lui répondre : revenez à **Manette de jeu** avec l'écran tactile, ou avec `canape-ctl` (voir [Dépannage](#canape-ctl--parler-au-service)).
+
+**Limite de charge**
+
+Trois tuiles : 60, 80 et 100 %. La batterie s'arrête de charger à ce niveau, même branchée : une console qui vit sur son chargeur garde une batterie en meilleure santé à 60 ou 80 %. **100 %** retire la limite. La limite est générale (pas par jeu), mémorisée et réappliquée au démarrage du service. Canapé ne peut pas la relire dans le firmware : aucune tuile n'est sélectionnée tant que Canapé ne l'a pas réglée une fois (une limite réglée ailleurs, ou une autre valeur réglée avec `canape-ctl`, n'en sélectionne aucune).
+
+> [!NOTE]
+> Pas encore essayé sur l'Ally : l'écriture dans le firmware (`set_battery_charge_limit`) n'a été testée qu'avec le simulateur.
 
 **Écran**
 
@@ -436,7 +443,7 @@ Le widget donne les réglages rapides sans quitter le jeu. Toute la logique rest
 | Graphe | La dernière minute : la consommation en couleur d'accent, la limite en pointillés gris. |
 | Banc d'essai | Palier, puissance et temps restant pendant un banc d'essai (lancé depuis le shell). |
 | Onglet **Puissance** | Mode (Silencieux, Performance, Turbo, Auto ; la tuile choisie est blanche, un mode firmware coupe l'auto TDP). La valeur ‹ › : en auto TDP l'**objectif** (30 à 120 FPS), sinon la **limite de puissance** ±1 W, grisée en mode firmware et bornée par la plage du modèle. La plage de puissance sur l'échelle du modèle, avec la consommation du moment (lecture seule). |
-| Onglet **Matériel** | Ventilateurs : Auto (la courbe du firmware), Équilibré, Maximum ; « Courbes personnalisées » quand d'autres courbes sont en place. La limite de FPS ‹ › (Aucune, 30 à 120). La manette : Manette, Clavier, Souris. |
+| Onglet **Matériel** | Ventilateurs : Auto (la courbe du firmware), Équilibré, Maximum ; « Courbes personnalisées » quand d'autres courbes sont en place. La limite de FPS ‹ › (Aucune, 30 à 120). La manette : Manette, Clavier, Souris. La limite de charge de la batterie ‹ › (60, 80, 100 % ; « — » tant que Canapé ne l'a pas réglée, pas encore essayé sur l'Ally). |
 | Pied, toujours visible | **Enregistrer pour ce jeu** : l'onglet affiché dans le profil du jeu au premier plan (Puissance : l'auto TDP actuel ; Matériel : ventilateurs et limite de FPS ; le reste du profil est gardé). **Ouvrir Canapé**, qui ramène le shell devant. |
 
 Le widget n'a ni bouton de banc d'essai, ni liste des profils, ni réglage de la plage de puissance ou de la fréquence de l'écran : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar, et le widget suit la couleur d'accent choisie dans le shell. Taille par défaut 400 × 600, redimensionnable.

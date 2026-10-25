@@ -289,6 +289,9 @@ msgstr "Descargar las portadas que faltan"
 msgid "Screen"
 msgstr "Pantalla"
 
+msgid "Charge limit"
+msgstr "Límite de carga"
+
 msgid "{} Hz"
 msgstr "{} Hz"
 

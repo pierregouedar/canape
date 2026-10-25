@@ -52,6 +52,8 @@ export struct StatusView {
     fps-limit: int,
     // "gamepad", "wasd", "mouse" or "" when unknown.
     controller: string,
+    // Battery charge limit set through Canapé, percent, 0 when unknown.
+    charge-limit: int,
 }
 
 export struct ProfileView {
@@ -171,6 +173,8 @@ export global App {
     // 0 removes the cap.
     callback set-fps-limit(int);
     callback set-controller(string);
+    // Percent, 40 to 100.
+    callback set-charge-limit(int);
     // Saves the current fan curves and frame rate cap in the profile of the
     // game in the foreground.
     callback save-hardware-profile();

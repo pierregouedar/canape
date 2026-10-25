@@ -155,6 +155,9 @@
   <data name="FpsLimitNone" xml:space="preserve">
     <value>なし</value>
   </data>
+  <data name="ChargeLimitLabel.Text" xml:space="preserve">
+    <value>充電上限</value>
+  </data>
   <data name="ControllerHeader.Text" xml:space="preserve">
     <value>コントローラー</value>
   </data>

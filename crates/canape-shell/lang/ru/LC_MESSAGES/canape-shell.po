@@ -289,6 +289,9 @@ msgstr "Загружать недостающие обложки"
 msgid "Screen"
 msgstr "Экран"
 
+msgid "Charge limit"
+msgstr "Предел заряда"
+
 msgid "{} Hz"
 msgstr "{} Гц"
 

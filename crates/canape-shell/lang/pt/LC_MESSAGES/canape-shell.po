@@ -289,6 +289,9 @@ msgstr "Baixar capas em falta"
 msgid "Screen"
 msgstr "Tela"
 
+msgid "Charge limit"
+msgstr "Limite de carga"
+
 msgid "{} Hz"
 msgstr "{} Hz"
 

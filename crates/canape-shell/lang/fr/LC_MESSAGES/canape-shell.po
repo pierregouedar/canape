@@ -289,6 +289,9 @@ msgstr "Télécharger les jaquettes manquantes"
 msgid "Screen"
 msgstr "Écran"
 
+msgid "Charge limit"
+msgstr "Limite de charge"
+
 msgid "{} Hz"
 msgstr "{} Hz"
 

@@ -171,6 +171,9 @@ pub struct Status {
     pub fps_limit: Option<u32>,
     #[serde(default)]
     pub controller_mode: Option<ControllerMode>,
+    /// Battery charge limit set through Canape, in percent, if any.
+    #[serde(default)]
+    pub battery_charge_limit: Option<u8>,
 }
 
 /// What [`Request::SaveForegroundProfile`] saves.
@@ -261,6 +264,7 @@ mod tests {
         assert_eq!(status.tdp_min_watts, None);
         assert!(status.fan_curves.is_empty());
         assert_eq!(status.controller_mode, None);
+        assert_eq!(status.battery_charge_limit, None);
     }
 
     #[test]
@@ -273,6 +277,7 @@ mod tests {
             cpu_fan_rpm: Some(3200),
             fps_limit: Some(40),
             controller_mode: Some(ControllerMode::Gamepad),
+            battery_charge_limit: Some(80),
             ..Status::default()
         });
         let line = encode(&response).unwrap();

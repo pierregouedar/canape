@@ -202,6 +202,10 @@
     <value>None</value>
     <comment>Value of the frame rate cap when there is none</comment>
   </data>
+  <data name="ChargeLimitLabel.Text" xml:space="preserve">
+    <value>Charge limit</value>
+    <comment>Row label: battery charge limit, in percent</comment>
+  </data>
   <data name="ControllerHeader.Text" xml:space="preserve">
     <value>Controller</value>
     <comment>Section header: mode of the built-in controller</comment>

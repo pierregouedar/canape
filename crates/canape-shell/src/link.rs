@@ -429,6 +429,7 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
             None => "",
         }
         .into(),
+        charge_limit: s.battery_charge_limit.map_or(0, i32::from),
     }
 }
 

@@ -289,6 +289,9 @@ msgstr "Fehlende Cover herunterladen"
 msgid "Screen"
 msgstr "Bildschirm"
 
+msgid "Charge limit"
+msgstr "Ladegrenze"
+
 msgid "{} Hz"
 msgstr "{} Hz"
 

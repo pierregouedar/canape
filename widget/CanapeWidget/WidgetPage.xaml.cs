@@ -37,6 +37,9 @@ namespace CanapeWidget
         // Stops of the frame rate cap, as on the shell's Hardware page; 0 is none.
         private static readonly int[] LimitStops = { 0, 30, 40, 45, 60, 90, 120 };
 
+        // Stops of the battery charge limit, as on the shell's Hardware page.
+        private static readonly int[] ChargeStops = { 60, 80, 100 };
+
         // Opens the shell (see the identity package's canape protocol).
         private static readonly Uri ShellUri = new Uri("canape://home");
 
@@ -314,6 +317,9 @@ namespace CanapeWidget
             LimitValue.Text = Dash;
             LimitDown.IsEnabled = false;
             LimitUp.IsEnabled = false;
+            ChargeValue.Text = Dash;
+            ChargeDown.IsEnabled = false;
+            ChargeUp.IsEnabled = false;
             ShowSaveButtons(false);
             StepLabel.Text = S("PowerLimitLabel");
             StepValue.Text = Dash;
@@ -699,7 +705,7 @@ namespace CanapeWidget
             ConflictText.Text = conflicts.Length > 0 ? F(conflicts.Length == 1 ? "ConflictOne" : "Conflicts", string.Join(", ", conflicts)) : "";
         }
 
-        /// <summary>Fans, frame rate cap and controller, as the service has them.</summary>
+        /// <summary>Fans, frame rate cap, controller and charge limit, as the service has them.</summary>
         private void ShowHardware(JsonObject status)
         {
             // No custom curve: the firmware's own (Auto). Custom curves that
@@ -720,6 +726,12 @@ namespace CanapeWidget
             Bump(LimitValue, limit > 0 ? F("FormatFps", limit) : S("FpsLimitNone"));
             LimitDown.IsEnabled = limit > 0;
             LimitUp.IsEnabled = limit < LimitStops[LimitStops.Length - 1];
+
+            // Unknown until set through Canape: the firmware does not report it.
+            var charge = Integer(status, "battery_charge_limit");
+            Bump(ChargeValue, charge.HasValue ? F("FormatPercent", charge.Value) : Dash);
+            ChargeDown.IsEnabled = (charge ?? ChargeStops[ChargeStops.Length - 1]) > ChargeStops[0];
+            ChargeUp.IsEnabled = charge.HasValue && charge.Value < ChargeStops[ChargeStops.Length - 1];
 
             var controller = Text(status, "controller_mode");
             foreach (var button in new[] { GamepadButton, KeyboardButton, MouseButton })
@@ -866,6 +878,20 @@ namespace CanapeWidget
                 : LimitStops.Where(t => t < limit).DefaultIfEmpty(0).Last();
             var request = Request("set_fps_limit");
             request["fps"] = next > 0 ? JsonValue.CreateNumberValue(next) : JsonValue.CreateNullValue();
+            Send(request);
+        }
+
+        /// <summary>‹ or ›: the next stop of the battery charge limit.</summary>
+        private void OnChargeStep(object sender, RoutedEventArgs e)
+        {
+            var delta = int.Parse((string)((FrameworkElement)sender).Tag, CultureInfo.InvariantCulture);
+            var top = ChargeStops[ChargeStops.Length - 1];
+            var charge = Integer(lastStatus, "battery_charge_limit") ?? top;
+            var next = delta > 0
+                ? ChargeStops.Where(t => t > charge).DefaultIfEmpty(top).First()
+                : ChargeStops.Where(t => t < charge).DefaultIfEmpty(ChargeStops[0]).Last();
+            var request = Request("set_battery_charge_limit");
+            request["percent"] = JsonValue.CreateNumberValue(next);
             Send(request);
         }
 

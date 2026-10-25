@@ -289,6 +289,9 @@ msgstr "Ontbrekende covers downloaden"
 msgid "Screen"
 msgstr "Scherm"
 
+msgid "Charge limit"
+msgstr "Laadlimiet"
+
 msgid "{} Hz"
 msgstr "{} Hz"
 

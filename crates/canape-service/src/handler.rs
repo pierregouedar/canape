@@ -428,6 +428,7 @@ impl Handler {
             fan_preset: FanPreset::of(&self.fan_curves),
             fps_limit: self.fps_limit,
             controller_mode: self.controller_mode,
+            battery_charge_limit: self.battery_limit,
         }
     }
 
@@ -1009,6 +1010,17 @@ mod tests {
         let mut restored = handler();
         assert!(restored.restore(&saved).is_empty());
         assert_eq!(restored.saved(), saved);
+        assert_eq!(restored.status().battery_charge_limit, Some(80));
+    }
+
+    #[test]
+    fn rejects_a_charge_limit_out_of_range() {
+        let mut h = handler();
+        assert!(matches!(
+            h.handle(Request::SetBatteryChargeLimit { percent: 20 }),
+            Response::Error { .. }
+        ));
+        assert_eq!(h.status().battery_charge_limit, None);
     }
 
     #[test]

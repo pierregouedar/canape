@@ -277,7 +277,7 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
 > [!NOTE]
 
-Four rows, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, **X** saves the fans, the frame rate limit and the screen refresh rate for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
+Five rows, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, **X** saves the fans, the frame rate limit and the screen refresh rate for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
 
 **Fans**
 
@@ -323,6 +323,13 @@ The mode is global (not per game), remembered and re-applied when the service st
 
 > [!WARNING]
 > Canapé reads the gamepad through XInput. In Keyboard or Mouse mode the controller should no longer show up as an Xbox gamepad, so Canapé may stop answering it: come back to **Gamepad** with the touch screen, or with `canape-ctl` (see [Troubleshooting](#canape-ctl-talking-to-the-service)).
+
+**Charge limit**
+
+Three tiles: 60, 80 and 100 %. The battery stops charging at that level, even plugged in: a console that lives on its charger keeps a healthier battery at 60 or 80 %. **100 %** removes the limit. The limit is global (not per game), remembered and re-applied when the service starts. Canapé cannot read it back from the firmware: no tile is selected until Canapé has set it once (a limit set elsewhere, or another value set with `canape-ctl`, selects none).
+
+> [!NOTE]
+> Not tried on the Ally yet: the firmware write (`set_battery_charge_limit`) has only been tested with the simulator.
 
 **Screen**
 
@@ -436,7 +443,7 @@ The widget gives you the quick settings without leaving the game. All the logic 
 | Graph | The last minute: power draw in the accent colour, the limit dashed grey. |
 | Bench | Step, wattage and time left during a bench (started from the shell). |
 | **Power** tab | Mode (Silent, Performance, Turbo, Auto; the chosen tile is white, a firmware mode turns auto TDP off). The ‹ value ›: under auto TDP the **target** (30 to 120 FPS), otherwise the **power limit** ±1 W, greyed out in a firmware mode and bounded by the model's range. The power range on the model's scale, with the current draw (read-only). |
-| **Hardware** tab | Fans: Auto (the firmware's curve), Balanced, Maximum; "Custom curves" when other curves are in place. The frame rate limit ‹ › (None, 30 to 120). The controller: Gamepad, Keyboard, Mouse. |
+| **Hardware** tab | Fans: Auto (the firmware's curve), Balanced, Maximum; "Custom curves" when other curves are in place. The frame rate limit ‹ › (None, 30 to 120). The controller: Gamepad, Keyboard, Mouse. The battery charge limit ‹ › (60, 80, 100 %; "—" until Canapé has set it, not tried on the Ally yet). |
 | Footer, always in view | **Save for this game**: the tab in front into the foreground game's profile (Power: the current auto TDP; Hardware: fans and frame rate limit; the rest of the profile is kept). **Open Canapé**, which brings the shell to the front. |
 
 The widget has no bench button, no profile list, no power range or screen refresh setting: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell. Default size 400 × 600, resizable.

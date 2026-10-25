@@ -289,6 +289,9 @@ msgstr "없는 표지 다운로드"
 msgid "Screen"
 msgstr "화면"
 
+msgid "Charge limit"
+msgstr "충전 한도"
+
 msgid "{} Hz"
 msgstr "{} Hz"
 

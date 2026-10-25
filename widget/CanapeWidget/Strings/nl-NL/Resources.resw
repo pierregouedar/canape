@@ -155,6 +155,9 @@
   <data name="FpsLimitNone" xml:space="preserve">
     <value>Geen</value>
   </data>
+  <data name="ChargeLimitLabel.Text" xml:space="preserve">
+    <value>Laadlimiet</value>
+  </data>
   <data name="ControllerHeader.Text" xml:space="preserve">
     <value>Controller</value>
   </data>

@@ -369,7 +369,8 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Hardware: fans, frame rate cap, controller, for the game in front. -->
+                    <!-- Hardware: fans, frame rate cap, controller, for the game in front;
+                         battery charge limit, for the device. -->
                     <StackPanel x:Name="HardwarePane" Spacing="10" Visibility="Collapsed">
                         <StackPanel Spacing="8">
                             <Grid>
@@ -432,6 +433,25 @@
                                 </TextBlock.RenderTransform>
                             </TextBlock>
                             <Button x:Name="LimitUp" Grid.Column="3" Style="{StaticResource Chevron}" Content="›" Tag="1" Click="OnLimitStep" IsEnabled="False" />
+                        </Grid>
+
+                        <Grid Height="40">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Uid="ChargeLimitLabel" FontSize="14" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <Button x:Name="ChargeDown" Grid.Column="1" Style="{StaticResource Chevron}" Content="‹" Tag="-1" Click="OnChargeStep" IsEnabled="False" />
+                            <TextBlock x:Name="ChargeValue" Grid.Column="2" Text="—" FontSize="15" FontFamily="{StaticResource JakartaSemiBold}" FontWeight="SemiBold"
+                                       Foreground="{StaticResource AccentTextBrush}" TextAlignment="Center" VerticalAlignment="Center"
+                                       Typography.NumeralAlignment="Tabular">
+                                <TextBlock.RenderTransform>
+                                    <TranslateTransform />
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                            <Button x:Name="ChargeUp" Grid.Column="3" Style="{StaticResource Chevron}" Content="›" Tag="1" Click="OnChargeStep" IsEnabled="False" />
                         </Grid>
 
                         <StackPanel Spacing="8">

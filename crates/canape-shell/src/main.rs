@@ -358,6 +358,14 @@ fn connect(ui: &AppWindow, link: &Link) {
             link.send(Request::SetControllerMode { mode });
         }
     });
+    app.on_set_charge_limit({
+        let link = link.clone();
+        move |percent| {
+            link.send(Request::SetBatteryChargeLimit {
+                percent: percent.clamp(40, 100) as u8,
+            })
+        }
+    });
     app.on_save_hardware_profile({
         let link = link.clone();
         move || {
