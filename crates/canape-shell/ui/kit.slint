@@ -39,6 +39,8 @@ export component SectionTitle inherits Text {
 export component Row inherits Rectangle {
     in property <bool> focused;
     in property <bool> enabled: true;
+    // As tall as its content: a page's spare height goes below its rows.
+    vertical-stretch: 0;
     border-radius: 14px;
     background: root.focused ? Theme.surface : transparent;
     border-width: root.focused ? 2px : 0;
@@ -347,9 +349,11 @@ export component LegendKey inherits HorizontalLayout {
     in property <color> ink;
     in property <bool> dashed;
     horizontal-stretch: 0;
+    vertical-stretch: 0;
     spacing: 8px;
     Rectangle {
         width: 16px;
+        height: 16px;
         if !root.dashed: Rectangle {
             y: (parent.height - self.height) / 2;
             height: 3px;

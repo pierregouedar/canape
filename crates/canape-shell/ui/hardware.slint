@@ -167,7 +167,8 @@ export component HardwarePage inherits Rectangle {
                             color: Theme.dim;
                             font-size: 13px;
                             horizontal-alignment: right;
-                            vertical-alignment: center;
+                            // Top, like the title: the row may be taller than both.
+                            vertical-alignment: top;
                             overflow: elide;
                         }
                     }
@@ -329,6 +330,7 @@ export component HardwarePage inherits Rectangle {
                     Text {
                         horizontal-stretch: 1;
                         text: App.celsius(20) + " – " + App.celsius(110);
+                        vertical-alignment: center;
                         color: Theme.dim;
                         font-size: 13px;
                         horizontal-alignment: right;
