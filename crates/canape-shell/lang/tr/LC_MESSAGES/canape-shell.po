@@ -48,9 +48,6 @@ msgstr "Otomatik TDP"
 msgid "Thermal limit reached"
 msgstr "Sıcaklık sınırına ulaşıldı"
 
-msgid "CPU temperature"
-msgstr "CPU sıcaklığı"
-
 msgid "On battery"
 msgstr "Pilde"
 
@@ -239,9 +236,6 @@ msgstr "Donanım"
 
 msgid "Fans"
 msgstr "Fanlar"
-
-msgid "CPU fan"
-msgstr "CPU fanı"
 
 msgid "{} rpm"
 msgstr "{} dev/dk"
@@ -597,9 +591,6 @@ msgstr "Çubuk aydınlatması"
 msgid "Follows the accent colour"
 msgstr "Vurgu rengini izler"
 
-msgid "Back buttons and lighting"
-msgstr "Arka düğmeler ve aydınlatma"
-
 msgid "Other games"
 msgstr "Diğer oyunlar"
 
@@ -755,3 +746,18 @@ msgstr "sınır {} · {} öğrenildi"
 
 msgid "Measures and screen"
 msgstr "Ölçümler ve ekran"
+
+msgid "Cooling"
+msgstr "Soğutma"
+
+msgid "Custom"
+msgstr "Özel"
+
+msgid "Paddle held"
+msgstr "Kol basılıyken"
+
+msgid "Paddle toggles"
+msgstr "Kol açar/kapatır"
+
+msgid "Screen and battery"
+msgstr "Ekran ve pil"

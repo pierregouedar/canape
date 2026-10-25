@@ -48,9 +48,6 @@ msgstr "Авто TDP"
 msgid "Thermal limit reached"
 msgstr "Достигнут предел температуры"
 
-msgid "CPU temperature"
-msgstr "Температура CPU"
-
 msgid "On battery"
 msgstr "От батареи"
 
@@ -239,9 +236,6 @@ msgstr "Железо"
 
 msgid "Fans"
 msgstr "Вентиляторы"
-
-msgid "CPU fan"
-msgstr "Вентилятор ЦП"
 
 msgid "{} rpm"
 msgstr "{} об/мин"
@@ -597,9 +591,6 @@ msgstr "Подсветка стиков"
 msgid "Follows the accent colour"
 msgstr "Следует за цветом акцента"
 
-msgid "Back buttons and lighting"
-msgstr "Задние кнопки и подсветка"
-
 msgid "Other games"
 msgstr "Другие игры"
 
@@ -755,3 +746,18 @@ msgstr "предел {} · изучено {}"
 
 msgid "Measures and screen"
 msgstr "Замеры и экран"
+
+msgid "Cooling"
+msgstr "Охлаждение"
+
+msgid "Custom"
+msgstr "Свои"
+
+msgid "Paddle held"
+msgstr "Кнопка зажата"
+
+msgid "Paddle toggles"
+msgstr "Кнопка переключает"
+
+msgid "Screen and battery"
+msgstr "Экран и батарея"

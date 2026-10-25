@@ -48,9 +48,6 @@ msgstr "자동 TDP"
 msgid "Thermal limit reached"
 msgstr "온도 제한 도달"
 
-msgid "CPU temperature"
-msgstr "CPU 온도"
-
 msgid "On battery"
 msgstr "배터리 사용 중"
 
@@ -239,9 +236,6 @@ msgstr "하드웨어"
 
 msgid "Fans"
 msgstr "팬"
-
-msgid "CPU fan"
-msgstr "CPU 팬"
 
 msgid "{} rpm"
 msgstr "{} rpm"
@@ -597,9 +591,6 @@ msgstr "스틱 조명"
 msgid "Follows the accent colour"
 msgstr "강조 색상을 따름"
 
-msgid "Back buttons and lighting"
-msgstr "뒷면 버튼 및 조명"
-
 msgid "Other games"
 msgstr "기타 게임"
 
@@ -755,3 +746,18 @@ msgstr "제한 {} · 학습값 {}"
 
 msgid "Measures and screen"
 msgstr "측정 및 화면"
+
+msgid "Cooling"
+msgstr "냉각"
+
+msgid "Custom"
+msgstr "사용자 지정"
+
+msgid "Paddle held"
+msgstr "패들 누름"
+
+msgid "Paddle toggles"
+msgstr "패들로 전환"
+
+msgid "Screen and battery"
+msgstr "화면 및 배터리"

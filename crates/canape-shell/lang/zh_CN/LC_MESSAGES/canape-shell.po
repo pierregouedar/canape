@@ -48,9 +48,6 @@ msgstr "自动 TDP"
 msgid "Thermal limit reached"
 msgstr "已达温度上限"
 
-msgid "CPU temperature"
-msgstr "CPU 温度"
-
 msgid "On battery"
 msgstr "使用电池"
 
@@ -239,9 +236,6 @@ msgstr "硬件"
 
 msgid "Fans"
 msgstr "风扇"
-
-msgid "CPU fan"
-msgstr "CPU 风扇"
 
 msgid "{} rpm"
 msgstr "{} 转/分"
@@ -597,9 +591,6 @@ msgstr "摇杆灯光"
 msgid "Follows the accent colour"
 msgstr "跟随强调色"
 
-msgid "Back buttons and lighting"
-msgstr "背键和灯光"
-
 msgid "Other games"
 msgstr "其他游戏"
 
@@ -755,3 +746,18 @@ msgstr "上限 {} · 已学习 {}"
 
 msgid "Measures and screen"
 msgstr "测量与屏幕"
+
+msgid "Cooling"
+msgstr "散热"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "Paddle held"
+msgstr "按住背键"
+
+msgid "Paddle toggles"
+msgstr "背键切换"
+
+msgid "Screen and battery"
+msgstr "屏幕与电池"

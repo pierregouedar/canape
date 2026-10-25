@@ -48,9 +48,6 @@ msgstr "自動 TDP"
 msgid "Thermal limit reached"
 msgstr "温度制限に到達"
 
-msgid "CPU temperature"
-msgstr "CPU 温度"
-
 msgid "On battery"
 msgstr "バッテリー駆動"
 
@@ -239,9 +236,6 @@ msgstr "ハードウェア"
 
 msgid "Fans"
 msgstr "ファン"
-
-msgid "CPU fan"
-msgstr "CPU ファン"
 
 msgid "{} rpm"
 msgstr "{} rpm"
@@ -597,9 +591,6 @@ msgstr "スティックのライト"
 msgid "Follows the accent colour"
 msgstr "アクセントカラーに合わせる"
 
-msgid "Back buttons and lighting"
-msgstr "背面ボタンとライト"
-
 msgid "Other games"
 msgstr "その他のゲーム"
 
@@ -755,3 +746,18 @@ msgstr "上限 {} · 学習値 {}"
 
 msgid "Measures and screen"
 msgstr "計測と画面"
+
+msgid "Cooling"
+msgstr "冷却"
+
+msgid "Custom"
+msgstr "カスタム"
+
+msgid "Paddle held"
+msgstr "パドル押下中"
+
+msgid "Paddle toggles"
+msgstr "パドルで切替"
+
+msgid "Screen and battery"
+msgstr "画面とバッテリー"

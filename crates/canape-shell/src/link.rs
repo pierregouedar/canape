@@ -632,7 +632,7 @@ mod tests {
         );
         assert_eq!((view.lighting_effect, view.lighting_speed), (3, 2));
         // The page names one effect per entry of LightingEffect::ALL.
-        let page = include_str!("../ui/controller.slint");
+        let page = include_str!("../ui/hardware.slint");
         let effects = page
             .split("effect-names: [")
             .nth(1)
@@ -640,7 +640,7 @@ mod tests {
             .unwrap();
         assert_eq!(effects.matches("@tr(").count(), LightingEffect::ALL.len());
         // The page names one target per entry of ButtonTarget::ALL.
-        let page = include_str!("../ui/controller.slint");
+        let page = include_str!("../ui/hardware.slint");
         let list = page
             .split("target-names: [")
             .nth(1)

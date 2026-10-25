@@ -48,9 +48,6 @@ msgstr "Auto-TDP"
 msgid "Thermal limit reached"
 msgstr "Temperatuurlimiet bereikt"
 
-msgid "CPU temperature"
-msgstr "CPU-temperatuur"
-
 msgid "On battery"
 msgstr "Op batterij"
 
@@ -239,9 +236,6 @@ msgstr "Hardware"
 
 msgid "Fans"
 msgstr "Ventilatoren"
-
-msgid "CPU fan"
-msgstr "CPU-ventilator"
 
 msgid "{} rpm"
 msgstr "{} tpm"
@@ -597,9 +591,6 @@ msgstr "Stickverlichting"
 msgid "Follows the accent colour"
 msgstr "Volgt de accentkleur"
 
-msgid "Back buttons and lighting"
-msgstr "Achterknoppen en verlichting"
-
 msgid "Other games"
 msgstr "Andere games"
 
@@ -755,3 +746,18 @@ msgstr "limiet {} · {} geleerd"
 
 msgid "Measures and screen"
 msgstr "Metingen en scherm"
+
+msgid "Cooling"
+msgstr "Koeling"
+
+msgid "Custom"
+msgstr "Aangepast"
+
+msgid "Paddle held"
+msgstr "Peddel ingedrukt"
+
+msgid "Paddle toggles"
+msgstr "Peddel schakelt"
+
+msgid "Screen and battery"
+msgstr "Scherm en accu"

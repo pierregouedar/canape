@@ -7,12 +7,11 @@
 import { Theme } from "theme.slint";
 import { App, Notice } from "state.slint";
 import { BatteryIcon, Bolt, Hint, Logo } from "widgets.slint";
-import { AddGamesPage, BenchPage, GyroPage, ProfilesPage } from "pages.slint";
+import { AddGamesPage, BenchPage, ProfilesPage } from "pages.slint";
 import { SettingsPage } from "settings.slint";
 import { PerformancePage } from "performance.slint";
 import { GameView, Library, LibraryPage } from "library.slint";
 import { HardwarePage } from "hardware.slint";
-import { ControllerPage } from "controller.slint";
 import { PageHints, Reveal } from "kit.slint";
 
 // Plus Jakarta Sans, embedded (OFL, see fonts/OFL.txt). Scripts it lacks,
@@ -91,9 +90,8 @@ export component AppWindow inherits Window {
     preferred-height: 720px;
 
     // Sections 0 Games, 1 Performance, 2 Hardware, 3 Settings; then the
-    // sub-pages 4 Profiles (from Settings), 5 Bench (from Performance),
-    // 6 Gyro and 7 Controller (both from Hardware), 8 Add a game (from
-    // Settings).
+    // sub-pages 4 Profiles (from Performance or Settings), 5 Bench (from
+    // Performance), 6 Add a game (from Settings).
     in-out property <int> page: 0;
     property <int> section: root.section-of(root.page);
     // The selected game on the shelf in front, for the hints.
@@ -108,8 +106,8 @@ export component AppWindow inherits Window {
     // sub-page keeps them.
     property <int> performance-shelf: 0;
     property <int> performance-card: 0;
-    property <int> hardware-row: 0;
-    property <int> hardware-more-col: 0;
+    property <int> hardware-shelf: 0;
+    property <int> hardware-card: 0;
     property <int> settings-row: 0;
     // The section the game profiles were opened from: Performance or
     // Settings.
@@ -118,7 +116,7 @@ export component AppWindow inherits Window {
     // the page (PageHints).
     property <bool> shelf-page: root.page >= 1 && root.page <= 3;
     pure function section-of(page: int) -> int {
-        page == 4 ? root.profiles-from : page == 8 ? 3 : page == 5 ? 1 : page == 6 || page == 7 ? 2 : page
+        page == 4 ? root.profiles-from : page == 6 ? 3 : page == 5 ? 1 : page
     }
     function go(page: int) {
         if page == 4 && root.page != 4 {
@@ -333,21 +331,17 @@ export component AppWindow inherits Window {
                     }
                 }
                 if root.page == 2: Reveal {
-                    x: 32px;
-                    y: 28px;
-                    width: parent.width - 80px;
-                    height: parent.height - 28px;
+                    x: 0;
+                    y: 0;
+                    width: parent.width;
+                    height: parent.height + 54px;
                     from-x: root.enter-x;
                     from-y: root.enter-y;
                     HardwarePage {
-                        focus-row <=> root.hardware-row;
-                        more-col <=> root.hardware-more-col;
-                        open-gyro => {
-                            root.go(6);
-                        }
-                        open-controller => {
-                            root.go(7);
-                        }
+                        width: parent.width;
+                        height: parent.height;
+                        shelf <=> root.hardware-shelf;
+                        card <=> root.hardware-card;
                     }
                 }
                 if root.page == 3: Reveal {
@@ -363,7 +357,7 @@ export component AppWindow inherits Window {
                             root.go(4);
                         }
                         open-add-games => {
-                            root.go(8);
+                            root.go(6);
                         }
                     }
                 }
@@ -376,15 +370,6 @@ export component AppWindow inherits Window {
                     from-y: root.enter-y;
                     ProfilesPage { }
                 }
-                if root.page == 7: Reveal {
-                    x: 32px;
-                    y: 28px;
-                    width: parent.width - 80px;
-                    height: parent.height - 28px;
-                    from-x: root.enter-x;
-                    from-y: root.enter-y;
-                    ControllerPage { }
-                }
                 if root.page == 5: Reveal {
                     x: 32px;
                     y: 28px;
@@ -395,15 +380,6 @@ export component AppWindow inherits Window {
                     BenchPage { }
                 }
                 if root.page == 6: Reveal {
-                    x: 32px;
-                    y: 28px;
-                    width: parent.width - 80px;
-                    height: parent.height - 28px;
-                    from-x: root.enter-x;
-                    from-y: root.enter-y;
-                    GyroPage { }
-                }
-                if root.page == 8: Reveal {
                     x: 32px;
                     y: 28px;
                     width: parent.width - 80px;
@@ -438,6 +414,10 @@ export component AppWindow inherits Window {
                     glyph: PageHints.current.move-glyph;
                     text: PageHints.current.move;
                 }
+                if root.shelf-page && PageHints.current.move2 != "": Hint {
+                    glyph: PageHints.current.move2-glyph;
+                    text: PageHints.current.move2;
+                }
                 if root.shelf-page && PageHints.current.a != "": Hint {
                     glyph: "A";
                     text: PageHints.current.a;
@@ -458,7 +438,7 @@ export component AppWindow inherits Window {
                     glyph: "updown";
                     text: @tr("Setting");
                 }
-                if root.page >= 4 && root.page != 4 && root.page != 8: Hint {
+                if root.page == 5: Hint {
                     glyph: "leftright";
                     text: @tr("Value");
                 }
@@ -477,7 +457,7 @@ export component AppWindow inherits Window {
                     text: root.page != 0 ? @tr("Choose") : !Library.detail ? (root.front-games > 0 ? @tr("Details") : @tr("Choose")) : root.front-game.installed ? @tr("Play") : @tr("Install");
                 }
 
-                if root.page == 5 || root.page == 6: Hint {
+                if root.page == 5: Hint {
                     glyph: "X";
                     text: @tr("Save for this game");
                 }

@@ -8,11 +8,13 @@ import { StoreLogo } from "widgets.slint";
 
 // The gamepad hints of a shelf page, which sets them as its state changes
 // (app.slint shows them): the D-pad's glyph ("dpad", "updown",
-// "leftright") and what it does, then what A, X, Y and B do. An empty
-// text hides its hint.
+// "leftright") and what it does, a second one, then what A, X, Y and B
+// do. An empty text hides its hint.
 export struct HintSet {
     move-glyph: string,
     move: string,
+    move2-glyph: string,
+    move2: string,
     a: string,
     x: string,
     y: string,
@@ -923,9 +925,9 @@ export component Drawer inherits Rectangle {
 
     Rectangle {
         x: 48px;
-        y: 60px;
+        y: 56px;
         width: parent.width - 96px;
-        height: parent.height - 60px - 54px;
+        height: parent.height - 56px - 54px;
         @children
     }
 }

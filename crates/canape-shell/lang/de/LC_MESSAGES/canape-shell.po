@@ -48,9 +48,6 @@ msgstr "Auto-TDP"
 msgid "Thermal limit reached"
 msgstr "Temperaturgrenze erreicht"
 
-msgid "CPU temperature"
-msgstr "CPU-Temperatur"
-
 msgid "On battery"
 msgstr "Akkubetrieb"
 
@@ -239,9 +236,6 @@ msgstr "Hardware"
 
 msgid "Fans"
 msgstr "Lüfter"
-
-msgid "CPU fan"
-msgstr "CPU-Lüfter"
 
 msgid "{} rpm"
 msgstr "{} U/min"
@@ -597,9 +591,6 @@ msgstr "Stick-Beleuchtung"
 msgid "Follows the accent colour"
 msgstr "Folgt der Akzentfarbe"
 
-msgid "Back buttons and lighting"
-msgstr "Hintere Tasten und Beleuchtung"
-
 msgid "Other games"
 msgstr "Andere Spiele"
 
@@ -755,3 +746,18 @@ msgstr "Limit {} · {} gelernt"
 
 msgid "Measures and screen"
 msgstr "Messungen und Bildschirm"
+
+msgid "Cooling"
+msgstr "Kühlung"
+
+msgid "Custom"
+msgstr "Eigene"
+
+msgid "Paddle held"
+msgstr "Taste gehalten"
+
+msgid "Paddle toggles"
+msgstr "Taste schaltet"
+
+msgid "Screen and battery"
+msgstr "Bildschirm und Akku"

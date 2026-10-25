@@ -48,9 +48,6 @@ msgstr "TDP automático"
 msgid "Thermal limit reached"
 msgstr "Limite térmico atingido"
 
-msgid "CPU temperature"
-msgstr "Temperatura da CPU"
-
 msgid "On battery"
 msgstr "Na bateria"
 
@@ -239,9 +236,6 @@ msgstr "Hardware"
 
 msgid "Fans"
 msgstr "Ventoinhas"
-
-msgid "CPU fan"
-msgstr "Ventoinha da CPU"
 
 msgid "{} rpm"
 msgstr "{} rpm"
@@ -597,9 +591,6 @@ msgstr "Iluminação dos analógicos"
 msgid "Follows the accent colour"
 msgstr "Segue a cor de destaque"
 
-msgid "Back buttons and lighting"
-msgstr "Botões traseiros e iluminação"
-
 msgid "Other games"
 msgstr "Outros jogos"
 
@@ -755,3 +746,18 @@ msgstr "limite {} · {} aprendidos"
 
 msgid "Measures and screen"
 msgstr "Medições e tela"
+
+msgid "Cooling"
+msgstr "Refrigeração"
+
+msgid "Custom"
+msgstr "Personalizadas"
+
+msgid "Paddle held"
+msgstr "Alavanca pressionada"
+
+msgid "Paddle toggles"
+msgstr "Alavanca alterna"
+
+msgid "Screen and battery"
+msgstr "Tela e bateria"
