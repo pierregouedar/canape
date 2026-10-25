@@ -10,6 +10,7 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod accent;
+mod achievements;
 mod addgames;
 mod backdrop;
 #[cfg(windows)]

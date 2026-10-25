@@ -687,3 +687,21 @@ msgstr "Daha fazla"
 
 msgid "Top"
 msgstr "Yukarı"
+
+msgid "Achievements"
+msgstr "Başarımlar"
+
+msgid "Hidden achievement"
+msgstr "Gizli başarım"
+
+msgid "Locked"
+msgstr "Kilitli"
+
+msgid "Unlocked on {}"
+msgstr "{} tarihinde açıldı"
+
+msgid "Unlocked"
+msgstr "Açıldı"
+
+msgid "{} % of players"
+msgstr "Oyuncuların {} %'si"

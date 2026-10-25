@@ -15,7 +15,8 @@ Two games no store knows are in `<out>/library/games.json` (one with its
 own cover, one without), and `<out>/library/shortcuts` holds shortcuts
 for Settings -> Add a game (one is an uninstaller, which is left out).
 Three Steam games have a time to beat (`igdb-fixture.json`), shown below
-the fold of their game page.
+the fold of their game page, and two have achievements
+(`achievements-fixture.json`, icons drawn in `achievement-icons-fixture`).
 """
 
 import hashlib
@@ -105,6 +106,74 @@ def cover(path, title, top, bottom, size="600x900", titled=True):
         ],
         check=True,
     )
+
+
+# Achievements of two Steam games: (app id, how many, how many unlocked).
+ACHIEVEMENT_GAMES = [(900001, 51, 23), (900007, 12, 12)]
+
+ACHIEVEMENT_WORDS = [
+    ("First Light", "Reach the lighthouse."),
+    ("Deep Water", "Dive below 100 m."),
+    ("Salt and Iron", "Repair the old pier."),
+    ("Night Swimmer", "Swim across the bay after dark."),
+    ("Tide Reader", "Predict ten tides in a row."),
+    ("Driftwood", "Build a raft from what the sea brings."),
+    ("Gull Friend", "Feed the gulls twenty times."),
+    ("Storm Chaser", "Sail through a storm without damage."),
+    ("Cartographer", "Map every island of the archipelago."),
+    ("Shell Collector", "Find every shell on the north beach."),
+    ("Keeper", "Light the lamp every night for a week."),
+    ("Long Way Home", "Walk back from the far cape."),
+]
+
+
+def achievement_icon(path, colours, glyph, locked):
+    """A 64x64 icon: a gradient and a letter, grey and dark when locked."""
+    top, bottom = colours
+    extra = ["-colorspace", "Gray", "-brightness-contrast", "-35x-20"] if locked else []
+    subprocess.run(
+        [
+            "convert", "-size", "64x64", f"gradient:{top}-{bottom}",
+            "-font", "DejaVu-Sans-Bold", "-fill", "white", "-pointsize", "30",
+            "-gravity", "center", "-annotate", "+0+0", glyph,
+            *extra, "-quality", "90", path,
+        ],
+        check=True,
+    )
+
+
+def achievements(appdata, now):
+    """achievements-fixture.json, as the shell caches Steam's answers, and
+    the icons, named as the shell names downloaded ones."""
+    icons = os.path.join(appdata, "achievement-icons-fixture")
+    os.makedirs(icons)
+    palette = [("#1e3a8a", "#f97316"), ("#581c87", "#06b6d4"), ("#052e16", "#84cc16"),
+               ("#7f1d1d", "#facc15"), ("#134e4a", "#5eead4"), ("#4a044e", "#f0abfc")]
+    games = {}
+    for appid, count, unlocked in ACHIEVEMENT_GAMES:
+        items = []
+        for i in range(count):
+            name, description = ACHIEVEMENT_WORDS[i % len(ACHIEVEMENT_WORDS)]
+            if i >= len(ACHIEVEMENT_WORDS):
+                name = f"{name} {i // len(ACHIEVEMENT_WORDS) + 1}"
+            urls = [f"https://example.invalid/ach/{appid}/{i}.jpg",
+                    f"https://example.invalid/ach/{appid}/{i}g.jpg"]
+            for url, locked in zip(urls, (False, True)):
+                file = hashlib.sha256(url.encode()).hexdigest()[:32] + ".jpg"
+                achievement_icon(os.path.join(icons, file), palette[i % len(palette)],
+                                 name[0], locked)
+            hidden = i == count - 1 and unlocked < count
+            items.append({
+                "id": f"ACH_{i}", "name": name,
+                "description": "" if hidden else description, "hidden": hidden,
+                "icon": urls[0], "icon_locked": urls[1],
+                # The latest first, a few hours apart.
+                "unlocked": now - 3600 * (5 + 17 * i) if i < unlocked else None,
+                "percent": round(max(0.4, 92.0 - i * 1.9 - (i % 3) * 3.3), 1),
+            })
+        games[f"steam:{appid}"] = {"at": now, "language": "english", "list": items}
+    with open(os.path.join(appdata, "achievements-fixture.json"), "w") as f:
+        json.dump({"version": 1, "games": games}, f, indent=1)
 
 
 def lnk(target, workdir=""):
@@ -271,6 +340,7 @@ def main(out):
         json.dump({"version": 1, "games": {
             game_id: {"at": now, "times": dict(times, count=12)}
             for game_id, times in beats.items()}}, f, indent=1)
+    achievements(os.path.join(out, "appdata", "Canape"), now)
     print(f"LOCALAPPDATA={out}/appdata CANAPE_LIBRARY_FIXTURE={library}")
 
 

@@ -15,6 +15,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
+pub mod achievements;
 pub mod cache;
 pub mod cover;
 pub mod disk;

@@ -11,8 +11,9 @@
 //! by every shelf that shows the game.
 //!
 //! Everything here runs on the UI thread except the scan, the decoding,
-//! the launch, the owned lists, the installs and the time-to-beat lookups
-//! (timetobeat.rs), which post their results back to the event loop.
+//! the launch, the owned lists, the installs, the time-to-beat lookups
+//! (timetobeat.rs) and the achievements (achievements.rs), which post their
+//! results back to the event loop.
 
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -586,8 +587,10 @@ impl State {
         });
         library.set_detail_art(Image::default());
         library.set_detail_part(0);
+        library.set_achievement_focus(0);
         library.set_detail(true);
         self.detail = Some(game.id.clone());
+        crate::achievements::open(&game.id, self.roots.steam.as_deref());
         if let Some(install) = install
             && size.is_none()
             && !self.fixture
@@ -869,6 +872,7 @@ impl State {
     /// Back to the shelf; the page's images go once it has faded out.
     fn close_detail(&mut self) {
         self.detail = None;
+        crate::achievements::close();
         let Some(ui) = self.ui.upgrade() else { return };
         ui.global::<Library>().set_detail(false);
         let ui = ui.as_weak();
@@ -1711,6 +1715,13 @@ pub fn start(ui: &AppWindow) {
     let covers_dir = dir.join(format!("covers{suffix}"));
     let owned_path = dir.join(format!("owned{suffix}.json"));
     let beat = Lookups::new(&dir, suffix, fixture);
+    crate::achievements::start(
+        ui,
+        &dir,
+        suffix,
+        fixture,
+        canape_library::local_utc_offset(),
+    );
     let owned = cache::load(&owned_path);
     let recent = Recent::load(&recent_path);
     let cached = cache::load(&cache_path);

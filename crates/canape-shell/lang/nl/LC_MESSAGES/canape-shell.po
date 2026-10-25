@@ -687,3 +687,21 @@ msgstr "Meer"
 
 msgid "Top"
 msgstr "Boven"
+
+msgid "Achievements"
+msgstr "Prestaties"
+
+msgid "Hidden achievement"
+msgstr "Verborgen prestatie"
+
+msgid "Locked"
+msgstr "Vergrendeld"
+
+msgid "Unlocked on {}"
+msgstr "Ontgrendeld op {}"
+
+msgid "Unlocked"
+msgstr "Ontgrendeld"
+
+msgid "{} % of players"
+msgstr "{} % van de spelers"

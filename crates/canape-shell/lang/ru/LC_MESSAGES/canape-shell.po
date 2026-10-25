@@ -687,3 +687,21 @@ msgstr "Ещё"
 
 msgid "Top"
 msgstr "Наверх"
+
+msgid "Achievements"
+msgstr "Достижения"
+
+msgid "Hidden achievement"
+msgstr "Скрытое достижение"
+
+msgid "Locked"
+msgstr "Не получено"
+
+msgid "Unlocked on {}"
+msgstr "Получено {}"
+
+msgid "Unlocked"
+msgstr "Получено"
+
+msgid "{} % of players"
+msgstr "{} % игроков"

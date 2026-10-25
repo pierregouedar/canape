@@ -687,3 +687,21 @@ msgstr "Mais"
 
 msgid "Top"
 msgstr "Topo"
+
+msgid "Achievements"
+msgstr "Conquistas"
+
+msgid "Hidden achievement"
+msgstr "Conquista oculta"
+
+msgid "Locked"
+msgstr "Bloqueada"
+
+msgid "Unlocked on {}"
+msgstr "Desbloqueada em {}"
+
+msgid "Unlocked"
+msgstr "Desbloqueada"
+
+msgid "{} % of players"
+msgstr "{} % dos jogadores"

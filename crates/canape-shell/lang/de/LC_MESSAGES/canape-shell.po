@@ -687,3 +687,21 @@ msgstr "Mehr"
 
 msgid "Top"
 msgstr "Nach oben"
+
+msgid "Achievements"
+msgstr "Errungenschaften"
+
+msgid "Hidden achievement"
+msgstr "Versteckte Errungenschaft"
+
+msgid "Locked"
+msgstr "Gesperrt"
+
+msgid "Unlocked on {}"
+msgstr "Freigeschaltet am {}"
+
+msgid "Unlocked"
+msgstr "Freigeschaltet"
+
+msgid "{} % of players"
+msgstr "{} % der Spieler"

@@ -687,3 +687,21 @@ msgstr "もっと見る"
 
 msgid "Top"
 msgstr "上へ"
+
+msgid "Achievements"
+msgstr "実績"
+
+msgid "Hidden achievement"
+msgstr "隠し実績"
+
+msgid "Locked"
+msgstr "未解除"
+
+msgid "Unlocked on {}"
+msgstr "{} に解除"
+
+msgid "Unlocked"
+msgstr "解除済み"
+
+msgid "{} % of players"
+msgstr "プレイヤーの {} %"
