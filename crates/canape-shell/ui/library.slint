@@ -445,9 +445,13 @@ component GamePage inherits Rectangle {
     // The game does not fit in the games folder.
     property <bool> short: !root.game.installed && root.view.free-tenths >= 0 && root.view.size-tenths > root.view.free-tenths;
     property <bool> beat-known: root.view.beat-rushed > 0 || root.view.beat-minutes > 0 || root.view.beat-complete > 0;
-    // Where the part below the fold starts: just past the bottom of the
-    // page, under the hints.
-    property <length> fold: root.height;
+    // The page has a part below the fold: its first lines peek in at the
+    // bottom, and the top part sits higher to leave them room.
+    property <bool> has-lower: root.beat-known || root.count > 0;
+    property <length> peek: 148px;
+    property <length> top: root.has-lower ? 20px : 96px;
+    // Where the part below the fold starts.
+    property <length> fold: root.has-lower ? root.height - root.peek : root.height;
     // The fade at the top of the part below the fold.
     property <length> fade: 36px;
     // Achievements: tiles across, from LibraryPage, which moves the focus.
@@ -524,7 +528,7 @@ component GamePage inherits Rectangle {
 
             cover := Rectangle {
                 x: 0;
-                y: 96px;
+                y: root.top;
                 width: 240px;
                 height: 360px;
                 border-radius: 12px;
@@ -559,7 +563,7 @@ component GamePage inherits Rectangle {
 
             VerticalLayout {
                 x: 280px - 14px;
-                y: 96px;
+                y: root.top;
                 width: parent.width - 280px;
                 height: 360px;
                 spacing: 14px;
@@ -611,10 +615,14 @@ component GamePage inherits Rectangle {
                 facts := RevealLine {
                     order: 2;
                     Text {
-                        text: (root.game.installed ? Library.played-text(root.game.played) : @tr("Not installed"))
-                            + (root.view.minutes >= 60 ? " · " + @tr("{} h played", Math.round(root.view.minutes / 60)) : root.view.minutes > 0 ? " · " + @tr("{} min played", root.view.minutes) : "")
-                            + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "")
-                            + (!root.game.installed && root.view.free-tenths >= 0 ? " · " + @tr("{} GB free in {}", App.tenths(root.view.free-tenths), root.view.folder) : "");
+                        // Each known fact, " · " between them only.
+                        property <string> played: root.game.installed ? Library.played-text(root.game.played) : @tr("Not installed");
+                        property <string> time: root.view.minutes >= 60 ? @tr("{} h played", Math.round(root.view.minutes / 60)) : root.view.minutes > 0 ? @tr("{} min played", root.view.minutes) : "";
+                        property <string> size: root.view.size-tenths >= 0 ? @tr("{} GB", App.tenths(root.view.size-tenths)) : "";
+                        property <string> free: !root.game.installed && root.view.free-tenths >= 0 ? @tr("{} GB free in {}", App.tenths(root.view.free-tenths), root.view.folder) : "";
+                        property <string> one: self.played + (self.played != "" && self.time != "" ? " · " : "") + self.time;
+                        property <string> two: self.one + (self.one != "" && self.size != "" ? " · " : "") + self.size;
+                        text: self.two + (self.two != "" && self.free != "" ? " · " : "") + self.free;
                         color: Theme.text.mix(Theme.dim, 0.6);
                         font-size: 16px;
                         overflow: elide;
@@ -653,7 +661,7 @@ component GamePage inherits Rectangle {
             // same place, only the matching one shows.
             for profile in App.profiles: Rectangle {
                 x: 280px;
-                y: 96px + 360px + 32px;
+                y: root.top + 360px + 32px;
                 width: min(420px, root.width - self.x);
                 height: 88px;
                 border-radius: 12px;
@@ -685,7 +693,7 @@ component GamePage inherits Rectangle {
             // Install progress under the button.
             if root.game.progress >= 0: Rectangle {
                 x: 280px;
-                y: 96px + 360px + 24px;
+                y: root.top + 360px + 24px;
                 width: 360px;
                 height: 4px;
                 border-radius: 2px;

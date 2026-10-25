@@ -1,30 +1,8 @@
 //! Other running tools that write the same firmware settings as Canape,
-//! detected by process name to warn the user.
+//! detected by process name to warn the user (the table is in
+//! `canape_core::conflicts`).
 
-/// Process name (lowercase) → name shown to the user.
-const KNOWN: &[(&str, &str)] = &[
-    ("whservice.exe", "Winhanced"),
-    ("armourycrate.service.exe", "Armoury Crate"),
-    ("ghelper.exe", "G-Helper"),
-    ("handheldcompanion.exe", "Handheld Companion"),
-];
-
-/// Display names of the conflicting programs among `processes`, deduplicated.
-pub fn find<'a>(processes: impl IntoIterator<Item = &'a str>) -> Vec<String> {
-    let mut found: Vec<String> = processes
-        .into_iter()
-        .filter_map(|process| {
-            let process = process.to_ascii_lowercase();
-            KNOWN
-                .iter()
-                .find(|(exe, _)| *exe == process)
-                .map(|(_, name)| name.to_string())
-        })
-        .collect();
-    found.sort();
-    found.dedup();
-    found
-}
+pub use canape_core::conflicts::find;
 
 #[cfg(windows)]
 pub fn detect() -> Vec<String> {
@@ -61,20 +39,4 @@ pub fn detect() -> Vec<String> {
 #[cfg(not(windows))]
 pub fn detect() -> Vec<String> {
     find(std::iter::empty())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn finds_known_programs_once() {
-        let found = find([
-            "explorer.exe",
-            "WHService.exe",
-            "ghelper.exe",
-            "whservice.exe",
-        ]);
-        assert_eq!(found, vec!["G-Helper", "Winhanced"]);
-    }
 }

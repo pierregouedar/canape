@@ -19,6 +19,15 @@ pub fn launch(launch: &Launch) -> io::Result<()> {
         s.encode_utf16().chain(Some(0)).collect()
     }
 
+    // Legendary is a console program: through the shell it would open a
+    // console window next to the game.
+    if let Launch::Exe { path, args, cwd } = launch
+        && path
+            .file_name()
+            .is_some_and(|f| f.eq_ignore_ascii_case("legendary.exe"))
+    {
+        return start_hidden(path, args, cwd);
+    }
     let (file, args, cwd) = match launch {
         Launch::Install { .. } => {
             return Err(io::Error::new(
@@ -62,6 +71,24 @@ pub fn launch(launch: &Launch) -> io::Result<()> {
     } else {
         Err(io::Error::other(format!("ShellExecuteW returned {result}")))
     }
+}
+
+/// Starts a console program without a window, and leaves it running.
+#[cfg(windows)]
+fn start_hidden(path: &std::path::Path, args: &str, cwd: &std::path::Path) -> io::Result<()> {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    let mut command = std::process::Command::new(path);
+    command
+        .raw_arg(args)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .creation_flags(CREATE_NO_WINDOW);
+    if !cwd.as_os_str().is_empty() {
+        command.current_dir(cwd);
+    }
+    command.spawn().map(drop)
 }
 
 #[cfg(not(windows))]

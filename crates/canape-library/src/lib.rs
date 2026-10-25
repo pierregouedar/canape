@@ -261,6 +261,16 @@ pub fn is_store_program(exe: &str) -> bool {
         "battle.net.exe",
         "unitycrashhandler64.exe",
         "crashreportclient.exe",
+        // Consoles and anti-cheat starters that come first, before the game.
+        "windowsterminal.exe",
+        "openconsole.exe",
+        "conhost.exe",
+        "cmd.exe",
+        "start_protected_game.exe",
+        "easyanticheat.exe",
+        "easyanticheat_eos.exe",
+        "easyanticheat_eos_setup.exe",
+        "easyanticheat_setup.exe",
     ];
     STORE.iter().any(|s| s.eq_ignore_ascii_case(exe))
 }

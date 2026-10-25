@@ -142,9 +142,11 @@ fn open() {
         let listed = external::load(&path);
         let folders = shortcut_folders(&path, fixture);
         // A fixture's targets are made up.
-        let shortcuts = shortcut::find(&folders, &shortcut::windows_dir(), |target| {
+        let mut shortcuts = shortcut::find(&folders, &shortcut::windows_dir(), |target| {
             fixture || Path::new(target).is_file()
         });
+        // Tools that drive the hardware are not games.
+        shortcuts.retain(|s| !canape_core::conflicts::is_tool_name(&s.name));
         let error = listed.as_ref().err().map(|err| err.to_string());
         let found = lines(listed.as_deref().unwrap_or_default(), &shortcuts, &known);
         crate::log(&format!(

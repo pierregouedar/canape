@@ -2,6 +2,7 @@
 //! `\\.\pipe\canape` and the user-facing settings.
 
 pub mod bench;
+pub mod conflicts;
 pub mod fan;
 pub mod log;
 pub mod protocol;
