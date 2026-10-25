@@ -8,7 +8,7 @@
 
 import { Theme } from "theme.slint";
 import { PadGlyph, StoreLogo } from "widgets.slint";
-import { Reveal } from "kit.slint";
+import { RevealLine } from "kit.slint";
 
 export struct GameView {
     id: string,
@@ -281,8 +281,6 @@ export component LibraryPage inherits Rectangle {
     property <length> shelf-pitch: 240px;
     // Room left of the shelves for the focus ring.
     property <length> margin: 16px;
-    // The side the next game's title slides in from.
-    property <length> hero-from: 0;
     // A was just pressed: the button shows it for a moment.
     property <bool> pressed;
     // Covers fully in view across a shelf.
@@ -318,7 +316,6 @@ export component LibraryPage inherits Rectangle {
     function go-shelf(index: int) {
         if index >= 0 && index < Library.shelves.length && index != Library.shelf {
             Library.armed = "";
-            root.hero-from = 0;
             Library.focus-shelf(index);
         }
     }
@@ -336,12 +333,10 @@ export component LibraryPage inherits Rectangle {
         }
         key-pressed(event) => {
             if event.text == Key.LeftArrow {
-                root.hero-from = -16px;
                 Library.selected = max(0, Library.selected - 1);
                 return accept;
             }
             if event.text == Key.RightArrow {
-                root.hero-from = 16px;
                 Library.selected = max(0, min(root.front.games.length - 1, Library.selected + 1));
                 return accept;
             }
@@ -377,41 +372,45 @@ export component LibraryPage inherits Rectangle {
 
     // The selected game, or why there is none; a new model at each game,
     // so its title fades in.
-    for key in [Library.shelf + ":" + (root.has-games ? root.current.id : "")]: Reveal {
-        x: 0;
+    // The selected game, or why there is none; a new model at each game,
+    // so its lines slide in again, one after the other. The block sits
+    // 14px left of its place: each line moves that far to the right.
+    for key in [Library.shelf + ":" + (root.has-games ? root.current.id : "")]: VerticalLayout {
+        x: -14px;
         y: 28px;
-        width: 640px;
+        width: 654px;
         height: 270px;
-        from-x: root.hero-from;
-        duration: 180ms;
+        spacing: 14px;
+        alignment: start;
 
-        VerticalLayout {
-            spacing: 14px;
+        store := RevealLine {
+            order: 0;
+            spacing: 8px;
             alignment: start;
-
-            HorizontalLayout {
-                spacing: 8px;
-                alignment: start;
-                height: 16px;
-                if root.has-games: VerticalLayout {
-                    alignment: center;
-                    StoreLogo {
-                        width: 15px;
-                        height: 15px;
-                        store: root.current.source;
-                        ink: Theme.dim;
-                    }
-                }
-                Text {
-                    text: root.has-games ? root.current.source.to-uppercase() : root.to-install ? @tr("To install").to-uppercase() : "";
-                    color: Theme.dim;
-                    font-size: 13px;
-                    font-weight: 600;
-                    letter-spacing: 1px;
-                    vertical-alignment: center;
+            height: 16px;
+            if root.has-games: VerticalLayout {
+                alignment: center;
+                StoreLogo {
+                    width: 15px;
+                    height: 15px;
+                    store: root.current.source;
+                    ink: Theme.dim;
+                    opacity: store.shown;
                 }
             }
+            Text {
+                text: root.has-games ? root.current.source.to-uppercase() : root.to-install ? @tr("To install").to-uppercase() : "";
+                color: Theme.dim;
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 1px;
+                vertical-alignment: center;
+                opacity: store.shown;
+            }
+        }
 
+        title := RevealLine {
+            order: 1;
             Text {
                 text: root.has-games ? root.current.title : !root.to-install ? (!Library.ready ? @tr("Looking for games…") : @tr("No games found")) : Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
                 color: Theme.text;
@@ -419,8 +418,12 @@ export component LibraryPage inherits Rectangle {
                 font-weight: 700;
                 letter-spacing: -1px;
                 overflow: elide;
+                opacity: title.shown;
             }
+        }
 
+        note := RevealLine {
+            order: 2;
             Text {
                 text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : !root.has-games && root.to-install ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && Library.armed == root.current.id ? @tr("Press A again to install") : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
                 color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
@@ -428,18 +431,21 @@ export component LibraryPage inherits Rectangle {
                 wrap: word-wrap;
                 max-height: 66px;
                 overflow: elide;
+                opacity: note.shown;
             }
+        }
 
-            if root.has-games || root.to-install: HorizontalLayout {
-                padding-top: 10px;
-                alignment: start;
-                PrimaryButton {
-                    pressed: root.pressed;
-                    label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : Library.armed == root.current.id ? @tr("Confirm") : @tr("Install");
-                    clicked => {
-                        root.act();
-                        fs.focus();
-                    }
+        if root.has-games || root.to-install: button := RevealLine {
+            order: 3;
+            padding-top: 10px;
+            alignment: start;
+            PrimaryButton {
+                opacity: button.shown;
+                pressed: root.pressed;
+                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : Library.armed == root.current.id ? @tr("Confirm") : @tr("Install");
+                clicked => {
+                    root.act();
+                    fs.focus();
                 }
             }
         }
