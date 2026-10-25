@@ -442,12 +442,6 @@ msgstr "Vuelve al juego: la prueba empieza sola."
 msgid "Waiting for the store…"
 msgstr "Esperando a la tienda…"
 
-msgid "Press A again to install"
-msgstr "Pulsa A de nuevo para instalar"
-
-msgid "Confirm"
-msgstr "Confirmar"
-
 msgid "Installed · {}"
 msgstr "Instalados · {}"
 

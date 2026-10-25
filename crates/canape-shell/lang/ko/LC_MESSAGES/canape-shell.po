@@ -442,12 +442,6 @@ msgstr "게임으로 돌아가면 벤치가 자동으로 시작됩니다."
 msgid "Waiting for the store…"
 msgstr "스토어를 기다리는 중…"
 
-msgid "Press A again to install"
-msgstr "설치하려면 A를 다시 누르세요"
-
-msgid "Confirm"
-msgstr "확인"
-
 msgid "Installed · {}"
 msgstr "설치됨 · {}"
 

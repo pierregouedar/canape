@@ -442,12 +442,6 @@ msgstr "Ga terug naar de game: de test start vanzelf."
 msgid "Waiting for the store…"
 msgstr "Wachten op de winkel…"
 
-msgid "Press A again to install"
-msgstr "Druk nogmaals op A om te installeren"
-
-msgid "Confirm"
-msgstr "Bevestigen"
-
 msgid "Installed · {}"
 msgstr "Geïnstalleerd · {}"
 

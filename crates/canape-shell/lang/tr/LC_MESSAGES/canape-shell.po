@@ -442,12 +442,6 @@ msgstr "Oyuna dönün: test kendiliğinden başlar."
 msgid "Waiting for the store…"
 msgstr "Mağaza bekleniyor…"
 
-msgid "Press A again to install"
-msgstr "Yüklemek için A'ya tekrar basın"
-
-msgid "Confirm"
-msgstr "Onayla"
-
 msgid "Installed · {}"
 msgstr "Yüklü · {}"
 
