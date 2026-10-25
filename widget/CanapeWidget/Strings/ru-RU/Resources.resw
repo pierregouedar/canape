@@ -176,4 +176,10 @@
   <data name="OpenCanape.Content" xml:space="preserve">
     <value>Открыть Canapé ›</value>
   </data>
+  <data name="ConflictOne" xml:space="preserve">
+    <value>⚠ Оборудованием также управляет: {0}</value>
+  </data>
+  <data name="OpenFailed" xml:space="preserve">
+    <value>Не удалось открыть Canapé.</value>
+  </data>
 </root>

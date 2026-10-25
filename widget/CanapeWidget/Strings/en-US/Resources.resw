@@ -230,4 +230,12 @@
     <value>Open Canapé ›</value>
     <comment>Footer button: bring the Canapé shell to the front</comment>
   </data>
+  <data name="ConflictOne" xml:space="preserve">
+    <value>⚠ Also controlling the hardware: {0}</value>
+    <comment>Warning when one other program writes the same hardware settings; {0} = its name</comment>
+  </data>
+  <data name="OpenFailed" xml:space="preserve">
+    <value>Canapé could not be opened.</value>
+    <comment>Shown when Game Bar could not open the Canapé shell</comment>
+  </data>
 </root>

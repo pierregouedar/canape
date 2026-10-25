@@ -176,4 +176,10 @@
   <data name="OpenCanape.Content" xml:space="preserve">
     <value>打开 Canapé ›</value>
   </data>
+  <data name="ConflictOne" xml:space="preserve">
+    <value>⚠ 以下程序也在控制硬件：{0}</value>
+  </data>
+  <data name="OpenFailed" xml:space="preserve">
+    <value>无法打开 Canapé。</value>
+  </data>
 </root>

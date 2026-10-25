@@ -696,7 +696,7 @@ namespace CanapeWidget
                 .Select(v => v.GetString())
                 .ToArray();
             ConflictText.Visibility = conflicts.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
-            ConflictText.Text = conflicts.Length > 0 ? F("Conflicts", string.Join(", ", conflicts)) : "";
+            ConflictText.Text = conflicts.Length > 0 ? F(conflicts.Length == 1 ? "ConflictOne" : "Conflicts", string.Join(", ", conflicts)) : "";
         }
 
         /// <summary>Fans, frame rate cap and controller, as the service has them.</summary>
@@ -902,9 +902,24 @@ namespace CanapeWidget
             savedTimer.Start();
         }
 
+        /// <summary>
+        /// Opens the shell through Game Bar's own launcher: Windows' Launcher
+        /// does nothing from inside Game Bar.
+        /// </summary>
         private async void OnOpen(object sender, RoutedEventArgs e)
         {
-            await Launcher.LaunchUriAsync(ShellUri);
+            bool opened;
+            try
+            {
+                opened = widget != null
+                    ? await widget.LaunchUriAsync(ShellUri)
+                    : await Launcher.LaunchUriAsync(ShellUri);
+            }
+            catch (Exception)
+            {
+                opened = false;
+            }
+            ShowMessage(opened ? null : S("OpenFailed"));
         }
 
         private void OnAuto(object sender, RoutedEventArgs e)

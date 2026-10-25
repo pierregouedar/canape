@@ -176,4 +176,10 @@
   <data name="OpenCanape.Content" xml:space="preserve">
     <value>Canapé'yi aç ›</value>
   </data>
+  <data name="ConflictOne" xml:space="preserve">
+    <value>⚠ Donanımı ayrıca yöneten: {0}</value>
+  </data>
+  <data name="OpenFailed" xml:space="preserve">
+    <value>Canapé açılamadı.</value>
+  </data>
 </root>

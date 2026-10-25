@@ -176,4 +176,10 @@
   <data name="OpenCanape.Content" xml:space="preserve">
     <value>Canapé openen ›</value>
   </data>
+  <data name="ConflictOne" xml:space="preserve">
+    <value>⚠ Stuurt ook de hardware aan: {0}</value>
+  </data>
+  <data name="OpenFailed" xml:space="preserve">
+    <value>Canapé kon niet worden geopend.</value>
+  </data>
 </root>

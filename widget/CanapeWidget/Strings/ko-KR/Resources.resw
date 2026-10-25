@@ -176,4 +176,10 @@
   <data name="OpenCanape.Content" xml:space="preserve">
     <value>Canapé 열기 ›</value>
   </data>
+  <data name="ConflictOne" xml:space="preserve">
+    <value>⚠ 하드웨어를 함께 제어하는 프로그램: {0}</value>
+  </data>
+  <data name="OpenFailed" xml:space="preserve">
+    <value>Canapé를 열 수 없습니다.</value>
+  </data>
 </root>
