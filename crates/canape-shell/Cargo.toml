@@ -31,10 +31,5 @@ windows-sys = { workspace = true, features = [
 [target.'cfg(target_os = "linux")'.dependencies]
 slint = { version = "1.18", default-features = false, features = ["backend-winit-x11"] }
 
-[features]
-# Test builds only: adds the GPU renderers next to the software one, picked
-# at launch with CANAPE_RENDERER, to measure them on the device.
-gpu-renderers = ["slint/renderer-femtovg", "slint/renderer-femtovg-wgpu", "slint/unstable-wgpu-30"]
-
 [build-dependencies]
 slint-build = "1.18"

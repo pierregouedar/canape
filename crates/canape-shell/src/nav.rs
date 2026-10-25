@@ -58,6 +58,12 @@ pub struct Navigator {
     previous: Pad,
     /// Key being repeated, since when, last sent when.
     held: Option<(Key, Instant, Instant)>,
+    /// Until when the pad is ignored, see `quiet`; the first update after
+    /// `quiet` is ignored in any case.
+    quiet_until: Option<Instant>,
+    quiet_seen: bool,
+    /// A direction held through the quiet time: ignored until released.
+    stale_direction: bool,
 }
 
 impl Navigator {
@@ -66,9 +72,27 @@ impl Navigator {
         *self = Self::default();
     }
 
+    /// Ignore the pad up to `until`: buttons held then, or still held
+    /// after it, send nothing until they are released.
+    pub fn quiet(&mut self, until: Instant) {
+        self.quiet_until = Some(until);
+        self.quiet_seen = false;
+    }
+
     /// Keys to send for the pad state observed at `now`; `arrows` when the
     /// focused control moves with the arrow keys.
     pub fn update(&mut self, pad: Pad, now: Instant, arrows: bool) -> Vec<Key> {
+        if self
+            .quiet_until
+            .is_some_and(|until| now <= until || !self.quiet_seen)
+        {
+            self.quiet_seen = true;
+            self.previous = pad;
+            self.held = None;
+            self.stale_direction = direction(pad, arrows).is_some();
+            return Vec::new();
+        }
+        self.quiet_until = None;
         let mut keys = Vec::new();
         if pad.confirm && !self.previous.confirm {
             keys.push(Key::Return);
@@ -89,7 +113,13 @@ impl Navigator {
             keys.push(Key::PageDown);
         }
 
-        let fire = match (direction(pad, arrows), self.held) {
+        let direction = direction(pad, arrows);
+        if self.stale_direction {
+            self.stale_direction = direction.is_some();
+            self.previous = pad;
+            return keys;
+        }
+        let fire = match (direction, self.held) {
             (None, _) => {
                 self.held = None;
                 None
@@ -116,6 +146,8 @@ impl Navigator {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const POLL_GAP: Duration = Duration::from_millis(33);
 
     const DOWN: Pad = Pad {
         up: false,
@@ -215,6 +247,43 @@ mod tests {
             ..Pad::default()
         };
         assert_eq!(nav.update(up, t, false), vec![Key::Backtab]);
+    }
+
+    #[test]
+    fn quiet_ignores_the_pad_until_released() {
+        let mut nav = Navigator::default();
+        let t = Instant::now();
+        let a = Pad {
+            confirm: true,
+            ..Pad::default()
+        };
+        nav.quiet(t + Duration::from_secs(1));
+        assert!(nav.update(a, t, false).is_empty());
+        assert!(nav.update(DOWN, t, false).is_empty());
+        // Past the quiet time, still held: nothing until released.
+        let later = t + Duration::from_secs(2);
+        assert!(nav.update(DOWN, later, false).is_empty());
+        assert!(nav.update(DOWN, later + REPEAT_DELAY, false).is_empty());
+        assert!(nav.update(Pad::default(), later, false).is_empty());
+        assert_eq!(nav.update(a, later, false), vec![Key::Return]);
+    }
+
+    #[test]
+    fn quiet_now_still_swallows_held_buttons() {
+        let mut nav = Navigator::default();
+        let t = Instant::now();
+        let a = Pad {
+            confirm: true,
+            ..Pad::default()
+        };
+        nav.quiet(t);
+        assert!(nav.update(a, t + POLL_GAP, false).is_empty());
+        assert!(nav.update(a, t + POLL_GAP * 2, false).is_empty());
+        assert!(
+            nav.update(Pad::default(), t + POLL_GAP * 3, false)
+                .is_empty()
+        );
+        assert_eq!(nav.update(a, t + POLL_GAP * 4, false), vec![Key::Return]);
     }
 
     #[test]

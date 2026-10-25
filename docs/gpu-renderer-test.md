@@ -1,6 +1,6 @@
 # Essai : rendu logiciel ou rendu par la carte graphique
 
-Le shell dessine avec le rendu logiciel de Slint (voir [architecture.md](architecture.md)). Cet essai mesure sur l'Ally ce que coûteraient les rendus par la carte graphique, avant de décider quoi que ce soit. La version normale du shell n'est pas concernée.
+Le shell dessine avec le rendu logiciel de Slint (voir [architecture.md](architecture.md)). Cet essai mesure sur l'Ally ce que coûteraient les rendus par la carte graphique, avant de décider quoi que ce soit. La version normale du shell n'est pas concernée. **Décision** : on garde le rendu logiciel (voir le bilan en fin de page) ; la version de test a été retirée du code après l'essai, elle reste accessible dans l'historique (52dbfc0).
 
 ## Ce qu'on sait avant l'essai
 
@@ -148,3 +148,5 @@ Pas de différence visible de netteté du texte ni des jaquettes entre les trois
 ### Bilan au regard de la décision
 
 Les rendus GPU rendent l'accueil fluide (Pierre : fluide et net, contre « un peu saccadé » en logiciel, avec ou sans vsync) et ne coûtent pas d'images au jeu testé, mais dépassent l'objectif de 80 Mo : 290 à 340 Mo privés, plus 54 à 104 Mo de mémoire GPU dédiée. OpenGL fait mieux que wgpu sur les FPS de navigation, le CPU et la mémoire GPU.
+
+Pierre a choisi de garder le rendu logiciel, le moins gourmand en mémoire, et de l'alléger plutôt que de passer au GPU. Après 9335860, il tient 104 à 114 FPS sur l'accueil, avec un ressenti fluide (voir « Après 9335860 »).

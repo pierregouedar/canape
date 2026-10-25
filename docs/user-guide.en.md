@@ -148,7 +148,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 | **X** | Save for the game in the foreground (Performance, Hardware, Bench); delete a profile (Game profiles) |
 | **B** | Leave a sub-page (Game profiles, Bench), otherwise back to Games |
 
-The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. The focused row or tile has a white outline; the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
+The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. When Canapé comes back to the front, a button still held for the game does nothing until it is released; the first time (when the Ally starts, for example), the gamepad is ignored for 1 s, so that a press while signing in does not launch a game. The focused row or tile has a white outline; the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
 
 ### Shared elements
 
