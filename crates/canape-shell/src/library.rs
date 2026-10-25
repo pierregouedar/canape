@@ -61,6 +61,8 @@ const OWNED_REFRESH: Duration = Duration::from_secs(10 * 60);
 const GOG_WAIT: Duration = Duration::from_secs(10 * 60);
 /// How often the clipboard is read meanwhile.
 const GOG_POLL: Duration = Duration::from_secs(1);
+/// Development: the fake drives, and their free space.
+const FIXTURE_DRIVES: [(&str, u64); 2] = [("C:\\", 21_400_000_000), ("D:\\", 48_240_000_000)];
 
 /// The gamepad sends arrow keys (instead of Tab / Shift+Tab) while the
 /// library has the focus: the grid moves in two dimensions.
@@ -160,6 +162,9 @@ struct State {
     gog_wait: Option<(Instant, Option<String>)>,
     /// Reads the clipboard while `gog_wait` is set.
     gog_timer: Timer,
+    /// Bytes each owned game takes once installed, as its store said
+    /// (`None`: the store could not tell).
+    sizes: HashMap<String, Option<u64>>,
     /// Colour of each decoded cover, for the backdrop.
     tints: HashMap<String, [u8; 3]>,
     /// Game whose colour the backdrop shows, and that colour.
@@ -541,9 +546,26 @@ impl State {
                 .and_then(|g| g.playtime)
         });
         let library = ui.global::<Library>();
+        // A game to install from Epic or GOG: its size against the free
+        // space of the games folder, once its store has told.
+        let install = match &game.launch {
+            Launch::Install { install } if !matches!(install, Install::Steam { .. }) => {
+                Some(install.clone())
+            }
+            _ => None,
+        };
+        let folder = self.games_dir();
+        let known = self.sizes.get(&game.id).copied().flatten();
+        let size = known.or(game.size);
         library.set_detail_view(DetailView {
             cover: Image::default(),
-            size_tenths: game.size.map_or(-1, |b| (b as f64 / 1e8).round() as i32),
+            size_tenths: size.map_or(-1, tenths),
+            free_tenths: if install.is_some() {
+                self.free_space(&folder).map_or(-1, tenths)
+            } else {
+                -1
+            },
+            folder: folder.to_string_lossy().as_ref().into(),
             minutes: minutes.map_or(-1, |m| m as i32),
             exe: self
                 .recent
@@ -556,6 +578,13 @@ impl State {
         library.set_detail_art(Image::default());
         library.set_detail(true);
         self.detail = Some(game.id.clone());
+        if let Some(install) = install
+            && size.is_none()
+            && !self.fixture
+            && !self.sizes.contains_key(&game.id)
+        {
+            self.fetch_size(&game.id, install);
+        }
 
         let scale = ui.window().scale_factor();
         let width = ui.window().size().width.max(1);
@@ -618,6 +647,147 @@ impl State {
                 });
             });
         });
+    }
+
+    /// Asks the store how much room the game `id` takes, then shows it on
+    /// its page if still open.
+    fn fetch_size(&mut self, id: &str, install: Install) {
+        let (id, tools) = (id.to_owned(), self.tools());
+        thread::spawn(move || {
+            let size = install::size_needed(&install, &tools)
+                .map_err(|err| crate::log(&format!("library: size of {id}: {err}")))
+                .ok()
+                .flatten();
+            let _ = slint::invoke_from_event_loop(move || {
+                with_state(|state| {
+                    state.sizes.insert(id.clone(), size);
+                    if state.detail.as_deref() != Some(id.as_str()) {
+                        return;
+                    }
+                    if let (Some(ui), Some(size)) = (state.ui.upgrade(), size) {
+                        let library = ui.global::<Library>();
+                        let mut view = library.get_detail_view();
+                        view.size_tenths = tenths(size);
+                        library.set_detail_view(view);
+                    }
+                })
+            });
+        });
+    }
+
+    /// The folders holding the games installed by Legendary, gogdl and the
+    /// Epic launcher, the fullest first.
+    fn install_folders(&self) -> Vec<PathBuf> {
+        let mut installs = Vec::new();
+        if let Some((config, _)) = &self.roots.legendary {
+            installs.extend(canape_library::legendary::install_paths(config));
+        }
+        if let Some(record) = &self.roots.gogdl {
+            installs.extend(
+                canape_library::gogdl::load_installed(record)
+                    .into_iter()
+                    .map(|e| e.path),
+            );
+        }
+        if let Some(dir) = &self.roots.epic {
+            installs.extend(
+                canape_library::epic::installs(dir)
+                    .into_iter()
+                    .map(|(_, p)| p),
+            );
+        }
+        canape_library::disk::parents(&installs)
+    }
+
+    /// The fixed drives and their free space.
+    fn drives(&self) -> Vec<(PathBuf, u64)> {
+        if self.fixture {
+            return FIXTURE_DRIVES
+                .iter()
+                .map(|(root, free)| (PathBuf::from(root), *free))
+                .collect();
+        }
+        canape_library::disk::fixed_drives()
+            .into_iter()
+            .filter_map(|root| Some((root.clone(), canape_library::disk::free_space(&root)?)))
+            .collect()
+    }
+
+    /// Bytes free on the drive of `dir`.
+    fn free_space(&self, dir: &Path) -> Option<u64> {
+        if self.fixture {
+            let text = dir.to_string_lossy().to_lowercase();
+            return FIXTURE_DRIVES
+                .iter()
+                .find(|(root, _)| text.starts_with(&root.to_lowercase()))
+                .map(|(_, free)| *free);
+        }
+        canape_library::disk::free_space(dir)
+    }
+
+    /// Where Legendary and gogdl install games: the folder set in
+    /// shell.json, else the folder already holding most of them, else
+    /// `Games` on the drive with the most free space.
+    fn games_dir(&self) -> PathBuf {
+        let set = crate::i18n::ShellSettings::load().games_folder;
+        if !set.trim().is_empty() {
+            return PathBuf::from(set.trim());
+        }
+        let existing = if self.fixture {
+            Vec::new()
+        } else {
+            self.install_folders()
+        };
+        let dir = canape_library::disk::default_games_dir(&existing, &self.drives())
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME"));
+                home.map(PathBuf::from)
+                    .unwrap_or_default()
+                    .join(canape_library::disk::GAMES)
+            });
+        self.fixture_path(dir)
+    }
+
+    /// Development off Windows: the fake drives' folders written as on
+    /// Windows (`D:\Games`, not `D:\/Games`).
+    fn fixture_path(&self, path: PathBuf) -> PathBuf {
+        if self.fixture && !cfg!(windows) {
+            PathBuf::from(path.to_string_lossy().replace("\\/", "\\"))
+        } else {
+            path
+        }
+    }
+
+    /// Shows the games folder and its free space in Settings.
+    fn show_games_folder(&self) {
+        let Some(ui) = self.ui.upgrade() else { return };
+        let library = ui.global::<Library>();
+        let dir = self.games_dir();
+        library.set_games_folder(dir.to_string_lossy().as_ref().into());
+        library.set_games_free_tenths(self.free_space(&dir).map_or(-1, tenths));
+    }
+
+    /// Left (-1) or right (1) on the games folder line: the previous or
+    /// next folder offered, saved in shell.json.
+    fn step_games_folder(&mut self, step: i32) {
+        let current = self.games_dir();
+        let existing = if self.fixture {
+            Vec::new()
+        } else {
+            self.install_folders()
+        };
+        let roots: Vec<PathBuf> = self.drives().into_iter().map(|(root, _)| root).collect();
+        let Some(next) = canape_library::disk::next_choice(&current, &existing, &roots, step)
+        else {
+            return;
+        };
+        let next = self.fixture_path(next);
+        let mut settings = crate::i18n::ShellSettings::load();
+        settings.games_folder = next.to_string_lossy().into_owned();
+        if let Err(err) = settings.save() {
+            crate::log(&format!("library: saving the games folder: {err}"));
+        }
+        self.show_games_folder();
     }
 
     /// `exe` came to the front: right after a launch, it is the game's.
@@ -790,7 +960,7 @@ impl State {
             steam: self.roots.steam.clone(),
             legendary: legendary.is_file().then_some(legendary),
             gogdl: gogdl.is_file().then(|| (gogdl, gog_dir())),
-            games_dir: games_dir(),
+            games_dir: self.games_dir(),
         }
     }
 
@@ -840,6 +1010,7 @@ impl State {
             }
             Event::Done => {
                 crate::log(&format!("library: {id} installed"));
+                self.show_games_folder();
                 self.installing.remove(id);
                 // The new game shows up in the installed list.
                 self.just_installed = Some(id.to_owned());
@@ -1325,10 +1496,9 @@ fn gog_dir() -> PathBuf {
     canape_core::log::dir("LOCALAPPDATA").join("gog")
 }
 
-/// Where Legendary and gogdl install games.
-fn games_dir() -> PathBuf {
-    let home = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME"));
-    home.map(PathBuf::from).unwrap_or_default().join("Games")
+/// Bytes in tenths of a gigabyte, for the UI.
+fn tenths(bytes: u64) -> i32 {
+    (bytes as f64 / 1e8).round() as i32
 }
 
 /// Opens GOG's sign-in page in the browser.
@@ -1513,6 +1683,7 @@ pub fn start(ui: &AppWindow) {
         just_installed: None,
         gog_wait: None,
         gog_timer: Timer::default(),
+        sizes: HashMap::new(),
         tints: HashMap::new(),
         backdrop: None,
         backdrop_b_front: false,
@@ -1527,6 +1698,7 @@ pub fn start(ui: &AppWindow) {
     // The shelf of games to install comes last.
     state.refresh_owned(false);
     state.show_accounts();
+    state.show_games_folder();
     STATE.with(|s| *s.borrow_mut() = Some(state));
 
     library.on_view(|visible, width, height| {
@@ -1580,6 +1752,7 @@ pub fn start(ui: &AppWindow) {
     });
     library.on_epic_login(epic_login);
     library.on_gog_login(|| with_state(State::gog_login));
+    library.on_games_folder_step(|step| with_state(|state| state.step_games_folder(step)));
     library.on_open_detail(|index| {
         if let Ok(index) = usize::try_from(index) {
             with_state(|state| state.open_detail(index));

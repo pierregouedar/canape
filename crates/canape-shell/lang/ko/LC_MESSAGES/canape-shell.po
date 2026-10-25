@@ -483,3 +483,15 @@ msgstr "GOG에 로그인"
 
 msgid "GOG account"
 msgstr "GOG 계정"
+
+msgid "{} GB free in {}"
+msgstr "{} GB 남음 ({})"
+
+msgid "Not enough space: free some up, or pick another games folder in Settings."
+msgstr "공간이 부족합니다. 공간을 확보하거나 설정에서 다른 게임 폴더를 고르세요."
+
+msgid "Games folder"
+msgstr "게임 폴더"
+
+msgid "{} GB free"
+msgstr "{} GB 남음"

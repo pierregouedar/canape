@@ -483,3 +483,15 @@ msgstr "Iniciar sesión en GOG"
 
 msgid "GOG account"
 msgstr "Cuenta de GOG"
+
+msgid "{} GB free in {}"
+msgstr "{} GB libres en {}"
+
+msgid "Not enough space: free some up, or pick another games folder in Settings."
+msgstr "No hay espacio suficiente: libera espacio o elige otra carpeta de juegos en Ajustes."
+
+msgid "Games folder"
+msgstr "Carpeta de juegos"
+
+msgid "{} GB free"
+msgstr "{} GB libres"

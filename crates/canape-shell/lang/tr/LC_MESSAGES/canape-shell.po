@@ -483,3 +483,15 @@ msgstr "GOG'a giriş yap"
 
 msgid "GOG account"
 msgstr "GOG hesabı"
+
+msgid "{} GB free in {}"
+msgstr "{} GB boş ({})"
+
+msgid "Not enough space: free some up, or pick another games folder in Settings."
+msgstr "Yeterli alan yok: biraz yer aç ya da Ayarlar'dan başka bir oyun klasörü seç."
+
+msgid "Games folder"
+msgstr "Oyun klasörü"
+
+msgid "{} GB free"
+msgstr "{} GB boş"

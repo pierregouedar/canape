@@ -483,3 +483,15 @@ msgstr "Войти в GOG"
 
 msgid "GOG account"
 msgstr "Аккаунт GOG"
+
+msgid "{} GB free in {}"
+msgstr "{} ГБ свободно в {}"
+
+msgid "Not enough space: free some up, or pick another games folder in Settings."
+msgstr "Недостаточно места: освободите его или выберите другую папку игр в настройках."
+
+msgid "Games folder"
+msgstr "Папка игр"
+
+msgid "{} GB free"
+msgstr "{} ГБ свободно"

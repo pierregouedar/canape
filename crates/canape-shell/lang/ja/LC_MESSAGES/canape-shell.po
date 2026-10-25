@@ -483,3 +483,15 @@ msgstr "GOG にサインイン"
 
 msgid "GOG account"
 msgstr "GOG アカウント"
+
+msgid "{} GB free in {}"
+msgstr "空き {} GB（{}）"
+
+msgid "Not enough space: free some up, or pick another games folder in Settings."
+msgstr "空き容量が足りません。容量を空けるか、設定で別のゲームフォルダーを選んでください。"
+
+msgid "Games folder"
+msgstr "ゲームフォルダー"
+
+msgid "{} GB free"
+msgstr "空き {} GB"

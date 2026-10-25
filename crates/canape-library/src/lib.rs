@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod cache;
 pub mod cover;
+pub mod disk;
 pub mod epic;
 pub mod gog;
 pub mod gogdl;

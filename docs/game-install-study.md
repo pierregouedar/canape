@@ -13,7 +13,7 @@ Résumé : c'est **possible pour Steam et Epic**, partiellement pour GOG, et **p
 | 3. GOG | 🧪 Code écrit : gogdl (heroic-gogdl 1.3.1, version fixée, SHA-256 vérifié) téléchargé à la demande dans `%LOCALAPPDATA%\Canape\tools` ; connexion par la page GOG ouverte dans le navigateur, dont Canapé lit l'adresse d'arrivée dans le presse-papiers ; liste par l'API web de GOG avec le jeton de gogdl ; installation par `gogdl download` avec progression ; lancement direct par l'exécutable du jeu (`goggame-<id>.info`). Les réponses de GOG n'ont pas pu être enregistrées (serveurs injoignables depuis la session cloud) : fixtures écrites d'après le code de gogdl. **Pas encore essayé sur l'Ally.** |
 | 4. Xbox | ⏳ Ouvert. |
 
-Pas encore fait pour Steam, Epic et GOG : le choix du dossier d'installation et la vérification de l'espace libre (voir [Contraintes](#contraintes)). Steam propose le dossier dans sa fenêtre ; Legendary installe dans son dossier par défaut, gogdl dans `%USERPROFILE%\Games`.
+Dossier d'installation et place libre (🧪 code écrit, **pas encore essayé sur l'Ally**) : Steam propose le dossier et montre la place dans sa propre fenêtre. Pour Epic et GOG, un **dossier des jeux** (réglage `games_folder` de `shell.json`, choisi dans les Réglages ; par défaut le dossier qui contient déjà le plus de jeux installés par Canapé ou le lanceur Epic, sinon `Games` sur le lecteur le plus libre) reçoit Legendary (`--base-path`) et gogdl (`--path`). La fiche d'un jeu à installer montre sa taille (`legendary info --json`, `gogdl info`) et la place libre du dossier ; A refuse quand il ne rentre pas, avec un message, et l'installation revérifie juste avant de télécharger.
 
 Les deux choix laissés au propriétaire du projet ont été tranchés ainsi : une clé d'API Steam personnelle, renseignée à la main dans `shell.json` ; Legendary téléchargé à la demande, jamais embarqué. Le fonctionnement est décrit dans le [guide d'utilisation](user-guide.fr.md#installer-des-jeux-possédés) et le [guide du développeur](developer-guide.fr.md#installer-les-jeux-possédés). Le reste de ce document est l'analyse de départ.
 
@@ -31,7 +31,7 @@ Les deux choix laissés au propriétaire du projet ont été tranchés ainsi : u
 - **Licences** : Legendary et heroic-gogdl sont sous **GPL-3**. Canapé (MIT) peut les **appeler comme programmes séparés** sans changer de licence. Les embarquer dans notre installateur reste possible (« agrégat »), à condition de fournir leur code source et leur licence. Le plus simple : les télécharger à la demande depuis leurs releases officielles dans `%LOCALAPPDATA%\Canape\tools`.
 - **Légèreté** : rien ne tourne en permanence. Legendary et gogdl sont des exe PyInstaller (~15–20 Mo chacun), lancés seulement pendant une installation. La clé Steam et les jetons restent sur l'appareil (`shell.json`, et les fichiers d'auth des outils).
 - **Droits** : tout se fait dans la session de l'utilisateur, sans élévation. Le shell lance les processus, comme pour les jeux.
-- **Disque** : choix du dossier d'installation (le premier dossier de bibliothèque Steam, `C:\Games\Epic`, …) et de l'espace libre à vérifier avant de lancer.
+- **Disque** : choix du dossier d'installation (le premier dossier de bibliothèque Steam, `C:\Games\Epic`, …) et de l'espace libre à vérifier avant de lancer. Fait (voir [État](#état)).
 
 ## Proposition
 

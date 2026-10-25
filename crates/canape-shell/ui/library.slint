@@ -44,8 +44,14 @@ export struct ShelfView {
 export struct DetailView {
     // The cover, larger than on the shelf.
     cover: image,
-    // Bytes on disk in tenths of a gigabyte, -1 when unknown.
+    // Bytes on disk in tenths of a gigabyte, -1 when unknown. For a game
+    // to install, what it will take once installed.
     size-tenths: int,
+    // A game to install from Epic or GOG: the free space of the games
+    // folder, in tenths of a gigabyte; -1 otherwise or when unknown.
+    free-tenths: int,
+    // The games folder.
+    folder: string,
     // Minutes played, -1 when unknown.
     minutes: int,
     // The game's executable, once seen after a launch from Canapé; its
@@ -96,6 +102,12 @@ export global Library {
     in property <bool> owned-loading;
     // Last install or sign-in failure, "" when none.
     in property <string> install-error;
+    // Where Legendary and gogdl install games, and its free space in
+    // tenths of a gigabyte (-1 when unknown).
+    in property <string> games-folder;
+    in property <int> games-free-tenths: -1;
+    // Settings: the previous (-1) or next (1) games folder.
+    callback games-folder-step(int);
 
     // Bring this shelf to the front.
     callback focus-shelf(int);
@@ -306,6 +318,8 @@ component GamePage inherits Rectangle {
     in property <DetailView> view;
     in property <bool> pressed;
     callback play();
+    // The game does not fit in the games folder.
+    property <bool> short: !root.game.installed && root.view.free-tenths >= 0 && root.view.size-tenths > root.view.free-tenths;
 
     cover := Rectangle {
         x: 0;
@@ -397,7 +411,8 @@ component GamePage inherits Rectangle {
             Text {
                 text: (root.game.installed ? Library.played-text(root.game.played) : @tr("Not installed"))
                     + (root.view.minutes >= 60 ? " · " + @tr("{} h played", Math.round(root.view.minutes / 60)) : root.view.minutes > 0 ? " · " + @tr("{} min played", root.view.minutes) : "")
-                    + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "");
+                    + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "")
+                    + (!root.game.installed && root.view.free-tenths >= 0 ? " · " + @tr("{} GB free in {}", App.tenths(root.view.free-tenths), root.view.folder) : "");
                 color: Theme.text.mix(Theme.dim, 0.6);
                 font-size: 16px;
                 overflow: elide;
@@ -422,8 +437,8 @@ component GamePage inherits Rectangle {
                 alignment: center;
                 Text {
                     opacity: action.shown;
-                    text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
-                    color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
+                    text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.short && root.game.progress < 0 ? @tr("Not enough space: free some up, or pick another games folder in Settings.") : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
+                    color: Library.install-error != "" || Library.failed != "" || (root.short && root.game.progress < 0) ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
                     font-size: 14px;
                     overflow: elide;
                 }
@@ -519,7 +534,9 @@ export component LibraryPage inherits Rectangle {
     function act() {
         root.pressed = true;
         if Library.detail {
-            if root.current.progress < 0 {
+            // A game that does not fit is not installed: the page says why.
+            let short = !root.current.installed && Library.detail-view.free-tenths >= 0 && Library.detail-view.size-tenths > Library.detail-view.free-tenths;
+            if root.current.progress < 0 && !short {
                 Library.launch(Library.selected);
             }
         } else if root.has-games {

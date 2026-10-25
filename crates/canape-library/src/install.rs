@@ -3,9 +3,13 @@
 //! - **Steam**: `steam.exe -silent steam://install/<appid>`. Steam shows its
 //!   small install dialog (folder, shortcuts), then downloads in the
 //!   background; the progress is read from the game's manifest.
-//! - **Epic**: `legendary install <app> -y`, progress read from its output.
+//! - **Epic**: `legendary info` then `legendary install <app> -y` into the
+//!   games folder, progress read from its output.
 //! - **GOG**: `gogdl info` then `gogdl download`, progress read from its
 //!   output; the install is recorded for the scan (see [`crate::gogdl`]).
+//!
+//! Epic and GOG installs check first that the game fits in the games
+//! folder ([`size_needed`], [`crate::disk`]); Steam asks in its own dialog.
 //!
 //! [`run`] blocks until the install ends: run it on its own thread.
 
@@ -17,8 +21,8 @@ use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 
 use crate::gogdl::{self, Credentials};
-use crate::legendary;
 use crate::steam::{self, Download};
+use crate::{disk, legendary};
 
 /// What installing an owned game takes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -65,7 +69,7 @@ pub fn run(install: &Install, tools: &Tools, mut on: impl FnMut(Event)) {
             None => Err(io::Error::other("Steam is not installed")),
         },
         Install::Epic { app } => match &tools.legendary {
-            Some(exe) => run_legendary(exe, app, &mut on),
+            Some(exe) => run_legendary(exe, app, &tools.games_dir, &mut on),
             None => Err(io::Error::other("Legendary is not available")),
         },
         Install::Gog { id } => match &tools.gogdl {
@@ -122,9 +126,48 @@ fn hidden(exe: &Path) -> Command {
     command
 }
 
-fn run_legendary(exe: &Path, app: &str, on: &mut impl FnMut(Event)) -> io::Result<()> {
+/// Bytes the game takes once installed, when its store tells before
+/// installing (Epic and GOG; asks the store: a few seconds). `None` for
+/// Steam, whose own dialog shows the size and the free space.
+pub fn size_needed(install: &Install, tools: &Tools) -> io::Result<Option<u64>> {
+    match install {
+        Install::Steam { .. } => Ok(None),
+        Install::Epic { app } => match &tools.legendary {
+            Some(exe) => epic_size(exe, app).map(Some),
+            None => Err(io::Error::other("Legendary is not available")),
+        },
+        Install::Gog { id } => match &tools.gogdl {
+            Some((exe, dir)) => gog_info(exe, dir, id).map(|i| Some(i.disk_size)),
+            None => Err(io::Error::other("gogdl is not available")),
+        },
+    }
+}
+
+/// Fails when `need` bytes do not fit in `games_dir`.
+fn check_space(need: u64, games_dir: &Path) -> io::Result<()> {
+    match disk::shortage(need, disk::free_space(games_dir), games_dir) {
+        Some(why) => Err(io::Error::other(why)),
+        None => Ok(()),
+    }
+}
+
+/// Bytes an Epic game takes once installed (`legendary info`).
+pub fn epic_size(exe: &Path, app: &str) -> io::Result<u64> {
+    legendary::parse_info_size(&legendary_json(exe, &["info", app, "--json"])?)
+        .ok_or_else(|| io::Error::other("legendary info: no size"))
+}
+
+fn run_legendary(
+    exe: &Path,
+    app: &str,
+    games_dir: &Path,
+    on: &mut impl FnMut(Event),
+) -> io::Result<()> {
+    check_space(epic_size(exe, app)?, games_dir)?;
+    std::fs::create_dir_all(games_dir)?;
     let mut child = legendary_command(exe)
-        .args(["install", app, "-y", "--skip-sdl"])
+        .args(["install", app, "-y", "--skip-sdl", "--base-path"])
+        .arg(games_dir)
         .stdout(Stdio::null())
         .stderr(Stdio::piped())
         .spawn()?;
@@ -298,6 +341,7 @@ fn run_gogdl(
     on: &mut impl FnMut(Event),
 ) -> io::Result<()> {
     let info = gog_info(exe, dir, id)?;
+    check_space(info.disk_size, games_dir)?;
     std::fs::create_dir_all(games_dir)?;
     let mut child = gogdl_command(exe, dir)
         .args(["download", id, "--platform", "windows", "--lang"])

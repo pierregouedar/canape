@@ -483,3 +483,15 @@ msgstr "Aanmelden bij GOG"
 
 msgid "GOG account"
 msgstr "GOG-account"
+
+msgid "{} GB free in {}"
+msgstr "{} GB vrij in {}"
+
+msgid "Not enough space: free some up, or pick another games folder in Settings."
+msgstr "Niet genoeg ruimte: maak ruimte vrij of kies in Instellingen een andere gamemap."
+
+msgid "Games folder"
+msgstr "Gamemap"
+
+msgid "{} GB free"
+msgstr "{} GB vrij"

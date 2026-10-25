@@ -42,6 +42,16 @@ GAMES = [
 ]
 
 
+# Size once installed of the owned Epic and GOG games, in bytes (Lumen Drift
+# does not fit in the shell's fake 48.2 GB free).
+OWNED_SIZES = {
+    "Quiet Orbit": 12_400_000_000,
+    "Lumen Drift": 63_100_000_000,
+    "Mosaic Run": 7_900_000_000,
+    "Lantern Keep": 3_200_000_000,
+    "Saltmarsh": 21_700_000_000,
+}
+
 # Owned but not installed: (store, title, colours, store id).
 OWNED = [
     ("steam", "Tidal Bloom", "#0e7490", "#fef3c7", 910001),
@@ -181,7 +191,8 @@ def main(out):
                    else {"store": "epic", "app": store_id} if store == "epic"
                    else {"store": "gog", "id": store_id})
         owned.append({"id": game_id, "title": title, "source": store,
-                      "launch": {"kind": "install", "install": install}})
+                      "launch": {"kind": "install", "install": install},
+                      "size": OWNED_SIZES.get(title)})
         cover(os.path.join(covers, game_id.replace(":", "_") + ".jpg"), title, top, bottom)
     with open(os.path.join(library, "owned.json"), "w") as f:
         json.dump({"version": 1, "games": owned}, f, indent=1)
