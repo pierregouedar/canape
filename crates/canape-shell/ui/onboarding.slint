@@ -1,0 +1,941 @@
+// First-run tour (onboarding.rs), over the whole window: one step at a
+// time, its title large on the left with its one action, what it sets on
+// the right. A continues, X skips the step (on the first one, the whole
+// tour), B goes back, the D-pad moves on the right. Steps: 0 welcome,
+// 1 language, 2 accent colour, 3 other tools driving the hardware (only
+// while the service reports some), 4 game stores, 5 games folder, 6 the
+// Ally's buttons, 7 Windows optimisations (only when the build has them),
+// 8 done. Everything a step changes goes through the same callbacks as
+// the settings page.
+
+import { Theme } from "theme.slint";
+import { App } from "state.slint";
+import { Library } from "library.slint";
+import { Hint, Logo, PadGlyph } from "widgets.slint";
+import { ChoiceTile, Reveal, SectionTitle, SettingLine, Swatch } from "kit.slint";
+
+export global Onboarding {
+    // Shown instead of the sections, and the step in view.
+    in-out property <bool> active;
+    in-out property <int> step;
+    // The build has the Windows optimisations (step 7).
+    in property <bool> tweaks-available;
+    // Steam's client was found, and the Steam games installed.
+    in property <bool> steam-found;
+    in property <int> steam-games;
+    // Saved keys, masked ("•••• 1A2B"); "" when not set.
+    in property <string> steam-key;
+    in property <string> igdb-id;
+    in property <string> igdb-secret;
+    // The entry last refused ("steam", "igdb-id", "igdb-secret", "" for
+    // none), and why: 1 what was typed is not a key, 2 the clipboard holds
+    // none.
+    in property <string> refused;
+    in property <int> refused-why;
+    // Development: tools to show on step 3 when the service reports none.
+    in property <string> mock-conflicts;
+    // The step changed: saved, so that a restart comes back to it.
+    callback step-changed(int);
+    callback finish();
+    // Settings: show the tour again from the start.
+    callback replay();
+    // A key field took the focus.
+    callback show-keyboard();
+    // An entry ("steam", "igdb-id", "igdb-secret") typed, or to read from
+    // the clipboard.
+    callback save-entry(string, string);
+    callback paste-entry(string);
+    callback apply-tweaks();
+}
+
+// The step's action: white with the A glyph, or quiet while the focus is
+// on a line of the right column.
+component Action inherits Rectangle {
+    in property <string> label;
+    in property <bool> quiet;
+    callback clicked();
+    height: 48px;
+    width: text.preferred-width + 60px;
+    border-radius: 10px;
+    background: root.quiet ? Theme.surface-high : ta.pressed ? Theme.focus.darker(0.3) : Theme.focus;
+    animate background { duration: 90ms; }
+
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 22px;
+        spacing: 10px;
+        VerticalLayout {
+            alignment: center;
+            PadGlyph {
+                text: "A";
+                ink: root.quiet ? Theme.text.mix(Theme.dim, 0.7) : Theme.background;
+            }
+        }
+
+        text := Text {
+            text: root.label;
+            color: root.quiet ? Theme.text : Theme.background;
+            font-size: 16px;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+    }
+
+    ta := TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+// Skipping the step: the X glyph and its label.
+component Later inherits Rectangle {
+    in property <string> label;
+    callback clicked();
+    height: 48px;
+    width: row.preferred-width + 24px;
+
+    row := HorizontalLayout {
+        padding-left: 12px;
+        spacing: 8px;
+        VerticalLayout {
+            alignment: center;
+            PadGlyph {
+                text: "X";
+            }
+        }
+
+        Text {
+            text: root.label;
+            color: Theme.text.mix(Theme.dim, 0.6);
+            font-size: 15px;
+            font-weight: 500;
+            vertical-alignment: center;
+        }
+    }
+
+    TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+// A key typed or pasted: its name, then the saved value masked. While
+// edited, a text field takes the value's place.
+component KeyLine inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+    in property <bool> focused;
+    in property <bool> editing;
+    callback clicked();
+    // The field took the focus; the text was confirmed with A (Enter).
+    callback field-focused();
+    callback done(string);
+    height: 54px;
+    border-radius: 10px;
+    background: root.focused || root.editing ? Theme.surface : transparent;
+
+    if !root.editing: SettingLine {
+        label: root.label;
+        value: root.value != "" ? root.value : @tr("Not set");
+        chevrons: false;
+        focused: root.focused;
+        clicked => {
+            root.clicked();
+        }
+    }
+    if root.editing: HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 12px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        spacing: 16px;
+        Text {
+            text: root.label;
+            color: Theme.text;
+            font-size: 16px;
+            font-weight: 500;
+            vertical-alignment: center;
+        }
+
+        Rectangle {
+            horizontal-stretch: 1;
+            border-radius: 8px;
+            background: Theme.background;
+            border-width: 2px;
+            border-color: Theme.accent;
+            clip: true;
+            field := TextInput {
+                x: 12px;
+                width: parent.width - 24px;
+                height: parent.height;
+                single-line: true;
+                color: Theme.text;
+                font-size: 16px;
+                vertical-alignment: center;
+                init => {
+                    self.focus();
+                    root.field-focused();
+                }
+                accepted => {
+                    root.done(self.text);
+                }
+            }
+        }
+    }
+    if root.editing: Rectangle {
+        border-radius: 10px;
+        border-width: 2px;
+        border-color: Theme.focus;
+    }
+}
+
+// A help paragraph under a line.
+component Help inherits HorizontalLayout {
+    in property <string> text;
+    in property <bool> warn;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 6px;
+    Text {
+        text: root.text;
+        color: root.warn ? Theme.warn : Theme.dim;
+        font-size: 13px;
+        wrap: word-wrap;
+    }
+}
+
+// A gesture of the last step: the buttons, then what they do.
+component Gesture inherits HorizontalLayout {
+    in property <[string]> glyphs;
+    in property <string> text;
+    spacing: 18px;
+    height: 52px;
+    HorizontalLayout {
+        width: 96px;
+        spacing: 6px;
+        alignment: end;
+        for glyph in root.glyphs: VerticalLayout {
+            alignment: center;
+            PadGlyph {
+                text: glyph;
+                round: glyph != "LB" && glyph != "RB";
+                size: 30px;
+            }
+        }
+    }
+
+    Text {
+        text: root.text;
+        color: Theme.text;
+        font-size: 18px;
+        font-weight: 500;
+        vertical-alignment: center;
+        overflow: elide;
+    }
+}
+
+export component OnboardingFlow inherits Rectangle {
+    background: Theme.background;
+    property <[{ code: string, name: string }]> languages: [
+        { code: "auto", name: @tr("Automatic") },
+        { code: "en", name: "English" },
+        { code: "fr", name: "Français" },
+        { code: "es", name: "Español" },
+        { code: "de", name: "Deutsch" },
+        { code: "it", name: "Italiano" },
+        { code: "pt", name: "Português" },
+        { code: "nl", name: "Nederlands" },
+        { code: "pl", name: "Polski" },
+        { code: "ru", name: "Русский" },
+        { code: "tr", name: "Türkçe" },
+        { code: "ja", name: "日本語" },
+        { code: "ko", name: "한국어" },
+        { code: "zh_CN", name: "简体中文" },
+    ];
+    // The accent presets of the settings page.
+    property <[{ hex: string, color: color }]> presets: [
+        { hex: "#ff3d5e", color: #ff3d5e },
+        { hex: "#f97316", color: #f97316 },
+        { hex: "#eab308", color: #eab308 },
+        { hex: "#10b981", color: #10b981 },
+        { hex: "#06b6d4", color: #06b6d4 },
+        { hex: "#3b82f6", color: #3b82f6 },
+        { hex: "#8b5cf6", color: #8b5cf6 },
+        { hex: "#ec4899", color: #ec4899 },
+    ];
+    property <int> step: Onboarding.step;
+    property <string> conflicts: App.status.conflicts != "" ? App.status.conflicts : Onboarding.mock-conflicts;
+    property <bool> has-conflicts: root.conflicts != "";
+    property <bool> has-tweaks: Onboarding.tweaks-available;
+    // Steps shown, and the place of this one among them, for the dots.
+    property <int> count: 9 - (root.has-conflicts ? 0 : 1) - (root.has-tweaks ? 0 : 1);
+    property <int> place: root.step - (root.step > 3 && !root.has-conflicts ? 1 : 0) - (root.step > 7 && !root.has-tweaks ? 1 : 0);
+    // Language step: the line focused, the languages laid in two columns
+    // of seven.
+    property <int> language: 0;
+    // Accent step: the swatch focused.
+    property <int> swatch: 0;
+    // Stores step: 0 Steam key, 1 Epic, 2 GOG, 3 IGDB client id, 4 IGDB
+    // secret, 5 the action.
+    property <int> line: 0;
+    // The entry being typed ("steam", "igdb-id", "igdb-secret"), "" when
+    // none.
+    property <string> editing;
+    // Where the next step slides in from.
+    property <length> enter-x: 32px;
+    // A few seconds to reach the service before saying it is not there.
+    property <bool> waited;
+
+    pure function after(s: int) -> int {
+        (s + 1 == 3 && !root.has-conflicts) || (s + 1 == 7 && !root.has-tweaks) ? s + 2 : s + 1
+    }
+    pure function before(s: int) -> int {
+        (s - 1 == 3 && !root.has-conflicts) || (s - 1 == 7 && !root.has-tweaks) ? s - 2 : s - 1
+    }
+    pure function entry-of(r: int) -> string {
+        r == 0 ? "steam" : r == 3 ? "igdb-id" : r == 4 ? "igdb-secret" : ""
+    }
+    function go(s: int) {
+        root.enter-x = s > root.step ? 32px : -32px;
+        root.editing = "";
+        Onboarding.step = clamp(s, 0, 8);
+        Onboarding.step-changed(Onboarding.step);
+        root.enter();
+    }
+    // What a step starts with.
+    function enter() {
+        if root.step == 1 {
+            root.language = App.language == "en" ? 1 : App.language == "fr" ? 2 : App.language == "es" ? 3 : App.language == "de" ? 4 : App.language == "it" ? 5 : App.language == "pt" ? 6 : App.language == "nl" ? 7 : App.language == "pl" ? 8 : App.language == "ru" ? 9 : App.language == "tr" ? 10 : App.language == "ja" ? 11 : App.language == "ko" ? 12 : App.language == "zh_CN" ? 13 : 0;
+        }
+        if root.step == 2 {
+            root.swatch = Theme.accent-hex == "#f97316" ? 1 : Theme.accent-hex == "#eab308" ? 2 : Theme.accent-hex == "#10b981" ? 3 : Theme.accent-hex == "#06b6d4" ? 4 : Theme.accent-hex == "#3b82f6" ? 5 : Theme.accent-hex == "#8b5cf6" ? 6 : Theme.accent-hex == "#ec4899" ? 7 : 0;
+        }
+        if root.step == 4 {
+            root.line = 0;
+        }
+    }
+    function next() {
+        root.go(root.after(root.step));
+    }
+    function skip() {
+        if root.step == 0 {
+            Onboarding.finish();
+        } else if root.step < 8 {
+            root.next();
+        }
+    }
+    function activate() {
+        if root.step == 4 && root.line < 5 {
+            root.act-row();
+        } else if root.step == 7 {
+            Onboarding.apply-tweaks();
+            root.next();
+        } else if root.step == 8 {
+            Onboarding.finish();
+        } else {
+            root.next();
+        }
+    }
+    function act-row() {
+        if root.entry-of(root.line) != "" {
+            root.editing = root.entry-of(root.line);
+        } else if root.line == 1 {
+            if !Library.epic-busy {
+                Library.epic-login();
+            }
+        } else if root.line == 2 {
+            if !Library.gog-busy {
+                Library.gog-login();
+            }
+        }
+    }
+    function pick-language(i: int) {
+        root.language = i;
+        App.set-language(root.languages[i].code);
+    }
+    function pick-swatch(i: int) {
+        root.swatch = i;
+        App.pick-accent(root.presets[i].hex);
+    }
+    // The D-pad: dx and dy are -1, 0 or 1.
+    function move(dx: int, dy: int) {
+        if root.step == 1 {
+            if dy < 0 && Math.mod(root.language, 7) > 0 {
+                root.pick-language(root.language - 1);
+            } else if dy > 0 && Math.mod(root.language, 7) < 6 {
+                root.pick-language(root.language + 1);
+            } else if dx < 0 && root.language >= 7 {
+                root.pick-language(root.language - 7);
+            } else if dx > 0 && root.language < 7 {
+                root.pick-language(root.language + 7);
+            }
+        } else if root.step == 2 {
+            if dx != 0 {
+                root.pick-swatch(clamp(root.swatch + dx, 0, root.presets.length - 1));
+            }
+        } else if root.step == 4 {
+            if dy != 0 {
+                root.line = clamp(root.line + dy, 0, 5);
+            }
+        } else if root.step == 5 {
+            if dx != 0 {
+                Library.games-folder-step(dx);
+            }
+        } else if root.step == 6 {
+            if (dx < 0 && !App.ally-buttons) || (dx > 0 && App.ally-buttons) {
+                App.toggle-ally-buttons();
+            }
+        }
+    }
+    function done-editing(text: string) {
+        Onboarding.save-entry(root.editing, text);
+        root.editing = "";
+        fs.focus();
+    }
+
+    init => {
+        root.enter();
+    }
+
+    Timer {
+        interval: 3s;
+        running: !root.waited;
+        triggered => {
+            root.waited = true;
+        }
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+            App.arrow-focus(true);
+        }
+        key-pressed(event) => {
+            if root.editing != "" {
+                // The field takes what it uses; B leaves it unchanged.
+                if event.text == Key.Escape {
+                    root.editing = "";
+                    fs.focus();
+                }
+                return accept;
+            }
+            if event.text == Key.Escape {
+                if root.step > 0 {
+                    root.go(root.before(root.step));
+                }
+                return accept;
+            }
+            if event.text == Key.F2 || event.text == "x" {
+                root.skip();
+                return accept;
+            }
+            if event.text == Key.F3 || event.text == "y" {
+                if root.step == 4 && root.entry-of(root.line) != "" {
+                    Onboarding.paste-entry(root.entry-of(root.line));
+                }
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                root.activate();
+                return accept;
+            }
+            if event.text == Key.UpArrow || event.text == Key.Backtab {
+                root.move(0, -1);
+                return accept;
+            }
+            if event.text == Key.DownArrow || event.text == Key.Tab {
+                root.move(0, 1);
+                return accept;
+            }
+            if event.text == Key.LeftArrow {
+                root.move(-1, 0);
+                return accept;
+            }
+            if event.text == Key.RightArrow {
+                root.move(1, 0);
+                return accept;
+            }
+            // The sections stay out of reach until the tour ends.
+            if event.text == Key.PageUp || event.text == Key.PageDown {
+                return accept;
+            }
+            return reject;
+        }
+
+        // The window's header, without the sections.
+        HorizontalLayout {
+            x: 48px;
+            y: 24px;
+            height: 40px;
+            spacing: 10px;
+            alignment: start;
+            VerticalLayout {
+                alignment: center;
+                Logo { }
+            }
+
+            Text {
+                text: "Canapé";
+                color: Theme.text;
+                font-size: 18px;
+                font-weight: 700;
+                vertical-alignment: center;
+            }
+        }
+
+        Text {
+            x: parent.width - 48px - self.width;
+            y: 24px;
+            height: 40px;
+            text: App.clock;
+            color: Theme.dim;
+            font-size: 14px;
+            vertical-alignment: center;
+        }
+
+        for s in 9: Rectangle {
+            x: 0;
+            y: 64px;
+            width: parent.width;
+            height: parent.height - 64px - 54px;
+            if s == root.step: Reveal {
+                from-x: root.enter-x;
+                duration: 220ms;
+
+                // Left: where the tour is, the step's title and action.
+                VerticalLayout {
+                    x: 48px;
+                    width: 500px;
+                    height: parent.height;
+                    alignment: center;
+                    spacing: 14px;
+
+                    HorizontalLayout {
+                        spacing: 8px;
+                        alignment: start;
+                        for i in root.count: Rectangle {
+                            width: i == root.place ? 22px : 8px;
+                            height: 8px;
+                            border-radius: 4px;
+                            background: i == root.place ? Theme.accent : i < root.place ? Theme.text.mix(Theme.dim, 0.4) : Theme.stroke;
+                        }
+                    }
+
+                    Text {
+                        text: s == 0 ? @tr("Welcome to Canapé") : s == 1 ? @tr("Language") : s == 2 ? @tr("Accent colour") : s == 3 ? @tr("Another tool drives the hardware") : s == 4 ? @tr("Game stores") : s == 5 ? @tr("Games folder") : s == 6 ? @tr("The Ally's buttons") : s == 7 ? @tr("Windows optimisations") : @tr("All set");
+                        color: Theme.text;
+                        font-size: 48px;
+                        font-weight: 700;
+                        letter-spacing: -1px;
+                        wrap: word-wrap;
+                    }
+
+                    if s == 0 || s == 3 || s == 4 || s == 5: Text {
+                        text: s == 0 ? @tr("A few choices to start with. Each stays in Settings.") : s == 3 ? @tr("{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it.", root.conflicts) : s == 4 ? @tr("Installed games show up by themselves. Accounts add the games you own but have not installed.") : @tr("Where Epic and GOG games install. Steam keeps its own folders.");
+                        color: Theme.text.mix(Theme.dim, 0.6);
+                        font-size: 16px;
+                        wrap: word-wrap;
+                    }
+
+                    // Welcome: whether the service answers.
+                    if s == 0 && (App.status.connected || root.waited): HorizontalLayout {
+                        spacing: 10px;
+                        alignment: start;
+                        VerticalLayout {
+                            alignment: start;
+                            padding-top: 6px;
+                            Rectangle {
+                                width: 8px;
+                                height: 8px;
+                                border-radius: 4px;
+                                background: App.status.connected ? Theme.good : Theme.warn;
+                            }
+                        }
+
+                        Text {
+                            horizontal-stretch: 1;
+                            text: App.status.connected ? @tr("Service connected") : @tr("The Canapé service is not running: power, fans and controller settings are unavailable. Install it with packaging\\install-dev.ps1 in an administrator Terminal, or start CanapeService in Services. You can go on without it.");
+                            color: App.status.connected ? Theme.text.mix(Theme.dim, 0.6) : Theme.warn;
+                            font-size: 14px;
+                            wrap: word-wrap;
+                        }
+                    }
+
+                    HorizontalLayout {
+                        padding-top: 10px;
+                        spacing: 12px;
+                        alignment: start;
+                        Action {
+                            label: s == 0 ? @tr("Start") : s == 7 ? @tr("Apply the recommended set") : s == 8 ? @tr("Go to the games") : @tr("Continue");
+                            quiet: s == 4 && root.line < 5;
+                            clicked => {
+                                if s == 4 {
+                                    root.line = 5;
+                                }
+                                root.activate();
+                                fs.focus();
+                            }
+                        }
+
+                        if s < 8: Later {
+                            label: s == 0 || s == 4 || s == 7 ? @tr("Later") : @tr("Skip");
+                            clicked => {
+                                root.skip();
+                                fs.focus();
+                            }
+                        }
+                    }
+                }
+
+                // Right: what the step sets.
+                Rectangle {
+                    x: 600px;
+                    width: parent.width - 648px;
+                    height: parent.height;
+
+                    if s == 0: Logo {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 240px;
+                        opacity: 0.9;
+                    }
+
+                    if s == 1: HorizontalLayout {
+                        y: (parent.height - self.preferred-height) / 2;
+                        width: parent.width;
+                        height: self.preferred-height;
+                        spacing: 12px;
+                        for column in 2: VerticalLayout {
+                            horizontal-stretch: 1;
+                            preferred-width: 10px;
+                            spacing: 8px;
+                            for i in 7: ChoiceTile {
+                                height: 52px;
+                                label: root.languages[column * 7 + i].name;
+                                selected: App.language == root.languages[column * 7 + i].code;
+                                focused: root.language == column * 7 + i;
+                                clicked => {
+                                    root.pick-language(column * 7 + i);
+                                    fs.focus();
+                                }
+                            }
+                        }
+                    }
+
+                    if s == 2: HorizontalLayout {
+                        y: (parent.height - self.height) / 2;
+                        width: parent.width;
+                        height: 72px;
+                        alignment: space-between;
+                        for preset[i] in root.presets: Swatch {
+                            width: 64px;
+                            height: 64px;
+                            border-radius: 32px;
+                            swatch: preset.color;
+                            selected: Theme.accent-hex == preset.hex;
+                            focused: root.swatch == i;
+                            clicked => {
+                                root.pick-swatch(i);
+                                fs.focus();
+                            }
+                        }
+                    }
+
+                    if s == 3: VerticalLayout {
+                        y: (parent.height - self.preferred-height) / 2;
+                        width: parent.width;
+                        height: self.preferred-height;
+                        spacing: 8px;
+                        SectionTitle {
+                            text: @tr("Running now");
+                        }
+
+                        Rectangle {
+                            height: 72px;
+                            border-radius: 12px;
+                            background: Theme.warn-soft;
+                            Text {
+                                x: 20px;
+                                width: parent.width - 40px;
+                                text: root.conflicts;
+                                color: Theme.warn;
+                                font-size: 22px;
+                                font-weight: 600;
+                                vertical-alignment: center;
+                                overflow: elide;
+                            }
+                        }
+                    }
+
+                    if s == 4: VerticalLayout {
+                        y: (parent.height - self.preferred-height) / 2;
+                        width: parent.width;
+                        height: self.preferred-height;
+                        spacing: 2px;
+
+                        HorizontalLayout {
+                            padding-left: 16px;
+                            padding-right: 16px;
+                            height: 32px;
+                            SectionTitle {
+                                horizontal-stretch: 1;
+                                text: "Steam";
+                                vertical-alignment: center;
+                            }
+
+                            Text {
+                                text: !Onboarding.steam-found ? @tr("Steam not found") : @tr("{} games installed", Onboarding.steam-games);
+                                color: Onboarding.steam-found ? Theme.text.mix(Theme.dim, 0.6) : Theme.warn;
+                                font-size: 14px;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        KeyLine {
+                            label: @tr("Steam Web API key");
+                            value: Onboarding.steam-key;
+                            focused: root.line == 0;
+                            editing: root.editing == "steam";
+                            clicked => {
+                                root.line = 0;
+                                root.act-row();
+                            }
+                            field-focused => {
+                                Onboarding.show-keyboard();
+                            }
+                            done(text) => {
+                                root.done-editing(text);
+                            }
+                        }
+
+                        if Onboarding.refused == "steam": Help {
+                            warn: true;
+                            text: Onboarding.refused-why == 2 ? @tr("The clipboard holds no key.") : @tr("This is not a key: nothing was saved.");
+                        }
+                        if root.line == 0 && Onboarding.refused != "steam": Help {
+                            text: @tr("Lists the Steam games you own but have not installed.\n1. On steamcommunity.com/dev/apikey, sign in.\n2. Enter any domain name (localhost), then copy the key.\n3. A to type it here, Y to paste it.");
+                        }
+
+                        SettingLine {
+                            label: @tr("Epic Games account");
+                            value: Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-waiting ? @tr("Waiting for the Epic code…") : Library.epic-account != "" ? Library.epic-account : @tr("Sign in");
+                            chevrons: false;
+                            focused: root.line == 1;
+                            clicked => {
+                                root.line = 1;
+                                root.act-row();
+                                fs.focus();
+                            }
+                        }
+
+                        if Library.epic-waiting: Help {
+                            text: @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.");
+                        }
+
+                        SettingLine {
+                            label: @tr("GOG account");
+                            value: Library.gog-busy ? @tr("Opening the GOG sign-in…") : Library.gog-waiting ? @tr("Waiting for the GOG address…") : Library.gog-account != "" ? Library.gog-account : @tr("Sign in");
+                            chevrons: false;
+                            focused: root.line == 2;
+                            clicked => {
+                                root.line = 2;
+                                root.act-row();
+                                fs.focus();
+                            }
+                        }
+
+                        if Library.gog-waiting: Help {
+                            text: @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.");
+                        }
+                        if Library.install-error != "": Help {
+                            warn: true;
+                            text: Library.install-error;
+                        }
+
+                        HorizontalLayout {
+                            padding-left: 16px;
+                            padding-top: 10px;
+                            height: 42px;
+                            SectionTitle {
+                                text: @tr("Time to beat (IGDB)");
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        KeyLine {
+                            label: @tr("Client ID");
+                            value: Onboarding.igdb-id;
+                            focused: root.line == 3;
+                            editing: root.editing == "igdb-id";
+                            clicked => {
+                                root.line = 3;
+                                root.act-row();
+                            }
+                            field-focused => {
+                                Onboarding.show-keyboard();
+                            }
+                            done(text) => {
+                                root.done-editing(text);
+                            }
+                        }
+
+                        KeyLine {
+                            label: @tr("Client secret");
+                            value: Onboarding.igdb-secret;
+                            focused: root.line == 4;
+                            editing: root.editing == "igdb-secret";
+                            clicked => {
+                                root.line = 4;
+                                root.act-row();
+                            }
+                            field-focused => {
+                                Onboarding.show-keyboard();
+                            }
+                            done(text) => {
+                                root.done-editing(text);
+                            }
+                        }
+
+                        if Onboarding.refused == "igdb-id" || Onboarding.refused == "igdb-secret": Help {
+                            warn: true;
+                            text: Onboarding.refused-why == 2 ? @tr("The clipboard holds no key.") : @tr("This is not a key: nothing was saved.");
+                        }
+                        if (root.line == 3 || root.line == 4) && Onboarding.refused != "igdb-id" && Onboarding.refused != "igdb-secret": Help {
+                            text: @tr("Optional: how long games take to finish.\n1. On dev.twitch.tv/console, sign in (two-factor authentication on).\n2. Register an application: any name, redirect http://localhost, category Application Integration, Confidential.\n3. Copy its Client ID, then New Secret: A to type, Y to paste.");
+                        }
+                    }
+
+                    if s == 5: VerticalLayout {
+                        y: (parent.height - self.preferred-height) / 2;
+                        width: parent.width;
+                        height: self.preferred-height;
+                        SettingLine {
+                            label: @tr("Games folder");
+                            value: Library.games-folder + (Library.games-free-tenths >= 0 ? " · " + @tr("{} GB free", App.tenths(Library.games-free-tenths)) : "");
+                            focused: true;
+                            step(d) => {
+                                Library.games-folder-step(d);
+                                fs.focus();
+                            }
+                        }
+                    }
+
+                    if s == 6: VerticalLayout {
+                        y: (parent.height - self.preferred-height) / 2;
+                        width: parent.width;
+                        height: self.preferred-height;
+                        spacing: 18px;
+                        for button in [
+                            { name: @tr("Armoury (right, under the screen)"), does: @tr("Brings Canapé to the front from a game, or back to Games.") },
+                            { name: @tr("Command Center (left)"), does: @tr("Opens the Xbox Game Bar, where the Canapé widget lives.") },
+                        ]: VerticalLayout {
+                            padding-left: 16px;
+                            padding-right: 16px;
+                            spacing: 4px;
+                            Text {
+                                text: button.name;
+                                color: Theme.text;
+                                font-size: 16px;
+                                font-weight: 600;
+                            }
+
+                            Text {
+                                text: button.does;
+                                color: Theme.text.mix(Theme.dim, 0.6);
+                                font-size: 14px;
+                                wrap: word-wrap;
+                            }
+                        }
+                        VerticalLayout {
+                            spacing: 2px;
+                            SettingLine {
+                                label: @tr("Use the Ally's buttons");
+                                value: App.ally-buttons ? @tr("On") : @tr("Off");
+                                focused: true;
+                                step(d) => {
+                                    root.move(d, 0);
+                                    fs.focus();
+                                }
+                            }
+
+                            Help {
+                                text: @tr("Off when another program should get them: otherwise both react.");
+                            }
+                        }
+                    }
+
+                    if s == 8: VerticalLayout {
+                        y: (parent.height - self.preferred-height) / 2;
+                        width: parent.width;
+                        height: self.preferred-height;
+                        Gesture {
+                            glyphs: ["LB", "RB"];
+                            text: @tr("Games, Performance, Hardware, Settings");
+                        }
+
+                        Gesture {
+                            glyphs: ["A"];
+                            text: @tr("Choose, play");
+                        }
+
+                        Gesture {
+                            glyphs: ["B"];
+                            text: @tr("Back");
+                        }
+
+                        Gesture {
+                            glyphs: ["X"];
+                            text: @tr("Save for this game (Performance, Hardware)");
+                        }
+
+                        Gesture {
+                            glyphs: ["Y"];
+                            text: @tr("A game's options, on its page");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Gamepad hints.
+        HorizontalLayout {
+            x: 48px;
+            y: parent.height - 54px;
+            width: parent.width - 96px;
+            height: 38px;
+            spacing: 24px;
+            alignment: end;
+
+            if root.editing == "" && root.step == 4: Hint {
+                glyph: "updown";
+                text: @tr("Setting");
+            }
+            if root.editing == "" && (root.step == 1 || root.step == 2 || root.step == 5 || root.step == 6): Hint {
+                glyph: "leftright";
+                text: @tr("Value");
+            }
+            if root.editing == "": Hint {
+                glyph: "A";
+                text: root.step == 4 && root.line < 5 ? @tr("Choose") : root.step == 8 ? @tr("Go to the games") : @tr("Continue");
+            }
+            if root.editing != "": Hint {
+                glyph: "A";
+                text: @tr("Save");
+            }
+            if root.editing == "" && root.step == 4 && root.entry-of(root.line) != "": Hint {
+                glyph: "Y";
+                text: @tr("Paste");
+            }
+            if root.editing == "" && root.step < 8: Hint {
+                glyph: "X";
+                text: root.step == 0 || root.step == 4 || root.step == 7 ? @tr("Later") : @tr("Skip");
+            }
+            if root.editing != "" || root.step > 0: Hint {
+                glyph: "B";
+                text: root.editing != "" ? @tr("Cancel") : @tr("Back");
+            }
+        }
+    }
+}

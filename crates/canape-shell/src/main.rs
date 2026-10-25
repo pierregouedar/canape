@@ -33,6 +33,7 @@ mod library;
 mod link;
 #[cfg(any(windows, test))]
 mod nav;
+mod onboarding;
 mod report;
 mod screen;
 mod shelves;
@@ -128,6 +129,7 @@ fn main() -> Result<(), slint::PlatformError> {
     library::set_shown(ui.get_page() == 0);
     library::start(&ui);
     addgames::start(&ui);
+    onboarding::start(&ui);
 
     ui.global::<App>().set_clock(clock::now().into());
     let clock_timer = Timer::default();

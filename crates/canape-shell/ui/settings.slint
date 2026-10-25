@@ -5,7 +5,8 @@
 //   shelf 0, appearance: language, accent colour, the Ally's buttons;
 //   shelf 1, library: games folder, missing covers, add a game, game
 //   profiles;
-//   shelf 2, accounts: Steam, Epic Games, GOG, time to beat (IGDB).
+//   shelf 2, accounts: Steam, Epic Games, GOG, time to beat (IGDB);
+//   shelf 3, system: the welcome tour again.
 // In the language drawer the arrows move over the languages and A applies
 // one; in the accent drawer, up and down go from the presets (A applies
 // one) to the hue, saturation and brightness tracks, which left and right
@@ -14,6 +15,7 @@
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
 import { Library } from "library.slint";
+import { Onboarding } from "onboarding.slint";
 import { ChoiceTile, Drawer, HeroLine, HintSet, PageHints, SettingLine, Shelf, ShelfCard, ShelfPane, Swatch, TrackLine } from "kit.slint";
 
 // An account in the hero: the store, then who is signed in.
@@ -89,7 +91,7 @@ export component SettingsPage inherits Rectangle {
     property <HintSet> hints: !root.open ? {
         move-glyph: "dpad",
         move: @tr("Shelves"),
-        a: root.focused-key == "add" || root.focused-key == "profiles" ? @tr("Open") : @tr("Adjust"),
+        a: root.focused-key == "add" || root.focused-key == "profiles" || root.focused-key == "tour" ? @tr("Open") : @tr("Adjust"),
         b: @tr("Back"),
     } : root.drawer == "language" ? {
         move-glyph: "dpad",
@@ -126,16 +128,18 @@ export component SettingsPage inherits Rectangle {
     }
 
     pure function key(s: int, c: int) -> string {
-        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : ["steam", "epic", "gog", "igdb"][c]
+        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : s == 2 ? ["steam", "epic", "gog", "igdb"][c] : ["tour"][c]
     }
     pure function cards(s: int) -> int {
-        s == 0 ? 3 : 4
+        s == 0 ? 3 : s == 3 ? 1 : 4
     }
     function activate() {
         if root.focused-key == "add" {
             root.open-add-games();
         } else if root.focused-key == "profiles" {
             root.open-profiles();
+        } else if root.focused-key == "tour" {
+            Onboarding.replay();
         } else {
             root.language-pick = root.language-index;
             root.accent-row = 0;
@@ -235,7 +239,7 @@ export component SettingsPage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.UpArrow || event.text == Key.DownArrow {
-                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 2);
+                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 3);
                 root.card = min(root.card, root.cards(root.shelf) - 1);
                 return accept;
             }
@@ -482,6 +486,26 @@ export component SettingsPage inherits Rectangle {
                 clicked => {
                     root.shelf = 2;
                     root.card = 3;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 3;
+            front: root.shelf;
+            icon: "screen";
+            title: @tr("System");
+            ShelfCard {
+                label: @tr("Welcome tour");
+                icon: "gamepad";
+                focused: root.active && root.shelf == 3 && root.card == 0;
+                clicked => {
+                    root.shelf = 3;
+                    root.card = 0;
                     root.activate();
                     fs.focus();
                 }

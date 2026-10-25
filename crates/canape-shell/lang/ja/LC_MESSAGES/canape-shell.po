@@ -785,6 +785,18 @@ msgstr "未サインイン"
 msgid "Appearance"
 msgstr "外観"
 
+msgid "Not set"
+msgstr "未設定"
+
+msgid "Welcome to Canapé"
+msgstr "Canapé へようこそ"
+
+msgid "Another tool drives the hardware"
+msgstr "別のツールがハードウェアを制御しています"
+
+msgid "Game stores"
+msgstr "ゲームストア"
+
 msgid "The Ally's buttons"
 msgstr "Ally のボタン"
 
@@ -900,3 +912,111 @@ msgstr "非表示のゲームはありません"
 
 msgid "Show again"
 msgstr "再表示"
+
+msgid "Windows optimisations"
+msgstr "Windows の最適化"
+
+msgid "All set"
+msgstr "準備完了"
+
+msgid "A few choices to start with. Each stays in Settings."
+msgstr "最初にいくつか選びます。どれも後から設定で変えられます。"
+
+msgid "{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it."
+msgstr "{} は Canapé と同じ設定（電力、ファン、コントローラー）を変更するため、互いの変更を打ち消します。終了するかアンインストールしてください。"
+
+msgid "Installed games show up by themselves. Accounts add the games you own but have not installed."
+msgstr "インストール済みのゲームは自動で表示されます。アカウントを追加すると、所有していて未インストールのゲームも表示されます。"
+
+msgid "Where Epic and GOG games install. Steam keeps its own folders."
+msgstr "Epic と GOG のゲームのインストール先です。Steam は独自のフォルダーを使います。"
+
+msgid "The Canapé service is not running: power, fans and controller settings are unavailable. Install it with packaging\\install-dev.ps1 in an administrator Terminal, or start CanapeService in Services. You can go on without it."
+msgstr "Canapé サービスが動作していません。電力、ファン、コントローラーの設定は使えません。管理者のターミナルで packaging\\install-dev.ps1 を実行してインストールするか、サービスで CanapeService を開始してください。サービスなしでも続けられます。"
+
+msgid "Apply the recommended set"
+msgstr "おすすめをまとめて適用"
+
+msgid "Go to the games"
+msgstr "ゲームへ"
+
+msgid "Continue"
+msgstr "続ける"
+
+msgid "Later"
+msgstr "後で"
+
+msgid "Skip"
+msgstr "スキップ"
+
+msgid "Running now"
+msgstr "実行中"
+
+msgid "Steam not found"
+msgstr "Steam が見つかりません"
+
+msgid "{} games installed"
+msgstr "{} 本インストール済み"
+
+msgid "Steam Web API key"
+msgstr "Steam Web API キー"
+
+msgid "The clipboard holds no key."
+msgstr "クリップボードにキーがありません。"
+
+msgid "This is not a key: nothing was saved."
+msgstr "キーではありません。何も保存されていません。"
+
+msgid "Lists the Steam games you own but have not installed.\n1. On steamcommunity.com/dev/apikey, sign in.\n2. Enter any domain name (localhost), then copy the key.\n3. A to type it here, Y to paste it."
+msgstr "所有していて未インストールの Steam ゲームを表示します。\n1. steamcommunity.com/dev/apikey でサインインします。\n2. 任意のドメイン名（localhost）を入力し、キーをコピーします。\n3. A でここに入力、Y で貼り付け。"
+
+msgid "Time to beat (IGDB)"
+msgstr "クリア時間 (IGDB)"
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Client secret"
+msgstr "Client secret"
+
+msgid "Optional: how long games take to finish.\n1. On dev.twitch.tv/console, sign in (two-factor authentication on).\n2. Register an application: any name, redirect http://localhost, category Application Integration, Confidential.\n3. Copy its Client ID, then New Secret: A to type, Y to paste."
+msgstr "任意：ゲームのクリアにかかる時間。\n1. dev.twitch.tv/console でサインインします（2 段階認証が必要）。\n2. アプリケーションを登録：名前は任意、リダイレクト http://localhost、カテゴリ Application Integration、Confidential。\n3. Client ID をコピーし、New Secret を押します。A で入力、Y で貼り付け。"
+
+msgid "Armoury (right, under the screen)"
+msgstr "Armoury（右、画面の下）"
+
+msgid "Brings Canapé to the front from a game, or back to Games."
+msgstr "ゲーム中なら Canapé を前面に出し、それ以外はゲームに戻ります。"
+
+msgid "Command Center (left)"
+msgstr "Command Center（左）"
+
+msgid "Opens the Xbox Game Bar, where the Canapé widget lives."
+msgstr "Canapé ウィジェットのある Xbox Game Bar を開きます。"
+
+msgid "Off when another program should get them: otherwise both react."
+msgstr "別のプログラムに任せる場合はオフに。オンのままだと両方が反応します。"
+
+msgid "Games, Performance, Hardware, Settings"
+msgstr "ゲーム、パフォーマンス、ハードウェア、設定"
+
+msgid "Choose, play"
+msgstr "選択、プレイ"
+
+msgid "Save for this game (Performance, Hardware)"
+msgstr "このゲーム用に保存（パフォーマンス、ハードウェア）"
+
+msgid "A game's options, on its page"
+msgstr "ゲームのオプション（ゲームのページで）"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Paste"
+msgstr "貼り付け"
+
+msgid "Welcome tour"
+msgstr "ようこそツアー"
+
+msgid "System"
+msgstr "システム"

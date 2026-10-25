@@ -13,6 +13,7 @@ import { PerformancePage } from "performance.slint";
 import { GameView, Library, LibraryPage } from "library.slint";
 import { HardwarePage } from "hardware.slint";
 import { PageHints, Reveal } from "kit.slint";
+import { Onboarding, OnboardingFlow } from "onboarding.slint";
 
 // Plus Jakarta Sans, embedded (OFL, see fonts/OFL.txt). Scripts it lacks,
 // such as Cyrillic or CJK, fall back to the system fonts.
@@ -23,6 +24,7 @@ import "fonts/PlusJakartaSans-Bold.ttf";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
+export { Onboarding } from "onboarding.slint";
 export { Library, GameView, ShelfView, DetailView, AddGameView, AchievementView, OptionsView, CategoryView, HiddenGameView } from "library.slint";
 
 // A section name; the current one is brighter and underlined.
@@ -208,7 +210,8 @@ export component AppWindow inherits Window {
             }
         }
 
-        VerticalLayout {
+        // The first-run tour takes the place of the sections.
+        if !Onboarding.active: VerticalLayout {
             HorizontalLayout {
                 padding-left: 48px;
                 padding-right: 48px;
@@ -502,5 +505,7 @@ export component AppWindow inherits Window {
                 }
             }
         }
+
+        if Onboarding.active: OnboardingFlow { }
     }
 }

@@ -18,6 +18,7 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
   - [Vérifier l'installation](#vérifier-linstallation)
 - [Faire de Canapé l'accueil du FSE](#faire-de-canapé-laccueil-du-fse)
   - [Revenir à Winhanced ou à l'app Xbox](#revenir-à-winhanced-ou-à-lapp-xbox)
+- [Premier lancement](#premier-lancement)
 - [Utiliser Canapé à la manette](#utiliser-canapé-à-la-manette)
   - [Commandes](#commandes)
   - [Éléments communs](#éléments-communs)
@@ -135,6 +136,45 @@ Pour le faire en ligne de commande, remettez l'ancienne valeur de `GamingHomeApp
 Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration" -Name GamingHomeApp -Value "Winhanced_2wdva71107yvr!App"
 ```
 
+
+## Premier lancement
+
+<img src="images/fr/onboarding-welcome.png" alt="Premier lancement : bienvenue" width="720">
+
+> [!NOTE]
+> **Pas encore essayé sur l'Ally.** La visite n'a tourné que sous Linux, avec le simulateur matériel et la fausse bibliothèque ; les captures viennent de là. Sur l'Ally, restent à vérifier le clavier tactile, le presse-papiers et les connexions dans le navigateur par-dessus le FSE.
+
+Au tout premier lancement, une courte visite remplace les sections. Chaque étape change les mêmes réglages que la page [Réglages](#réglages), appliqués tout de suite ; **A** continue, **X** passe l'étape (« Plus tard » sur la première ferme toute la visite), **B** revient à l'étape précédente, la croix se déplace à droite. Les points en haut à gauche disent où vous en êtes. L'étape atteinte est enregistrée : après un redémarrage, Canapé y revient. Une fois terminée (ou remise à plus tard), la visite ne revient plus ; **Réglages → Système → Visite de bienvenue** la relance depuis le début.
+
+| Étape | Ce qu'elle fait |
+|---|---|
+| **Bienvenue** | Dit si le service répond. S'il ne répond pas au bout de 3 s : les réglages de puissance, de ventilateurs et de manette sont indisponibles ; installez-le avec `packaging\install-dev.ps1` (voir [Installer Canapé](#installer-canapé)) ou démarrez `CanapeService` dans Services. On peut continuer sans lui. |
+| **Langue** | Automatique ou l'une des 13 langues, sur deux colonnes ; l'interface change au fil de la croix. |
+| **Couleur d'accent** | Les huit pastilles de la page Réglages ; gauche et droite les appliquent tout de suite. |
+| **Boutiques de jeux** | Steam : si le client a été trouvé et combien de jeux Steam sont installés, puis la **clé Steam Web API** (pour lister les jeux possédés non installés). Epic et GOG : **A** lance la même connexion que dans Réglages (navigateur, puis presse-papiers) et la ligne affiche le compte une fois connecté. **Durée de jeu (IGDB)** : le **Client ID** et le **Client secret** de l'application Twitch, facultatifs. |
+| **Dossier des jeux** | Où s'installent les jeux Epic et GOG et son espace libre ; gauche et droite le changent (comme dans Réglages). |
+| **Les boutons de l'Ally** | Ce que font les boutons Armoury et Command Center avec Canapé, et **Utiliser les boutons de l'Ally** activé ou non. |
+| **C'est prêt** | Les gestes principaux : LB / RB les sections, A choisir ou jouer, B retour, X enregistrer pour ce jeu (Performance, Matériel), Y les options d'un jeu sur sa page. **A** mène aux jeux. |
+
+| Boutiques de jeux | Saisie d'une clé |
+|---|---|
+| <img src="images/fr/onboarding-stores.png" alt="Étape des boutiques" width="400"> | <img src="images/fr/onboarding-stores-key.png" alt="Saisie de la clé Steam" width="400"> |
+
+**Clés** : **A** sur une ligne de clé ouvre un champ de texte et fait apparaître le clavier tactile de Windows (Canapé le demande explicitement, Windows ne le faisant pas pour cette fenêtre) ; **A** (Entrée) enregistre, **B** annule. **Y** colle plutôt la clé depuis le presse-papiers : copiez-la dans le navigateur, revenez dans Canapé, Y. Une clé Steam fait 32 lettres et chiffres (la ligne « Key: … » de la page peut être copiée entière) ; une valeur Twitch est un seul mot de lettres et de chiffres. Le reste est refusé (« Ce n'est pas une clé : rien n'a été enregistré. »). Un champ vide retire la clé. Les clés enregistrées n'affichent que leurs quatre derniers caractères et ne sont jamais écrites dans le journal. Tout va dans `shell.json` (`steam_api_key`, `igdb_client_id`, `igdb_client_secret`), comme à la main.
+
+- **Steam** : sur [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey), connectez-vous, saisissez un nom de domaine quelconque (`localhost`), copiez la clé. La liste des jeux possédés est redemandée dès l'enregistrement.
+- **IGDB** : sur [dev.twitch.tv/console](https://dev.twitch.tv/console) (double authentification activée), enregistrez une application (nom quelconque, redirection `http://localhost`, catégorie Application Integration, Confidential), copiez son Client ID, puis **New Secret** (détails dans [Jeux](#jeux), « Durée de jeu »).
+
+| Sans le service | Autre outil | Dernière étape |
+|---|---|---|
+| <img src="images/fr/onboarding-welcome-offline.png" alt="Bienvenue sans le service" width="260"> | <img src="images/fr/onboarding-conflicts.png" alt="Un autre outil pilote le matériel" width="260"> | <img src="images/fr/onboarding-done.png" alt="C'est prêt" width="260"> |
+
+<sub>Autres étapes : [langue](images/fr/onboarding-language.png), [couleur d'accent](images/fr/onboarding-accent.png), [dossier des jeux](images/fr/onboarding-folder.png), [boutons de l'Ally](images/fr/onboarding-buttons.png). La capture « autre outil » est simulée : hors Windows, le service n'en signale jamais.</sub>
+
+> [!NOTE]
+> Une étape **Optimisations de Windows** (« Appliquer la sélection recommandée » / « Plus tard ») est prévue entre les boutons de l'Ally et la fin : elle reste masquée tant que Canapé n'a pas cette sélection.
+
+Une installation qui avait déjà un `shell.json` d'une version précédente voit aussi la visite, une fois.
 
 ## Utiliser Canapé à la manette
 
@@ -566,6 +606,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 | **Comptes → Epic Games** | Le compte connecté, ou « Se connecter » : **A** dans le tiroir ouvre la connexion Epic, en téléchargeant Legendary d'abord si besoin (voir [Installer des jeux possédés](#installer-des-jeux-possédés)) ; pendant l'attente, le tiroir dit quoi copier. Pas encore essayé sur l'Ally. |
 | **Comptes → GOG** | Le compte connecté, ou « Se connecter » : **A** dans le tiroir ouvre la page de connexion GOG dans le navigateur, en téléchargeant gogdl d'abord si besoin, puis attend l'adresse copiée (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Pas encore essayé sur l'Ally. |
 | **Comptes → Durée de jeu** | « IGDB » quand `igdb_client_id` et `igdb_client_secret` sont dans `shell.json`, Désactivé sinon ; le tiroir explique comment les régler. |
+| **Système → Visite de bienvenue** | **A** relance la [visite du premier lancement](#premier-lancement) depuis le début. Pas encore essayé sur l'Ally. |
 
 | Accent sarcelle | Accent orange |
 |---|---|
@@ -712,7 +753,7 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | `%ProgramData%\Canape\service.log` | Journal du service : modèle détecté, état d'ADL au démarrage, chaque commande qui modifie l'état et sa réponse (`SetTdp { watts: 12 } -> Ok`), programmes en conflit, erreurs. |
 | `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS, limite de charge, mode de la manette, boutons arrière, éclairage des sticks, profils, dernier banc d'essai. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Journal du shell : démarrages (avec leurs arguments), langue choisie, état d'ADL, erreurs du service. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `igdb_client_id`, `igdb_client_secret`, `refresh_hz`, `ally_buttons`. |
+| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `igdb_client_id`, `igdb_client_secret`, `refresh_hz`, `ally_buttons`, `games_folder`, et pour la [visite du premier lancement](#premier-lancement) `onboarded` (terminée ou remise à plus tard) et `onboarding_step` (l'étape où revenir). |
 | `%LOCALAPPDATA%\Canape\games.json` | Les jeux ajoutés à la main ou depuis **Réglages → Ajouter un jeu** (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). |
 | `%LOCALAPPDATA%\Canape\covers\` | Jaquettes téléchargées (`<boutique>_<id>.jpg` / `.png`, marqueurs `.miss`). |
 | `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |

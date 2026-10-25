@@ -2461,6 +2461,36 @@ pub fn rescan() {
     with_state(State::scan);
 }
 
+/// Whether Steam's client was found, and how many Steam games are
+/// installed.
+pub fn steam_summary() -> (bool, usize) {
+    let mut out = (false, 0);
+    with_state(|state| {
+        let found = state.roots.steam.as_deref().is_some_and(|dir| {
+            if state.fixture {
+                dir.is_dir()
+            } else {
+                dir.join("steam.exe").is_file()
+            }
+        });
+        let games = state
+            .all
+            .iter()
+            .filter(|g| g.source == canape_library::Source::Steam)
+            .count();
+        out = (found, games);
+    });
+    out
+}
+
+/// The Steam Web API key changed in shell.json: lists the owned games again.
+pub fn steam_key_changed() {
+    with_state(|state| {
+        state.show_accounts();
+        state.refresh_owned(true);
+    });
+}
+
 /// Tells whether the library page is the one shown.
 pub fn set_shown(shown: bool) {
     LIBRARY_SHOWN.store(shown, Ordering::Relaxed);
