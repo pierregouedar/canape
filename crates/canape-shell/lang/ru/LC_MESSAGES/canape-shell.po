@@ -462,3 +462,6 @@ msgstr "{} мин в игре"
 
 msgid "{} GB"
 msgstr "{} ГБ"
+
+msgid "This game's profile"
+msgstr "Профиль этой игры"

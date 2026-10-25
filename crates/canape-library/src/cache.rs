@@ -51,11 +51,15 @@ pub fn save(path: &Path, games: &[Game]) -> io::Result<()> {
     )
 }
 
-/// Launches made from Canapé: game id → unix seconds.
+/// Launches made from Canapé: game id → unix seconds, and the program each
+/// game turned out to be.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Recent {
     pub launched: HashMap<String, u64>,
+    /// Game id → executable name (`Among Us.exe`), learnt when the game
+    /// came to the front after a launch: profiles are keyed by it.
+    pub exes: HashMap<String, String>,
 }
 
 impl Recent {
@@ -84,7 +88,14 @@ impl Recent {
             times.sort_unstable_by(|a, b| b.cmp(a));
             let oldest_kept = times[Self::KEEP - 1];
             self.launched.retain(|_, t| *t >= oldest_kept);
+            let launched = &self.launched;
+            self.exes.retain(|id, _| launched.contains_key(id));
         }
+    }
+
+    /// The game `id` runs as `exe`.
+    pub fn learn(&mut self, id: &str, exe: &str) {
+        self.exes.insert(id.to_owned(), exe.to_owned());
     }
 }
 

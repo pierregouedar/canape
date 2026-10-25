@@ -462,3 +462,6 @@ msgstr "{} 分プレイ"
 
 msgid "{} GB"
 msgstr "{} GB"
+
+msgid "This game's profile"
+msgstr "このゲームのプロファイル"
