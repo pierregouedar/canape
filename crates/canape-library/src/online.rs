@@ -44,7 +44,7 @@ impl Settings {
     }
 }
 
-/// An HTTPS GET.
+/// HTTPS requests.
 pub trait Http {
     /// The body of a 200 answer, at most `max` bytes; an error for any
     /// other status or a longer body.
@@ -54,6 +54,11 @@ pub trait Http {
     fn get(&self, url: &str, bearer: Option<&str>) -> io::Result<Vec<u8>> {
         self.get_limited(url, bearer, MAX_BYTES)
     }
+
+    /// A POST of `body` with extra `headers` (name, value): the body of a
+    /// 200 answer, at most [`MAX_BYTES`]. A 401 is a `PermissionDenied`
+    /// error, any other status an error too.
+    fn post(&self, url: &str, headers: &[(&str, &str)], body: &[u8]) -> io::Result<Vec<u8>>;
 }
 
 /// File name stem for a game id: `steam:1245620` -> `steam_1245620`.
@@ -92,7 +97,7 @@ pub fn griddb_search_url(title: &str) -> String {
 }
 
 /// Percent-encodes everything but unreserved characters (RFC 3986).
-fn percent_encode(text: &str) -> String {
+pub(crate) fn percent_encode(text: &str) -> String {
     let mut out = String::new();
     for byte in text.bytes() {
         if byte.is_ascii_alphanumeric() || b"-_.~".contains(&byte) {
@@ -288,6 +293,10 @@ mod tests {
                 .get(url)
                 .cloned()
                 .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "404"))
+        }
+
+        fn post(&self, url: &str, _: &[(&str, &str)], _: &[u8]) -> io::Result<Vec<u8>> {
+            panic!("no POST expected: {url}")
         }
     }
 

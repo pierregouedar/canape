@@ -145,6 +145,10 @@ mod tests {
                 .cloned()
                 .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "404"))
         }
+
+        fn post(&self, url: &str, _: &[(&str, &str)], _: &[u8]) -> io::Result<Vec<u8>> {
+            panic!("no POST expected: {url}")
+        }
     }
 
     fn release(url: &str, digest: &str) -> Vec<u8> {

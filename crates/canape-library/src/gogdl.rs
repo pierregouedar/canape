@@ -504,6 +504,10 @@ mod tests {
                     .push((url.to_owned(), bearer.map(str::to_owned)));
                 Ok(std::fs::read(fixture("gog/owned-page.json")).unwrap())
             }
+
+            fn post(&self, url: &str, _: &[(&str, &str)], _: &[u8]) -> io::Result<Vec<u8>> {
+                panic!("no POST expected: {url}")
+            }
         }
         let http = Pages(Default::default());
         let games = fetch_owned(&http, "tok").unwrap();

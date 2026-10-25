@@ -663,3 +663,9 @@ msgstr "Oyun klasörü"
 
 msgid "{} GB free"
 msgstr "{} GB boş"
+
+msgid "Main story ~{} h"
+msgstr "Hikâye ~{} sa"
+
+msgid "Main story ~{} min"
+msgstr "Hikâye ~{} dk"

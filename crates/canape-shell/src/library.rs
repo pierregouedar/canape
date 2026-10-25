@@ -11,8 +11,8 @@
 //! by every shelf that shows the game.
 //!
 //! Everything here runs on the UI thread except the scan, the decoding,
-//! the launch, the owned lists and the installs, which post their results
-//! back to the event loop.
+//! the launch, the owned lists, the installs and the time-to-beat lookups
+//! (timetobeat.rs), which post their results back to the event loop.
 
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -35,6 +35,7 @@ use slint::{
 use crate::backdrop;
 use crate::grid;
 use crate::shelves::{self, Kind, Shelf};
+use crate::timetobeat::{self, Lookups};
 use crate::{AppWindow, DetailView, GameView, Library, ShelfView};
 
 /// How long "Launching…" shows: the game's window usually covers the shell
@@ -178,6 +179,8 @@ struct State {
     awaiting: Option<(String, Instant)>,
     /// The game whose page is open.
     detail: Option<String>,
+    /// Time to beat from IGDB.
+    beat: Lookups,
     /// Releases the game page's images once it has faded out.
     detail_timer: Timer,
     /// When the backdrop last changed colour.
@@ -570,6 +573,7 @@ impl State {
             },
             folder: folder.to_string_lossy().as_ref().into(),
             minutes: minutes.map_or(-1, |m| m as i32),
+            beat_minutes: self.beat.minutes(&game.id),
             exe: self
                 .recent
                 .exes
@@ -588,6 +592,7 @@ impl State {
         {
             self.fetch_size(&game.id, install);
         }
+        self.fetch_time_to_beat(&game);
 
         let scale = ui.window().scale_factor();
         let width = ui.window().size().width.max(1);
@@ -654,6 +659,35 @@ impl State {
 
     /// Asks the store how much room the game `id` takes, then shows it on
     /// its page if still open.
+    /// Looks the time to beat of `game` up when it is not cached, and
+    /// shows it if its page is still open.
+    fn fetch_time_to_beat(&mut self, game: &Game) {
+        if !self.beat.start(&game.id, Instant::now()) {
+            return;
+        }
+        let (id, title) = (game.id.clone(), game.title.clone());
+        let (token, token_path) = self.beat.job();
+        thread::spawn(move || {
+            let outcome = timetobeat::lookup(&id, &title, token, &token_path);
+            let _ = slint::invoke_from_event_loop(move || {
+                with_state(|state| {
+                    let minutes = state.beat.finish(&id, outcome);
+                    if state.detail.as_deref() != Some(id.as_str()) {
+                        return;
+                    }
+                    if let Some(ui) = state.ui.upgrade() {
+                        let library = ui.global::<Library>();
+                        let mut view = library.get_detail_view();
+                        if view.beat_minutes != minutes {
+                            view.beat_minutes = minutes;
+                            library.set_detail_view(view);
+                        }
+                    }
+                })
+            });
+        });
+    }
+
     fn fetch_size(&mut self, id: &str, install: Install) {
         let (id, tools) = (id.to_owned(), self.tools());
         thread::spawn(move || {
@@ -1669,6 +1703,7 @@ pub fn start(ui: &AppWindow) {
     let recent_path = dir.join(format!("recent{suffix}.json"));
     let covers_dir = dir.join(format!("covers{suffix}"));
     let owned_path = dir.join(format!("owned{suffix}.json"));
+    let beat = Lookups::new(&dir, suffix, fixture);
     let owned = cache::load(&owned_path);
     let recent = Recent::load(&recent_path);
     let cached = cache::load(&cache_path);
@@ -1723,6 +1758,7 @@ pub fn start(ui: &AppWindow) {
         backdrop_mask: None,
         backdrop_at: None,
         detail: None,
+        beat,
         detail_timer: Timer::default(),
         awaiting: None,
     };

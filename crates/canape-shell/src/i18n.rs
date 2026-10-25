@@ -35,6 +35,10 @@ pub struct ShellSettings {
     /// Steam Web API key (steamcommunity.com/dev/apikey): lists the owned
     /// Steam games that are not installed.
     pub steam_api_key: String,
+    /// Twitch application (dev.twitch.tv, Applications) for IGDB's time to
+    /// beat; both empty: no time to beat on the game page.
+    pub igdb_client_id: String,
+    pub igdb_client_secret: String,
     /// Refresh rate picked on the Hardware page, in Hz; 0 leaves the screen
     /// as Windows has it.
     pub refresh_hz: u32,
@@ -53,6 +57,8 @@ impl Default for ShellSettings {
             online_covers: true,
             steamgriddb_key: String::new(),
             steam_api_key: String::new(),
+            igdb_client_id: String::new(),
+            igdb_client_secret: String::new(),
             refresh_hz: 0,
             ally_buttons: true,
             games_folder: String::new(),

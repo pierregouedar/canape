@@ -35,6 +35,7 @@ mod nav;
 mod report;
 mod screen;
 mod shelves;
+mod timetobeat;
 
 use std::rc::Rc;
 use std::time::Duration;

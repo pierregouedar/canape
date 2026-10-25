@@ -663,3 +663,9 @@ msgstr "Gamemap"
 
 msgid "{} GB free"
 msgstr "{} GB vrij"
+
+msgid "Main story ~{} h"
+msgstr "Verhaal ~{} u"
+
+msgid "Main story ~{} min"
+msgstr "Verhaal ~{} min"

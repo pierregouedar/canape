@@ -55,6 +55,8 @@ export struct DetailView {
     folder: string,
     // Minutes played, -1 when unknown.
     minutes: int,
+    // Minutes to finish the main story (IGDB), -1 when unknown.
+    beat-minutes: int,
     // The game's executable, once seen after a launch from Canapé; its
     // profile, if any, shows on the page. "" when not known yet.
     exe: string,
@@ -432,12 +434,14 @@ component GamePage inherits Rectangle {
             }
         }
 
-        // When it was played, for how long, and its size: only what is known.
+        // When it was played, for how long, how long its story takes, and
+        // its size: only what is known.
         facts := RevealLine {
             order: 2;
             Text {
                 text: (root.game.installed ? Library.played-text(root.game.played) : @tr("Not installed"))
                     + (root.view.minutes >= 60 ? " · " + @tr("{} h played", Math.round(root.view.minutes / 60)) : root.view.minutes > 0 ? " · " + @tr("{} min played", root.view.minutes) : "")
+                    + (root.view.beat-minutes >= 60 ? " · " + @tr("Main story ~{} h", Math.round(root.view.beat-minutes / 60)) : root.view.beat-minutes > 0 ? " · " + @tr("Main story ~{} min", root.view.beat-minutes) : "")
                     + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "")
                     + (!root.game.installed && root.view.free-tenths >= 0 ? " · " + @tr("{} GB free in {}", App.tenths(root.view.free-tenths), root.view.folder) : "");
                 color: Theme.text.mix(Theme.dim, 0.6);

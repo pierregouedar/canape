@@ -663,3 +663,9 @@ msgstr "Папка игр"
 
 msgid "{} GB free"
 msgstr "{} ГБ свободно"
+
+msgid "Main story ~{} h"
+msgstr "Сюжет ~{} ч"
+
+msgid "Main story ~{} min"
+msgstr "Сюжет ~{} мин"

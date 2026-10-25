@@ -179,7 +179,7 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 
 <img src="images/fr/game-page.png" alt="Fiche d'un jeu, avec son profil" width="720">
 
-**Fiche du jeu** : la jaquette en grand, la boutique, le titre, quand il a été joué, le temps de jeu (Steam, avec la clé API) et la place qu'il prend sur le disque (Steam, Epic, GOG ; pour un jeu Epic ou GOG à installer, la place qu'il prendra et la place libre du dossier des jeux, voir [Installer des jeux possédés](#installer-des-jeux-possédés)) ; derrière, la grande image du jeu que Steam garde sur le disque, s'il y en a une. **A** lance le jeu (« Lancement… », la jaquette avance un peu) ou, s'il n'est pas installé, l'installe, avec la progression sous le bouton. **B** revient à l'étagère, sur le même jeu. Une fois lancé, le jeu passe en tête de Récents. Sous le bouton, **Profil de ce jeu** résume son profil (objectif, plage de puissance, puissance apprise, limite de FPS) : Canapé apprend quel programme est le jeu la première fois qu'il est lancé depuis Canapé (le premier programme plein écran qui passe devant dans les 2 minutes, hors Steam, lanceurs et leurs fenêtres), et l'affiche dès qu'un profil existe pour lui.
+**Fiche du jeu** : la jaquette en grand, la boutique, le titre, quand il a été joué, le temps de jeu (Steam, avec la clé API), la durée de l'histoire principale (« Histoire ~25 h », voir [Durée de jeu](#jeux) plus bas, avec une application Twitch) et la place qu'il prend sur le disque (Steam, Epic, GOG ; pour un jeu Epic ou GOG à installer, la place qu'il prendra et la place libre du dossier des jeux, voir [Installer des jeux possédés](#installer-des-jeux-possédés)) ; derrière, la grande image du jeu que Steam garde sur le disque, s'il y en a une. **A** lance le jeu (« Lancement… », la jaquette avance un peu) ou, s'il n'est pas installé, l'installe, avec la progression sous le bouton. **B** revient à l'étagère, sur le même jeu. Une fois lancé, le jeu passe en tête de Récents. Sous le bouton, **Profil de ce jeu** résume son profil (objectif, plage de puissance, puissance apprise, limite de FPS) : Canapé apprend quel programme est le jeu la première fois qu'il est lancé depuis Canapé (le premier programme plein écran qui passe devant dans les 2 minutes, hors Steam, lanceurs et leurs fenêtres), et l'affiche dès qu'un profil existe pour lui.
 
 **D'où viennent les jeux**
 
@@ -208,6 +208,30 @@ Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutili
 
 > [!NOTE]
 > Pas encore essayé sur l'Ally : le téléchargement passe par WinHTTP (intégré à Windows) et n'a été testé que sous Linux, sur des réponses enregistrées.
+
+**Durée de jeu (IGDB)**
+
+La fiche d'un jeu peut indiquer le temps moyen pour finir son histoire principale, par exemple « Histoire ~25 h », d'après les données « time to beat » d'[IGDB](https://www.igdb.com) (la base de jeux de Twitch). Il faut pour cela une application Twitch à vous, gratuite ; sans elle, rien n'est demandé et la fiche n'affiche pas de durée. Il n'y a pas de réglage : la présence des deux valeurs dans `shell.json` suffit.
+
+1. Connectez-vous sur [dev.twitch.tv/console](https://dev.twitch.tv/console) avec un compte Twitch (Twitch exige la double authentification pour créer une application).
+2. **Applications → Register Your Application** : un nom au choix (par exemple « Canape ROG Ally »), **OAuth Redirect URLs** `http://localhost`, catégorie **Application Integration**, type de client **Confidential**. Enregistrez.
+3. Ouvrez l'application (**Manage**) : copiez le **Client ID**, puis **New Secret** et copiez le secret.
+4. Ajoutez-les dans `%LOCALAPPDATA%\Canape\shell.json`, à côté des autres clés :
+
+   ```json
+   "igdb_client_id": "…",
+   "igdb_client_secret": "…"
+   ```
+
+5. Relancez Canapé (ou attendez dix minutes) et ouvrez la fiche d'un jeu : la durée apparaît une ou deux secondes plus tard si IGDB la connaît.
+
+- Les jeux Steam sont retrouvés par leur identifiant Steam, les autres par leur titre exact (le jeu lui-même plutôt qu'un DLC, un pack ou une édition). « Histoire » est la durée habituelle des joueurs d'IGDB, sinon la plus rapide.
+- L'identifiant et le secret ne vont qu'à Twitch (`id.twitch.tv`), qui donne un jeton d'environ deux mois ; seuls l'identifiant et ce jeton vont à IGDB (`api.igdb.com`). Ni le secret ni le jeton n'apparaissent dans les journaux.
+- Chaque jeu est demandé une fois, quand sa fiche s'ouvre, puis gardé 30 jours dans `%LOCALAPPDATA%\Canape\igdb.json` (7 jours pour un jeu qu'IGDB ne connaît pas). Au plus 6 demandes par minute ; après une erreur (réseau, clé refusée), plus rien pendant 10 minutes, et une ligne dans `shell.log`.
+- IGDB compte moins de jeux et moins de contributions que d'autres sites : beaucoup de jeux n'ont pas de durée.
+
+> [!NOTE]
+> Pas encore essayé sur l'Ally. Les noms des champs IGDB (`external_games`, `game_type`, `game_time_to_beats`…) viennent de la documentation connue et n'ont pas été vérifiés sur l'API réelle : si aucune durée n'apparaît, `shell.log` dit pourquoi.
 
 #### Ajouter d'autres jeux
 
@@ -609,11 +633,12 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | `%ProgramData%\Canape\service.log` | Journal du service : modèle détecté, état d'ADL au démarrage, chaque commande qui modifie l'état et sa réponse (`SetTdp { watts: 12 } -> Ok`), programmes en conflit, erreurs. |
 | `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS, limite de charge, mode de la manette, boutons arrière, éclairage des sticks, profils, dernier banc d'essai. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Journal du shell : démarrages (avec leurs arguments), langue choisie, état d'ADL, erreurs du service. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `refresh_hz`, `ally_buttons`. |
+| `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `igdb_client_id`, `igdb_client_secret`, `refresh_hz`, `ally_buttons`. |
 | `%LOCALAPPDATA%\Canape\games.json` | Les jeux ajoutés à la main ou depuis **Réglages → Ajouter un jeu** (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). |
 | `%LOCALAPPDATA%\Canape\covers\` | Jaquettes téléchargées (`<boutique>_<id>.jpg` / `.png`, marqueurs `.miss`). |
 | `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |
 | `%LOCALAPPDATA%\Canape\recent.json` | Quand chaque jeu a été lancé depuis Canapé pour la dernière fois (pour l'ordre « Récents »). |
+| `%LOCALAPPDATA%\Canape\igdb.json` | Durées de jeu demandées à IGDB, par jeu, avec leur date. `igdb-token.json` à côté : le jeton Twitch en cours. Les deux peuvent être supprimés. |
 | `%LOCALAPPDATA%\Canape\owned.json` | Les jeux possédés de la dernière demande à Steam et à Epic, affichés tout de suite en mode À installer. Peut être supprimé : la demande suivante le réécrit. |
 | `%LOCALAPPDATA%\Canape\tools\` | `legendary.exe`, téléchargé à la première connexion Epic. Sans lui, Canapé ne liste plus les jeux Epic possédés ni ceux installés par Legendary ; la prochaine connexion Epic le télécharge de nouveau. |
 | `%USERPROFILE%\.config\legendary\` | Configuration de Legendary, écrite par Legendary lui-même : connexion Epic, jeux qu'il a installés (`installed.json`). |

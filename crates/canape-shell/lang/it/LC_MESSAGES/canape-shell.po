@@ -663,3 +663,9 @@ msgstr "Cartella dei giochi"
 
 msgid "{} GB free"
 msgstr "{} GB liberi"
+
+msgid "Main story ~{} h"
+msgstr "Storia ~{} h"
+
+msgid "Main story ~{} min"
+msgstr "Storia ~{} min"

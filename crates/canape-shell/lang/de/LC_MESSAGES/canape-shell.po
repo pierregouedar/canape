@@ -663,3 +663,9 @@ msgstr "Spieleordner"
 
 msgid "{} GB free"
 msgstr "{} GB frei"
+
+msgid "Main story ~{} h"
+msgstr "Story ~{} Std."
+
+msgid "Main story ~{} min"
+msgstr "Story ~{} Min."
