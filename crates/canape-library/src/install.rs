@@ -14,8 +14,8 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
-use crate::steam::{self, Download};
 use crate::legendary;
+use crate::steam::{self, Download};
 
 /// What installing an owned game takes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
