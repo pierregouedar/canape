@@ -53,6 +53,9 @@ pub struct Tools {
     pub gogdl: Option<(PathBuf, PathBuf)>,
     /// Where Legendary and gogdl install games.
     pub games_dir: PathBuf,
+    /// Interface language (`fr`, `zh_CN`…): GOG games download in it when
+    /// they have it.
+    pub language: String,
 }
 
 /// How often a Steam manifest is read.
@@ -73,7 +76,7 @@ pub fn run(install: &Install, tools: &Tools, mut on: impl FnMut(Event)) {
             None => Err(io::Error::other("Legendary is not available")),
         },
         Install::Gog { id } => match &tools.gogdl {
-            Some((exe, dir)) => run_gogdl(exe, dir, id, &tools.games_dir, &mut on),
+            Some((exe, dir)) => run_gogdl(exe, dir, id, tools, &mut on),
             None => Err(io::Error::other("gogdl is not available")),
         },
     };
@@ -137,7 +140,7 @@ pub fn size_needed(install: &Install, tools: &Tools) -> io::Result<Option<u64>> 
             None => Err(io::Error::other("Legendary is not available")),
         },
         Install::Gog { id } => match &tools.gogdl {
-            Some((exe, dir)) => gog_info(exe, dir, id).map(|i| Some(i.disk_size)),
+            Some((exe, dir)) => gog_info(exe, dir, id, &tools.language).map(|i| Some(i.disk_size)),
             None => Err(io::Error::other("gogdl is not available")),
         },
     }
@@ -316,7 +319,7 @@ pub fn gog_credentials(exe: &Path, dir: &Path) -> io::Result<Option<Credentials>
 }
 
 /// What installing the GOG game `id` takes (asks GOG: a few seconds).
-pub fn gog_info(exe: &Path, dir: &Path, id: &str) -> io::Result<gogdl::Info> {
+pub fn gog_info(exe: &Path, dir: &Path, id: &str, language: &str) -> io::Result<gogdl::Info> {
     let out = gogdl_json(
         exe,
         dir,
@@ -330,22 +333,24 @@ pub fn gog_info(exe: &Path, dir: &Path, id: &str) -> io::Result<gogdl::Info> {
             "--skip-dlcs",
         ],
     )?;
-    gogdl::parse_info(&out).ok_or_else(|| io::Error::other("gogdl info: unreadable answer"))
+    gogdl::parse_info(&out, language)
+        .ok_or_else(|| io::Error::other("gogdl info: unreadable answer"))
 }
 
 fn run_gogdl(
     exe: &Path,
     dir: &Path,
     id: &str,
-    games_dir: &Path,
+    tools: &Tools,
     on: &mut impl FnMut(Event),
 ) -> io::Result<()> {
-    let info = gog_info(exe, dir, id)?;
+    let games_dir = &tools.games_dir;
+    let info = gog_info(exe, dir, id, &tools.language)?;
     check_space(info.disk_size, games_dir)?;
     std::fs::create_dir_all(games_dir)?;
     let mut child = gogdl_command(exe, dir)
         .args(["download", id, "--platform", "windows", "--lang"])
-        .arg(gogdl::LANGUAGE)
+        .arg(&info.language)
         .arg("--skip-dlcs")
         .arg("--path")
         .arg(games_dir)

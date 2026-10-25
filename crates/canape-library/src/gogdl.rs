@@ -33,7 +33,7 @@ use crate::{Game, Launch, Owned, Source};
 pub const CLIENT_ID: &str = "46899977096215655";
 /// Where GOG's sign-in page lands, with `&code=…` added.
 pub const REDIRECT: &str = "https://embed.gog.com/on_login_success?origin=client";
-/// Language of the files downloaded (games with several get English).
+/// Language asked for when the game does not have the interface's.
 pub const LANGUAGE: &str = "en-US";
 /// Owned list pages read at most (100 games each).
 pub const MAX_PAGES: u32 = 50;
@@ -204,6 +204,8 @@ pub struct Info {
     pub disk_size: u64,
     /// Bytes downloaded.
     pub download_size: u64,
+    /// GOG's code of the language to download, such as `fr-FR`.
+    pub language: String,
 }
 
 #[derive(Deserialize)]
@@ -223,26 +225,61 @@ struct Sizes {
 
 /// The output of `gogdl info <id> --platform windows`: the files every
 /// language gets (`*`) plus the English ones.
-pub fn parse_info(json: &[u8]) -> Option<Info> {
+pub fn parse_info(json: &[u8], preferred: &str) -> Option<Info> {
     let answer: InfoAnswer = serde_json::from_slice(json).ok()?;
+    let languages: Vec<&str> = answer
+        .size
+        .keys()
+        .map(String::as_str)
+        .filter(|k| *k != "*")
+        .collect();
+    let language = pick_language(&languages, preferred).unwrap_or(LANGUAGE);
     let mut info = Info {
         folder: answer.folder_name,
         disk_size: 0,
         download_size: 0,
+        language: language.to_owned(),
     };
-    let lang = answer.size.get(LANGUAGE).or_else(|| {
-        // A game without English: its only language, if it has one.
-        let mut others = answer.size.iter().filter(|(k, _)| *k != "*");
-        match (others.next(), others.next()) {
-            (Some((_, sizes)), None) => Some(sizes),
-            _ => None,
-        }
-    });
-    for sizes in answer.size.get("*").into_iter().chain(lang) {
+    for sizes in answer
+        .size
+        .get("*")
+        .into_iter()
+        .chain(answer.size.get(language))
+    {
         info.disk_size += sizes.disk_size;
         info.download_size += sizes.download_size;
     }
     (!info.folder.is_empty()).then_some(info)
+}
+
+/// The game's language closest to `preferred`, an interface language such
+/// as `fr` or `zh_CN`: the same language, else English, else its only one.
+pub fn pick_language<'a>(languages: &[&'a str], preferred: &str) -> Option<&'a str> {
+    let base = |code: &str| {
+        code.split(['-', '_'])
+            .next()
+            .unwrap_or_default()
+            .to_ascii_lowercase()
+    };
+    let wanted = base(preferred);
+    let mut same: Vec<&str> = languages
+        .iter()
+        .copied()
+        .filter(|l| base(l) == wanted)
+        .collect();
+    // Several variants (pt-BR and pt-PT): the exact one, else a stable pick.
+    same.sort_unstable();
+    let exact = same
+        .iter()
+        .copied()
+        .find(|l| l.eq_ignore_ascii_case(&preferred.replace('_', "-")));
+    exact
+        .or(same.first().copied())
+        .or_else(|| languages.iter().copied().find(|l| *l == LANGUAGE))
+        .or(match languages {
+            [only] => Some(*only),
+            _ => None,
+        })
 }
 
 /// Share done, 0 to 1, from one line of `gogdl download` output:
@@ -478,16 +515,33 @@ mod tests {
     }
 
     #[test]
-    fn info_counts_common_and_english_files() {
-        let info = parse_info(&read("info.json")).unwrap();
+    fn info_counts_common_and_chosen_language_files() {
+        let info = parse_info(&read("info.json"), "en").unwrap();
         assert_eq!(info.folder, "Unreal Tournament 2004 ECE");
+        assert_eq!(info.language, "en-US");
         assert_eq!(info.disk_size, 5_515_646_012 + 1_103_729_121);
         assert_eq!(info.download_size, 2_510_394_220 + 483_520_811);
+        let french = parse_info(&read("info.json"), "fr").unwrap();
+        assert_eq!(french.language, "fr-FR");
+        assert_eq!(french.disk_size, 5_515_646_012 + 1_090_221_551);
+        // Not in the game's languages: English.
+        assert_eq!(
+            parse_info(&read("info.json"), "ja").unwrap().language,
+            "en-US"
+        );
         // A single other language counts when there is no English.
         let json = br#"{"size": {"*": {"download_size": 10, "disk_size": 20},
             "de-DE": {"download_size": 1, "disk_size": 2}}, "folder_name": "Spiel"}"#;
-        assert_eq!(parse_info(json).unwrap().disk_size, 22);
-        assert!(parse_info(br#"{"size": {}, "folder_name": ""}"#).is_none());
+        assert_eq!(parse_info(json, "fr").unwrap().disk_size, 22);
+        assert!(parse_info(br#"{"size": {}, "folder_name": ""}"#, "en").is_none());
+    }
+
+    #[test]
+    fn language_variants() {
+        let langs = ["en-US", "pt-BR", "pt-PT", "zh-Hans"];
+        assert_eq!(pick_language(&langs, "pt"), Some("pt-BR"));
+        assert_eq!(pick_language(&langs, "zh_CN"), Some("zh-Hans"));
+        assert_eq!(pick_language(&["de-DE", "fr-FR"], "ja"), None);
     }
 
     #[test]

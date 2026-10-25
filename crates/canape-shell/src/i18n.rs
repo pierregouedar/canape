@@ -156,6 +156,11 @@ pub fn system_languages() -> Vec<String> {
     tags
 }
 
+/// The interface language now, as [`apply`] selects it.
+pub fn current() -> &'static str {
+    resolve(&ShellSettings::load().language, &system_languages())
+}
+
 /// Switches the interface to `choice` ([`AUTO`] or a language code); the
 /// change shows at once. Returns the language actually selected.
 pub fn apply(choice: &str) -> &'static str {

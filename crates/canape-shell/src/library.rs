@@ -970,6 +970,7 @@ impl State {
             legendary: legendary.is_file().then_some(legendary),
             gogdl: gogdl.is_file().then(|| (gogdl, gog_dir())),
             games_dir: self.games_dir(),
+            language: crate::i18n::current().to_owned(),
         }
     }
 
