@@ -564,3 +564,21 @@ msgstr "Задние кнопки"
 
 msgid "Restore the default buttons"
 msgstr "Вернуть исходные кнопки"
+
+msgid "Low"
+msgstr "Низкая"
+
+msgid "Medium"
+msgstr "Средняя"
+
+msgid "High"
+msgstr "Высокая"
+
+msgid "Stick lighting"
+msgstr "Подсветка стиков"
+
+msgid "Follows the accent colour"
+msgstr "Следует за цветом акцента"
+
+msgid "Back buttons and lighting"
+msgstr "Задние кнопки и подсветка"

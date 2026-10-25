@@ -564,3 +564,21 @@ msgstr "Przyciski tylne"
 
 msgid "Restore the default buttons"
 msgstr "Przywróć oryginalne przyciski"
+
+msgid "Low"
+msgstr "Niska"
+
+msgid "Medium"
+msgstr "Średnia"
+
+msgid "High"
+msgstr "Wysoka"
+
+msgid "Stick lighting"
+msgstr "Podświetlenie gałek"
+
+msgid "Follows the accent colour"
+msgstr "Podąża za kolorem akcentu"
+
+msgid "Back buttons and lighting"
+msgstr "Przyciski tylne i podświetlenie"

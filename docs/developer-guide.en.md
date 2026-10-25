@@ -185,12 +185,14 @@ Page 3 (`ui/hardware.slint`) only sends requests: the service validates and writ
 | Keep these settings for this game | `save-hardware-profile()` | `save_profile` for `status.foreground`: the existing profile (or a new one with `status.auto_tdp`) with `fan_curves: Some(status.fan_curves)` (an empty set means "the firmware's curves" for that game), `fps_limit: status.fps_limit` and `refresh_hz` (the screen's current rate) |
 | Screen chips | `set-refresh(hz)` | none: the shell switches the screen itself (`screen.rs`, `canape_hw::display::Screen`) and saves `refresh_hz` in `shell.json` |
 | Controller tiles | `set-controller(mode)` | `set_controller_mode` |
-| Back buttons line | `open-controller()` | none: opens sub-page 6, `ui/controller.slint` (B goes back to the Hardware page) |
+| Back buttons and lighting line | `open-controller()` | none: opens sub-page 6, `ui/controller.slint` (B goes back to the Hardware page) |
 | M1 / M2 lines (sub-page) | `set-back-button(button, index)` | `set_back_button` with `ButtonTarget::ALL[index]`, sent at each left / right |
 | Restore the default buttons (sub-page) | `reset-back-buttons()` | `reset_back_buttons` |
+| Brightness line (sub-page) | `set-lighting(level, color)` | `set_lighting`: Default → `null`; Off, Low, Medium, High → levels 0 to 3 with the current colour |
+| Colour swatches (sub-page) | `set-lighting(level, color)` | `set_lighting` with that colour (the first swatch, a ring, `color: null`: follow the accent), at the level shown, High when the rings were off or on Default |
 
 - `hardware.rs`: `preset_name()` maps `status.fan_curves` to the selected tile: `""` when empty (firmware curves), a preset key when every custom curve equals that preset, `custom` otherwise. `curve_paths()` turns the CPU curve into the line and area `Path` commands of the panel (viewbox 90 × 100: one unit per °C from 20 to 110 °C, one per percent), held flat before the first and after the last point. Both are unit-tested.
-- `link.rs` (`status_view`): `cpu_fan_rpm` / `gpu_fan_rpm` (−1 when unknown), the preset name, the CPU curve paths (empty without a custom CPU curve), `fps_limit` (0 for none), `controller_mode` (`""` when Canapé has not set it, so no tile is selected) and `m1` / `m2`, the index of each back button's target in `ButtonTarget::ALL` (0 = its own key). The names of the controller page (`target-names` in `controller.slint`) follow that order; a test in `link.rs` checks they are as many. `tdp_floor()` / `tdp_ceiling()` read `tdp_min_watts` / `tdp_max_watts` (fallback `MIN_WATTS` 5 and `MAX_WATTS` 35 in `main.rs`) and bound every wattage stepper of the shell.
+- `link.rs` (`status_view`): `cpu_fan_rpm` / `gpu_fan_rpm` (−1 when unknown), the preset name, the CPU curve paths (empty without a custom CPU curve), `fps_limit` (0 for none), `controller_mode` (`""` when Canapé has not set it, so no tile is selected) and `m1` / `m2`, the index of each back button's target in `ButtonTarget::ALL` (0 = its own key). The names of the controller page (`target-names` in `controller.slint`) follow that order; a test in `link.rs` checks they are as many. `lighting-level` (−1 without `lighting`) and `lighting-color` (`""` when it follows the accent). `tdp_floor()` / `tdp_ceiling()` read `tdp_min_watts` / `tdp_max_watts` (fallback `MIN_WATTS` 5 and `MAX_WATTS` 35 in `main.rs`) and bound every wattage stepper of the shell.
 - The Profiles page and the bench's **Save for the game** keep the `fan_curves`, `fps_limit` and `refresh_hz` of an existing profile.
 - **Screen refresh rate** (`screen.rs`): display modes belong to the user's session, so the shell, not the service, switches them. `canape_hw::display::Screen::internal()` picks the active path whose output technology is internal or embedded DisplayPort (`QueryDisplayConfig`, then the source's GDI name), `rates()` lists the rates at the current resolution and depth (`EnumDisplaySettingsExW`), `set_refresh()` calls `ChangeDisplaySettingsExW` with `CDS_UPDATEREGISTRY`. `Profile::refresh_hz` is only stored by the service; at each status push the shell looks up the active profile's rate and `screen::follow` switches on a change of profile only (`Follow::step`, unit-tested): entering a profile remembers the rate it replaces, leaving it goes back to the rate picked on the page (`shell.json` `refresh_hz`, 0 = none) or to that remembered rate. The page re-reads the current rate every 5 pushes. Off Windows, `CANAPE_MOCK_SCREEN=60,120` fakes a screen for screenshots.
 - **Ally buttons** (`buttons.rs`, Windows): a thread runs `canape_hw::listen_buttons`, which opens the same HID interface as the controller mode (VID `0x0B05`, PID `0x1ABE`/`0x1B4C`, feature report `0x5A`), sends the wake-up report, then reads input reports: code 166 Command Center, 56 or 147 Armoury, 165 / 0 back paddles down / up, 236 ignored (`pad::parse_input`, unit-tested). Armoury → `instance::bring_to_front()` (a synthetic Alt tap, then `SetForegroundWindow`) or the Games section when already in front; Command Center → Win+G (`SendInput`). Unknown codes are logged. After an error the thread retries every 5 s, every 60 s when no interface exists. `shell.json` `ally_buttons: false` turns the actions off.
@@ -293,6 +295,7 @@ sequenceDiagram
 | `set_controller_mode` | `mode`: `gamepad` \| `wasd` \| `mouse` | `ok` / `error` | Mode of the built-in controller (HID). Saved and re-applied at startup. Global, not per profile. **Untested on the device.** |
 | `set_back_button` | `button`: `m1` \| `m2`, `target: ButtonTarget` | `ok` / `error` | What one back button sends, written to the controller (HID). Saved, re-applied at startup and after every `set_controller_mode`. Global. **Untested on the device.** |
 | `reset_back_buttons` | — | `ok` / `error` | Both back buttons back to their own keys (the factory binding is written). |
+| `set_lighting` | `lighting: Lighting \| null` | `ok` / `error` | Light of the stick rings (HID). Saved and written again at startup; with no colour, the rings take the accent (`set_accent` writes them again, `#ff3d5e` before any accent). `null`: Canapé stops writing them, nothing is sent (the controller's own lighting is expected back at the next restart). **Untested on the device.** |
 
 Examples:
 
@@ -353,7 +356,8 @@ Examples:
   "fan_curves": {"cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": null, "mid": null},
   "fps_limit": 40,
   "controller_mode": "gamepad",
-  "back_buttons": {"m1": "default", "m2": "pad_a"}
+  "back_buttons": {"m1": "default", "m2": "pad_a"},
+  "lighting": {"level": 2, "color": null}
 }
 ```
 
@@ -379,6 +383,7 @@ Examples:
 | `fps_limit` | `u32 \| null` | Frame rate cap set through Canapé (`null`: none set by Canapé; the AMD software may still have one). |
 | `controller_mode` | `string \| null` | `gamepad`, `wasd`, `mouse`, or `null` if Canapé has not set it. |
 | `back_buttons` | `BackButtons` | What M1 and M2 send; `default` for both until Canapé changes them. Optional on input. |
+| `lighting` | `Lighting \| null` | Stick rings set through Canapé, `null` when left to the controller. Optional on input. |
 
 ### Nested types
 
@@ -417,6 +422,8 @@ Examples:
 **`ControllerMode`**: `gamepad` (XInput), `wasd` (keyboard), `mouse` (desktop).
 
 **`BackButtons`**: `{"m1": ButtonTarget, "m2": ButtonTarget}`, each `default` when missing.
+
+**`Lighting`**: `level` 0 (off) to 3, `color` `#rrggbb` or `null` (follow the accent). A level above 3 or a malformed colour is an error; the colour is stored in lower case.
 
 **`ButtonTarget`**: `default` (the button's own key), `disabled`; gamepad `pad_a`, `pad_b`, `pad_x`, `pad_y`, `pad_lb`, `pad_rb`, `pad_lt`, `pad_rt`, `pad_ls`, `pad_rs` (stick clicks), `dpad_up`, `dpad_down`, `dpad_left`, `dpad_right`, `pad_view`, `pad_menu`, `pad_xbox`; keyboard `key_escape`, `key_enter`, `key_space`, `key_tab`, `key_backspace`, `key_up`, `key_down`, `key_left`, `key_right`, `key_page_up`, `key_page_down`, `key_shift`, `key_ctrl`, `key_windows`, `key_f11`, `key_f12`; mouse `mouse_left`, `mouse_right`, `mouse_middle`, `wheel_up`, `wheel_down`; media `volume_up`, `volume_down`, `mute_mic`, `show_keyboard` (the touch keyboard). `ButtonTarget::ALL` keeps this order.
 
@@ -752,6 +759,18 @@ Hence the fix: at startup the shell calls `canape_hw::FrameMetrics::arm()` (a `F
 **Untested on the device.** Where these facts come from (all GPL or LGPL, reimplemented, not copied):
 
 
+**Stick lighting**, on the same interface and report:
+
+| Topic | Fact |
+|---|---|
+| Brightness | `[0x5A, 0xBA, 0xC5, 0xC4, level]`, level 0 (off) to 3. |
+| Colour | `[0x5A, 0xD1, 0x08, 0x0C]` then red, green, blue for each of four zones (two per ring): Canapé writes the same colour in all four. |
+| Sequence | The init report the first time, the brightness, then the colour (a brightness write may bring the controller's own colours back). Off: brightness 0, then black. At startup, and again when the accent changes for rings that follow it. |
+| Default | `set_lighting` `null` writes nothing: the colour set directly is expected to last only until the controller restarts, so its own lighting should come back then. Not verified. |
+
+**Untested on the device.** Sources:
+
+
 ### Pipe ACL
 
 The widget's AppContainer SID is derived by Windows (`DeriveAppContainerSidFromAppContainerName`) from its package family name, which Canapé computes from `widget/CanapeWidget/Package.appxmanifest`: `Canape.Widget` + `_` + the publisher hash of `CN=Canape Dev` (SHA-256 of the UTF-16LE publisher, first 8 bytes, 13 Crockford base32 characters), that is `Canape.Widget_84zrj1c9kn010`, the name seen on the Ally (a unit test checks it). If the derivation fails, the service falls back to `AC` and logs why. Changing the widget's publisher changes the SID: update `WIDGET_PUBLISHER` in `crates/canape-ipc/src/acl.rs`.
@@ -760,9 +779,10 @@ The widget's AppContainer SID is derived by Windows (`DeriveAppContainerSidFromA
 
 | Feature | Planned interface |
 |---|---|
+| Lighting effects (breathing, colour cycle), one colour per ring, lighting while asleep or off | Aura messages (`0xB3`, `0xB5`, `0xB4`) and the `0xD1 0x09` power flags; the ring colours could also differ per zone in `0xD1 0x08`. |
 | Remapping the other buttons (pairs 1 to 7 and 9), secondary bindings, key combinations, turbo, dead zones | Same `0xD1 0x02` command. The defaults of the other pairs differ between gamepad and keyboard / mouse modes (and between references for the secondary bindings): to be captured on the Ally first. |
 
-The refresh rate, the Armoury / Command Center buttons and the back buttons are done: see [The Hardware page](#the-hardware-page).
+The refresh rate, the Armoury / Command Center buttons, the back buttons and a static ring colour are done: see [The Hardware page](#the-hardware-page).
 
 ## Conventions
 

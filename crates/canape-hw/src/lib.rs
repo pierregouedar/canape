@@ -88,6 +88,12 @@ pub trait Device: Send {
     fn set_back_buttons(&mut self, _buttons: &BackButtons) -> Result<()> {
         Err(HwError::Unsupported("back buttons"))
     }
+    /// Light of the stick rings: `level` 0 (off) to
+    /// [`canape_core::settings::LIGHTING_MAX_LEVEL`], one colour for every
+    /// ring. Callers check the level.
+    fn set_lighting(&mut self, _level: u8, _rgb: [u8; 3]) -> Result<()> {
+        Err(HwError::Unsupported("stick lighting"))
+    }
 }
 
 /// The AMD driver's frame metrics, started from the user session (the

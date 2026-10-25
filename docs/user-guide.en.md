@@ -146,7 +146,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 | **D-pad** or **left stick** | Up and down change row; left and right move along the row or change its value. Held, the move repeats after 0.4 s. In Games, left and right move along the shelf, up and down swap the shelves. |
 | **A** | Choose; in Games, launch the game (or install it) |
 | **X** | Save for the game in the foreground (Performance, Hardware, Bench); delete a profile (Game profiles) |
-| **B** | Leave a sub-page (Game profiles, Bench, Back buttons), otherwise back to Games |
+| **B** | Leave a sub-page (Game profiles, Bench, Back buttons and lighting), otherwise back to Games |
 
 The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. When Canapé comes back to the front, a button still held for the game does nothing until it is released; the first time (when the Ally starts, for example), the gamepad is ignored for 2 s (the window only shows about 1.5 s later), so that a press while signing in does not launch a game. The same rules apply to keyboard keys, including the Enter and Escape that tools such as Steam Input send for A and B. The focused row or tile has a white outline; the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
 
@@ -277,7 +277,7 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
 > [!NOTE]
 
-Four rows, then the **Back buttons** line, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, **X** saves the fans, the frame rate limit and the screen refresh rate for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
+Four rows, then the **Back buttons and lighting** line, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, **X** saves the fans, the frame rate limit and the screen refresh rate for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
 
 **Fans**
 
@@ -335,9 +335,9 @@ One tile per refresh rate the built-in screen offers at its current resolution (
 > [!NOTE]
 > Not tried on the Ally yet (`ChangeDisplaySettingsEx` on the internal display, from the shell).
 
-#### Back buttons
+#### Back buttons and lighting
 
-The last line of the page, **Back buttons ›**, opens a page that chooses what M1 and M2, the two buttons on the back, send. Left and right go through the choices and apply each one at once; B goes back to the Hardware page.
+The last line of the page, **Back buttons and lighting ›**, opens a page that chooses what M1 and M2, the two buttons on the back, send (on the left), and the light of the rings around the sticks (on the right). Left and right go through the choices and apply each one at once; B goes back to the Hardware page.
 
 | Choice | The button sends |
 |---|---|
@@ -356,6 +356,15 @@ The last line of the page, **Back buttons ›**, opens a page that chooses what 
 
 > [!NOTE]
 > Not tried on the Ally yet: the packets were checked against four open-source projects that drive the Ally's controller (see the developer guide), but never sent to a real one. Only the ROG Ally and Ally X controllers are known. If a button behaves oddly, **Restore the default buttons**.
+
+**Stick lighting**
+
+- **Brightness**: Default, Off, Low, Medium, High, applied at once. **Default** leaves the rings to the controller: Canapé stops changing them, and the controller's own lighting should come back at the next restart.
+- **Colour**: the first swatch, a ring, follows the accent colour picked in Settings (and changes with it); the others are fixed colours, white first. A applies the focused one; picked while the rings are off or on Default, it lights them on High.
+- One colour for both rings, without effects. The choice is global, remembered and written again when the service starts.
+
+> [!NOTE]
+> Not tried on the Ally yet (checked against open-source projects, like the back buttons). If the rings look wrong, choose **Default** and restart the Ally.
 
 ### Settings
 
@@ -517,7 +526,7 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | File | Contents |
 |---|---|
 | `%ProgramData%\Canape\service.log` | Service log: detected model, ADL state at startup, every command that changes the state and its response (`SetTdp { watts: 12 } -> Ok`), conflicting programs, errors. |
-| `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, back buttons, profiles, last bench. |
+| `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, back buttons, stick lighting, profiles, last bench. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Shell log: launches (with their arguments), chosen language, ADL state, service errors. |
 | `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `refresh_hz`, `ally_buttons`. |
 | `%LOCALAPPDATA%\Canape\covers\` | Downloaded covers (`<store>_<id>.jpg` / `.png`, `.miss` markers). |
@@ -557,6 +566,7 @@ Examples (written in readable form here; escape the quotes in PowerShell 5.1):
 | `{"type":"set_fps_limit","fps":null}` | Removes the frame rate limit (or `"fps":40` for a limit, 30 to 120) |
 | `{"type":"set_controller_mode","mode":"gamepad"}` | Controller back to gamepad mode (`wasd`, `mouse`) |
 | `{"type":"reset_back_buttons"}` | M1 and M2 back to their own keys |
+| `{"type":"set_lighting","lighting":null}` | Stick rings left to the controller (back at the next restart) |
 | `{"type":"list_profiles"}` | Saved profiles |
 | `{"type":"get_bench_report"}` | Last bench |
 | `{"type":"cancel_bench"}` | Cancels the running bench |
@@ -587,7 +597,7 @@ To start over with the settings: stop the service, delete `%ProgramData%\Canape\
 
 ## Uninstalling
 
-There is no uninstall script yet. First, on the **Hardware** page, put the fans back on **Automatic**, the frame rate limit on **None** and the controller on **Gamepad**, then under **Back buttons** choose **Restore the default buttons**: once the service is gone, nothing will undo them. (Whether the controller keeps M1 and M2's binding after a full shutdown is not known yet; restoring them first is safe either way.) Then, in an elevated Terminal:
+There is no uninstall script yet. First, on the **Hardware** page, put the fans back on **Automatic**, the frame rate limit on **None** and the controller on **Gamepad**, then under **Back buttons and lighting** choose **Restore the default buttons** and put **Brightness** on **Default**: once the service is gone, nothing will undo them. (Whether the controller keeps M1 and M2's binding after a full shutdown is not known yet; restoring them first is safe either way. The rings get the controller's own lighting back at the next restart.) Then, in an elevated Terminal:
 
 1. **Pick another home app** in Settings → Gaming → Full screen experience (see [Going back to Winhanced or the Xbox app](#going-back-to-winhanced-or-the-xbox-app)).
 2. **Remove the service**:

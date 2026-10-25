@@ -564,3 +564,21 @@ msgstr "Arka düğmeler"
 
 msgid "Restore the default buttons"
 msgstr "Orijinal düğmeleri geri yükle"
+
+msgid "Low"
+msgstr "Düşük"
+
+msgid "Medium"
+msgstr "Orta"
+
+msgid "High"
+msgstr "Yüksek"
+
+msgid "Stick lighting"
+msgstr "Çubuk aydınlatması"
+
+msgid "Follows the accent colour"
+msgstr "Vurgu rengini izler"
+
+msgid "Back buttons and lighting"
+msgstr "Arka düğmeler ve aydınlatma"

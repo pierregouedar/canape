@@ -564,3 +564,21 @@ msgstr "背键"
 
 msgid "Restore the default buttons"
 msgstr "恢复原始按键"
+
+msgid "Low"
+msgstr "低"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "High"
+msgstr "高"
+
+msgid "Stick lighting"
+msgstr "摇杆灯光"
+
+msgid "Follows the accent colour"
+msgstr "跟随强调色"
+
+msgid "Back buttons and lighting"
+msgstr "背键和灯光"

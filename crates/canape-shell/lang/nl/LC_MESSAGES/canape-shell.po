@@ -564,3 +564,21 @@ msgstr "Achterknoppen"
 
 msgid "Restore the default buttons"
 msgstr "Oorspronkelijke knoppen herstellen"
+
+msgid "Low"
+msgstr "Laag"
+
+msgid "Medium"
+msgstr "Middel"
+
+msgid "High"
+msgstr "Hoog"
+
+msgid "Stick lighting"
+msgstr "Stickverlichting"
+
+msgid "Follows the accent colour"
+msgstr "Volgt de accentkleur"
+
+msgid "Back buttons and lighting"
+msgstr "Achterknoppen en verlichting"

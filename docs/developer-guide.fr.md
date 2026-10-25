@@ -185,12 +185,14 @@ La page 3 (`ui/hardware.slint`) ne fait qu'envoyer des requêtes : le service va
 | Garder ces réglages pour ce jeu | `save-hardware-profile()` | `save_profile` pour `status.foreground` : le profil existant (ou un nouveau avec `status.auto_tdp`) avec `fan_curves: Some(status.fan_curves)` (un ensemble vide veut dire « les courbes du firmware » pour ce jeu), `fps_limit: status.fps_limit` et `refresh_hz` (la fréquence actuelle de l'écran) |
 | Puces de l'écran | `set-refresh(hz)` | aucune : le shell change l'écran lui-même (`screen.rs`, `canape_hw::display::Screen`) et enregistre `refresh_hz` dans `shell.json` |
 | Tuiles de la manette | `set-controller(mode)` | `set_controller_mode` |
-| Ligne Boutons arrière | `open-controller()` | aucune : ouvre la sous-page 6, `ui/controller.slint` (B revient à la page Matériel) |
+| Ligne Boutons arrière et éclairage | `open-controller()` | aucune : ouvre la sous-page 6, `ui/controller.slint` (B revient à la page Matériel) |
 | Lignes M1 / M2 (sous-page) | `set-back-button(button, index)` | `set_back_button` avec `ButtonTarget::ALL[index]`, envoyé à chaque gauche / droite |
 | Rétablir les boutons d'origine (sous-page) | `reset-back-buttons()` | `reset_back_buttons` |
+| Ligne Luminosité (sous-page) | `set-lighting(level, color)` | `set_lighting` : Par défaut → `null` ; Désactivé, Faible, Moyenne, Forte → niveaux 0 à 3 avec la couleur actuelle |
+| Pastilles de couleur (sous-page) | `set-lighting(level, color)` | `set_lighting` avec cette couleur (la première pastille, un anneau, `color: null` : suivre l'accent), au niveau affiché, Forte si les anneaux étaient éteints ou sur Par défaut |
 
 - `hardware.rs` : `preset_name()` traduit `status.fan_curves` en tuile sélectionnée : `""` si vide (courbes du firmware), la clé d'un préréglage si chaque courbe personnalisée lui est égale, `custom` sinon. `curve_paths()` transforme la courbe du CPU en commandes `Path` de la ligne et de l'aire du cadre (viewbox 90 × 100 : une unité par °C de 20 à 110 °C, une par pour cent), prolongée à plat avant le premier point et après le dernier. Les deux sont couvertes par des tests unitaires.
-- `link.rs` (`status_view`) : `cpu_fan_rpm` / `gpu_fan_rpm` (−1 si inconnus), le nom du préréglage, les chemins de la courbe du CPU (vides sans courbe CPU personnalisée), `fps_limit` (0 pour aucune), `controller_mode` (`""` tant que Canapé ne l'a pas réglé, donc aucune tuile sélectionnée) et `m1` / `m2`, l'indice de la cible de chaque bouton arrière dans `ButtonTarget::ALL` (0 = sa propre touche). Les noms de la page manette (`target-names` dans `controller.slint`) suivent cet ordre ; un test de `link.rs` vérifie qu'ils sont aussi nombreux. `tdp_floor()` / `tdp_ceiling()` lisent `tdp_min_watts` / `tdp_max_watts` (repli sur `MIN_WATTS` 5 et `MAX_WATTS` 35 dans `main.rs`) et bornent tous les réglages de puissance du shell.
+- `link.rs` (`status_view`) : `cpu_fan_rpm` / `gpu_fan_rpm` (−1 si inconnus), le nom du préréglage, les chemins de la courbe du CPU (vides sans courbe CPU personnalisée), `fps_limit` (0 pour aucune), `controller_mode` (`""` tant que Canapé ne l'a pas réglé, donc aucune tuile sélectionnée) et `m1` / `m2`, l'indice de la cible de chaque bouton arrière dans `ButtonTarget::ALL` (0 = sa propre touche). Les noms de la page manette (`target-names` dans `controller.slint`) suivent cet ordre ; un test de `link.rs` vérifie qu'ils sont aussi nombreux. `lighting-level` (−1 sans `lighting`) et `lighting-color` (`""` quand elle suit l'accent). `tdp_floor()` / `tdp_ceiling()` lisent `tdp_min_watts` / `tdp_max_watts` (repli sur `MIN_WATTS` 5 et `MAX_WATTS` 35 dans `main.rs`) et bornent tous les réglages de puissance du shell.
 - La page Profils et le bouton **Profil du jeu** du banc d'essai conservent les `fan_curves`, `fps_limit` et `refresh_hz` d'un profil existant.
 - **Fréquence de l'écran** (`screen.rs`) : les modes d'affichage appartiennent à la session de l'utilisateur, c'est donc le shell, pas le service, qui les change. `canape_hw::display::Screen::internal()` retient le chemin actif dont la technologie de sortie est interne ou DisplayPort intégré (`QueryDisplayConfig`, puis le nom GDI de la source), `rates()` liste les fréquences à la résolution et à la profondeur actuelles (`EnumDisplaySettingsExW`), `set_refresh()` appelle `ChangeDisplaySettingsExW` avec `CDS_UPDATEREGISTRY`. Le service ne fait que stocker `Profile::refresh_hz` ; à chaque statut, le shell cherche la fréquence du profil actif et `screen::follow` ne change l'écran qu'au changement de profil (`Follow::step`, testé) : entrer dans un profil mémorise la fréquence remplacée, en sortir revient à la fréquence choisie sur la page (`refresh_hz` de `shell.json`, 0 = aucune) ou à celle mémorisée. La page relit la fréquence actuelle tous les 5 statuts. Hors Windows, `CANAPE_MOCK_SCREEN=60,120` simule un écran pour les captures.
 - **Boutons de l'Ally** (`buttons.rs`, Windows) : un thread lance `canape_hw::listen_buttons`, qui ouvre la même interface HID que le mode de la manette (VID `0x0B05`, PID `0x1ABE`/`0x1B4C`, rapport de fonctionnalité `0x5A`), envoie le rapport de réveil, puis lit les rapports d'entrée : code 166 Command Center, 56 ou 147 Armoury, 165 / 0 palettes arrière enfoncées / relâchées, 236 ignoré (`pad::parse_input`, testé). Armoury → `instance::bring_to_front()` (un appui Alt synthétique, puis `SetForegroundWindow`), ou la section Jeux si Canapé est déjà devant ; Command Center → Win+G (`SendInput`). Les codes inconnus sont journalisés. Après une erreur, le thread réessaie toutes les 5 s, toutes les 60 s quand aucune interface n'existe. `ally_buttons: false` dans `shell.json` désactive les actions.
@@ -293,6 +295,7 @@ sequenceDiagram
 | `set_controller_mode` | `mode` : `gamepad` \| `wasd` \| `mouse` | `ok` / `error` | Mode de la manette intégrée (HID). Enregistré et réappliqué au démarrage. Global, pas par profil. **Non testé sur l'appareil.** |
 | `set_back_button` | `button` : `m1` \| `m2`, `target: ButtonTarget` | `ok` / `error` | Ce qu'envoie un bouton arrière, écrit dans la manette (HID). Enregistré, réappliqué au démarrage et après chaque `set_controller_mode`. Global. **Non testé sur l'appareil.** |
 | `reset_back_buttons` | — | `ok` / `error` | Les deux boutons arrière reviennent à leurs propres touches (l'association d'usine est écrite). |
+| `set_lighting` | `lighting: Lighting \| null` | `ok` / `error` | Éclairage des anneaux des sticks (HID). Enregistré et réécrit au démarrage ; sans couleur, les anneaux prennent l'accent (`set_accent` les réécrit, `#ff3d5e` avant tout accent). `null` : Canapé cesse de les écrire, rien n'est envoyé (l'éclairage propre de la manette devrait revenir au prochain redémarrage). **Non testé sur l'appareil.** |
 
 Exemples :
 
@@ -353,7 +356,8 @@ Exemples :
   "fan_curves": {"cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": null, "mid": null},
   "fps_limit": 40,
   "controller_mode": "gamepad",
-  "back_buttons": {"m1": "default", "m2": "pad_a"}
+  "back_buttons": {"m1": "default", "m2": "pad_a"},
+  "lighting": {"level": 2, "color": null}
 }
 ```
 
@@ -379,6 +383,7 @@ Exemples :
 | `fps_limit` | `u32 \| null` | Plafond de FPS posé par Canapé (`null` : aucun posé par Canapé ; le logiciel AMD peut en avoir un). |
 | `controller_mode` | `string \| null` | `gamepad`, `wasd`, `mouse`, ou `null` si Canapé ne l'a pas réglé. |
 | `back_buttons` | `BackButtons` | Ce qu'envoient M1 et M2 ; `default` pour les deux tant que Canapé ne les a pas changés. Facultatif en entrée. |
+| `lighting` | `Lighting \| null` | Anneaux des sticks réglés par Canapé, `null` quand ils sont laissés à la manette. Facultatif en entrée. |
 
 ### Types imbriqués
 
@@ -417,6 +422,8 @@ Exemples :
 **`ControllerMode`** : `gamepad` (XInput), `wasd` (clavier), `mouse` (bureau).
 
 **`BackButtons`** : `{"m1": ButtonTarget, "m2": ButtonTarget}`, chacun `default` s'il manque.
+
+**`Lighting`** : `level` 0 (éteint) à 3, `color` `#rrggbb` ou `null` (suivre l'accent). Un niveau au-dessus de 3 ou une couleur mal formée est une erreur ; la couleur est gardée en minuscules.
 
 **`ButtonTarget`** : `default` (la propre touche du bouton), `disabled` ; manette `pad_a`, `pad_b`, `pad_x`, `pad_y`, `pad_lb`, `pad_rb`, `pad_lt`, `pad_rt`, `pad_ls`, `pad_rs` (clics des sticks), `dpad_up`, `dpad_down`, `dpad_left`, `dpad_right`, `pad_view`, `pad_menu`, `pad_xbox` ; clavier `key_escape`, `key_enter`, `key_space`, `key_tab`, `key_backspace`, `key_up`, `key_down`, `key_left`, `key_right`, `key_page_up`, `key_page_down`, `key_shift`, `key_ctrl`, `key_windows`, `key_f11`, `key_f12` ; souris `mouse_left`, `mouse_right`, `mouse_middle`, `wheel_up`, `wheel_down` ; média `volume_up`, `volume_down`, `mute_mic`, `show_keyboard` (le clavier tactile). `ButtonTarget::ALL` garde cet ordre.
 
@@ -752,6 +759,18 @@ D'où la solution : au démarrage, le shell appelle `canape_hw::FrameMetrics::ar
 **Non testé sur l'appareil.** D'où viennent ces faits (tous sous GPL ou LGPL, réimplémentés, pas copiés) :
 
 
+**Éclairage des sticks**, sur la même interface et le même rapport :
+
+| Sujet | Fait |
+|---|---|
+| Luminosité | `[0x5A, 0xBA, 0xC5, 0xC4, niveau]`, niveau 0 (éteint) à 3. |
+| Couleur | `[0x5A, 0xD1, 0x08, 0x0C]` puis rouge, vert, bleu pour chacune de quatre zones (deux par anneau) : Canapé écrit la même couleur dans les quatre. |
+| Séquence | Le rapport d'initialisation la première fois, la luminosité, puis la couleur (une écriture de luminosité peut ramener les couleurs propres de la manette). Éteint : luminosité 0, puis noir. Au démarrage, et de nouveau quand l'accent change pour des anneaux qui le suivent. |
+| Par défaut | `set_lighting` `null` n'écrit rien : la couleur posée directement ne devrait durer que jusqu'au redémarrage de la manette, son éclairage propre devrait donc revenir alors. Non vérifié. |
+
+**Non testé sur l'appareil.** Sources :
+
+
 ### ACL du pipe
 
 Le SID AppContainer du widget est dérivé par Windows (`DeriveAppContainerSidFromAppContainerName`) de son nom de famille de paquet, que Canapé calcule à partir de `widget/CanapeWidget/Package.appxmanifest` : `Canape.Widget` + `_` + le hachage de l'éditeur `CN=Canape Dev` (SHA-256 de l'éditeur en UTF-16LE, 8 premiers octets, 13 caractères en base32 de Crockford), soit `Canape.Widget_84zrj1c9kn010`, le nom observé sur l'Ally (un test unitaire le vérifie). Si la dérivation échoue, le service revient à `AC` et journalise pourquoi. Changer l'éditeur du widget change le SID : mettre à jour `WIDGET_PUBLISHER` dans `crates/canape-ipc/src/acl.rs`.
@@ -760,9 +779,10 @@ Le SID AppContainer du widget est dérivé par Windows (`DeriveAppContainerSidFr
 
 | Fonction | Interface prévue |
 |---|---|
+| Effets d'éclairage (respiration, cycle de couleurs), une couleur par anneau, éclairage en veille ou éteint | Messages Aura (`0xB3`, `0xB5`, `0xB4`) et les drapeaux d'alimentation `0xD1 0x09` ; les couleurs des anneaux pourraient aussi différer par zone dans `0xD1 0x08`. |
 | Réassignation des autres boutons (paires 1 à 7 et 9), associations secondaires, combinaisons de touches, turbo, zones mortes | Même commande `0xD1 0x02`. Les valeurs d'usine des autres paires diffèrent entre les modes manette et clavier / souris (et entre références pour les associations secondaires) : à capturer d'abord sur l'Ally. |
 
-La fréquence de l'écran, les boutons Armoury / Command Center et les boutons arrière sont faits : voir [La page Matériel](#la-page-matériel).
+La fréquence de l'écran, les boutons Armoury / Command Center, les boutons arrière et une couleur fixe des anneaux sont faits : voir [La page Matériel](#la-page-matériel).
 
 ## Conventions
 

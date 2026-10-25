@@ -1,11 +1,42 @@
 // Controller sub-page (from the hardware page): what the back buttons
-// send. Up and down change line, left and right change the value (sent at
-// once), A acts on a line without a value:
-//   0 M1, 1 M2, 2 restore the default buttons.
+// send on the left, the light of the stick rings on the right. Up and
+// down change line, left and right change the value (sent at once), A
+// acts on a line without a value or picks a colour:
+//   0 M1, 1 M2, 2 restore the default buttons, 3 ring brightness,
+//   4 ring colour.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
-import { SectionTitle, SettingLine } from "kit.slint";
+import { Row, SectionTitle, SettingLine, Swatch } from "kit.slint";
+
+// The accent colour as a ring rather than a disc: it follows the accent,
+// so it must not look like the fixed colour it happens to match.
+component AccentSwatch inherits Rectangle {
+    in property <bool> selected;
+    in property <bool> focused;
+    callback clicked();
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    border-width: root.focused || root.selected ? 2px : 0;
+    border-color: root.focused ? Theme.focus : Theme.text.mix(Theme.dim, 0.6);
+
+    Rectangle {
+        x: 7px;
+        y: 7px;
+        width: parent.width - 14px;
+        height: parent.height - 14px;
+        border-radius: self.width / 2;
+        border-width: 5px;
+        border-color: Theme.accent;
+    }
+
+    TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
 
 export component ControllerPage inherits Rectangle {
     in-out property <int> focus-row: 0;
@@ -58,6 +89,29 @@ export component ControllerPage inherits Rectangle {
         @tr("Mute the microphone"),
         @tr("Touch keyboard"),
     ];
+    // Ring colours: "" follows the accent, then white and the accent
+    // presets of the settings page.
+    property <[{ hex: string, color: color }]> colors: [
+        { hex: "", color: Theme.accent },
+        { hex: "#ffffff", color: #ffffff },
+        { hex: "#ff3d5e", color: #ff3d5e },
+        { hex: "#f97316", color: #f97316 },
+        { hex: "#eab308", color: #eab308 },
+        { hex: "#10b981", color: #10b981 },
+        { hex: "#06b6d4", color: #06b6d4 },
+        { hex: "#3b82f6", color: #3b82f6 },
+        { hex: "#8b5cf6", color: #8b5cf6 },
+        { hex: "#ec4899", color: #ec4899 },
+    ];
+    // Brightness line: 0 left to the controller, then off, low, medium,
+    // high (levels 0 to 3).
+    property <[string]> levels: [@tr("Default"), @tr("Off"), @tr("Low"), @tr("Medium"), @tr("High")];
+    in-out property <int> level-pick: App.status.lighting-level + 1;
+    property <int> level-status: App.status.lighting-level + 1;
+    changed level-status => {
+        root.level-pick = root.level-status;
+    }
+    in-out property <int> color-col: 0;
     // Shown at once; the status confirms.
     in-out property <int> m1-pick: App.status.m1;
     in-out property <int> m2-pick: App.status.m2;
@@ -78,11 +132,25 @@ export component ControllerPage inherits Rectangle {
         } else if row == 1 {
             root.m2-pick = Math.mod(root.m2-pick + d + count, count);
             App.set-back-button("m2", root.m2-pick);
+        } else if row == 3 {
+            root.level-pick = clamp(root.level-pick + d, 0, root.levels.length - 1);
+            App.set-lighting(root.level-pick - 1, App.status.lighting-color);
+        } else if row == 4 {
+            root.color-col = clamp(root.color-col + d, 0, root.colors.length - 1);
         }
+    }
+    // A colour lights the rings at the level shown, high when they are
+    // off or left to the controller.
+    function pick-color(i: int) {
+        let level = root.level-pick >= 2 ? root.level-pick - 1 : 3;
+        root.level-pick = level + 1;
+        App.set-lighting(level, root.colors[i].hex);
     }
     function activate() {
         if root.focus-row == 2 {
             App.reset-back-buttons();
+        } else if root.focus-row == 4 {
+            root.pick-color(root.color-col);
         }
     }
     function line-focused(r: int) -> bool {
@@ -99,7 +167,7 @@ export component ControllerPage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.DownArrow {
-                root.focus-row = min(2, root.focus-row + 1);
+                root.focus-row = min(4, root.focus-row + 1);
                 return accept;
             }
             if !App.status.connected {
@@ -184,9 +252,79 @@ export component ControllerPage inherits Rectangle {
             }
         }
 
-        Rectangle {
+        VerticalLayout {
             horizontal-stretch: 1;
             preferred-width: 10px;
+            spacing: 2px;
+            alignment: start;
+
+            SectionTitle {
+                height: 36px;
+                x: 16px;
+                text: @tr("Stick lighting");
+            }
+
+            SettingLine {
+                label: @tr("Brightness");
+                value: root.levels[root.level-pick];
+                enabled: App.status.connected;
+                focused: root.line-focused(3);
+                clicked => {
+                    root.focus-row = 3;
+                    fs.focus();
+                }
+                step(d) => {
+                    root.focus-row = 3;
+                    root.step(3, d);
+                    fs.focus();
+                }
+            }
+
+            Row {
+                height: 64px;
+                border-radius: 10px;
+                focused: root.line-focused(4);
+                enabled: App.status.connected;
+                HorizontalLayout {
+                    padding-left: 12px;
+                    padding-right: 12px;
+                    alignment: space-between;
+                    for c[i] in root.colors: VerticalLayout {
+                        alignment: center;
+                        if i == 0: AccentSwatch {
+                            selected: App.status.lighting-level > 0 && App.status.lighting-color == "";
+                            focused: root.line-focused(4) && root.color-col == 0;
+                            clicked => {
+                                root.focus-row = 4;
+                                root.color-col = 0;
+                                root.pick-color(0);
+                                fs.focus();
+                            }
+                        }
+                        if i > 0: Swatch {
+                            swatch: c.color;
+                            selected: App.status.lighting-level > 0 && App.status.lighting-color == c.hex;
+                            focused: root.line-focused(4) && root.color-col == i;
+                            clicked => {
+                                root.focus-row = 4;
+                                root.color-col = i;
+                                root.pick-color(i);
+                                fs.focus();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // The first colour is not a fixed one.
+            Text {
+                x: 16px;
+                height: 32px;
+                text: root.line-focused(4) && root.color-col == 0 ? @tr("Follows the accent colour") : "";
+                color: Theme.dim;
+                font-size: 13px;
+                vertical-alignment: center;
+            }
         }
     }
 }

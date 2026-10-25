@@ -564,3 +564,21 @@ msgstr "Hintere Tasten"
 
 msgid "Restore the default buttons"
 msgstr "Ursprüngliche Tasten wiederherstellen"
+
+msgid "Low"
+msgstr "Niedrig"
+
+msgid "Medium"
+msgstr "Mittel"
+
+msgid "High"
+msgstr "Hoch"
+
+msgid "Stick lighting"
+msgstr "Stick-Beleuchtung"
+
+msgid "Follows the accent colour"
+msgstr "Folgt der Akzentfarbe"
+
+msgid "Back buttons and lighting"
+msgstr "Hintere Tasten und Beleuchtung"

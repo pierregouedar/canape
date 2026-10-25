@@ -332,4 +332,20 @@ impl Device for AllyDevice {
     fn set_back_buttons(&mut self, buttons: &BackButtons) -> Result<()> {
         self.write_controller(|len| vec![pad::back_buttons_report(buttons, len)])
     }
+
+    /// UNTESTED on the device. The brightness, then the colour of the
+    /// four ring zones: a brightness write may bring the controller's own
+    /// colours back.
+    fn set_lighting(&mut self, level: u8, rgb: [u8; 3]) -> Result<()> {
+        if level > canape_core::settings::LIGHTING_MAX_LEVEL {
+            return Err(HwError::OutOfRange(format!("lighting level {level}")));
+        }
+        let rgb = if level == 0 { [0; 3] } else { rgb };
+        self.write_controller(|len| {
+            vec![
+                pad::brightness_report(level, len),
+                pad::ring_color_report(rgb, len),
+            ]
+        })
+    }
 }

@@ -432,6 +432,13 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
         .into(),
         m1: target_index(s.back_buttons.m1),
         m2: target_index(s.back_buttons.m2),
+        lighting_level: s.lighting.as_ref().map_or(-1, |l| i32::from(l.level)),
+        lighting_color: s
+            .lighting
+            .as_ref()
+            .and_then(|l| l.color.clone())
+            .unwrap_or_default()
+            .into(),
     }
 }
 
@@ -558,6 +565,16 @@ mod tests {
         status.back_buttons.m2 = ButtonTarget::PadA;
         let view = status_view(Some(&status));
         assert_eq!((view.m1, view.m2), (0, 2));
+        assert_eq!(view.lighting_level, -1);
+        status.lighting = Some(canape_core::Lighting {
+            level: 0,
+            color: Some("#ffffff".into()),
+        });
+        let view = status_view(Some(&status));
+        assert_eq!(
+            (view.lighting_level, view.lighting_color.as_str()),
+            (0, "#ffffff")
+        );
         // The page names one target per entry of ButtonTarget::ALL.
         let page = include_str!("../ui/controller.slint");
         let list = page

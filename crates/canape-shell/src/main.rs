@@ -36,7 +36,8 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use canape_core::{
-    AutoTdpSettings, BackButton, BenchPlan, ButtonTarget, ControllerMode, PerformanceMode, Request,
+    AutoTdpSettings, BackButton, BenchPlan, ButtonTarget, ControllerMode, Lighting,
+    PerformanceMode, Request,
 };
 
 use slint::{ComponentHandle, Timer, TimerMode};
@@ -359,6 +360,16 @@ fn connect(ui: &AppWindow, link: &Link) {
             if let Some(&target) = ButtonTarget::ALL.get(index as usize) {
                 link.send(Request::SetBackButton { button, target });
             }
+        }
+    });
+    app.on_set_lighting({
+        let link = link.clone();
+        move |level, color| {
+            let lighting = u8::try_from(level).ok().map(|level| Lighting {
+                level,
+                color: (!color.is_empty()).then(|| color.to_string()),
+            });
+            link.send(Request::SetLighting { lighting });
         }
     });
     app.on_reset_back_buttons({

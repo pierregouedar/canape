@@ -564,3 +564,21 @@ msgstr "Botões traseiros"
 
 msgid "Restore the default buttons"
 msgstr "Restaurar os botões originais"
+
+msgid "Low"
+msgstr "Baixo"
+
+msgid "Medium"
+msgstr "Médio"
+
+msgid "High"
+msgstr "Alto"
+
+msgid "Stick lighting"
+msgstr "Iluminação dos analógicos"
+
+msgid "Follows the accent colour"
+msgstr "Segue a cor de destaque"
+
+msgid "Back buttons and lighting"
+msgstr "Botões traseiros e iluminação"

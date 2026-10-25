@@ -7,7 +7,7 @@ use slint::{Color, ComponentHandle};
 use crate::{AppWindow, Theme};
 
 /// Accent of a fresh install.
-pub const DEFAULT: &str = "#ff3d5e";
+pub const DEFAULT: &str = canape_core::settings::DEFAULT_ACCENT;
 
 /// Accent codes saved by earlier versions, before the colour picker.
 const LEGACY: &[(&str, &str)] = &[

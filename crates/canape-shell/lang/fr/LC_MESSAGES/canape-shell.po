@@ -564,3 +564,21 @@ msgstr "Boutons arrière"
 
 msgid "Restore the default buttons"
 msgstr "Rétablir les boutons d'origine"
+
+msgid "Low"
+msgstr "Faible"
+
+msgid "Medium"
+msgstr "Moyenne"
+
+msgid "High"
+msgstr "Forte"
+
+msgid "Stick lighting"
+msgstr "Éclairage des sticks"
+
+msgid "Follows the accent colour"
+msgstr "Suit la couleur d'accent"
+
+msgid "Back buttons and lighting"
+msgstr "Boutons arrière et éclairage"

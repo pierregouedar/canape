@@ -258,6 +258,44 @@ impl BackButtons {
     }
 }
 
+/// Accent colour of the shell until the user picks one.
+pub const DEFAULT_ACCENT: &str = "#ff3d5e";
+
+/// Brightest level of the stick rings.
+pub const LIGHTING_MAX_LEVEL: u8 = 3;
+
+/// Light of the rings around the sticks.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Lighting {
+    /// 0 off, 1 to [`LIGHTING_MAX_LEVEL`] brighter.
+    pub level: u8,
+    /// `#rrggbb`; `None` follows the accent colour.
+    #[serde(default)]
+    pub color: Option<String>,
+}
+
+impl Lighting {
+    /// The same lighting with its colour in lower case, or why it is not
+    /// valid.
+    pub fn normalized(&self) -> Result<Self, String> {
+        if self.level > LIGHTING_MAX_LEVEL {
+            return Err(format!(
+                "lighting level {} above {LIGHTING_MAX_LEVEL}",
+                self.level
+            ));
+        }
+        if let Some(color) = &self.color
+            && !crate::protocol::is_hex_color(color)
+        {
+            return Err(format!("not a #RRGGBB colour: {color}"));
+        }
+        Ok(Self {
+            level: self.level,
+            color: self.color.as_ref().map(|c| c.to_ascii_lowercase()),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -315,6 +353,21 @@ mod tests {
         assert_eq!(buttons.get(BackButton::M1), ButtonTarget::Default);
         assert_eq!(buttons.get(BackButton::M2), ButtonTarget::PadA);
         assert!(!buttons.is_default());
+    }
+
+    #[test]
+    fn lighting_is_checked() {
+        let light = |level, color: Option<&str>| Lighting {
+            level,
+            color: color.map(str::to_owned),
+        };
+        assert_eq!(
+            light(2, Some("#FF8800")).normalized(),
+            Ok(light(2, Some("#ff8800")))
+        );
+        assert_eq!(light(0, None).normalized(), Ok(light(0, None)));
+        assert!(light(4, None).normalized().is_err());
+        assert!(light(1, Some("orange")).normalized().is_err());
     }
 
     #[test]

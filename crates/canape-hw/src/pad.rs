@@ -148,6 +148,23 @@ pub fn back_buttons_report(buttons: &BackButtons, len: usize) -> Vec<u8> {
     pad(report, len)
 }
 
+/// Brightness of the stick rings, 0 (off) to 3:
+/// `[0x5A, 0xBA, 0xC5, 0xC4, level]`.
+pub fn brightness_report(level: u8, len: usize) -> Vec<u8> {
+    pad(vec![REPORT_ID, 0xBA, 0xC5, 0xC4, level], len)
+}
+
+/// Colour of the stick rings, set directly: `[0x5A, 0xD1, 0x08, 0x0C]`
+/// then red, green and blue for each of the four zones (two per ring),
+/// the same colour in all four.
+pub fn ring_color_report(rgb: [u8; 3], len: usize) -> Vec<u8> {
+    let mut report = vec![REPORT_ID, SETTINGS, 0x08, 0x0C];
+    for _ in 0..4 {
+        report.extend_from_slice(&rgb);
+    }
+    pad(report, len)
+}
+
 /// A press on one of the Ally's own buttons, read from the input reports
 /// of the same interface (report ID [`REPORT_ID`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -263,6 +280,19 @@ mod tests {
                 "{target:?}"
             );
         }
+    }
+
+    #[test]
+    fn lighting_reports() {
+        let bright = brightness_report(2, FEATURE_REPORT_LEN);
+        assert_eq!(bright.len(), 64);
+        assert_eq!(&bright[..5], &[0x5A, 0xBA, 0xC5, 0xC4, 0x02]);
+        assert!(bright[5..].iter().all(|&b| b == 0));
+        let color = ring_color_report([0xFF, 0x3D, 0x5E], FEATURE_REPORT_LEN);
+        assert_eq!(color.len(), 64);
+        assert_eq!(&color[..4], &[0x5A, 0xD1, 0x08, 0x0C]);
+        assert_eq!(color[4..16], [0xFF, 0x3D, 0x5E].repeat(4)[..]);
+        assert!(color[16..].iter().all(|&b| b == 0));
     }
 
     #[test]

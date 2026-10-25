@@ -564,3 +564,21 @@ msgstr "뒷면 버튼"
 
 msgid "Restore the default buttons"
 msgstr "원래 버튼으로 복원"
+
+msgid "Low"
+msgstr "낮음"
+
+msgid "Medium"
+msgstr "중간"
+
+msgid "High"
+msgstr "높음"
+
+msgid "Stick lighting"
+msgstr "스틱 조명"
+
+msgid "Follows the accent colour"
+msgstr "강조 색상을 따름"
+
+msgid "Back buttons and lighting"
+msgstr "뒷면 버튼 및 조명"
