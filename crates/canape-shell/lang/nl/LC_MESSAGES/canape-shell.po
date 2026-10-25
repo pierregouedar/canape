@@ -48,12 +48,6 @@ msgstr "Auto-TDP"
 msgid "Thermal limit reached"
 msgstr "Temperatuurlimiet bereikt"
 
-msgid "Frame rate"
-msgstr "Framerate"
-
-msgid "CPU temperature"
-msgstr "CPU-temperatuur"
-
 msgid "On battery"
 msgstr "Op batterij"
 
@@ -156,11 +150,8 @@ msgstr "Automatisch"
 msgid "Language"
 msgstr "Taal"
 
-
 msgid "Service connected"
 msgstr "Service verbonden"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -173,10 +164,6 @@ msgstr "{} °C"
 
 msgid "{} %"
 msgstr "{}%"
-
-msgctxt "decimal separator"
-msgid "."
-msgstr ","
 
 msgid "Silent"
 msgstr "Stil"
@@ -192,9 +179,6 @@ msgstr "Accentkleur"
 
 msgid "Offline"
 msgstr "Offline"
-
-msgid "Power draw"
-msgstr "Verbruik"
 
 msgid "Hue"
 msgstr "Tint"
@@ -249,9 +233,6 @@ msgstr "Hardware"
 msgid "Fans"
 msgstr "Ventilatoren"
 
-msgid "CPU fan"
-msgstr "CPU-ventilator"
-
 msgid "{} rpm"
 msgstr "{} tpm"
 
@@ -263,7 +244,6 @@ msgstr "Aangepaste curves, ingesteld door een andere client."
 
 msgid "Frame rate limit"
 msgstr "FPS-limiet"
-
 
 msgid "Controller"
 msgstr "Controller"
@@ -343,12 +323,6 @@ msgstr "doel {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 min"
-
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "Kiezen"
 
@@ -364,17 +338,11 @@ msgstr "Spelprofielen"
 msgid "Games"
 msgstr "Games"
 
-msgid "General"
-msgstr "Algemeen"
-
 msgid "General settings"
 msgstr "Algemene instellingen"
 
 msgid "Installing…"
 msgstr "Installeren…"
-
-msgid "Limit"
-msgstr "Limiet"
 
 msgid "No Steam API key"
 msgstr "Geen Steam-API-sleutel"
@@ -613,9 +581,6 @@ msgstr "Stickverlichting"
 msgid "Follows the accent colour"
 msgstr "Volgt de accentkleur"
 
-msgid "Back buttons and lighting"
-msgstr "Achterknoppen en verlichting"
-
 msgid "Other games"
 msgstr "Andere games"
 
@@ -768,3 +733,83 @@ msgstr "Easy Anti-Cheat is niet geïnstalleerd (geweigerd): {} start mogelijk ni
 
 msgid "Easy Anti-Cheat could not be installed: {} may not start"
 msgstr "Easy Anti-Cheat kon niet worden geïnstalleerd: {} start mogelijk niet"
+
+msgid "Open"
+msgstr "Openen"
+
+msgid "Adjust"
+msgstr "Aanpassen"
+
+msgid "Apply"
+msgstr "Toepassen"
+
+msgid "Close"
+msgstr "Sluiten"
+
+msgid "Minimum / maximum"
+msgstr "Minimum / maximum"
+
+msgid "game profile"
+msgstr "spelprofiel"
+
+msgid "limit {} · {} learned"
+msgstr "limiet {} · {} geleerd"
+
+msgid "Measures and screen"
+msgstr "Metingen en scherm"
+
+msgid "Cooling"
+msgstr "Koeling"
+
+msgid "Custom"
+msgstr "Aangepast"
+
+msgid "Paddle held"
+msgstr "Peddel ingedrukt"
+
+msgid "Paddle toggles"
+msgstr "Peddel schakelt"
+
+msgid "Screen and battery"
+msgstr "Scherm en accu"
+
+msgid "API key"
+msgstr "API-sleutel"
+
+msgid "No API key"
+msgstr "Geen API-sleutel"
+
+msgid "not signed in"
+msgstr "niet aangemeld"
+
+msgid "Appearance"
+msgstr "Weergave"
+
+msgid "The Ally's buttons"
+msgstr "Knoppen van de Ally"
+
+msgid "Library"
+msgstr "Bibliotheek"
+
+msgid "Missing covers"
+msgstr "Ontbrekende hoezen"
+
+msgid "Accounts"
+msgstr "Accounts"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Voeg je Steam Web API-sleutel (steamcommunity.com/dev/apikey) toe als steam_api_key in shell.json: Canapé toont dan je games, om ze vanuit de bibliotheek te installeren."
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Voeg de client-id en het geheim van een Twitch-applicatie toe als igdb_client_id en igdb_client_secret in shell.json: gamepagina's tonen dan hoe lang een game duurt."
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "Eenmaal aangemeld installeert Canapé Epic-games zonder hun launcher."
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "Eenmaal aangemeld installeert Canapé GOG-games zonder GOG Galaxy."
+
+
+msgctxt "decimal separator"
+msgid "."
+msgstr ","

@@ -4,6 +4,26 @@
 // and each page moves its own row and column (nav.rs).
 
 import { Theme } from "theme.slint";
+import { StoreLogo } from "widgets.slint";
+
+// The gamepad hints of a shelf page, which sets them as its state changes
+// (app.slint shows them): the D-pad's glyph ("dpad", "updown",
+// "leftright") and what it does, a second one, then what A, X, Y and B
+// do. An empty text hides its hint.
+export struct HintSet {
+    move-glyph: string,
+    move: string,
+    move2-glyph: string,
+    move2: string,
+    a: string,
+    x: string,
+    y: string,
+    b: string,
+}
+
+export global PageHints {
+    in-out property <HintSet> current;
+}
 
 // One of the icons below, drawn on a 24-unit grid.
 export component Icon inherits Path {
@@ -24,6 +44,30 @@ export component Icon inherits Path {
         : root.name == "gamepad" ? "M6 8 L18 8 A4 4 0 0 1 22 12 L22 14 A3 3 0 0 1 17 16 L15 14 L9 14 L7 16 A3 3 0 0 1 2 14 L2 12 A4 4 0 0 1 6 8 Z M7 10 L7 13 M5.5 11.5 L8.5 11.5"
         : root.name == "keyboard" ? "M3 7 L21 7 L21 17 L3 17 Z M6 10.5 L8 10.5 M10 10.5 L12 10.5 M14 10.5 L16 10.5 M7 14 L17 14"
         : root.name == "mouse" ? "M12 3 A6 6 0 0 1 18 9 L18 15 A6 6 0 0 1 6 15 L6 9 A6 6 0 0 1 12 3 Z M12 7 L12 10"
+        : root.name == "fan" ? "M10 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M12 10c0-4 1-7 4-7s3 4 0 6 M14 12c4 0 7 1 7 4s-4 3-6 0 M12 14c0 4-1 7-4 7s-3-4 0-6 M10 12c-4 0-7-1-7-4s4-3 6 0"
+        : root.name == "gauge" ? "M4 18a8 8 0 1 1 16 0 M12 18l4-6"
+        : root.name == "paddle" ? "M7 3h10v9a5 5 0 0 1-10 0z M12 3v6"
+        : root.name == "light" ? "M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8 M12 2v2 M12 20v2 M4.9 4.9l1.4 1.4 M17.7 17.7l1.4 1.4 M2 12h2 M20 12h2 M4.9 19.1l1.4-1.4 M17.7 6.3l1.4-1.4"
+        : root.name == "gyro" ? "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M3 12h18 M12 3c3.5 3 3.5 15 0 18"
+        : root.name == "screen" ? "M3 5h18v12H3z M8 21h8 M12 17v4"
+        : root.name == "battery" ? "M3 8h15v8H3z M21 11v2 M6 11h7"
+        : root.name == "cool" ? "M12 2v20 M4.9 6l14.2 12 M4.9 18L19.1 6 M9 4l3 2 3-2 M9 20l3-2 3 2"
+        : root.name == "dial" ? "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M12 12l4-5 M12 12h.5"
+        : root.name == "target" ? "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8 M12 11.2a.8.8 0 1 0 0 1.6a.8.8 0 1 0 0-1.6"
+        : root.name == "range" ? "M4 8h9 M17 8h3 M4 16h3 M11 16h9 M15 5.5v5 M9 13.5v5"
+        : root.name == "thermo" ? "M10 4a2 2 0 1 1 4 0v10.5a4 4 0 1 1-4 0z M12 9v8"
+        : root.name == "bench" ? "M4 20h16 M7 16v-4 M12 16V6 M17 16V9"
+        : root.name == "profiles" ? "M9 6h11 M9 12h11 M9 18h11 M4 5h2v2H4z M4 11h2v2H4z M4 17h2v2H4z"
+        : root.name == "palette" ? "M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A4.6 4.6 0 0 0 21 9.8C21 6 17 3 12 3z M7 11h1v1H7z M10 7h1v1h-1z M15 7h1v1h-1z"
+        : root.name == "library" ? "M4 4h6v7H4z M14 4h6v4h-6z M14 12h6v8h-6z M4 15h6v5H4z"
+        : root.name == "user" ? "M12 12a4 4 0 1 0 0-8a4 4 0 1 0 0 8 M4 21c0-4 3.6-6 8-6s8 2 8 6"
+        : root.name == "globe" ? "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M3 12h18 M12 3c3.5 3 3.5 15 0 18 M12 3c-3.5 3-3.5 15 0 18"
+        : root.name == "drop" ? "M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"
+        : root.name == "folder" ? "M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"
+        : root.name == "image" ? "M4 4h16v16H4z M4 16l5-5 4 4 3-3 4 4 M14.5 7.5h2v2h-2z"
+        : root.name == "plus" ? "M12 5v14 M5 12h14"
+        : root.name == "hourglass" ? "M7 3h10 M7 21h10 M8 3c0 5 8 5 8 9s-8 4-8 9 M16 3c0 5-8 5-8 9s8 4 8 9"
+        : root.name == "key" ? "M8 15a4 4 0 1 0 0-8a4 4 0 1 0 0 8 M12 11h9 M18 11v3 M15 11v2"
         : "";
 }
 
@@ -654,5 +698,301 @@ export component RevealLine inherits HorizontalLayout {
         duration: 460ms;
         delay: root.order * 70ms;
         easing: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+}
+
+// Sizes of the shelves of setting cards (performance, hardware and
+// settings pages): the shelves of a page are laid out one under the
+// other, `pitch` apart, and slide so that the one in front is at the
+// top; the next one peeks in below, dimmed.
+export global Shelves {
+    out property <length> pitch: 156px;
+    out property <length> card-width: 208px;
+    out property <length> card-height: 112px;
+    out property <length> card-gap: 14px;
+    // From a shelf's top to its cards: the title, then a gap.
+    out property <length> cards-top: 34px;
+}
+
+// A setting on a shelf: its name, a small icon (or a store's logo), and
+// its value. The focused card lifts, ringed in white, its value and icon
+// in the accent colour.
+export component ShelfCard inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+    in property <string> icon;
+    // A store's logo instead of the icon ("Steam", "Epic", "GOG").
+    in property <string> store;
+    in property <bool> focused;
+    in property <bool> enabled: true;
+    callback clicked();
+    width: Shelves.card-width;
+    height: Shelves.card-height;
+
+    Rectangle {
+        y: root.focused ? -4px : 0;
+        animate y { duration: 160ms; easing: cubic-bezier(0.16, 1, 0.3, 1); }
+        border-radius: 14px;
+        background: root.focused ? Theme.surface-focus : Theme.card;
+
+        if root.focused: Rectangle {
+            x: -5px;
+            y: -5px;
+            width: parent.width + 10px;
+            height: parent.height + 10px;
+            border-radius: 19px;
+            border-width: 2px;
+            border-color: Theme.focus;
+        }
+
+        Text {
+            x: 16px;
+            y: 14px;
+            width: parent.width - 32px - 24px;
+            text: root.label;
+            color: Theme.dim;
+            font-size: 13px;
+            overflow: elide;
+        }
+
+        if root.store == "": Icon {
+            x: parent.width - 16px - self.width;
+            y: 12px;
+            width: 20px;
+            height: 20px;
+            name: root.icon;
+            stroke: !root.enabled ? Theme.faint : root.focused ? Theme.accent-line : Theme.icon;
+        }
+        if root.store != "": StoreLogo {
+            x: parent.width - 16px - self.width;
+            y: 12px;
+            width: 20px;
+            height: 20px;
+            store: root.store;
+            ink: !root.enabled ? Theme.faint : root.focused ? Theme.accent-line : Theme.icon;
+        }
+
+        Text {
+            x: 16px;
+            y: parent.height - 14px - self.height;
+            width: parent.width - 32px;
+            text: root.value;
+            color: !root.enabled ? Theme.faint : root.focused ? Theme.accent-line : Theme.text;
+            font-size: 22px;
+            font-weight: 600;
+            overflow: elide;
+        }
+
+        TouchArea {
+            clicked => {
+                root.clicked();
+            }
+        }
+    }
+}
+
+// A shelf: its icon and title, then its cards side by side. The shelves
+// not in front are dimmed by a veil of the background, which costs less
+// than an opacity.
+export component Shelf inherits Rectangle {
+    in property <int> index;
+    // The shelf in front.
+    in property <int> front;
+    in property <string> icon;
+    in property <string> title;
+    y: root.index * Shelves.pitch;
+    height: Shelves.pitch;
+    // Only the shelves next to the one in front are drawn.
+    visible: root.index >= root.front - 1 && root.index <= root.front + 1;
+
+    HorizontalLayout {
+        x: 0;
+        y: 0;
+        height: 20px;
+        spacing: 8px;
+        alignment: start;
+        VerticalLayout {
+            alignment: center;
+            Icon {
+                width: 18px;
+                height: 18px;
+                name: root.icon;
+                stroke: Theme.text.mix(Theme.dim, 0.6);
+            }
+        }
+
+        Text {
+            text: root.title;
+            color: Theme.text.mix(Theme.dim, 0.6);
+            font-size: 15px;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+    }
+
+    HorizontalLayout {
+        x: 0;
+        y: Shelves.cards-top;
+        height: Shelves.card-height;
+        spacing: Shelves.card-gap;
+        alignment: start;
+        @children
+    }
+
+    Rectangle {
+        x: -10px;
+        y: -4px;
+        width: parent.width + 10px;
+        height: Shelves.cards-top + Shelves.card-height + 14px;
+        background: Theme.background.with-alpha(root.index == root.front ? 0 : 0.6);
+        animate background { duration: 220ms; }
+    }
+}
+
+// The shelves of a page, the one in front at the top: they slide up and
+// down together, and the ones above leave through the top edge.
+export component ShelfPane inherits Rectangle {
+    in property <int> front;
+    // Room above the shelf in front, for the ring of a lifted card.
+    property <length> margin: 10px;
+    clip: true;
+
+    Rectangle {
+        x: 0;
+        y: root.margin - root.front * Shelves.pitch;
+        width: parent.width;
+        height: parent.height;
+        animate y { duration: 200ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+        @children
+    }
+}
+
+// What a card opens: a sheet rising from the bottom of the page, over the
+// shelves and under the gamepad hints, with the card's name and a note
+// beside it. Only its position animates.
+export component Drawer inherits Rectangle {
+    in property <bool> open;
+    in property <string> title;
+    in property <string> note;
+    // From the top of the sheet to the bottom of the page; the last 54px
+    // are under the hints.
+    in property <length> sheet-height: 248px;
+    // The height of the page the drawer rises in; the page also sets the
+    // drawer's width to its own.
+    in property <length> page-height;
+    x: 0;
+    height: root.sheet-height;
+    y: root.open ? root.page-height - root.sheet-height : root.page-height + 24px;
+    animate y { duration: 200ms; easing: cubic-bezier(0.16, 1, 0.3, 1); }
+    visible: root.open || self.y < root.page-height + 24px;
+
+    // A short shadow above the sheet.
+    Rectangle {
+        y: -24px;
+        height: 24px + 22px;
+        background: @linear-gradient(180deg, Theme.background.with-alpha(0) 0%, Theme.background.with-alpha(0.7) 100%);
+    }
+
+    Rectangle {
+        border-top-left-radius: 22px;
+        border-top-right-radius: 22px;
+        background: Theme.sheet;
+    }
+
+    HorizontalLayout {
+        x: 48px;
+        y: 20px;
+        width: parent.width - 96px;
+        height: 24px;
+        spacing: 14px;
+        alignment: start;
+        Text {
+            text: root.title;
+            color: Theme.text;
+            font-size: 18px;
+            font-weight: 700;
+            vertical-alignment: center;
+        }
+
+        Text {
+            text: root.note;
+            color: Theme.dim;
+            font-size: 14px;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+
+    Rectangle {
+        x: 48px;
+        y: 56px;
+        width: parent.width - 96px;
+        height: parent.height - 56px - 54px;
+        @children
+    }
+}
+
+// A large live number with its unit, and a note under it.
+export component HeroFigure inherits VerticalLayout {
+    in property <string> value;
+    in property <string> unit;
+    in property <string> note;
+    in property <bool> warn;
+    horizontal-stretch: 0;
+    spacing: 6px;
+    HorizontalLayout {
+        alignment: start;
+        spacing: 6px;
+        Text {
+            text: root.value;
+            color: Theme.text;
+            font-size: 64px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            vertical-alignment: bottom;
+        }
+
+        VerticalLayout {
+            alignment: end;
+            padding-bottom: 10px;
+            Text {
+                text: root.unit;
+                color: Theme.dim;
+                font-size: 22px;
+                font-weight: 500;
+            }
+        }
+    }
+
+    Text {
+        text: root.note;
+        color: root.warn ? Theme.warn : Theme.dim;
+        font-size: 13px;
+        overflow: elide;
+    }
+}
+
+// The line over the hero figures: a name in capitals, then details.
+export component HeroLine inherits HorizontalLayout {
+    in property <string> title;
+    in property <string> detail;
+    height: 18px;
+    spacing: 10px;
+    alignment: start;
+    if root.title != "": Text {
+        text: root.title.to-uppercase();
+        color: Theme.text.mix(Theme.dim, 0.6);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        vertical-alignment: center;
+    }
+    Text {
+        text: root.detail;
+        color: Theme.dim;
+        font-size: 13px;
+        font-weight: 500;
+        vertical-alignment: center;
+        overflow: elide;
     }
 }

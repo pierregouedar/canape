@@ -48,12 +48,6 @@ msgstr "TDP automático"
 msgid "Thermal limit reached"
 msgstr "Límite térmico alcanzado"
 
-msgid "Frame rate"
-msgstr "Fotogramas por segundo"
-
-msgid "CPU temperature"
-msgstr "Temperatura de la CPU"
-
 msgid "On battery"
 msgstr "Con batería"
 
@@ -156,11 +150,8 @@ msgstr "Automático"
 msgid "Language"
 msgstr "Idioma"
 
-
 msgid "Service connected"
 msgstr "Servicio conectado"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -173,10 +164,6 @@ msgstr "{} °C"
 
 msgid "{} %"
 msgstr "{} %"
-
-msgctxt "decimal separator"
-msgid "."
-msgstr ","
 
 msgid "Silent"
 msgstr "Silencioso"
@@ -192,9 +179,6 @@ msgstr "Color de acento"
 
 msgid "Offline"
 msgstr "Sin conexión"
-
-msgid "Power draw"
-msgstr "Consumo"
 
 msgid "Hue"
 msgstr "Tono"
@@ -249,9 +233,6 @@ msgstr "Hardware"
 msgid "Fans"
 msgstr "Ventiladores"
 
-msgid "CPU fan"
-msgstr "Ventilador CPU"
-
 msgid "{} rpm"
 msgstr "{} rpm"
 
@@ -263,7 +244,6 @@ msgstr "Curvas personalizadas fijadas por otro cliente."
 
 msgid "Frame rate limit"
 msgstr "Límite de FPS"
-
 
 msgid "Controller"
 msgstr "Mando"
@@ -343,12 +323,6 @@ msgstr "objetivo {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 min"
-
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "Elegir"
 
@@ -364,17 +338,11 @@ msgstr "Perfiles de juego"
 msgid "Games"
 msgstr "Juegos"
 
-msgid "General"
-msgstr "General"
-
 msgid "General settings"
 msgstr "Ajustes generales"
 
 msgid "Installing…"
 msgstr "Instalando…"
-
-msgid "Limit"
-msgstr "Límite"
 
 msgid "No Steam API key"
 msgstr "Sin clave de API de Steam"
@@ -613,9 +581,6 @@ msgstr "Iluminación de los sticks"
 msgid "Follows the accent colour"
 msgstr "Sigue el color de acento"
 
-msgid "Back buttons and lighting"
-msgstr "Botones traseros e iluminación"
-
 msgid "Other games"
 msgstr "Otros juegos"
 
@@ -768,3 +733,83 @@ msgstr "Easy Anti-Cheat no se instaló (rechazado): puede que {} no se inicie"
 
 msgid "Easy Anti-Cheat could not be installed: {} may not start"
 msgstr "No se pudo instalar Easy Anti-Cheat: puede que {} no se inicie"
+
+msgid "Open"
+msgstr "Abrir"
+
+msgid "Adjust"
+msgstr "Ajustar"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "Minimum / maximum"
+msgstr "Mínimo / máximo"
+
+msgid "game profile"
+msgstr "perfil del juego"
+
+msgid "limit {} · {} learned"
+msgstr "límite {} · {} aprendidos"
+
+msgid "Measures and screen"
+msgstr "Mediciones y pantalla"
+
+msgid "Cooling"
+msgstr "Refrigeración"
+
+msgid "Custom"
+msgstr "Personalizadas"
+
+msgid "Paddle held"
+msgstr "Paleta pulsada"
+
+msgid "Paddle toggles"
+msgstr "Paleta alterna"
+
+msgid "Screen and battery"
+msgstr "Pantalla y batería"
+
+msgid "API key"
+msgstr "Clave API"
+
+msgid "No API key"
+msgstr "Sin clave API"
+
+msgid "not signed in"
+msgstr "sin sesión"
+
+msgid "Appearance"
+msgstr "Apariencia"
+
+msgid "The Ally's buttons"
+msgstr "Botones de la Ally"
+
+msgid "Library"
+msgstr "Biblioteca"
+
+msgid "Missing covers"
+msgstr "Portadas que faltan"
+
+msgid "Accounts"
+msgstr "Cuentas"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Añade tu clave de API web de Steam (steamcommunity.com/dev/apikey) como steam_api_key en shell.json: Canapé mostrará entonces los juegos que tienes, para instalarlos desde la biblioteca."
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Añade el id y el secreto de cliente de una aplicación de Twitch como igdb_client_id e igdb_client_secret en shell.json: las páginas de juego mostrarán cuánto se tarda en terminarlo."
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "Una vez iniciada la sesión, Canapé instala los juegos de Epic sin su lanzador."
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "Una vez iniciada la sesión, Canapé instala los juegos de GOG sin GOG Galaxy."
+
+
+msgctxt "decimal separator"
+msgid "."
+msgstr ","

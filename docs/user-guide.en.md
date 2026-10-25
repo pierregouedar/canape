@@ -145,12 +145,13 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 | Button | Action |
 |---|---|
 | **LB / RB** | Previous / next section: Games → Performance → Hardware → Settings, wrapping around |
-| **D-pad** or **left stick** | Up and down change row; left and right move along the row or change its value. Held, the move repeats after 0.4 s. In Games, left and right move along the shelf, up and down swap the shelves. |
-| **A** | Choose; in Games, launch the game (or install it) |
-| **X** | Save for the game in the foreground (Performance, Hardware, Bench); delete a profile (Game profiles) |
-| **B** | Leave a sub-page (Game profiles, Add a game, Bench, Gyro aiming, Back buttons and lighting) back on the line it was opened from, otherwise back to Games |
+| **D-pad** or **left stick** | In Games, left and right move along the shelf, up and down swap the shelves. On Performance, Hardware and Settings, the same: up and down change shelf, left and right change card; in a drawer they change the value or move over the choices. On a sub-page, up and down change line. Held, the move repeats after 0.4 s. |
+| **A** | On a card, open its drawer (or its page); in a drawer, apply the focused choice; in Games, launch the game (or install it) |
+| **X** | Save for the game in the foreground (Performance, Hardware, Bench); restore the default buttons (Back buttons drawer); delete a profile (Game profiles) |
+| **Y** | Switch between M1 and M2 (Back buttons drawer), between the minimum and the maximum (Power range drawer) |
+| **B** | Close a drawer; leave a sub-page (Game profiles, Add a game, Bench) back on the card it was opened from; otherwise back to Games |
 
-The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. When Canapé comes back to the front, a button still held for the game does nothing until it is released; the first time (when the Ally starts, for example), the gamepad is ignored for 2 s (the window only shows about 1.5 s later), so that a press while signing in does not launch a game. The same rules apply to keyboard keys, including the Enter and Escape that tools such as Steam Input send for A and B. The focused row or tile has a white outline; the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
+The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. When Canapé comes back to the front, a button still held for the game does nothing until it is released; the first time (when the Ally starts, for example), the gamepad is ignored for 2 s (the window only shows about 1.5 s later), so that a press while signing in does not launch a game. The same rules apply to keyboard keys, including the Enter and Escape that tools such as Steam Input send for A and B. The focused card, line or tile has a white outline (a focused card also lifts a little, its value in the accent colour); the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
 
 ### Shared elements
 
@@ -204,7 +205,7 @@ Below the page, a second part: from the button, **down** scrolls the page to it 
 
 **Downloaded covers**
 
-A game with no art on the device can get one from the internet after each scan (**Settings → Download missing covers**, on by default):
+A game with no art on the device can get one from the internet after each scan (**Settings → Missing covers**, on by default):
 
 - **Steam games**: the 600×900 portrait from Steam's public store servers, no account needed. Useful for a game whose art Steam has not cached yet, or for which it only has the wide header image: the portrait replaces it.
 - **Every store** (Epic, GOG, Xbox included), with a free **SteamGridDB** API key: create an account on [steamgriddb.com](https://www.steamgriddb.com), copy the key from *Preferences → API*, and put it in `%LOCALAPPDATA%\Canape\shell.json` as `"steamgriddb_key": "…"`. Steam games are looked up by their Steam id, the others by title; only static portrait images are taken (no animated, NSFW or humour grids). The key is only ever sent to SteamGridDB's API.
@@ -352,17 +353,21 @@ The browser is not made for the gamepad: the touch screen and the touch keyboard
 
 <sub>The same page in Russian: [ru/performance.png](images/ru/performance.png).</sub>
 
-**Moving around**: the page is made of rows. Up and down move from row to row (rows that do not apply to the current mode are skipped), left and right move along a row of tiles or change the row's value at once, **A** picks a tile, **X** saves the settings for the game in the foreground (creates or updates its profile). The focused row has a white outline.
+**At the top**, live: the game in the foreground (followed by "game profile" when its profile applies, and the mode), the power draw with its limit and the watts learned for the game (or "Thermal limit reached"), the frame rate with the auto TDP target, the CPU temperature, and on the right the graph of the last minute: the draw in the accent colour, the limit dashed in grey. The scale adapts in 5 W steps; a gap in the line means the service was unreachable.
 
-| Row | Content |
+**Moving around**: below, the settings are cards on shelves, like the games: the shelf in front sits at the top, the next one peeks in below, dimmed. Up and down change shelf, left and right change card; the focused card lifts and shows its value in the accent colour. **A** opens the card's **drawer**, which rises from the bottom of the screen and holds the setting itself; **B** closes it. In a drawer, left and right move a ruler at once, or move over tiles that **A** applies. **X** saves the settings for the game in the foreground (creates or updates its profile), drawer open or not. A greyed card does not apply to the current mode.
+
+| Card | Drawer |
 |---|---|
-| **Mode** | Silent, Performance and Turbo are the ASUS firmware modes: the firmware sets its own limits, which Canapé cannot read. **Auto TDP** turns auto TDP on. The current mode has a lighter tile and an accent bar. Picking a firmware mode turns auto TDP off. Right of the title: "<game> · game profile" when a profile applies, "General settings" otherwise. |
-| **Target** (auto TDP) | A ruler of stops: 30, 40, 45, 60, 90, 120 FPS. Left and right move to the next stop. |
-| **Power range** (auto TDP) | ‹ minimum › — bar — ‹ maximum ›. The bar is on the model's scale (5 to 30 W on the ROG Ally and Ally X, 5 to 35 W on the ROG Xbox Ally models; 5 to 35 W if the service does not say). Up and down pick the minimum or the maximum (the active knob grows), left and right move it by 1 W; the minimum cannot pass the maximum. An accent mark shows what the APU draws now, with the value and the profile's learned watts. |
-| **Power limit** (manual TDP) | The same bar with one knob: left and right change the limit by 1 W. Only shows while a manual limit is in place (from **Set as TDP** on the bench, or ±1 W in the widget): there is no Manual tile any more; a minimum equal to the maximum under auto TDP does the same. |
-| **Other settings** | Tiles: **On battery** (none, 10, 15, 20 W, a ceiling applied only on battery), **Temperature** (none, 80, 85, 90 °C: above it, power only goes down), **Screen** (moves to the next rate the screen offers), **Bench** (opens the [bench](#bench), with its duration, or the time left during a run). A goes to the next value. |
-
-On the right: the power draw (with the limit, or "Thermal limit reached"), the frame rate (with the target) and the graph of the last minute: the draw in the accent colour, the limit dashed in grey. The scale adapts in 5 W steps; a gap in the line means the service was unreachable.
+| **Power → Mode** | Four tiles. Silent, Performance and Turbo are the ASUS firmware modes: the firmware sets its own limits, which Canapé cannot read. **Auto TDP** turns auto TDP on. The current mode has a lighter tile and an accent bar. Picking a firmware mode turns auto TDP off. Beside the drawer's title: "<game> · game profile" when a profile applies, "General settings" otherwise. |
+| **Power → Target** (auto TDP) | A ruler of stops: 30, 40, 45, 60, 90, 120 FPS, with the frame rate now beside the title. Left and right move to the next stop. |
+| **Power → Power range** (auto TDP) | ‹ minimum › — bar — ‹ maximum ›. The bar is on the model's scale (5 to 30 W on the ROG Ally and Ally X, 5 to 35 W on the ROG Xbox Ally models; 5 to 35 W if the service does not say). Up, down or **Y** pick the minimum or the maximum (the active knob grows), left and right move it by 1 W; the minimum cannot pass the maximum. An accent mark shows what the APU draws now; the value and the profile's learned watts are beside the title. |
+| **Power → Power limit** (manual TDP) | The same bar with one knob: left and right change the limit by 1 W. The card takes this name only while a manual limit is in place (from **Set as TDP** on the bench, or ±1 W in the widget): there is no Manual tile; a minimum equal to the maximum under auto TDP does the same. Under a firmware mode the card is greyed out. |
+| **Power → On battery** | A ruler: none, 10, 15, 20 W, a ceiling applied only on battery. |
+| **Power → Temperature** | A ruler: none, 80, 85, 90 °C: above it, power only goes down. |
+| **Measures and screen → Bench** | Opens the [bench](#bench) page. The card shows its duration, or the time left during a run. |
+| **Measures and screen → Screen** | The rates the screen offers, as tiles: **A** applies the focused one (see [Screen](#hardware), on the Hardware page). |
+| **Measures and screen → Game profiles** | The number of profiles; opens the [Game profiles](#game-profiles) page. |
 
 How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
@@ -375,7 +380,15 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
 > [!NOTE]
 
-Six rows, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, the last row opens [Gyro aiming](#gyro-aiming) on the left and [Back buttons and lighting](#back-buttons-and-lighting) on the right, **X** saves the fans, the frame rate limit, the screen refresh rate and gyro aiming for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
+**At the top**, live: the game in the foreground, the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve, a dashed line marking the temperature now. "—" when the firmware gives no reading.
+
+Below, three shelves of cards, used like the [Performance](#performance) page: **A** opens a card's drawer, **B** closes it, **X** saves the fans, the frame rate limit, the screen refresh rate and gyro aiming for the game in the foreground (see [This game](#this-game)).
+
+| Shelf | Cards |
+|---|---|
+| **Cooling** | Fans, Frame rate limit |
+| **Controller** | Mode, Back buttons, Stick lighting, Gyro aiming |
+| **Screen and battery** | Screen (refresh rate), Charge limit |
 
 **Fans**
 
@@ -390,7 +403,7 @@ Six rows, used like the Performance page: up and down change row, left and right
 - A preset **survives power mode changes**: the firmware puts its own curves back at every mode change, and the service writes the preset again right after.
 - **Automatic** writes the current power mode again: that is how the firmware takes its curves back. In Manual, the service then puts your TDP back.
 - **Safety**: every curve is checked before it reaches the firmware. The fan may never slow down as the temperature rises, and it must run at least at 25 % from 80 °C, 30 % from 90 °C and 40 % from 100 °C, just under ASUS's own Silent mode. A curve that would leave the fans stopped when hot is refused. The APU also throttles itself at its temperature limit, but a quiet curve makes the console hot to hold.
-- **Custom**: when the curves in use match no preset (set with `canape-ctl`, or a different preset on each fan), no tile is selected and the row's title reads "Custom curves set by another client."
+- **Custom**: when the curves in use match no preset (set with `canape-ctl`, or a different preset on each fan), the Fans card reads "Custom", no tile is selected and the drawer's title is followed by "Custom curves set by another client."
 
 **Frame rate limit**
 
@@ -401,7 +414,7 @@ A ruler: None, 30, 40, 45, 60, 90 or 120. The AMD graphics driver holds every ga
 
 #### This game
 
-The title of the Fans row shows the program in the foreground. **X** saves the current fan curves, frame rate limit and screen refresh rate in that game's profile (nothing happens without a game in the foreground):
+The top of the page names the game in the foreground. **X**, drawer open or not, saves the current fan curves, frame rate limit and screen refresh rate in that game's profile (nothing happens without a game in the foreground):
 
 - The other settings of the profile (auto TDP, learned watts) are kept. Without a profile, one is created with the current auto TDP settings.
 - **Automatic** is saved too: that game will then run on the firmware's curves even if a preset is in use the rest of the time.
@@ -435,14 +448,14 @@ One tile per refresh rate the built-in screen offers at its current resolution (
 
 - A game profile can hold its own rate (**X** on this page): it applies when the game comes to the foreground; when the game leaves, the screen goes back to the rate picked here, or to the one the profile replaced.
 - Canapé only switches when the profile changes: a rate picked in Windows settings meanwhile is left alone.
-- Only the built-in screen is touched, never a TV or monitor plugged in. Without a built-in screen (or off Windows) the Screen row does not show.
+- Only the built-in screen is touched, never a TV or monitor plugged in. Without a built-in screen (or off Windows) the Screen card is greyed out.
 
 > [!NOTE]
 > Not tried on the Ally yet (`ChangeDisplaySettingsEx` on the internal display, from the shell).
 
 #### Gyro aiming
 
-Opened from the **Gyro aiming** row of the Hardware page; **B** goes back. While a game is in front, turning the Ally moves the **mouse**, as with a mouse in your other hand: handy for fine aiming in shooters. It never acts on Canapé itself.
+The **Gyro aiming** card (Controller shelf) opens a drawer of four lines: up and down change line, left and right change its value (**A** also flips the last two); **B** closes it. The card shows the activation. While a game is in front, turning the Ally moves the **mouse**, as with a mouse in your other hand: handy for fine aiming in shooters. It never acts on Canapé itself.
 
 > [!WARNING]
 > **Not tried on the Ally yet**: written and tested on Linux with a simulated sensor only. The left / right and up / down directions in particular still have to be checked on the device; use **Invert up and down** if the vertical axis feels wrong.
@@ -456,12 +469,12 @@ Opened from the **Gyro aiming** row of the Hardware page; **B** goes back. While
 
 - **Games**: the movement is a mouse movement. It works in games that take the mouse alongside the gamepad, or the mouse alone. Games that only read the gamepad ignore it, and some swap their button prompts between keyboard and gamepad each time the mouse moves. A game run as administrator ignores it too.
 - **Per game**: **X** keeps these settings in the profile of the game in the foreground, with the fans and the frame rate limit. A profile without its own gyro settings follows the global ones. While a game with its own settings is in front, a change goes into its profile.
-- The paddles go to gyro aiming even when **Use the Ally's buttons** is off. In **While held** mode, holding a paddle in a game that also uses it does both.
+- The paddles go to gyro aiming even when **The Ally's buttons** is off. In **While held** mode, holding a paddle in a game that also uses it does both.
 - **Cost**: nothing while the gyro is off or the paddles are released; while aiming, the shell reads the sensor every 10 ms.
 
 #### Back buttons and lighting
 
-On the page's last row, on the right, **Back buttons and lighting ›** opens a page that chooses what M1 and M2, the two buttons on the back, send (on the left), and the light of the rings around the sticks (on the right). The lines are M1, right and M2, left: the right and left back buttons. **A** on one of them opens a grid of every choice, each with its icon (gamepad buttons, keys, mouse, media), the name of the focused one below; the arrows move, **A** applies the choice, **B** closes the grid without changing anything. On the brightness line, left and right go through the levels; a level not applied yet shows in italics after a dot, and **A** applies it (leaving the line drops it). B goes back to the Hardware page.
+The **Back buttons** card (Controller shelf) chooses what M1 and M2, the two buttons on the back, send; the card shows both when one is not on its own key. Its drawer shows every choice as a grid of icons (gamepad buttons, keys, mouse, media) on three rows: the button's own key and nothing, then the mouse and media; the gamepad; the keyboard. The drawer's title is the button being set (M1, right or M2, left: the right and left back buttons), followed by the name of the focused choice. The arrows move, **A** applies the focused choice (one write), **Y** switches between M1 and M2, **X** restores the default buttons, **B** closes the drawer.
 
 | Choice | The button sends |
 |---|---|
@@ -476,13 +489,15 @@ On the page's last row, on the right, **Back buttons and lighting ›** opens a 
 - The choice is global (not per game), remembered, and written again when the service starts and after every change of controller mode. Canapé writes the controller's whole button table each time, with the factory bindings for every other button: a remap made elsewhere (Armoury Crate, another tool) for the other buttons is undone, and so is turbo.
 - It needs the gamepad or mouse mode: in keyboard (WASD) mode the choice is refused, and the saved buttons come back with another mode. Choosing a button while Canapé has not set the mode puts the controller in gamepad mode.
 - With the left button under the screen held, M1 and M2 keep their own keys.
-- **Restore the default buttons** gives M1 and M2 their own keys back.
+- **X** in the drawer (**Restore the default buttons**) gives M1 and M2 their own keys back.
 - Steam Input, or a game that already knows M1 and M2 by their own keys, sees the new button instead.
 
 > [!NOTE]
 > Not tried on the Ally yet: the packets were checked against four open-source projects that drive the Ally's controller (see the developer guide), but never sent to a real one. Only the ROG Ally and Ally X controllers are known. If a button behaves oddly, **Restore the default buttons**.
 
 **Stick lighting**
+
+The **Stick lighting** card shows the effect (or Default, Off). Its drawer has the brightness, effect and speed on the left: up and down change line, left and right the value shown; a value not applied yet shows in italics after a dot, and **A** applies it (leaving the line drops it). The colours are on the right, the last line: left and right move, **A** applies.
 
 - **Brightness**: Default, Off, Low, Medium, High, applied with A. **Default** leaves the rings to the controller: Canapé stops changing them. The controller keeps the last effect written, even after a restart: Canapé cannot bring back its factory lighting, pick the effect you want instead.
 - **Effect**: Steady, Breathing, Colour cycle, Rainbow, Strobe, applied with A; the controller runs it itself, even when Canapé is closed. **Speed** (Slow, Medium, Fast) for every effect but Steady. Colour cycle and Rainbow go through every colour: the swatches are greyed out.
@@ -496,21 +511,23 @@ On the page's last row, on the right, **Back buttons and lighting ›** opens a 
 
 <img src="images/en/settings.png" alt="Settings page" width="720">
 
-Setting lines: up and down move from one to the next (the left column, then the right one), left and right change the value (it turns to the accent colour between ‹ ›), A acts on the line.
+**At the top**: Canapé's version, the state of the connection to the service, the number of installed games (or the last failed sign-in or install, in yellow) and, on the right, the accounts: whether a Steam API key is in `shell.json` (its validity is not checked), and the Epic and GOG accounts signed in.
 
-| Line | Effect |
+Below, three shelves of cards, used like the [Performance](#performance) page: **A** opens a card's drawer (or its page), **B** closes it.
+
+| Card | Drawer |
 |---|---|
-| **Language** | "Automatic" (the Windows language) or one of the 13 languages. Left and right go through the list, **A** applies the language shown; the choice is remembered. See [Languages](#languages). |
-| **Use the Ally's buttons** | The **Armoury** button (right, under the screen) brings Canapé to the front from a game, or goes back to Games when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget lives. Turn it off if Armoury Crate or another tool should handle them (otherwise both react). Not tried on the Ally yet. |
-| **Download missing covers** | See [Games](#games). |
-| **Epic Games account** | The signed-in account, or "Sign in": **A** opens the Epic sign-in, downloading Legendary first if needed (see [Installing owned games](#installing-owned-games)). Not tried on the Ally yet. |
-| **GOG account** | The signed-in account, or "Sign in": **A** opens GOG's sign-in page in the browser, downloading gogdl first if needed, then waits for the copied address (see [Installing owned games](#installing-owned-games)). Not tried on the Ally yet. |
-| **Games folder** | Where Epic and GOG games are installed, and its free space. By default, the folder that already holds most of the games installed by Canapé or the Epic launcher, else `Games` on the drive with the most free space. Left and right (or A) go through the folders that already hold games and `Games` on each internal drive; the choice is saved in `shell.json` (`games_folder`). Not tried on the Ally yet. |
-| **Game profiles** | The number of profiles; **A** opens the [Game profiles](#game-profiles) sub-page. |
-| **Add a game** | The number of games in `games.json`; **A** opens the list of games to add (see [Adding other games](#adding-other-games)). Not tried on the Ally yet. |
-| **Accent colour** | Eight ready-made swatches (left and right, A picks) and three lines **Hue**, **Saturation** and **Brightness** that left and right move. The whole interface follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the Game Bar widget follows the accent colour**. |
-
-Bottom right: Canapé's version, the state of the connection to the service and whether a Steam API key is in `shell.json` (its validity is not checked).
+| **Appearance → Language** | "Automatic" (the Windows language) and the 13 languages, as tiles on two rows: the arrows move, **A** applies the focused language; the choice is remembered. See [Languages](#languages). |
+| **Appearance → Accent colour** | The card shows the colour's code. Eight ready-made swatches (left and right, **A** picks) and three lines **Hue**, **Saturation** and **Brightness** that left and right move, up and down going from one to the next. The whole interface follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the Game Bar widget follows the accent colour**. |
+| **Appearance → The Ally's buttons** | On or Off (**A** applies). The **Armoury** button (right, under the screen) brings Canapé to the front from a game, or goes back to Games when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget lives. Turn it off if Armoury Crate or another tool should handle them (otherwise both react). Not tried on the Ally yet. |
+| **Library → Games folder** | Where Epic and GOG games are installed; its free space beside the drawer's title. By default, the folder that already holds most of the games installed by Canapé or the Epic launcher, else `Games` on the drive with the most free space. Left and right go through the folders that already hold games and `Games` on each internal drive; the choice is saved in `shell.json` (`games_folder`). Not tried on the Ally yet. |
+| **Library → Missing covers** | On or Off: download the covers of games that have none, see [Games](#games). |
+| **Library → Add a game** | The number of games in `games.json`; opens the list of games to add (see [Adding other games](#adding-other-games)). Not tried on the Ally yet. |
+| **Library → Game profiles** | The number of profiles; opens the [Game profiles](#game-profiles) page. |
+| **Accounts → Steam** | Whether a Steam Web API key is set, and how to add one: `steam_api_key` in `shell.json` lists the games you own (see [Installing owned games](#installing-owned-games)). |
+| **Accounts → Epic Games** | The signed-in account, or "Sign in": **A** in the drawer opens the Epic sign-in, downloading Legendary first if needed (see [Installing owned games](#installing-owned-games)); while it waits, the drawer says what to copy. Not tried on the Ally yet. |
+| **Accounts → GOG** | The signed-in account, or "Sign in": **A** in the drawer opens GOG's sign-in page in the browser, downloading gogdl first if needed, then waits for the copied address (see [Installing owned games](#installing-owned-games)). Not tried on the Ally yet. |
+| **Accounts → Time to beat** | "IGDB" when `igdb_client_id` and `igdb_client_secret` are set in `shell.json`, Off otherwise; the drawer says how to set them. |
 
 | Teal accent | Orange accent |
 |---|---|
@@ -522,7 +539,7 @@ Bottom right: Canapé's version, the state of the connection to the service and 
 
 <img src="images/en/profiles.png" alt="Game profiles sub-page" width="720">
 
-Opened from **Settings → Game profiles**; **B** goes back. A profile ties an executable (for example `eldenring.exe`) to auto TDP settings and, if you saved them from the [Hardware](#hardware) page, to fan curves, a frame rate limit and a screen refresh rate. When that program comes to the foreground the service applies the profile; when it leaves, the global settings come back.
+Opened from the **Game profiles** card, on the Performance or the Settings page; **B** goes back. A profile ties an executable (for example `eldenring.exe`) to auto TDP settings and, if you saved them from the [Hardware](#hardware) page, to fan curves, a frame rate limit and a screen refresh rate. When that program comes to the foreground the service applies the profile; when it leaves, the global settings come back.
 
 - **First line**: "Save a profile for <game>" (or "Update the profile of <game>"); **A** saves the current auto TDP settings (target, power, maximum on battery, temperature limit). Greyed out while no game is in the foreground.
   - With auto TDP on, the current power is saved too as **learned watts**: the game's next session starts right there.
@@ -540,7 +557,7 @@ Profiles and learned watts are covered in [Auto TDP and bench](auto-tdp.en.md#pe
 
 <img src="images/en/bench-results.png" alt="Bench with results" width="720">
 
-Opened from the **Bench** tile of the Performance page; **B** goes back. The bench runs the foreground game at several power limits, from 25 W down to 7 W, measures each one and suggests the right value.
+Opened from the **Bench** card of the Performance page; **B** goes back. The bench runs the foreground game at several power limits, from 25 W down to 7 W, measures each one and suggests the right value.
 
 1. Start the game and leave a **demanding, steady scene** running (not a menu).
 2. Come back to Canapé (Xbox button or Alt+Tab), **Performance → Bench**.

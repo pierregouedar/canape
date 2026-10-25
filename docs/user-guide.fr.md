@@ -145,12 +145,13 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 | Bouton | Action |
 |---|---|
 | **LB / RB** | Section précédente / suivante : Jeux → Performance → Matériel → Réglages, en boucle |
-| **Croix** ou **stick gauche** | Haut et bas changent de rangée ; gauche et droite se déplacent dans la rangée ou changent sa valeur. Maintenu, le déplacement se répète après 0,4 s. Dans Jeux, gauche et droite parcourent l'étagère, haut et bas passent d'une étagère à l'autre. |
-| **A** | Choisir ; dans Jeux, lancer le jeu (ou l'installer) |
-| **X** | Enregistrer pour le jeu au premier plan (Performance, Matériel, Banc d'essai) ; supprimer un profil (Profils de jeu) |
-| **B** | Quitter une sous-page (Profils de jeu, Ajouter un jeu, Banc d'essai, Visée au gyroscope, Boutons arrière et éclairage) en retrouvant la ligne d'où on l'a ouverte, sinon revenir à Jeux |
+| **Croix** ou **stick gauche** | Dans Jeux, gauche et droite parcourent l'étagère, haut et bas passent d'une étagère à l'autre. Dans Performance, Matériel et Réglages, de même : haut et bas changent d'étagère, gauche et droite de carte ; dans un tiroir, ils changent la valeur ou parcourent les choix. Dans une sous-page, haut et bas changent de ligne. Maintenu, le déplacement se répète après 0,4 s. |
+| **A** | Sur une carte, ouvrir son tiroir (ou sa page) ; dans un tiroir, appliquer le choix qui a le focus ; dans Jeux, lancer le jeu (ou l'installer) |
+| **X** | Enregistrer pour le jeu au premier plan (Performance, Matériel, Banc d'essai) ; rétablir les boutons d'origine (tiroir Boutons arrière) ; supprimer un profil (Profils de jeu) |
+| **Y** | Passer de M1 à M2 (tiroir Boutons arrière), du minimum au maximum (tiroir Plage de puissance) |
+| **B** | Fermer un tiroir ; quitter une sous-page (Profils de jeu, Ajouter un jeu, Banc d'essai) en retrouvant la carte d'où on l'a ouverte ; sinon revenir à Jeux |
 
-La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé depuis Canapé garde toute la manette. Quand Canapé revient au premier plan, un bouton encore enfoncé pour le jeu n'agit pas tant qu'il n'a pas été relâché ; la première fois (au démarrage de l'Ally par exemple), la manette est ignorée pendant 2 s (la fenêtre n'apparaît qu'environ 1,5 s après), pour qu'un appui pendant l'ouverture de session ne lance pas un jeu. Les mêmes règles valent pour les touches du clavier, y compris l'Entrée et l'Échap que des outils comme Steam Input envoient pour A et B. La rangée ou la tuile sélectionnée est entourée de blanc ; la couleur d'accent marque ce qui est choisi (trait sous une tuile, valeur d'une ligne). Au clavier (développement), les mêmes actions passent par les flèches, Entrée, F2 (X), Échap et Page préc. / Page suiv.
+La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé depuis Canapé garde toute la manette. Quand Canapé revient au premier plan, un bouton encore enfoncé pour le jeu n'agit pas tant qu'il n'a pas été relâché ; la première fois (au démarrage de l'Ally par exemple), la manette est ignorée pendant 2 s (la fenêtre n'apparaît qu'environ 1,5 s après), pour qu'un appui pendant l'ouverture de session ne lance pas un jeu. Les mêmes règles valent pour les touches du clavier, y compris l'Entrée et l'Échap que des outils comme Steam Input envoient pour A et B. La carte, la ligne ou la tuile sélectionnée est entourée de blanc (une carte sélectionnée se soulève aussi un peu, sa valeur en couleur d'accent) ; la couleur d'accent marque ce qui est choisi (trait sous une tuile, valeur d'une ligne). Au clavier (développement), les mêmes actions passent par les flèches, Entrée, F2 (X), Échap et Page préc. / Page suiv.
 
 ### Éléments communs
 
@@ -204,7 +205,7 @@ Sous la fiche, une seconde partie : depuis le bouton, **bas** fait défiler la p
 
 **Jaquettes téléchargées**
 
-Un jeu sans image sur l'appareil peut en récupérer une sur Internet après chaque scan (**Réglages → Télécharger les jaquettes manquantes**, activé par défaut) :
+Un jeu sans image sur l'appareil peut en récupérer une sur Internet après chaque scan (**Réglages → Jaquettes manquantes**, activé par défaut) :
 
 - **Jeux Steam** : le portrait 600×900 des serveurs publics de la boutique Steam, sans compte. Utile pour un jeu dont Steam n'a pas encore mis l'image en cache, ou dont il n'a que l'image large (en-tête) : le portrait la remplace.
 - **Toutes les boutiques** (Epic, GOG et Xbox compris), avec une clé d'API **SteamGridDB** gratuite : créez un compte sur [steamgriddb.com](https://www.steamgriddb.com), copiez la clé depuis *Preferences → API*, et ajoutez-la dans `%LOCALAPPDATA%\Canape\shell.json` sous la forme `"steamgriddb_key": "…"`. Les jeux Steam sont cherchés par leur identifiant Steam, les autres par leur titre ; seules les images fixes au format portrait sont retenues (pas d'animations, ni d'images NSFW ou humoristiques). La clé n'est envoyée qu'à l'API de SteamGridDB.
@@ -352,17 +353,21 @@ Le navigateur ne se pilote pas à la manette : l'écran tactile et le clavier ta
 
 <sub>La même page en russe : [ru/performance.png](images/ru/performance.png).</sub>
 
-**Se déplacer** : la page est faite de rangées. Haut et bas passent d'une rangée à l'autre (celles qui ne s'appliquent pas au mode en cours sont sautées), gauche et droite se déplacent dans une rangée de tuiles ou changent tout de suite la valeur de la rangée, **A** choisit une tuile, **X** enregistre les réglages pour le jeu au premier plan (crée ou met à jour son profil). La rangée qui a le focus est entourée de blanc.
+**En haut**, en direct : le jeu au premier plan (suivi de « profil du jeu » quand son profil s'applique, et du mode), la consommation avec sa limite et les watts appris pour le jeu (ou « Limite thermique atteinte »), les images par seconde avec l'objectif de l'auto TDP, la température CPU et, à droite, le graphe de la dernière minute : la consommation en couleur d'accent, la limite en pointillés gris. L'échelle s'adapte par pas de 5 W ; un trou dans la courbe signale une coupure avec le service.
 
-| Rangée | Contenu |
+**Se déplacer** : en dessous, les réglages sont des cartes rangées sur des étagères, comme les jeux : l'étagère de devant est en haut, la suivante dépasse en dessous, assombrie. Haut et bas changent d'étagère, gauche et droite de carte ; la carte sélectionnée se soulève et montre sa valeur en couleur d'accent. **A** ouvre le **tiroir** de la carte, qui monte du bas de l'écran et contient le réglage lui-même ; **B** le ferme. Dans un tiroir, gauche et droite déplacent tout de suite une réglette, ou parcourent des tuiles que **A** applique. **X** enregistre les réglages pour le jeu au premier plan (crée ou met à jour son profil), tiroir ouvert ou non. Une carte grisée ne s'applique pas au mode en cours.
+
+| Carte | Tiroir |
 |---|---|
-| **Mode** | Silencieux, Performance et Turbo sont les modes firmware ASUS : le firmware fixe ses limites, que Canapé ne peut pas lire. **Auto TDP** allume l'auto TDP. Le mode en cours a une tuile plus claire et un trait d'accent. Choisir un mode firmware désactive l'auto TDP. À droite du titre : « <jeu> · profil du jeu » quand un profil s'applique, « Réglages généraux » sinon. |
-| **Objectif** (auto TDP) | Une réglette de crans : 30, 40, 45, 60, 90, 120 FPS. Gauche et droite passent au cran voisin. |
-| **Plage de puissance** (auto TDP) | ‹ minimum › — barre — ‹ maximum ›. La barre est à l'échelle du modèle (5 à 30 W sur les ROG Ally et Ally X, 5 à 35 W sur les ROG Xbox Ally ; 5 à 35 W si le service ne le dit pas). Haut et bas choisissent le minimum ou le maximum (la poignée active grossit), gauche et droite le déplacent de 1 W ; le minimum ne peut pas dépasser le maximum. Un trait d'accent montre ce que l'APU consomme en ce moment, avec la valeur et les watts appris du profil. |
-| **Limite de puissance** (TDP manuel) | La même barre avec une seule poignée : gauche et droite changent la limite de 1 W. N'apparaît que lorsqu'une limite manuelle est en place (par **Régler le TDP** au banc d'essai, ou ±1 W dans le widget) : il n'y a plus de tuile Manuel ; un minimum égal au maximum en auto TDP donne le même résultat. |
-| **Autres réglages** | Des tuiles : **Sur batterie** (aucun, 10, 15, 20 W, plafond appliqué seulement sur batterie), **Température** (aucune, 80, 85, 90 °C : au-delà, la puissance ne fait que baisser), **Écran** (passe à la fréquence suivante proposée par l'écran), **Banc d'essai** (ouvre le [banc d'essai](#banc-dessai), avec sa durée, ou le temps restant pendant un essai). A passe à la valeur suivante. |
-
-À droite : la consommation (avec la limite, ou « Limite thermique atteinte »), les images par seconde (avec l'objectif) et le graphe de la dernière minute : la consommation en couleur d'accent, la limite en pointillés gris. L'échelle s'adapte par pas de 5 W ; un trou dans la courbe signale une coupure avec le service.
+| **Puissance → Mode** | Quatre tuiles. Silencieux, Performance et Turbo sont les modes firmware ASUS : le firmware fixe ses limites, que Canapé ne peut pas lire. **Auto TDP** allume l'auto TDP. Le mode en cours a une tuile plus claire et un trait d'accent. Choisir un mode firmware désactive l'auto TDP. À côté du titre du tiroir : « <jeu> · profil du jeu » quand un profil s'applique, « Réglages généraux » sinon. |
+| **Puissance → Objectif** (auto TDP) | Une réglette de crans : 30, 40, 45, 60, 90, 120 FPS, avec les images par seconde du moment à côté du titre. Gauche et droite passent au cran voisin. |
+| **Puissance → Plage de puissance** (auto TDP) | ‹ minimum › — barre — ‹ maximum ›. La barre est à l'échelle du modèle (5 à 30 W sur les ROG Ally et Ally X, 5 à 35 W sur les ROG Xbox Ally ; 5 à 35 W si le service ne le dit pas). Haut, bas ou **Y** choisissent le minimum ou le maximum (la poignée active grossit), gauche et droite le déplacent de 1 W ; le minimum ne peut pas dépasser le maximum. Un trait d'accent montre ce que l'APU consomme en ce moment ; la valeur et les watts appris du profil sont à côté du titre. |
+| **Puissance → Limite de puissance** (TDP manuel) | La même barre avec une seule poignée : gauche et droite changent la limite de 1 W. La carte ne porte ce nom que lorsqu'une limite manuelle est en place (par **Régler le TDP** au banc d'essai, ou ±1 W dans le widget) : il n'y a pas de tuile Manuel ; un minimum égal au maximum en auto TDP donne le même résultat. Avec un mode firmware, la carte est grisée. |
+| **Puissance → Sur batterie** | Une réglette : aucun, 10, 15, 20 W, plafond appliqué seulement sur batterie. |
+| **Puissance → Température** | Une réglette : aucune, 80, 85, 90 °C : au-delà, la puissance ne fait que baisser. |
+| **Mesures et écran → Banc d'essai** | Ouvre la page du [banc d'essai](#banc-dessai). La carte montre sa durée, ou le temps restant pendant un essai. |
+| **Mesures et écran → Écran** | Les fréquences que propose l'écran, en tuiles : **A** applique celle qui a le focus (voir Écran, dans la page [Matériel](#matériel)). |
+| **Mesures et écran → Profils de jeu** | Le nombre de profils ; ouvre la page [Profils de jeu](#profils-de-jeu). |
 
 Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md).
 
@@ -375,7 +380,15 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 
 > [!NOTE]
 
-Six rangées, parcourues comme la page Performance : haut et bas changent de rangée, gauche et droite se déplacent dans les tuiles (A choisit) ou changent la limite de FPS tout de suite, la dernière rangée ouvre, à gauche, la [visée au gyroscope](#visée-au-gyroscope) et, à droite, les [boutons arrière et l'éclairage](#boutons-arrière-et-éclairage), **X** enregistre les ventilateurs, la limite de FPS, la fréquence de l'écran et la visée au gyroscope pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)). À droite : la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU. « — » quand le firmware ne donne pas de mesure.
+**En haut**, en direct : le jeu au premier plan, la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU, un trait en pointillés marquant la température du moment. « — » quand le firmware ne donne pas de mesure.
+
+En dessous, trois étagères de cartes, parcourues comme la page [Performance](#performance) : **A** ouvre le tiroir d'une carte, **B** le ferme, **X** enregistre les ventilateurs, la limite de FPS, la fréquence de l'écran et la visée au gyroscope pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)).
+
+| Étagère | Cartes |
+|---|---|
+| **Refroidissement** | Ventilateurs, Limite de FPS |
+| **Manette** | Mode, Boutons arrière, Éclairage des sticks, Visée au gyroscope |
+| **Écran et batterie** | Écran (fréquence), Limite de charge |
 
 **Ventilateurs**
 
@@ -390,7 +403,7 @@ Six rangées, parcourues comme la page Performance : haut et bas changent de ran
 - Un préréglage **résiste aux changements de mode** : le firmware remet ses propres courbes à chaque changement de mode, et le service réécrit le préréglage juste après.
 - **Automatique** réécrit le mode d'alimentation en cours : c'est ainsi que le firmware reprend ses courbes. En Manuel, le service remet ensuite votre TDP.
 - **Sécurité** : chaque courbe est vérifiée avant d'atteindre le firmware. Le ventilateur ne doit jamais ralentir quand la température monte, et il doit tourner à au moins 25 % dès 80 °C, 30 % dès 90 °C et 40 % dès 100 °C, juste sous le mode Silencieux d'ASUS. Une courbe qui laisserait les ventilateurs arrêtés à chaud est refusée. L'APU se bride de lui-même à sa limite de température, mais une courbe trop discrète rend la console chaude en main.
-- **Personnalisé** : quand les courbes en place ne correspondent à aucun préréglage (réglées avec `canape-ctl`, ou un préréglage différent par ventilateur), aucune tuile n'est sélectionnée et le titre de la rangée indique « Courbes personnalisées définies par un autre client. »
+- **Personnalisé** : quand les courbes en place ne correspondent à aucun préréglage (réglées avec `canape-ctl`, ou un préréglage différent par ventilateur), la carte Ventilateurs indique « Personnalisées », aucune tuile n'est sélectionnée et le titre du tiroir est suivi de « Courbes personnalisées définies par un autre client. »
 
 **Limite de FPS**
 
@@ -401,7 +414,7 @@ Une réglette : Aucune, 30, 40, 45, 60, 90 ou 120. Le pilote graphique AMD maint
 
 #### Ce jeu
 
-Le titre de la rangée Ventilateurs indique le programme au premier plan. **X** enregistre les courbes, la limite de FPS et la fréquence de l'écran en cours dans le profil de ce jeu (rien ne se passe sans jeu au premier plan) :
+Le haut de la page nomme le jeu au premier plan. **X**, tiroir ouvert ou non, enregistre les courbes, la limite de FPS et la fréquence de l'écran en cours dans le profil de ce jeu (rien ne se passe sans jeu au premier plan) :
 
 - Les autres réglages du profil (auto TDP, watts appris) sont conservés. S'il n'y a pas de profil, il est créé avec les réglages d'auto TDP en cours.
 - **Automatique** s'enregistre aussi : ce jeu tournera alors sur les courbes du firmware, même si un préréglage est utilisé le reste du temps.
@@ -435,14 +448,14 @@ Une tuile par fréquence que l'écran intégré propose à sa résolution actuel
 
 - Un profil de jeu peut avoir sa propre fréquence (**X** sur cette page) : elle s'applique quand le jeu passe au premier plan ; quand il le quitte, l'écran revient à la fréquence choisie ici, ou à celle que le profil avait remplacée.
 - Canapé ne change la fréquence qu'au changement de profil : une fréquence choisie entre-temps dans les paramètres de Windows est respectée.
-- Seul l'écran intégré est concerné, jamais une télé ou un moniteur branché. Sans écran intégré (ou hors Windows), la rangée Écran n'apparaît pas.
+- Seul l'écran intégré est concerné, jamais une télé ou un moniteur branché. Sans écran intégré (ou hors Windows), la carte Écran est grisée.
 
 > [!NOTE]
 > Pas encore essayé sur l'Ally (`ChangeDisplaySettingsEx` sur l'écran interne, depuis le shell).
 
 #### Visée au gyroscope
 
-Ouverte depuis la rangée **Visée au gyroscope** de la page Matériel ; **B** y revient. Pendant qu'un jeu est au premier plan, tourner l'Ally déplace la **souris**, comme une souris dans l'autre main : pratique pour viser finement dans les jeux de tir. Elle n'agit jamais sur Canapé lui-même.
+La carte **Visée au gyroscope** (étagère Manette) ouvre un tiroir de quatre lignes : haut et bas changent de ligne, gauche et droite sa valeur (**A** inverse aussi les deux dernières) ; **B** le ferme. La carte indique le mode d'activation. Pendant qu'un jeu est au premier plan, tourner l'Ally déplace la **souris**, comme une souris dans l'autre main : pratique pour viser finement dans les jeux de tir. Elle n'agit jamais sur Canapé lui-même.
 
 > [!WARNING]
 > **Pas encore essayé sur l'Ally** : écrit et testé sous Linux avec un capteur simulé seulement. Les sens gauche / droite et haut / bas, en particulier, restent à vérifier sur l'appareil ; **Inverser haut et bas** corrige l'axe vertical s'il semble à l'envers.
@@ -456,12 +469,12 @@ Ouverte depuis la rangée **Visée au gyroscope** de la page Matériel ; **B** y
 
 - **Jeux** : le mouvement est un mouvement de souris. Il marche dans les jeux qui acceptent la souris en même temps que la manette, ou la souris seule. Les jeux qui ne lisent que la manette l'ignorent, et certains changent leurs icônes clavier / manette à chaque mouvement de souris. Un jeu lancé en administrateur l'ignore aussi.
 - **Par jeu** : **X** garde ces réglages dans le profil du jeu au premier plan, avec les ventilateurs et la limite de FPS. Un profil sans réglages de gyroscope suit les réglages généraux. Pendant qu'un jeu qui a ses propres réglages est devant, un changement va dans son profil.
-- Les palettes servent à la visée même quand **Utiliser les boutons de l'Ally** est désactivé. En mode **Tant qu'une palette est tenue**, tenir une palette dans un jeu qui l'utilise aussi fait les deux.
+- Les palettes servent à la visée même quand **Boutons de l'Ally** est désactivé. En mode **Tant qu'une palette est tenue**, tenir une palette dans un jeu qui l'utilise aussi fait les deux.
 - **Coût** : rien tant que le gyroscope est coupé ou les palettes relâchées ; pendant la visée, le shell lit le capteur toutes les 10 ms.
 
 #### Boutons arrière et éclairage
 
-Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairage ›** ouvre une page qui choisit ce qu'envoient M1 et M2, les deux boutons du dos (à gauche), et l'éclairage des anneaux autour des sticks (à droite). Les lignes sont M1, droite et M2, gauche : les boutons arrière droit et gauche. **A** sur l'une d'elles ouvre une grille de tous les choix, chacun avec son icône (boutons de manette, touches, souris, média), le nom de celui qui a le focus en dessous ; les flèches se déplacent, **A** applique le choix, **B** ferme la grille sans rien changer. Sur la ligne de luminosité, gauche et droite parcourent les niveaux ; un niveau pas encore appliqué s'affiche en italique après un point, et **A** l'applique (quitter la ligne l'abandonne). B revient à la page Matériel.
+La carte **Boutons arrière** (étagère Manette) choisit ce qu'envoient M1 et M2, les deux boutons du dos ; la carte montre les deux quand l'un n'est pas sur sa propre touche. Son tiroir présente tous les choix en grille d'icônes (boutons de manette, touches, souris, média) sur trois rangées : la touche du bouton lui-même et rien, puis la souris et le média ; la manette ; le clavier. Le titre du tiroir est le bouton réglé (M1, droite ou M2, gauche : les boutons arrière droit et gauche), suivi du nom du choix qui a le focus. Les flèches se déplacent, **A** applique le choix (une seule écriture), **Y** passe de M1 à M2, **X** rétablit les boutons d'origine, **B** ferme le tiroir.
 
 | Choix | Le bouton envoie |
 |---|---|
@@ -476,13 +489,15 @@ Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairag
 - Le choix est général (pas par jeu), mémorisé, et réécrit au démarrage du service et après chaque changement de mode de la manette. Canapé écrit chaque fois toute la table des boutons de la manette, avec les associations d'usine pour tous les autres boutons : une réassociation faite ailleurs (Armoury Crate, un autre outil) pour les autres boutons est défaite, le turbo aussi.
 - Il faut le mode manette ou souris : en mode clavier (WASD) le choix est refusé, et les boutons enregistrés reviennent avec un autre mode. Choisir un bouton alors que Canapé n'a pas réglé le mode met la manette en mode manette.
 - Avec le bouton gauche sous l'écran maintenu, M1 et M2 gardent leurs propres touches.
-- **Rétablir les boutons d'origine** rend à M1 et M2 leurs propres touches.
+- **X** dans le tiroir (**Rétablir les boutons d'origine**) rend à M1 et M2 leurs propres touches.
 - Steam Input, ou un jeu qui connaissait déjà M1 et M2 par leurs propres touches, voit le nouveau bouton à la place.
 
 > [!NOTE]
 > Pas encore essayé sur l'Ally : les paquets ont été vérifiés auprès de quatre projets open source qui pilotent la manette de l'Ally (voir le guide du développeur), mais jamais envoyés à une vraie. Seules les manettes des ROG Ally et Ally X sont connues. Si un bouton se comporte bizarrement, **Rétablir les boutons d'origine**.
 
 **Éclairage des sticks**
+
+La carte **Éclairage des sticks** indique l'effet (ou Par défaut, Désactivé). Son tiroir a la luminosité, l'effet et la vitesse à gauche : haut et bas changent de ligne, gauche et droite la valeur affichée ; une valeur pas encore appliquée s'affiche en italique après un point, et **A** l'applique (quitter la ligne l'abandonne). Les couleurs sont à droite, la dernière ligne : gauche et droite se déplacent, **A** applique.
 
 - **Luminosité** : Par défaut, Désactivé, Faible, Moyenne, Forte, appliquée avec A. **Par défaut** laisse les anneaux à la manette : Canapé cesse de les changer. La manette garde le dernier effet écrit, même après un redémarrage : Canapé ne peut pas ramener son éclairage d'usine, choisissez plutôt l'effet voulu.
 - **Effet** : Fixe, Respiration, Cycle de couleurs, Arc-en-ciel, Stroboscope, appliqué avec A ; la manette le joue elle-même, même Canapé fermé. **Vitesse** (Lente, Moyenne, Rapide) pour tous les effets sauf Fixe. Cycle de couleurs et Arc-en-ciel passent par toutes les couleurs : les pastilles sont grisées.
@@ -496,21 +511,23 @@ Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairag
 
 <img src="images/fr/settings.png" alt="Page Réglages" width="720">
 
-Des lignes de réglage : haut et bas passent de l'une à l'autre (la colonne de gauche, puis celle de droite), gauche et droite changent la valeur (elle passe en couleur d'accent entre ‹ ›), A agit sur la ligne.
+**En haut** : la version de Canapé, l'état de la connexion au service, le nombre de jeux installés (ou la dernière connexion ou installation qui a échoué, en jaune) et, à droite, les comptes : la présence d'une clé d'API Steam dans `shell.json` (sans vérifier qu'elle est valide), et les comptes Epic et GOG connectés.
 
-| Ligne | Effet |
+En dessous, trois étagères de cartes, parcourues comme la page [Performance](#performance) : **A** ouvre le tiroir d'une carte (ou sa page), **B** le ferme.
+
+| Carte | Tiroir |
 |---|---|
-| **Langue** | « Automatique » (langue de Windows) ou l'une des 13 langues. Gauche et droite parcourent la liste, **A** applique la langue affichée ; le choix est mémorisé. Voir [Langues](#langues). |
-| **Utiliser les boutons de l'Ally** | Le bouton **Armoury** (à droite, sous l'écran) ramène Canapé au premier plan depuis un jeu, ou revient à Jeux si Canapé est déjà devant ; le bouton **Command Center** (à gauche) ouvre la Xbox Game Bar, où se trouve le widget Canapé. Désactivez-le si Armoury Crate ou un autre outil doit les gérer (sinon les deux réagissent). Pas encore essayé sur l'Ally. |
-| **Télécharger les jaquettes manquantes** | Voir [Jeux](#jeux). |
-| **Compte Epic Games** | Le compte connecté, ou « Se connecter » : **A** ouvre la connexion Epic, en téléchargeant Legendary d'abord si besoin (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Pas encore essayé sur l'Ally. |
-| **Compte GOG** | Le compte connecté, ou « Se connecter » : **A** ouvre la page de connexion GOG dans le navigateur, en téléchargeant gogdl d'abord si besoin, puis attend l'adresse copiée (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Pas encore essayé sur l'Ally. |
-| **Dossier des jeux** | Où s'installent les jeux Epic et GOG, et sa place libre. Par défaut, le dossier qui contient déjà le plus de jeux installés par Canapé ou par le lanceur Epic, sinon `Games` sur le lecteur qui a le plus de place libre. Gauche et droite (ou A) parcourent les dossiers qui contiennent déjà des jeux et `Games` sur chaque lecteur interne ; le choix est enregistré dans `shell.json` (`games_folder`). Pas encore essayé sur l'Ally. |
-| **Profils de jeu** | Le nombre de profils ; **A** ouvre la sous-page [Profils de jeu](#profils-de-jeu). |
-| **Ajouter un jeu** | Le nombre de jeux de `games.json` ; **A** ouvre la liste des jeux à ajouter (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). Pas encore essayé sur l'Ally. |
-| **Couleur d'accent** | Huit pastilles prêtes (gauche et droite, A choisit) et trois lignes **Teinte**, **Saturation** et **Luminosité** que gauche et droite déplacent. Toute l'interface suit en direct ; la couleur est enregistrée dans `shell.json` et envoyée au service une fois le réglage terminé, et **le widget de la Game Bar suit la couleur d'accent**. |
-
-En bas à droite : la version de Canapé, l'état de la connexion au service et la présence d'une clé d'API Steam dans `shell.json` (sans vérifier qu'elle est valide).
+| **Apparence → Langue** | « Automatique » (langue de Windows) et les 13 langues, en tuiles sur deux rangées : les flèches se déplacent, **A** applique la langue qui a le focus ; le choix est mémorisé. Voir [Langues](#langues). |
+| **Apparence → Couleur d'accent** | La carte montre le code de la couleur. Huit pastilles prêtes (gauche et droite, **A** choisit) et trois lignes **Teinte**, **Saturation** et **Luminosité** que gauche et droite déplacent, haut et bas passant de l'une à l'autre. Toute l'interface suit en direct ; la couleur est enregistrée dans `shell.json` et envoyée au service une fois le réglage terminé, et **le widget de la Game Bar suit la couleur d'accent**. |
+| **Apparence → Boutons de l'Ally** | Activé ou Désactivé (**A** applique). Le bouton **Armoury** (à droite, sous l'écran) ramène Canapé au premier plan depuis un jeu, ou revient à Jeux si Canapé est déjà devant ; le bouton **Command Center** (à gauche) ouvre la Xbox Game Bar, où se trouve le widget Canapé. Désactivez-le si Armoury Crate ou un autre outil doit les gérer (sinon les deux réagissent). Pas encore essayé sur l'Ally. |
+| **Bibliothèque → Dossier des jeux** | Où s'installent les jeux Epic et GOG ; sa place libre à côté du titre du tiroir. Par défaut, le dossier qui contient déjà le plus de jeux installés par Canapé ou par le lanceur Epic, sinon `Games` sur le lecteur qui a le plus de place libre. Gauche et droite parcourent les dossiers qui contiennent déjà des jeux et `Games` sur chaque lecteur interne ; le choix est enregistré dans `shell.json` (`games_folder`). Pas encore essayé sur l'Ally. |
+| **Bibliothèque → Jaquettes manquantes** | Activé ou Désactivé : télécharger les jaquettes des jeux qui n'en ont pas, voir [Jeux](#jeux). |
+| **Bibliothèque → Ajouter un jeu** | Le nombre de jeux de `games.json` ; ouvre la liste des jeux à ajouter (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). Pas encore essayé sur l'Ally. |
+| **Bibliothèque → Profils de jeu** | Le nombre de profils ; ouvre la page [Profils de jeu](#profils-de-jeu). |
+| **Comptes → Steam** | La présence d'une clé d'API Web Steam, et comment l'ajouter : `steam_api_key` dans `shell.json` liste les jeux possédés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). |
+| **Comptes → Epic Games** | Le compte connecté, ou « Se connecter » : **A** dans le tiroir ouvre la connexion Epic, en téléchargeant Legendary d'abord si besoin (voir [Installer des jeux possédés](#installer-des-jeux-possédés)) ; pendant l'attente, le tiroir dit quoi copier. Pas encore essayé sur l'Ally. |
+| **Comptes → GOG** | Le compte connecté, ou « Se connecter » : **A** dans le tiroir ouvre la page de connexion GOG dans le navigateur, en téléchargeant gogdl d'abord si besoin, puis attend l'adresse copiée (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Pas encore essayé sur l'Ally. |
+| **Comptes → Durée de jeu** | « IGDB » quand `igdb_client_id` et `igdb_client_secret` sont dans `shell.json`, Désactivé sinon ; le tiroir explique comment les régler. |
 
 | Accent sarcelle | Accent orange |
 |---|---|
@@ -522,7 +539,7 @@ En bas à droite : la version de Canapé, l'état de la connexion au service et 
 
 <img src="images/fr/profiles.png" alt="Sous-page Profils de jeu" width="720">
 
-Ouverte depuis **Réglages → Profils de jeu** ; **B** y revient. Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages d'auto TDP et, si vous les avez enregistrés depuis la page [Matériel](#matériel), à des courbes de ventilateurs, une limite de FPS et une fréquence d'écran. Quand ce programme passe au premier plan, le service applique le profil ; quand il le quitte, les réglages généraux reviennent.
+Ouverte depuis la carte **Profils de jeu**, dans la page Performance ou Réglages ; **B** y revient. Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages d'auto TDP et, si vous les avez enregistrés depuis la page [Matériel](#matériel), à des courbes de ventilateurs, une limite de FPS et une fréquence d'écran. Quand ce programme passe au premier plan, le service applique le profil ; quand il le quitte, les réglages généraux reviennent.
 
 - **Première ligne** : « Enregistrer un profil pour <jeu> » (ou « Mettre à jour le profil de <jeu> ») ; **A** enregistre les réglages d'auto TDP en cours (objectif, puissance, maximum sur batterie, limite de température). Grisée tant qu'aucun jeu n'est au premier plan.
   - Si l'auto TDP est actif, la puissance actuelle est aussi enregistrée comme **watts appris** : la prochaine session du jeu démarre directement à cette valeur.
@@ -540,7 +557,7 @@ Les profils et les watts appris sont détaillés dans [Auto TDP et banc d'essai]
 
 <img src="images/fr/bench-results.png" alt="Banc d'essai avec résultats" width="720">
 
-Ouvert depuis la tuile **Banc d'essai** de la page Performance ; **B** y revient. Le banc d'essai fait tourner le jeu au premier plan à plusieurs limites de puissance, de 25 W à 7 W, mesure chacune et propose la bonne valeur.
+Ouvert depuis la carte **Banc d'essai** de la page Performance ; **B** y revient. Le banc d'essai fait tourner le jeu au premier plan à plusieurs limites de puissance, de 25 W à 7 W, mesure chacune et propose la bonne valeur.
 
 1. Lancez le jeu et laissez tourner une **scène exigeante et stable** (pas un menu).
 2. Revenez dans Canapé (bouton Xbox ou Alt+Tab), **Performance → Banc d'essai**.

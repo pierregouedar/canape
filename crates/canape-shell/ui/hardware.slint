@@ -1,28 +1,30 @@
-// Hardware page: rows the D-pad moves through, as on the performance page.
-// Left and right move along a row of tiles or change the row's value; A
-// picks a tile; X saves the fans and the frame rate cap for the game in
-// the foreground:
-//   0 fan presets, 1 frame rate cap, 2 controller mode, 3 battery charge
-//   limit, 4 refresh rate (when the screen reports its rates), then a row
-//   of two lines that open the gyro aiming and the controller pages.
+// Hardware page: the fans and the CPU temperature at the top, then three
+// shelves of setting cards, moved through as on the performance page. A
+// opens the card's drawer; X saves the fans, the frame rate cap, the
+// screen's rate and gyro aiming for the game in the foreground. Cards:
+//   shelf 0, cooling: fans, frame rate limit;
+//   shelf 1, controller: mode, back buttons, lighting, gyro aiming;
+//   shelf 2, screen and battery: refresh rate, charge limit.
+// In the back buttons' drawer the arrows move over the targets, A applies
+// one to the paddle shown, Y switches paddle and X restores the default
+// buttons. In the lighting and gyro drawers, up and down change line and
+// left and right its value; on brightness, effect and speed, A applies the
+// value shown and leaving the line drops it.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
-import { ChoiceTile, Figure, IconTile, LegendKey, Row, Ruler, SectionTitle, SettingLine } from "kit.slint";
+import { ChoiceTile, Drawer, HeroFigure, HeroLine, HintSet, IconTile, PageHints, Ruler, SettingLine, Shelf, ShelfCard, ShelfPane, Swatch } from "kit.slint";
+import { TargetGrid } from "targets.slint";
+import { Refresh, RefreshTiles } from "performance.slint";
 
 // The CPU fan's custom curve: duty (0 to 100 %) against temperature
-// (20 to 110 °C), from hardware.rs.
+// (20 to 110 °C), from hardware.rs, with the current temperature marked.
 component Curve inherits Rectangle {
     in property <string> line;
     in property <string> area;
+    // °C, -1 when unknown.
+    in property <int> temp;
     clip: true;
-
-    // The half-scale guide, only under a curve: it would cross the text.
-    if root.line != "": Rectangle {
-        y: parent.height / 2;
-        height: 1px;
-        background: Theme.stroke.with-alpha(0.45);
-    }
 
     Rectangle {
         y: parent.height - 1px;
@@ -52,27 +54,72 @@ component Curve inherits Rectangle {
         stroke-width: 2.5px;
         stroke-line-join: round;
     }
+    // The temperature now, as a dashed line across the curve.
+    if root.line != "" && root.temp >= 0: Rectangle {
+        x: parent.width * clamp((root.temp - 20) / 90, 0, 1) - 1px;
+        width: 2px;
+        animate x { duration: 300ms; easing: ease-out; }
+        for i in 11: Rectangle {
+            y: i * 8px;
+            height: 4px;
+            background: Theme.focus;
+        }
+    }
     if root.line == "": Text {
         width: parent.width;
         height: parent.height;
         text: @tr("The power mode's own curve");
         color: Theme.dim;
         font-size: 13px;
-        horizontal-alignment: center;
+        horizontal-alignment: right;
         vertical-alignment: center;
     }
 }
 
+// The accent colour as a ring rather than a disc: it follows the accent,
+// so it must not look like the fixed colour it happens to match.
+component AccentSwatch inherits Rectangle {
+    in property <bool> selected;
+    in property <bool> focused;
+    callback clicked();
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    border-width: root.focused || root.selected ? 2px : 0;
+    border-color: root.focused ? Theme.focus : Theme.text.mix(Theme.dim, 0.6);
+
+    Rectangle {
+        x: 7px;
+        y: 7px;
+        width: parent.width - 14px;
+        height: parent.height - 14px;
+        border-radius: self.width / 2;
+        border-width: 5px;
+        border-color: Theme.accent;
+    }
+
+    TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
 export component HardwarePage inherits Rectangle {
-    callback open-gyro();
-    // Opens the controller page.
-    callback open-controller();
-    in-out property <int> focus-row: 0;
-    in-out property <int> fan-col: root.fan-index >= 0 ? root.fan-index : 0;
-    in-out property <int> controller-col: root.controller-index >= 0 ? root.controller-index : 0;
-    in-out property <int> charge-col: root.charge-index >= 0 ? root.charge-index : 2;
-    in-out property <int> refresh-col: root.refresh-index >= 0 ? root.refresh-index : 0;
+    in-out property <int> shelf: 0;
+    in-out property <int> card: 0;
+    // The card whose drawer is open, "" when none; `sheet` keeps the last
+    // one so the drawer keeps its content while it closes.
+    in-out property <string> drawer;
+    property <string> sheet;
+    property <bool> open: root.drawer != "";
     property <bool> active: fs.has-focus;
+    property <string> focused-key: root.key(root.shelf, root.card);
+
+    in-out property <int> fan-col: 0;
+    in-out property <int> controller-col: 0;
+    in-out property <int> charge-col: 2;
+    in-out property <int> refresh-col: 0;
     property <[string]> fan-presets: ["", "balanced", "max-cooling"];
     property <int> fan-index: !App.status.connected ? -1 : App.status.fan-preset == "" ? 0 : App.status.fan-preset == "balanced" ? 1 : App.status.fan-preset == "max-cooling" ? 2 : -1;
     property <[string]> controllers: ["gamepad", "wasd", "mouse"];
@@ -81,80 +128,366 @@ export component HardwarePage inherits Rectangle {
     property <int> fps-index: App.status.fps-limit <= 0 ? 0 : App.status.fps-limit <= 30 ? 1 : App.status.fps-limit <= 40 ? 2 : App.status.fps-limit <= 45 ? 3 : App.status.fps-limit <= 60 ? 4 : App.status.fps-limit <= 90 ? 5 : 6;
     property <[int]> charge-stops: [60, 80, 100];
     property <int> charge-index: App.status.charge-limit == 60 ? 0 : App.status.charge-limit == 80 ? 1 : App.status.charge-limit == 100 ? 2 : -1;
-    property <int> refresh-index: root.index-of-refresh(App.refresh-hz);
-    property <int> gyro-row: App.refresh-rates.length > 0 ? 5 : 4;
-    property <int> rows: root.gyro-row + 1;
-    // On the last row: 0 gyro aiming, 1 back buttons and lighting.
-    in-out property <int> more-col: 0;
 
-    pure function index-of-refresh(hz: int) -> int {
-        // Past the end, an array reads as 0.
-        hz <= 0 ? -1 : hz == App.refresh-rates[0] ? 0 : hz == App.refresh-rates[1] ? 1 : hz == App.refresh-rates[2] ? 2 : hz == App.refresh-rates[3] ? 3 : hz == App.refresh-rates[4] ? 4 : hz == App.refresh-rates[5] ? 5 : -1
+    // Back buttons: the paddle whose target the grid sets, 0 M1, 1 M2.
+    in-out property <int> paddle: 0;
+    // In the order of ButtonTarget::ALL (canape-core): StatusView.m1 and
+    // m2 index it, and so does set-back-button.
+    property <[string]> target-names: [
+        @tr("Default"),
+        @tr("Disabled"),
+        "A",
+        "B",
+        "X",
+        "Y",
+        "LB",
+        "RB",
+        "LT",
+        "RT",
+        @tr("Left stick click"),
+        @tr("Right stick click"),
+        @tr("D-pad up"),
+        @tr("D-pad down"),
+        @tr("D-pad left"),
+        @tr("D-pad right"),
+        "View",
+        "Menu",
+        "Xbox",
+        @tr("Esc key"),
+        @tr("Enter key"),
+        @tr("Space bar"),
+        @tr("Tab key"),
+        @tr("Backspace key"),
+        @tr("Up arrow"),
+        @tr("Down arrow"),
+        @tr("Left arrow"),
+        @tr("Right arrow"),
+        @tr("Page up"),
+        @tr("Page down"),
+        @tr("Shift key"),
+        @tr("Ctrl key"),
+        @tr("Windows key"),
+        "F11",
+        "F12",
+        @tr("Left click"),
+        @tr("Right click"),
+        @tr("Middle click"),
+        @tr("Scroll up"),
+        @tr("Scroll down"),
+        @tr("Volume up"),
+        @tr("Volume down"),
+        @tr("Mute the microphone"),
+        @tr("Touch keyboard"),
+    ];
+
+    // Lighting: lines 0 brightness, 1 effect, 2 speed, 3 colour.
+    in-out property <int> light-row: 0;
+    // Ring colours: "" follows the accent, then white and the accent
+    // presets of the settings page.
+    property <[{ hex: string, color: color }]> colors: [
+        { hex: "", color: Theme.accent },
+        { hex: "#ffffff", color: #ffffff },
+        { hex: "#ff3d5e", color: #ff3d5e },
+        { hex: "#f97316", color: #f97316 },
+        { hex: "#eab308", color: #eab308 },
+        { hex: "#10b981", color: #10b981 },
+        { hex: "#06b6d4", color: #06b6d4 },
+        { hex: "#3b82f6", color: #3b82f6 },
+        { hex: "#8b5cf6", color: #8b5cf6 },
+        { hex: "#ec4899", color: #ec4899 },
+    ];
+    // Brightness: 0 left to the controller, then off, low, medium, high
+    // (levels 0 to 3).
+    property <[string]> levels: [@tr("Default"), @tr("Off"), @tr("Low"), @tr("Medium"), @tr("High")];
+    in-out property <int> level-pick: App.status.lighting-level + 1;
+    property <int> level-status: App.status.lighting-level + 1;
+    changed level-status => {
+        root.level-pick = root.level-status;
     }
-    function side(d: int) {
-        if root.focus-row == 0 {
-            root.fan-col = clamp(root.fan-col + d, 0, 2);
-        } else if root.focus-row == 1 {
-            App.set-fps-limit(root.fps-stops[clamp(root.fps-index + d, 0, 6)]);
-        } else if root.focus-row == 2 {
-            root.controller-col = clamp(root.controller-col + d, 0, 2);
-        } else if root.focus-row == 3 {
-            root.charge-col = clamp(root.charge-col + d, 0, 2);
-        } else if root.focus-row == root.gyro-row {
-            root.more-col = clamp(root.more-col + d, 0, 1);
-        } else {
-            root.refresh-col = clamp(root.refresh-col + d, 0, App.refresh-rates.length - 1);
-        }
+    // Effects, in the order of LightingEffect::ALL (canape-core), and
+    // speeds, in the order of LightingSpeed::ALL.
+    property <[string]> effect-names: [@tr("Steady"), @tr("Breathing"), @tr("Colour cycle"), @tr("Rainbow"), @tr("Strobe")];
+    property <[string]> speed-names: [@tr("Slow"), @tr("Medium"), @tr("Fast")];
+    in-out property <int> effect-pick: App.status.lighting-effect;
+    in-out property <int> speed-pick: App.status.lighting-speed;
+    property <int> effect-status: App.status.lighting-effect;
+    property <int> speed-status: App.status.lighting-speed;
+    changed effect-status => {
+        root.effect-pick = root.effect-status;
+    }
+    changed speed-status => {
+        root.speed-pick = root.speed-status;
+    }
+    // What the applied effect uses: a speed (all but steady), the colour
+    // (steady, breathing, strobe).
+    property <bool> effect-moves: root.effect-status != 0;
+    property <bool> effect-colored: root.effect-status == 0 || root.effect-status == 1 || root.effect-status == 4;
+    in-out property <int> color-col: 0;
+
+    // Gyro aiming: lines 0 activation, 1 sensitivity, 2 sideways axis,
+    // 3 vertical inversion.
+    in-out property <int> gyro-row: 0;
+    property <[string]> activations: ["off", "hold", "toggle", "always"];
+    property <int> activation-index: App.status.gyro-activation == "hold" ? 1 : App.status.gyro-activation == "toggle" ? 2 : App.status.gyro-activation == "always" ? 3 : 0;
+
+    property <bool> can-save: App.status.connected && App.status.foreground != "";
+    property <bool> tiles: root.drawer == "fans" || root.drawer == "controller" || root.drawer == "screen" || root.drawer == "charge";
+    property <HintSet> hints: !root.open ? {
+        move-glyph: "dpad",
+        move: @tr("Shelves"),
+        a: root.usable(root.focused-key) ? @tr("Adjust") : "",
+        x: root.can-save ? @tr("Save for this game") : "",
+        b: @tr("Back"),
+    } : root.tiles ? {
+        move-glyph: "leftright",
+        move: @tr("Choose"),
+        a: @tr("Apply"),
+        x: root.can-save ? @tr("Save for this game") : "",
+        b: @tr("Close"),
+    } : root.drawer == "back" ? {
+        move-glyph: "dpad",
+        move: @tr("Choose"),
+        a: @tr("Apply"),
+        y: "M1 / M2",
+        x: App.status.m1 != 0 || App.status.m2 != 0 ? @tr("Restore the default buttons") : "",
+        b: @tr("Close"),
+    } : root.drawer == "lighting" ? {
+        move-glyph: "updown",
+        move: @tr("Setting"),
+        move2-glyph: "leftright",
+        move2: @tr("Value"),
+        a: root.light-pending() || root.light-row == 3 ? @tr("Apply") : "",
+        b: @tr("Close"),
+    } : root.drawer == "gyro" ? {
+        move-glyph: "updown",
+        move: @tr("Setting"),
+        move2-glyph: "leftright",
+        move2: @tr("Value"),
+        a: root.gyro-row >= 2 ? @tr("Choose") : "",
+        x: root.can-save ? @tr("Save for this game") : "",
+        b: @tr("Close"),
+    } : {
+        move-glyph: "leftright",
+        move: @tr("Value"),
+        x: root.can-save ? @tr("Save for this game") : "",
+        b: @tr("Close"),
+    };
+    init => {
+        PageHints.current = self.hints;
+    }
+    changed hints => {
+        PageHints.current = self.hints;
+    }
+
+    pure function key(s: int, c: int) -> string {
+        s == 0 ? ["fans", "fps"][c] : s == 1 ? ["controller", "back", "lighting", "gyro"][c] : ["screen", "charge"][c]
+    }
+    pure function cards(s: int) -> int {
+        s == 1 ? 4 : 2
+    }
+    // Only the screen works without the service.
+    pure function usable(k: string) -> bool {
+        k == "screen" ? App.refresh-rates.length > 0 : App.status.connected
+    }
+    pure function light-pending() -> bool {
+        (root.light-row == 0 && root.level-pick != root.level-status) || (root.light-row == 1 && root.effect-pick != root.effect-status) || (root.light-row == 2 && root.speed-pick != root.speed-status)
     }
     function activate() {
-        if root.focus-row == 0 {
+        if !root.usable(root.focused-key) {
+            return;
+        }
+        root.fan-col = max(0, root.fan-index);
+        root.controller-col = max(0, root.controller-index);
+        root.charge-col = root.charge-index >= 0 ? root.charge-index : 2;
+        root.refresh-col = max(0, Refresh.index(App.refresh-hz));
+        root.paddle = 0;
+        grid.current = App.status.m1;
+        root.light-go(0);
+        root.gyro-row = 0;
+        root.sheet = root.focused-key;
+        root.drawer = root.focused-key;
+    }
+    function apply() {
+        if root.drawer == "fans" {
             App.set-fan-preset(root.fan-presets[root.fan-col]);
-        } else if root.focus-row == 2 {
+        } else if root.drawer == "controller" {
             App.set-controller(root.controllers[root.controller-col]);
-        } else if root.focus-row == root.gyro-row {
-            if root.more-col == 0 {
-                root.open-gyro();
-            } else {
-                root.open-controller();
-            }
-        } else if root.focus-row == 3 {
+        } else if root.drawer == "charge" {
             App.set-charge-limit(root.charge-stops[root.charge-col]);
-        } else if root.focus-row == 4 {
+        } else if root.drawer == "screen" {
             App.set-refresh(App.refresh-rates[root.refresh-col]);
+        } else if root.drawer == "back" {
+            App.set-back-button(root.paddle == 0 ? "m1" : "m2", grid.current);
+        } else if root.drawer == "lighting" {
+            root.light-apply();
+        } else if root.drawer == "gyro" {
+            if root.gyro-row >= 2 {
+                root.gyro-side(1);
+            }
+        } else {
+            root.drawer = "";
         }
     }
+    // Left (-1) or right (1) in the open drawer.
+    function side(d: int) {
+        if root.drawer == "fans" {
+            root.fan-col = clamp(root.fan-col + d, 0, 2);
+        } else if root.drawer == "fps" {
+            App.set-fps-limit(root.fps-stops[clamp(root.fps-index + d, 0, 6)]);
+        } else if root.drawer == "controller" {
+            root.controller-col = clamp(root.controller-col + d, 0, 2);
+        } else if root.drawer == "charge" {
+            root.charge-col = clamp(root.charge-col + d, 0, 2);
+        } else if root.drawer == "screen" {
+            root.refresh-col = clamp(root.refresh-col + d, 0, App.refresh-rates.length - 1);
+        } else if root.drawer == "back" {
+            grid.move(d, 0);
+        } else if root.drawer == "lighting" {
+            root.light-step(root.light-row, d);
+        } else if root.drawer == "gyro" {
+            root.gyro-side(d);
+        }
+    }
+    // Up (-1) or down (1) in the open drawer.
+    function vertical(d: int) {
+        if root.drawer == "back" {
+            grid.move(0, d);
+        } else if root.drawer == "lighting" {
+            root.light-go(root.light-next(d));
+        } else if root.drawer == "gyro" {
+            root.gyro-row = clamp(root.gyro-row + d, 0, 3);
+        }
+    }
+    function switch-paddle() {
+        root.paddle = 1 - root.paddle;
+        grid.current = root.paddle == 0 ? App.status.m1 : App.status.m2;
+    }
+
+    function light-step(row: int, d: int) {
+        if row == 0 {
+            root.level-pick = clamp(root.level-pick + d, 0, root.levels.length - 1);
+        } else if row == 1 {
+            root.effect-pick = clamp(root.effect-pick + d, 0, root.effect-names.length - 1);
+        } else if row == 2 && root.effect-moves {
+            root.speed-pick = clamp(root.speed-pick + d, 0, root.speed-names.length - 1);
+        } else if row == 3 && root.effect-colored {
+            root.color-col = clamp(root.color-col + d, 0, root.colors.length - 1);
+        }
+    }
+    // The level a colour, effect or speed lights the rings at: the one
+    // shown, high when they are off or left to the controller.
+    function lit-level() -> int {
+        root.level-pick >= 2 ? root.level-pick - 1 : 3
+    }
+    function light(color: string, effect: int, speed: int) {
+        let level = root.lit-level();
+        root.level-pick = level + 1;
+        App.set-lighting(level, color, effect, speed);
+    }
+    function pick-color(i: int) {
+        root.light(root.colors[i].hex, root.effect-status, root.speed-status);
+    }
+    function light-enabled(r: int) -> bool {
+        (r != 2 || root.effect-moves) && (r != 3 || root.effect-colored)
+    }
+    // The next line up (-1) or down (1) that applies.
+    function light-next(d: int) -> int {
+        let one = root.light-row + d;
+        let two = root.light-enabled(one) ? one : one + d;
+        let three = root.light-enabled(two) ? two : two + d;
+        (three >= 0 && three <= 3) ? three : root.light-row
+    }
+    // Moves to line `r`, dropping the choices not applied.
+    function light-go(r: int) {
+        if r != root.light-row {
+            root.level-pick = root.level-status;
+            root.effect-pick = root.effect-status;
+            root.speed-pick = root.speed-status;
+        }
+        root.light-row = r;
+    }
+    function light-apply() {
+        if root.light-row == 0 && root.level-pick != root.level-status {
+            App.set-lighting(root.level-pick - 1, App.status.lighting-color, root.effect-status, root.speed-status);
+        } else if root.light-row == 1 && root.effect-pick != root.effect-status {
+            root.light(App.status.lighting-color, root.effect-pick, root.speed-status);
+        } else if root.light-row == 2 && root.speed-pick != root.speed-status {
+            root.light(App.status.lighting-color, root.effect-status, root.speed-pick);
+        } else if root.light-row == 3 && root.effect-colored {
+            root.pick-color(root.color-col);
+        }
+    }
+    // A tap on the focused line applies its choice, like A.
+    function light-tap(r: int) {
+        if root.light-row == r && root.active {
+            root.light-apply();
+        }
+        root.light-go(r);
+    }
+
+    function gyro-side(d: int) {
+        if root.gyro-row == 0 {
+            App.set-gyro-activation(root.activations[Math.mod(root.activation-index + d + 4, 4)]);
+        } else if root.gyro-row == 1 {
+            App.change-gyro-sensitivity(d);
+        } else if root.gyro-row == 2 {
+            App.toggle-gyro-roll();
+        } else {
+            App.toggle-gyro-invert();
+        }
+    }
+
+    // A taller drawer lifts the shelves so the card stays in view.
+    property <length> sheet-height: root.sheet == "fans" ? 226px : root.sheet == "fps" ? 200px : root.sheet == "back" ? 252px : root.sheet == "lighting" ? 254px : root.sheet == "gyro" ? 300px : 186px;
+    property <length> lift: root.open ? max(0px, 420px - (root.height - root.sheet-height)) : 0px;
 
     fs := FocusScope {
         init => {
             self.focus();
         }
         key-pressed(event) => {
-            if event.text == Key.UpArrow {
-                root.focus-row = max(0, root.focus-row - 1);
+            if root.open {
+                if event.text == Key.Escape {
+                    root.light-go(0);
+                    root.drawer = "";
+                    return accept;
+                }
+                // Without the service only the screen's drawer stays.
+                if !App.status.connected && root.drawer != "screen" {
+                    root.drawer = "";
+                    return accept;
+                }
+                if event.text == Key.LeftArrow || event.text == Key.RightArrow {
+                    root.side(event.text == Key.LeftArrow ? -1 : 1);
+                } else if event.text == Key.UpArrow || event.text == Key.DownArrow {
+                    root.vertical(event.text == Key.UpArrow ? -1 : 1);
+                } else if event.text == Key.Return || event.text == " " {
+                    root.apply();
+                } else if (event.text == Key.F3 || event.text == "y") && root.drawer == "back" {
+                    root.switch-paddle();
+                } else if (event.text == Key.F2 || event.text == "x") && root.drawer == "back" {
+                    App.reset-back-buttons();
+                } else if (event.text == Key.F2 || event.text == "x") && root.can-save && root.drawer != "lighting" {
+                    App.save-hardware-profile();
+                }
                 return accept;
             }
-            if event.text == Key.DownArrow {
-                root.focus-row = min(root.rows - 1, root.focus-row + 1);
+            if event.text == Key.UpArrow || event.text == Key.DownArrow {
+                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 2);
+                root.card = min(root.card, root.cards(root.shelf) - 1);
                 return accept;
             }
-            // Only the screen works without the service.
-            if !App.status.connected && (root.focus-row != 4 || root.gyro-row == 4) {
-                return reject;
-            }
-            if event.text == Key.LeftArrow {
-                root.side(-1);
-                return accept;
-            }
-            if event.text == Key.RightArrow {
-                root.side(1);
+            if event.text == Key.LeftArrow || event.text == Key.RightArrow {
+                root.card = clamp(root.card + (event.text == Key.LeftArrow ? -1 : 1), 0, root.cards(root.shelf) - 1);
                 return accept;
             }
             if event.text == Key.Return || event.text == " " {
                 root.activate();
                 return accept;
             }
-            // X: keep the fans and the frame rate cap for this game.
-            if (event.text == Key.F2 || event.text == "x") && App.status.foreground != "" {
+            // X: keep the fans, the frame rate cap, the screen's rate and
+            // gyro aiming for this game.
+            if (event.text == Key.F2 || event.text == "x") && root.can-save {
                 App.save-hardware-profile();
                 return accept;
             }
@@ -162,274 +495,464 @@ export component HardwarePage inherits Rectangle {
         }
     }
 
+    HeroLine {
+        x: 48px;
+        y: 36px;
+        width: parent.width - 96px;
+        title: App.status.game;
+        detail: !App.status.connected ? @tr("Service not connected") : App.status.game == "" ? @tr("General settings") : App.status.active-profile != "" ? "· " + @tr("game profile") : "";
+    }
+
     HorizontalLayout {
-        width: parent.width;
-        height: parent.height;
-        spacing: 40px;
+        x: 48px;
+        y: 68px;
+        width: parent.width - 96px;
+        height: 96px;
+        spacing: 56px;
+        HeroFigure {
+            value: App.known(App.status.cpu-rpm, App.status.cpu-rpm);
+            unit: @tr("rpm");
+            note: App.known(App.status.gpu-rpm, @tr("GPU {}", @tr("{} rpm", App.status.gpu-rpm)));
+        }
+
+        HeroFigure {
+            value: App.known(App.status.temp, App.status.temp);
+            unit: "°C";
+            note: App.status.temp-limit > 0 ? @tr("limit {}", App.celsius(App.status.temp-limit)) : "CPU";
+        }
+
+        Rectangle {
+            horizontal-stretch: 1;
+        }
 
         VerticalLayout {
-            width: 784px;
-            spacing: 10px;
+            alignment: end;
+            padding-bottom: 6px;
+            Curve {
+                width: 420px;
+                height: 84px;
+                line: App.status.fan-line;
+                area: App.status.fan-area;
+                temp: App.status.connected ? App.status.temp : -1;
+            }
+        }
+    }
 
-            Row {
-                focused: root.active && root.focus-row == 0;
-                enabled: App.status.connected;
-                VerticalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-top: 14px;
-                    padding-bottom: 14px;
-                    spacing: 12px;
-                    HorizontalLayout {
-                        SectionTitle {
-                            text: @tr("Fans");
-                        }
+    ShelfPane {
+        x: 0;
+        y: 256px - root.lift;
+        animate y { duration: 200ms; easing: cubic-bezier(0.16, 1, 0.3, 1); }
+        width: parent.width;
+        height: 330px;
+        front: root.shelf;
 
-                        Text {
-                            horizontal-stretch: 1;
-                            text: App.status.fan-preset == "custom" ? @tr("Custom curves set by another client.") : App.status.foreground != "" ? @tr("{} · game profile", App.status.foreground) : "";
-                            color: Theme.dim;
-                            font-size: 13px;
-                            horizontal-alignment: right;
-                            // Top, like the title: the row may be taller than both.
-                            vertical-alignment: top;
-                            overflow: elide;
-                        }
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 0;
+            front: root.shelf;
+            icon: "cool";
+            title: @tr("Cooling");
+            ShelfCard {
+                label: @tr("Fans");
+                icon: "fan";
+                value: root.fan-index == 0 ? @tr("Automatic") : root.fan-index == 1 ? @tr("Balanced") : root.fan-index == 2 ? @tr("Maximum") : App.status.connected ? @tr("Custom") : "—";
+                enabled: root.usable("fans");
+                focused: root.active && root.shelf == 0 && root.card == 0;
+                clicked => {
+                    root.shelf = 0;
+                    root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Frame rate limit");
+                icon: "gauge";
+                value: !App.status.connected ? "—" : App.status.fps-limit == 0 ? @tr("None") : App.fps-value(App.status.fps-limit);
+                enabled: root.usable("fps");
+                focused: root.active && root.shelf == 0 && root.card == 1;
+                clicked => {
+                    root.shelf = 0;
+                    root.card = 1;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 1;
+            front: root.shelf;
+            icon: "gamepad";
+            title: @tr("Controller");
+            ShelfCard {
+                label: @tr("Mode");
+                icon: "gamepad";
+                value: root.controller-index == 0 ? @tr("Gamepad") : root.controller-index == 1 ? @tr("Keyboard") : root.controller-index == 2 ? @tr("Mouse") : "—";
+                enabled: root.usable("controller");
+                focused: root.active && root.shelf == 1 && root.card == 0;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Back buttons");
+                icon: "paddle";
+                value: !App.status.connected ? "—" : App.status.m1 == 0 && App.status.m2 == 0 ? @tr("Default") : "M1 " + root.target-names[App.status.m1] + " · M2 " + root.target-names[App.status.m2];
+                enabled: root.usable("back");
+                focused: root.active && root.shelf == 1 && root.card == 1;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 1;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Stick lighting");
+                icon: "light";
+                value: !App.status.connected ? "—" : App.status.lighting-level < 0 ? @tr("Default") : App.status.lighting-level == 0 ? @tr("Off") : root.effect-names[App.status.lighting-effect];
+                enabled: root.usable("lighting");
+                focused: root.active && root.shelf == 1 && root.card == 2;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 2;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Gyro aiming");
+                icon: "gyro";
+                value: !App.status.connected ? "—" : root.activation-index == 1 ? @tr("Paddle held") : root.activation-index == 2 ? @tr("Paddle toggles") : App.gyro-name(App.status.gyro-activation);
+                enabled: root.usable("gyro");
+                focused: root.active && root.shelf == 1 && root.card == 3;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 3;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 2;
+            front: root.shelf;
+            icon: "battery";
+            title: @tr("Screen and battery");
+            ShelfCard {
+                label: @tr("Screen");
+                icon: "screen";
+                value: App.refresh-hz > 0 ? @tr("{} Hz", App.refresh-hz) : "—";
+                enabled: root.usable("screen");
+                focused: root.active && root.shelf == 2 && root.card == 0;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Charge limit");
+                icon: "battery";
+                value: App.status.connected && App.status.charge-limit > 0 ? App.percent(App.status.charge-limit) : "—";
+                enabled: root.usable("charge");
+                focused: root.active && root.shelf == 2 && root.card == 1;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 1;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+    }
+
+    Drawer {
+        width: parent.width;
+        page-height: parent.height;
+        open: root.open;
+        sheet-height: root.sheet-height;
+        title: root.sheet == "fans" ? @tr("Fans") : root.sheet == "fps" ? @tr("Frame rate limit") : root.sheet == "controller" ? @tr("Controller") : root.sheet == "back" ? (root.paddle == 0 ? @tr("M1, right") : @tr("M2, left")) : root.sheet == "lighting" ? @tr("Stick lighting") : root.sheet == "gyro" ? @tr("Gyro aiming") : root.sheet == "screen" ? @tr("Screen") : @tr("Charge limit");
+        note: root.sheet == "fans" ? (App.status.fan-preset == "custom" ? @tr("Custom curves set by another client.") : App.status.foreground != "" ? @tr("{} · game profile", App.status.foreground) : "")
+            : root.sheet == "back" ? root.target-names[grid.current]
+            : root.sheet == "lighting" ? (root.light-row == 3 && root.color-col == 0 ? @tr("Follows the accent colour") : "")
+            : root.sheet == "gyro" ? (App.status.active-profile != "" ? @tr("{} · game profile", App.status.foreground) + " · " : "") + @tr("Moves the mouse while a game is in front. Games that only read the gamepad ignore it.")
+            : "";
+
+        if root.sheet == "fans": HorizontalLayout {
+            spacing: 12px;
+            for icon[i] in ["cycle", "balanced", "wind"]: IconTile {
+                horizontal-stretch: 1;
+                preferred-width: 10px;
+                icon: icon;
+                label: i == 0 ? @tr("Automatic") : i == 1 ? @tr("Balanced") : @tr("Maximum");
+                selected: root.fan-index == i;
+                focused: root.active && root.fan-col == i;
+                clicked => {
+                    root.fan-col = i;
+                    root.apply();
+                    fs.focus();
+                }
+            }
+        }
+
+        if root.sheet == "fps": Ruler {
+            y: 4px;
+            labels: [@tr("None"), App.fps-value(30), App.fps-value(40), App.fps-value(45), App.fps-value(60), App.fps-value(90), App.fps-value(120)];
+            selected: App.status.connected ? root.fps-index : -1;
+            fill: false;
+            pick(i) => {
+                App.set-fps-limit(root.fps-stops[i]);
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "controller": HorizontalLayout {
+            spacing: 12px;
+            alignment: start;
+            for i in 3: ChoiceTile {
+                width: 220px;
+                label: i == 0 ? @tr("Gamepad") : i == 1 ? @tr("Keyboard") : @tr("Mouse");
+                selected: root.controller-index == i;
+                focused: root.active && root.controller-col == i;
+                clicked => {
+                    root.controller-col = i;
+                    root.apply();
+                    fs.focus();
+                }
+            }
+        }
+
+        if root.sheet == "charge": HorizontalLayout {
+            spacing: 12px;
+            alignment: start;
+            for percent[i] in root.charge-stops: ChoiceTile {
+                width: 180px;
+                label: App.percent(percent);
+                selected: App.status.connected && root.charge-index == i;
+                focused: root.active && root.charge-col == i;
+                clicked => {
+                    root.charge-col = i;
+                    root.apply();
+                    fs.focus();
+                }
+            }
+        }
+
+        if root.sheet == "screen": RefreshTiles {
+            height: 56px;
+            focus-col: root.active ? root.refresh-col : -1;
+            pick(i) => {
+                root.refresh-col = i;
+                root.apply();
+                fs.focus();
+            }
+        }
+
+        grid := TargetGrid {
+            visible: root.sheet == "back";
+            own-key: root.paddle == 0 ? "M1" : "M2";
+            applied: root.paddle == 0 ? App.status.m1 : App.status.m2;
+            active: root.active;
+            pick(i) => {
+                root.apply();
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "lighting": HorizontalLayout {
+            spacing: 40px;
+            VerticalLayout {
+                width: 520px;
+                spacing: 4px;
+                alignment: start;
+                SettingLine {
+                    height: 42px;
+                    label: @tr("Brightness");
+                    value: root.levels[root.level-pick];
+                    pending: root.level-pick != root.level-status;
+                    focused: root.active && root.light-row == 0;
+                    clicked => {
+                        root.light-tap(0);
+                        fs.focus();
                     }
+                    step(d) => {
+                        root.light-go(0);
+                        root.light-step(0, d);
+                        fs.focus();
+                    }
+                }
 
+                SettingLine {
+                    height: 42px;
+                    label: @tr("Effect");
+                    value: root.effect-names[root.effect-pick];
+                    pending: root.effect-pick != root.effect-status;
+                    focused: root.active && root.light-row == 1;
+                    clicked => {
+                        root.light-tap(1);
+                        fs.focus();
+                    }
+                    step(d) => {
+                        root.light-go(1);
+                        root.light-step(1, d);
+                        fs.focus();
+                    }
+                }
+
+                SettingLine {
+                    height: 42px;
+                    label: @tr("Speed");
+                    value: root.speed-names[root.speed-pick];
+                    pending: root.speed-pick != root.speed-status;
+                    enabled: root.effect-moves;
+                    focused: root.active && root.light-row == 2;
+                    clicked => {
+                        if root.effect-moves {
+                            root.light-tap(2);
+                        }
+                        fs.focus();
+                    }
+                    step(d) => {
+                        if root.effect-moves {
+                            root.light-go(2);
+                            root.light-step(2, d);
+                        }
+                        fs.focus();
+                    }
+                }
+            }
+
+            VerticalLayout {
+                alignment: start;
+                Rectangle {
+                    height: 56px;
+                    border-radius: 10px;
+                    background: root.active && root.light-row == 3 ? Theme.surface-high : transparent;
+                    opacity: root.effect-colored ? 1 : 0.4;
                     HorizontalLayout {
-                        spacing: 12px;
-                        for icon[i] in ["cycle", "balanced", "wind"]: IconTile {
-                            horizontal-stretch: 1;
-                            preferred-width: 10px;
-                            icon: icon;
-                            label: i == 0 ? @tr("Automatic") : i == 1 ? @tr("Balanced") : @tr("Maximum");
-                            selected: root.fan-index == i;
-                            focused: root.active && root.focus-row == 0 && root.fan-col == i;
-                            clicked => {
-                                root.focus-row = 0;
-                                root.fan-col = i;
-                                root.activate();
-                                fs.focus();
+                        padding-left: 8px;
+                        padding-right: 8px;
+                        spacing: 10px;
+                        alignment: start;
+                        for c[i] in root.colors: VerticalLayout {
+                            alignment: center;
+                            if i == 0: AccentSwatch {
+                                selected: App.status.lighting-level > 0 && App.status.lighting-color == "";
+                                focused: root.active && root.light-row == 3 && root.color-col == 0;
+                                clicked => {
+                                    if root.effect-colored {
+                                        root.light-go(3);
+                                        root.color-col = 0;
+                                        root.pick-color(0);
+                                    }
+                                    fs.focus();
+                                }
+                            }
+                            if i > 0: Swatch {
+                                swatch: c.color;
+                                selected: App.status.lighting-level > 0 && App.status.lighting-color == c.hex;
+                                focused: root.active && root.light-row == 3 && root.color-col == i;
+                                clicked => {
+                                    if root.effect-colored {
+                                        root.light-go(3);
+                                        root.color-col = i;
+                                        root.pick-color(i);
+                                    }
+                                    fs.focus();
+                                }
                             }
                         }
                     }
                 }
             }
-
-            Row {
-                focused: root.active && root.focus-row == 1;
-                enabled: App.status.connected;
-                VerticalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-top: 14px;
-                    padding-bottom: 14px;
-                    spacing: 12px;
-                    SectionTitle {
-                        text: @tr("Frame rate limit");
-                    }
-
-                    Ruler {
-                        labels: [@tr("None"), App.fps-value(30), App.fps-value(40), App.fps-value(45), App.fps-value(60), App.fps-value(90), App.fps-value(120)];
-                        selected: App.status.connected ? root.fps-index : -1;
-                        fill: false;
-                        pick(i) => {
-                            root.focus-row = 1;
-                            App.set-fps-limit(root.fps-stops[i]);
-                            fs.focus();
-                        }
-                    }
-                }
-            }
-
-            // Compact rows: a label and tiles on one line.
-            Row {
-                focused: root.active && root.focus-row == 2;
-                enabled: App.status.connected;
-                HorizontalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-top: 8px;
-                    padding-bottom: 8px;
-                    spacing: 12px;
-                    SectionTitle {
-                        width: 150px;
-                        text: @tr("Controller");
-                        vertical-alignment: center;
-                    }
-
-                    for i in 3: ChoiceTile {
-                        horizontal-stretch: 1;
-                        preferred-width: 10px;
-                        height: 44px;
-                        label: i == 0 ? @tr("Gamepad") : i == 1 ? @tr("Keyboard") : @tr("Mouse");
-                        selected: root.controller-index == i;
-                        focused: root.active && root.focus-row == 2 && root.controller-col == i;
-                        clicked => {
-                            root.focus-row = 2;
-                            root.controller-col = i;
-                            root.activate();
-                            fs.focus();
-                        }
-                    }
-                }
-            }
-
-            Row {
-                focused: root.active && root.focus-row == 3;
-                enabled: App.status.connected;
-                HorizontalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-top: 8px;
-                    padding-bottom: 8px;
-                    spacing: 12px;
-                    SectionTitle {
-                        width: 150px;
-                        text: @tr("Charge limit");
-                        vertical-alignment: center;
-                    }
-
-                    for percent[i] in root.charge-stops: ChoiceTile {
-                        horizontal-stretch: 1;
-                        preferred-width: 10px;
-                        height: 44px;
-                        label: App.percent(percent);
-                        selected: App.status.connected && root.charge-index == i;
-                        focused: root.active && root.focus-row == 3 && root.charge-col == i;
-                        clicked => {
-                            root.focus-row = 3;
-                            root.charge-col = i;
-                            root.activate();
-                            fs.focus();
-                        }
-                    }
-                }
-            }
-
-            if App.refresh-rates.length > 0: Row {
-                focused: root.active && root.focus-row == 4;
-                HorizontalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-top: 8px;
-                    padding-bottom: 8px;
-                    spacing: 12px;
-                    SectionTitle {
-                        width: 150px;
-                        text: @tr("Screen");
-                        vertical-alignment: center;
-                    }
-
-                    for hz[i] in App.refresh-rates: ChoiceTile {
-                        horizontal-stretch: 1;
-                        preferred-width: 10px;
-                        height: 44px;
-                        label: @tr("{} Hz", hz);
-                        selected: App.refresh-hz == hz;
-                        focused: root.active && root.focus-row == 4 && root.refresh-col == i;
-                        clicked => {
-                            root.focus-row = 4;
-                            root.refresh-col = i;
-                            root.activate();
-                            fs.focus();
-                        }
-                    }
-                }
-            }
-
-            // The last row: two lines that open sub-pages.
-            HorizontalLayout {
-                spacing: 10px;
-                SettingLine {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    label: @tr("Gyro aiming");
-                    value: App.gyro-name(App.status.gyro-activation) + " ›";
-                    chevrons: false;
-                    enabled: App.status.connected;
-                    focused: root.active && root.focus-row == root.gyro-row && root.more-col == 0;
-                    clicked => {
-                        root.focus-row = root.gyro-row;
-                        root.more-col = 0;
-                        root.activate();
-                    }
-                }
-
-                SettingLine {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    label: @tr("Back buttons and lighting");
-                    value: "›";
-                    chevrons: false;
-                    enabled: App.status.connected;
-                    focused: root.active && root.focus-row == root.gyro-row && root.more-col == 1;
-                    clicked => {
-                        root.focus-row = root.gyro-row;
-                        root.more-col = 1;
-                        root.activate();
-                    }
-                }
-            }
-
-            Rectangle {
-                vertical-stretch: 1;
-            }
         }
 
-        VerticalLayout {
-            padding-top: 12px;
-            spacing: 26px;
-            HorizontalLayout {
-                spacing: 20px;
-                Figure {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    label: @tr("CPU fan");
-                    value: App.known(App.status.cpu-rpm, App.status.cpu-rpm);
-                    unit: @tr("rpm");
-                    note: App.known(App.status.gpu-rpm, @tr("GPU {}", @tr("{} rpm", App.status.gpu-rpm)));
+        if root.sheet == "gyro": VerticalLayout {
+            x: 0;
+            width: 720px;
+            spacing: 2px;
+            alignment: start;
+            SettingLine {
+                height: 44px;
+                label: @tr("Active");
+                value: App.gyro-name(App.status.gyro-activation);
+                focused: root.active && root.gyro-row == 0;
+                clicked => {
+                    root.gyro-row = 0;
+                    fs.focus();
                 }
-
-                Figure {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    label: @tr("CPU temperature");
-                    value: App.known(App.status.temp, App.status.temp);
-                    unit: "°C";
-                    note: App.status.temp-limit > 0 ? @tr("limit {}", App.celsius(App.status.temp-limit)) : " ";
+                step(d) => {
+                    root.gyro-row = 0;
+                    root.gyro-side(d);
+                    fs.focus();
                 }
             }
 
-            VerticalLayout {
-                spacing: 10px;
-                Curve {
-                    height: 140px;
-                    line: App.status.fan-line;
-                    area: App.status.fan-area;
+            SettingLine {
+                height: 44px;
+                label: @tr("Sensitivity");
+                value: App.status.gyro-sensitivity;
+                focused: root.active && root.gyro-row == 1;
+                clicked => {
+                    root.gyro-row = 1;
+                    fs.focus();
                 }
-
-                HorizontalLayout {
-                    spacing: 18px;
-                    LegendKey {
-                        text: @tr("CPU fan");
-                        ink: Theme.accent;
-                    }
-
-                    Text {
-                        horizontal-stretch: 1;
-                        text: App.celsius(20) + " – " + App.celsius(110);
-                        vertical-alignment: center;
-                        color: Theme.dim;
-                        font-size: 13px;
-                        horizontal-alignment: right;
-                    }
+                step(d) => {
+                    root.gyro-row = 1;
+                    root.gyro-side(d);
+                    fs.focus();
                 }
             }
 
-            Rectangle {
-                vertical-stretch: 1;
+            SettingLine {
+                height: 44px;
+                label: @tr("Left and right");
+                value: App.status.gyro-roll ? @tr("Tilt like a wheel") : @tr("Turn the console");
+                focused: root.active && root.gyro-row == 2;
+                clicked => {
+                    root.gyro-row = 2;
+                    root.gyro-side(1);
+                    fs.focus();
+                }
+                step(d) => {
+                    root.gyro-row = 2;
+                    root.gyro-side(d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                height: 44px;
+                label: @tr("Invert up and down");
+                value: App.status.gyro-invert ? @tr("On") : @tr("Off");
+                focused: root.active && root.gyro-row == 3;
+                clicked => {
+                    root.gyro-row = 3;
+                    root.gyro-side(1);
+                    fs.focus();
+                }
+                step(d) => {
+                    root.gyro-row = 3;
+                    root.gyro-side(d);
+                    fs.focus();
+                }
             }
         }
     }

@@ -48,12 +48,6 @@ msgstr "Otomatik TDP"
 msgid "Thermal limit reached"
 msgstr "Sıcaklık sınırına ulaşıldı"
 
-msgid "Frame rate"
-msgstr "Kare hızı"
-
-msgid "CPU temperature"
-msgstr "CPU sıcaklığı"
-
 msgid "On battery"
 msgstr "Pilde"
 
@@ -156,11 +150,8 @@ msgstr "Otomatik"
 msgid "Language"
 msgstr "Dil"
 
-
 msgid "Service connected"
 msgstr "Hizmet bağlı"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -173,10 +164,6 @@ msgstr "{} °C"
 
 msgid "{} %"
 msgstr "%{}"
-
-msgctxt "decimal separator"
-msgid "."
-msgstr ","
 
 msgid "Silent"
 msgstr "Sessiz"
@@ -192,9 +179,6 @@ msgstr "Vurgu rengi"
 
 msgid "Offline"
 msgstr "Çevrimdışı"
-
-msgid "Power draw"
-msgstr "Güç tüketimi"
 
 msgid "Hue"
 msgstr "Ton"
@@ -249,9 +233,6 @@ msgstr "Donanım"
 msgid "Fans"
 msgstr "Fanlar"
 
-msgid "CPU fan"
-msgstr "CPU fanı"
-
 msgid "{} rpm"
 msgstr "{} dev/dk"
 
@@ -263,7 +244,6 @@ msgstr "Başka bir istemcinin ayarladığı özel eğriler."
 
 msgid "Frame rate limit"
 msgstr "FPS sınırı"
-
 
 msgid "Controller"
 msgstr "Kumanda"
@@ -343,12 +323,6 @@ msgstr "hedef {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 dk"
-
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "Seç"
 
@@ -364,17 +338,11 @@ msgstr "Oyun profilleri"
 msgid "Games"
 msgstr "Oyunlar"
 
-msgid "General"
-msgstr "Genel"
-
 msgid "General settings"
 msgstr "Genel ayarlar"
 
 msgid "Installing…"
 msgstr "Yükleniyor…"
-
-msgid "Limit"
-msgstr "Sınır"
 
 msgid "No Steam API key"
 msgstr "Steam API anahtarı yok"
@@ -613,9 +581,6 @@ msgstr "Çubuk aydınlatması"
 msgid "Follows the accent colour"
 msgstr "Vurgu rengini izler"
 
-msgid "Back buttons and lighting"
-msgstr "Arka düğmeler ve aydınlatma"
-
 msgid "Other games"
 msgstr "Diğer oyunlar"
 
@@ -768,3 +733,83 @@ msgstr "Easy Anti-Cheat yüklenmedi (reddedildi): {} başlamayabilir"
 
 msgid "Easy Anti-Cheat could not be installed: {} may not start"
 msgstr "Easy Anti-Cheat yüklenemedi: {} başlamayabilir"
+
+msgid "Open"
+msgstr "Aç"
+
+msgid "Adjust"
+msgstr "Ayarla"
+
+msgid "Apply"
+msgstr "Uygula"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "Minimum / maximum"
+msgstr "En az / en çok"
+
+msgid "game profile"
+msgstr "oyun profili"
+
+msgid "limit {} · {} learned"
+msgstr "sınır {} · {} öğrenildi"
+
+msgid "Measures and screen"
+msgstr "Ölçümler ve ekran"
+
+msgid "Cooling"
+msgstr "Soğutma"
+
+msgid "Custom"
+msgstr "Özel"
+
+msgid "Paddle held"
+msgstr "Kol basılıyken"
+
+msgid "Paddle toggles"
+msgstr "Kol açar/kapatır"
+
+msgid "Screen and battery"
+msgstr "Ekran ve pil"
+
+msgid "API key"
+msgstr "API anahtarı"
+
+msgid "No API key"
+msgstr "API anahtarı yok"
+
+msgid "not signed in"
+msgstr "oturum açılmadı"
+
+msgid "Appearance"
+msgstr "Görünüm"
+
+msgid "The Ally's buttons"
+msgstr "Ally düğmeleri"
+
+msgid "Library"
+msgstr "Kitaplık"
+
+msgid "Missing covers"
+msgstr "Eksik kapaklar"
+
+msgid "Accounts"
+msgstr "Hesaplar"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Steam Web API anahtarınızı (steamcommunity.com/dev/apikey) shell.json içine steam_api_key olarak ekleyin: Canapé sahip olduğunuz oyunları listeler ve kitaplıktan kurmanızı sağlar."
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Bir Twitch uygulamasının istemci kimliğini ve gizli anahtarını shell.json içine igdb_client_id ve igdb_client_secret olarak ekleyin: oyun sayfaları bitirme süresini gösterir."
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "Oturum açtıktan sonra Canapé, Epic oyunlarını başlatıcısı olmadan kurar."
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "Oturum açtıktan sonra Canapé, GOG oyunlarını GOG Galaxy olmadan kurar."
+
+
+msgctxt "decimal separator"
+msgid "."
+msgstr ","

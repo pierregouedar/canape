@@ -48,12 +48,6 @@ msgstr "자동 TDP"
 msgid "Thermal limit reached"
 msgstr "온도 제한 도달"
 
-msgid "Frame rate"
-msgstr "프레임 속도"
-
-msgid "CPU temperature"
-msgstr "CPU 온도"
-
 msgid "On battery"
 msgstr "배터리 사용 중"
 
@@ -156,11 +150,8 @@ msgstr "자동"
 msgid "Language"
 msgstr "언어"
 
-
 msgid "Service connected"
 msgstr "서비스 연결됨"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -173,10 +164,6 @@ msgstr "{} °C"
 
 msgid "{} %"
 msgstr "{}%"
-
-msgctxt "decimal separator"
-msgid "."
-msgstr "."
 
 msgid "Silent"
 msgstr "저소음"
@@ -192,9 +179,6 @@ msgstr "강조 색상"
 
 msgid "Offline"
 msgstr "오프라인"
-
-msgid "Power draw"
-msgstr "소비 전력"
 
 msgid "Hue"
 msgstr "색상"
@@ -249,9 +233,6 @@ msgstr "하드웨어"
 msgid "Fans"
 msgstr "팬"
 
-msgid "CPU fan"
-msgstr "CPU 팬"
-
 msgid "{} rpm"
 msgstr "{} rpm"
 
@@ -263,7 +244,6 @@ msgstr "다른 클라이언트가 설정한 사용자 곡선입니다."
 
 msgid "Frame rate limit"
 msgstr "프레임 제한"
-
 
 msgid "Controller"
 msgstr "컨트롤러"
@@ -343,12 +323,6 @@ msgstr "목표 {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1분"
-
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "선택"
 
@@ -364,17 +338,11 @@ msgstr "게임 프로필"
 msgid "Games"
 msgstr "게임"
 
-msgid "General"
-msgstr "일반"
-
 msgid "General settings"
 msgstr "전체 설정"
 
 msgid "Installing…"
 msgstr "설치 중…"
-
-msgid "Limit"
-msgstr "제한"
 
 msgid "No Steam API key"
 msgstr "Steam API 키 없음"
@@ -613,9 +581,6 @@ msgstr "스틱 조명"
 msgid "Follows the accent colour"
 msgstr "강조 색상을 따름"
 
-msgid "Back buttons and lighting"
-msgstr "뒷면 버튼 및 조명"
-
 msgid "Other games"
 msgstr "기타 게임"
 
@@ -768,3 +733,83 @@ msgstr "Easy Anti-Cheat가 설치되지 않았습니다(거부됨): {}이(가) �
 
 msgid "Easy Anti-Cheat could not be installed: {} may not start"
 msgstr "Easy Anti-Cheat를 설치할 수 없습니다: {}이(가) 시작되지 않을 수 있습니다"
+
+msgid "Open"
+msgstr "열기"
+
+msgid "Adjust"
+msgstr "조정"
+
+msgid "Apply"
+msgstr "적용"
+
+msgid "Close"
+msgstr "닫기"
+
+msgid "Minimum / maximum"
+msgstr "최소 / 최대"
+
+msgid "game profile"
+msgstr "게임 프로필"
+
+msgid "limit {} · {} learned"
+msgstr "제한 {} · 학습값 {}"
+
+msgid "Measures and screen"
+msgstr "측정 및 화면"
+
+msgid "Cooling"
+msgstr "냉각"
+
+msgid "Custom"
+msgstr "사용자 지정"
+
+msgid "Paddle held"
+msgstr "패들 누름"
+
+msgid "Paddle toggles"
+msgstr "패들로 전환"
+
+msgid "Screen and battery"
+msgstr "화면 및 배터리"
+
+msgid "API key"
+msgstr "API 키"
+
+msgid "No API key"
+msgstr "API 키 없음"
+
+msgid "not signed in"
+msgstr "로그인 안 됨"
+
+msgid "Appearance"
+msgstr "모양"
+
+msgid "The Ally's buttons"
+msgstr "Ally 버튼"
+
+msgid "Library"
+msgstr "라이브러리"
+
+msgid "Missing covers"
+msgstr "없는 표지"
+
+msgid "Accounts"
+msgstr "계정"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Steam Web API 키(steamcommunity.com/dev/apikey)를 shell.json의 steam_api_key에 추가하면 Canapé가 보유한 게임을 보여 주고 라이브러리에서 설치할 수 있습니다."
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Twitch 애플리케이션의 클라이언트 ID와 시크릿을 shell.json의 igdb_client_id와 igdb_client_secret에 추가하면 게임 페이지에 클리어 시간이 표시됩니다."
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "로그인하면 Canapé가 런처 없이 Epic 게임을 설치합니다."
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "로그인하면 Canapé가 GOG Galaxy 없이 GOG 게임을 설치합니다."
+
+
+msgctxt "decimal separator"
+msgid "."
+msgstr "."

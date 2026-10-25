@@ -48,12 +48,6 @@ msgstr "Auto TDP"
 msgid "Thermal limit reached"
 msgstr "Osiągnięto limit temperatury"
 
-msgid "Frame rate"
-msgstr "Liczba klatek"
-
-msgid "CPU temperature"
-msgstr "Temperatura CPU"
-
 msgid "On battery"
 msgstr "Na baterii"
 
@@ -156,11 +150,8 @@ msgstr "Automatyczny"
 msgid "Language"
 msgstr "Język"
 
-
 msgid "Service connected"
 msgstr "Usługa połączona"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -173,10 +164,6 @@ msgstr "{} °C"
 
 msgid "{} %"
 msgstr "{}%"
-
-msgctxt "decimal separator"
-msgid "."
-msgstr ","
 
 msgid "Silent"
 msgstr "Cichy"
@@ -192,9 +179,6 @@ msgstr "Kolor akcentu"
 
 msgid "Offline"
 msgstr "Offline"
-
-msgid "Power draw"
-msgstr "Pobór mocy"
 
 msgid "Hue"
 msgstr "Odcień"
@@ -249,9 +233,6 @@ msgstr "Sprzęt"
 msgid "Fans"
 msgstr "Wentylatory"
 
-msgid "CPU fan"
-msgstr "Wentylator CPU"
-
 msgid "{} rpm"
 msgstr "{} obr./min"
 
@@ -263,7 +244,6 @@ msgstr "Własne krzywe ustawione przez innego klienta."
 
 msgid "Frame rate limit"
 msgstr "Limit FPS"
-
 
 msgid "Controller"
 msgstr "Kontroler"
@@ -343,12 +323,6 @@ msgstr "cel {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 min"
-
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "Wybierz"
 
@@ -364,17 +338,11 @@ msgstr "Profile gier"
 msgid "Games"
 msgstr "Gry"
 
-msgid "General"
-msgstr "Ogólne"
-
 msgid "General settings"
 msgstr "Ustawienia ogólne"
 
 msgid "Installing…"
 msgstr "Instalowanie…"
-
-msgid "Limit"
-msgstr "Limit"
 
 msgid "No Steam API key"
 msgstr "Brak klucza API Steam"
@@ -613,9 +581,6 @@ msgstr "Podświetlenie gałek"
 msgid "Follows the accent colour"
 msgstr "Podąża za kolorem akcentu"
 
-msgid "Back buttons and lighting"
-msgstr "Przyciski tylne i podświetlenie"
-
 msgid "Other games"
 msgstr "Inne gry"
 
@@ -768,3 +733,83 @@ msgstr "Easy Anti-Cheat nie został zainstalowany (odmowa): {} może się nie ur
 
 msgid "Easy Anti-Cheat could not be installed: {} may not start"
 msgstr "Nie udało się zainstalować Easy Anti-Cheat: {} może się nie uruchomić"
+
+msgid "Open"
+msgstr "Otwórz"
+
+msgid "Adjust"
+msgstr "Dostosuj"
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+msgid "Close"
+msgstr "Zamknij"
+
+msgid "Minimum / maximum"
+msgstr "Minimum / maksimum"
+
+msgid "game profile"
+msgstr "profil gry"
+
+msgid "limit {} · {} learned"
+msgstr "limit {} · {} wyuczone"
+
+msgid "Measures and screen"
+msgstr "Pomiary i ekran"
+
+msgid "Cooling"
+msgstr "Chłodzenie"
+
+msgid "Custom"
+msgstr "Własne"
+
+msgid "Paddle held"
+msgstr "Łopatka trzymana"
+
+msgid "Paddle toggles"
+msgstr "Łopatka przełącza"
+
+msgid "Screen and battery"
+msgstr "Ekran i bateria"
+
+msgid "API key"
+msgstr "Klucz API"
+
+msgid "No API key"
+msgstr "Brak klucza API"
+
+msgid "not signed in"
+msgstr "niezalogowano"
+
+msgid "Appearance"
+msgstr "Wygląd"
+
+msgid "The Ally's buttons"
+msgstr "Przyciski Ally"
+
+msgid "Library"
+msgstr "Biblioteka"
+
+msgid "Missing covers"
+msgstr "Brakujące okładki"
+
+msgid "Accounts"
+msgstr "Konta"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Dodaj klucz Steam Web API (steamcommunity.com/dev/apikey) jako steam_api_key w shell.json: Canapé pokaże wtedy posiadane gry, by zainstalować je z biblioteki."
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Dodaj identyfikator i sekret klienta aplikacji Twitch jako igdb_client_id i igdb_client_secret w shell.json: strony gier pokażą wtedy czas ukończenia."
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "Po zalogowaniu Canapé instaluje gry Epic bez ich launchera."
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "Po zalogowaniu Canapé instaluje gry GOG bez GOG Galaxy."
+
+
+msgctxt "decimal separator"
+msgid "."
+msgstr ","

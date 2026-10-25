@@ -4,7 +4,7 @@
 // ButtonTarget::ALL (canape-core), so a chip's index is the target's.
 
 import { Theme } from "theme.slint";
-import { Icon, SectionTitle } from "kit.slint";
+import { Icon } from "kit.slint";
 import { PadGlyph } from "widgets.slint";
 
 // A drawing on a 24-unit grid, in the chip's ink.
@@ -240,8 +240,8 @@ component TargetChip inherits Rectangle {
     in property <bool> applied;
     in property <bool> focused;
     callback clicked();
-    width: 104px;
-    height: 52px;
+    width: 56px;
+    height: 40px;
     border-radius: 10px;
     background: root.applied ? Theme.selected : Theme.surface-high;
 
@@ -271,92 +271,141 @@ component TargetChip inherits Rectangle {
     }
 }
 
-// The grid, over the page: arrows move (`move`), A applies the focused
-// target (`pick`), B closes (`close`). The page routes the keys here.
-export component TargetPicker inherits Rectangle {
-    in property <string> title;
+// A group of chips on a row of the grid: its name, then its targets.
+component TargetGroup inherits HorizontalLayout {
+    in property <string> group;
+    in property <length> label-width;
+    in property <int> start;
+    in property <int> count;
     in property <string> own-key;
-    in property <[string]> names;
+    in property <int> applied;
+    in property <int> current;
+    in property <bool> active;
+    callback pick(int);
+    spacing: 6px;
+    Text {
+        width: root.label-width;
+        text: root.group;
+        color: Theme.dim;
+        font-size: 13px;
+        vertical-alignment: center;
+        overflow: elide;
+    }
+
+    for c in root.count: TargetChip {
+        target: root.start + c;
+        own-key: root.own-key;
+        applied: root.applied == root.start + c;
+        focused: root.active && root.current == root.start + c;
+        clicked => {
+            root.pick(root.start + c);
+        }
+    }
+}
+
+// The targets in three rows: the button's own key and nothing, then the
+// mouse and media; the gamepad; the keyboard. Arrows move (`move`); the
+// page applies `current` and routes the keys here.
+export component TargetGrid inherits VerticalLayout {
+    in property <string> own-key;
     // The target applied now, and the one the focus is on.
     in property <int> applied;
     in-out property <int> current;
+    in property <bool> active;
     callback pick(int);
-    // Rows of chips: a group's name on its first row, the first target
-    // of the row, and how many.
-    property <[{ group: string, start: int, count: int }]> rows: [
-        { group: "", start: 0, count: 2 },
-        { group: @tr("Gamepad"), start: 2, count: 9 },
-        { group: "", start: 11, count: 8 },
-        { group: @tr("Keyboard"), start: 19, count: 9 },
-        { group: "", start: 28, count: 7 },
-        { group: @tr("Mouse"), start: 35, count: 5 },
-        { group: @tr("Media"), start: 40, count: 4 },
-    ];
-    background: Theme.background;
+    property <[int]> counts: [11, 17, 16];
+    spacing: 6px;
+    alignment: start;
 
-    function row-of(i: int) -> int {
-        i < 2 ? 0 : i < 11 ? 1 : i < 19 ? 2 : i < 28 ? 3 : i < 35 ? 4 : i < 40 ? 5 : 6
+    pure function row-of(i: int) -> int {
+        i < 2 || i >= 35 ? 0 : i < 19 ? 1 : 2
+    }
+    pure function column-of(i: int) -> int {
+        i < 2 ? i : i >= 35 ? i - 33 : i < 19 ? i - 2 : i - 19
+    }
+    pure function at(row: int, column: int) -> int {
+        row == 0 ? (column < 2 ? column : column + 33) : row == 1 ? column + 2 : column + 19
     }
     // Arrows: across a row, or to the same column of the next row.
     public function move(dx: int, dy: int) {
-        let r = root.row-of(root.current);
-        if dx != 0 {
-            let row = root.rows[r];
-            root.current = clamp(root.current + dx, row.start, row.start + row.count - 1);
-        } else {
-            let to = clamp(r + dy, 0, root.rows.length - 1);
-            let col = root.current - root.rows[r].start;
-            root.current = root.rows[to].start + min(col, root.rows[to].count - 1);
+        let row = root.row-of(root.current);
+        let to = clamp(row + dy, 0, 2);
+        root.current = root.at(to, clamp(root.column-of(root.current) + dx, 0, root.counts[to] - 1));
+    }
+
+    HorizontalLayout {
+        spacing: 18px;
+        alignment: start;
+        TargetGroup {
+            label-width: 92px;
+            start: 0;
+            count: 2;
+            own-key: root.own-key;
+            applied: root.applied;
+            current: root.current;
+            active: root.active;
+            pick(i) => {
+                root.current = i;
+                root.pick(i);
+            }
+        }
+
+        TargetGroup {
+            group: @tr("Mouse");
+            start: 35;
+            count: 5;
+            own-key: root.own-key;
+            applied: root.applied;
+            current: root.current;
+            active: root.active;
+            pick(i) => {
+                root.current = i;
+                root.pick(i);
+            }
+        }
+
+        TargetGroup {
+            group: @tr("Media");
+            start: 40;
+            count: 4;
+            own-key: root.own-key;
+            applied: root.applied;
+            current: root.current;
+            active: root.active;
+            pick(i) => {
+                root.current = i;
+                root.pick(i);
+            }
         }
     }
 
-    VerticalLayout {
-        spacing: 8px;
-        alignment: start;
-
-        SectionTitle {
-            height: 36px;
-            x: 16px;
-            text: root.title;
+    TargetGroup {
+        group: @tr("Gamepad");
+        label-width: 92px;
+        start: 2;
+        count: 17;
+        own-key: root.own-key;
+        applied: root.applied;
+        current: root.current;
+        active: root.active;
+        pick(i) => {
+            root.current = i;
+            root.pick(i);
         }
+    }
 
-        for row in root.rows: HorizontalLayout {
-            spacing: 8px;
-            padding-left: 16px;
-            height: 52px;
-            Text {
-                width: 112px;
-                text: row.group;
-                color: Theme.dim;
-                font-size: 14px;
-                vertical-alignment: center;
-                overflow: elide;
-            }
-
-            for c in row.count: TargetChip {
-                target: row.start + c;
-                own-key: root.own-key;
-                applied: root.applied == row.start + c;
-                focused: root.current == row.start + c;
-                clicked => {
-                    root.current = row.start + c;
-                    root.pick(row.start + c);
-                }
-            }
-            Rectangle {
-                horizontal-stretch: 1;
-            }
-        }
-
-        // The focused target's name.
-        Text {
-            x: 16px;
-            height: 36px;
-            text: root.names[root.current];
-            color: Theme.text;
-            font-size: 16px;
-            font-weight: 600;
-            vertical-alignment: center;
+    TargetGroup {
+        group: @tr("Keyboard");
+        label-width: 92px;
+        start: 19;
+        count: 16;
+        own-key: root.own-key;
+        applied: root.applied;
+        current: root.current;
+        active: root.active;
+        pick(i) => {
+            root.current = i;
+            root.pick(i);
         }
     }
 }

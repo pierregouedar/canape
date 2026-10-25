@@ -1,14 +1,16 @@
-// Performance page: rows the D-pad moves through. Up and down change row;
-// left and right move along a row of tiles or change the row's value; A
-// picks; X saves the settings for the game in the foreground. Rows that do
-// not apply to the current mode are skipped:
-//   0 mode tiles, 1 target frame rate (auto TDP), 2 minimum power, 3
-//   maximum power (auto TDP; one limit in manual mode), 4 other settings.
+// Performance page: the live figures at the top, then two shelves of
+// setting cards. Up and down change shelf, left and right change card; A
+// opens the card's drawer (or the bench and the game profiles, which are
+// pages of their own); X saves the settings for the game in the
+// foreground. In a drawer, left and right change the value or pick a tile
+// that A applies; B closes it. Cards:
+//   shelf 0, power: mode, target, power range, on battery, temperature;
+//   shelf 1, measures and screen: bench, screen, game profiles.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
 import { Graph } from "widgets.slint";
-import { Figure, IconTile, LegendKey, Row, Ruler, SectionTitle, Stepper, ValueTile } from "kit.slint";
+import { ChoiceTile, Drawer, HeroFigure, HeroLine, HintSet, IconTile, PageHints, Ruler, Shelf, ShelfCard, ShelfPane, Shelves, Stepper } from "kit.slint";
 
 // The power range on the model's scale, with what the APU draws now.
 component PowerBar inherits Rectangle {
@@ -74,7 +76,7 @@ component PowerBar inherits Rectangle {
         width: 6px;
         height: 20px;
         border-radius: 3px;
-        background: Theme.background;
+        background: Theme.sheet;
         animate x { duration: 300ms; easing: ease-out; }
         Rectangle {
             x: 2px;
@@ -85,21 +87,49 @@ component PowerBar inherits Rectangle {
             background: Theme.accent-line;
         }
     }
-    if root.live-known: Text {
-        x: clamp(root.live-x - self.width / 2, 0, max(0, root.width - self.width));
-        y: 34px;
-        text: App.learned-watts > 0 ? @tr("{} now · {} learned", App.watts-tenths(App.status.power-tenths), App.watts(App.learned-watts)) : @tr("{} now", App.watts-tenths(App.status.power-tenths));
-        color: Theme.text.mix(Theme.dim, 0.4);
-        font-size: 12px;
+}
+
+// The screen's refresh rates as tiles: left and right move, A applies.
+// Shared with the hardware page.
+export component RefreshTiles inherits HorizontalLayout {
+    in property <int> focus-col;
+    callback pick(int);
+    spacing: 12px;
+    alignment: start;
+    for hz[i] in App.refresh-rates: ChoiceTile {
+        width: 180px;
+        label: @tr("{} Hz", hz);
+        selected: App.refresh-hz == hz;
+        focused: root.focus-col == i;
+        clicked => {
+            root.pick(i);
+        }
+    }
+}
+
+// The index of the current refresh rate in App.refresh-rates, -1 when
+// unknown. Past the end, an array reads as 0.
+export global Refresh {
+    public pure function index(hz: int) -> int {
+        hz <= 0 ? -1 : hz == App.refresh-rates[0] ? 0 : hz == App.refresh-rates[1] ? 1 : hz == App.refresh-rates[2] ? 2 : hz == App.refresh-rates[3] ? 3 : hz == App.refresh-rates[4] ? 4 : hz == App.refresh-rates[5] ? 5 : -1
     }
 }
 
 export component PerformancePage inherits Rectangle {
-    // Opens the bench page.
+    // Opens the bench page, and the game profiles.
     callback open-bench();
-    in-out property <int> focus-row: 0;
+    callback open-profiles();
+    // The shelf in front and its focused card.
+    in-out property <int> shelf: 0;
+    in-out property <int> card: 0;
+    // The card whose drawer is open, "" when none; `sheet` keeps the last
+    // one so the drawer keeps its content while it closes.
+    in-out property <string> drawer;
+    property <string> sheet;
     in-out property <int> mode-col: root.mode-index >= 0 ? root.mode-index : 0;
-    in-out property <int> more-col: 0;
+    // In the range drawer: 0 the minimum, 1 the maximum.
+    in-out property <int> range-knob: 0;
+    in-out property <int> refresh-col: 0;
 
     property <bool> auto: App.status.auto-tdp;
     property <bool> manual: !root.auto && App.status.mode == "manual";
@@ -107,20 +137,68 @@ export component PerformancePage inherits Rectangle {
     property <int> mode-index: root.auto ? 3 : App.status.mode == "silent" ? 0 : App.status.mode == "performance" ? 1 : App.status.mode == "turbo" ? 2 : -1;
     property <int> target-index: App.status.target-fps <= 30 ? 0 : App.status.target-fps <= 40 ? 1 : App.status.target-fps <= 45 ? 2 : App.status.target-fps <= 60 ? 3 : App.status.target-fps <= 90 ? 4 : 5;
     property <[int]> target-stops: [30, 40, 45, 60, 90, 120];
+    property <[int]> battery-stops: [0, 10, 15, 20];
+    property <int> battery-index: App.status.battery-cap <= 0 ? 0 : App.status.battery-cap <= 10 ? 1 : App.status.battery-cap <= 15 ? 2 : 3;
+    property <[int]> temp-stops: [0, 80, 85, 90];
+    property <int> temp-index: App.status.temp-limit <= 0 ? 0 : App.status.temp-limit <= 80 ? 1 : App.status.temp-limit <= 85 ? 2 : 3;
     property <bool> active: fs.has-focus;
+    property <bool> open: root.drawer != "";
+    property <string> focused-key: root.key(root.shelf, root.card);
+    property <string> mode-text: root.auto ? @tr("Auto TDP") : App.mode-name(App.status.mode);
+    property <string> profile-note: App.status.active-profile != "" ? @tr("{} · game profile", App.status.active-profile) : @tr("General settings");
 
-    pure function row-on(r: int) -> bool {
-        r == 0 || r == 4 || (r == 1 && root.auto) || (r == 2 && (root.auto || root.manual)) || (r == 3 && root.auto)
+    property <HintSet> hints: !root.open ? {
+        move-glyph: "dpad",
+        move: @tr("Shelves"),
+        a: !root.usable(root.focused-key) ? "" : root.focused-key == "bench" || root.focused-key == "profiles" ? @tr("Open") : @tr("Adjust"),
+        x: App.status.connected && App.status.foreground != "" ? @tr("Save for this game") : "",
+        b: @tr("Back"),
+    } : root.drawer == "mode" || root.drawer == "screen" ? {
+        move-glyph: "leftright",
+        move: @tr("Choose"),
+        a: @tr("Apply"),
+        x: App.status.connected && App.status.foreground != "" ? @tr("Save for this game") : "",
+        b: @tr("Close"),
+    } : {
+        move-glyph: "leftright",
+        move: @tr("Value"),
+        y: root.drawer == "range" && !root.manual ? @tr("Minimum / maximum") : "",
+        x: App.status.connected && App.status.foreground != "" ? @tr("Save for this game") : "",
+        b: @tr("Close"),
+    };
+    init => {
+        PageHints.current = self.hints;
     }
-    function step-row(d: int) {
-        if root.row-on(root.focus-row + d) {
-            root.focus-row = root.focus-row + d;
-        } else if root.row-on(root.focus-row + 2 * d) {
-            root.focus-row = root.focus-row + 2 * d;
-        } else if root.row-on(root.focus-row + 3 * d) {
-            root.focus-row = root.focus-row + 3 * d;
-        } else if root.row-on(root.focus-row + 4 * d) {
-            root.focus-row = root.focus-row + 4 * d;
+    changed hints => {
+        PageHints.current = self.hints;
+    }
+
+    pure function key(s: int, c: int) -> string {
+        s == 0 ? ["mode", "target", "range", "battery", "temp"][c] : ["bench", "screen", "profiles"][c]
+    }
+    pure function cards(s: int) -> int {
+        s == 0 ? 5 : 3
+    }
+    // A card that A acts on now.
+    pure function usable(k: string) -> bool {
+        k == "bench" || k == "profiles" ? true : k == "screen" ? App.refresh-rates.length > 0 : !App.status.connected ? false : k == "target" ? root.auto : k == "range" ? root.auto || root.manual : true
+    }
+    function activate() {
+        let k = root.focused-key;
+        if !root.usable(k) {
+            return;
+        }
+        if k == "bench" {
+            root.open-bench();
+        } else if k == "profiles" {
+            root.open-profiles();
+        } else {
+            root.mode-col = root.mode-index >= 0 ? root.mode-index : root.mode-col;
+            root.refresh-col = max(0, Refresh.index(App.refresh-hz));
+            root.range-knob = 0;
+            // Not `k` twice: a string local is moved by its first use.
+            root.sheet = root.focused-key;
+            root.drawer = root.focused-key;
         }
     }
     function pick-mode(i: int) {
@@ -132,43 +210,48 @@ export component PerformancePage inherits Rectangle {
             App.set-mode(i == 0 ? "silent" : i == 1 ? "performance" : "turbo");
         }
     }
-    function activate-more(i: int) {
-        if i == 0 {
-            App.set-battery-cap(App.status.battery-cap == 0 ? 10 : App.status.battery-cap <= 10 ? 15 : App.status.battery-cap <= 15 ? 20 : 0);
-        } else if i == 1 {
-            App.set-temp-limit(App.status.temp-limit == 0 ? 80 : App.status.temp-limit <= 80 ? 85 : App.status.temp-limit <= 85 ? 90 : 0);
-        } else if i == 2 {
-            App.cycle-refresh();
-        } else {
-            root.open-bench();
-        }
-    }
-    // Left (-1) or right (1) on the focused row.
+    // Left (-1) or right (1) in the open drawer.
     function side(d: int) {
-        if root.focus-row == 0 {
+        if root.drawer == "mode" {
             root.mode-col = clamp(root.mode-col + d, 0, 3);
-        } else if root.focus-row == 1 {
+        } else if root.drawer == "target" {
             App.set-target-fps(root.target-stops[clamp(root.target-index + d, 0, 5)]);
-        } else if root.focus-row == 2 {
-            if root.auto {
+        } else if root.drawer == "range" {
+            if root.manual {
+                App.change-tdp(d);
+            } else if root.range-knob == 0 {
                 App.change-min-watts(d);
             } else {
-                App.change-tdp(d);
+                App.change-max-watts(d);
             }
-        } else if root.focus-row == 3 {
-            App.change-max-watts(d);
-        } else {
-            root.more-col = clamp(root.more-col + d, 0, 3);
+        } else if root.drawer == "battery" {
+            App.set-battery-cap(root.battery-stops[clamp(root.battery-index + d, 0, 3)]);
+        } else if root.drawer == "temp" {
+            App.set-temp-limit(root.temp-stops[clamp(root.temp-index + d, 0, 3)]);
+        } else if root.drawer == "screen" {
+            root.refresh-col = clamp(root.refresh-col + d, 0, App.refresh-rates.length - 1);
         }
     }
+    // A in the open drawer: applies the tile, or closes a drawer whose
+    // value is already applied.
+    function apply() {
+        if root.drawer == "mode" {
+            root.pick-mode(root.mode-col);
+        } else if root.drawer == "screen" {
+            App.set-refresh(App.refresh-rates[root.refresh-col]);
+        } else {
+            root.drawer = "";
+        }
+    }
+    // The drawer's card no longer applies (the mode changed): close it.
     changed auto => {
-        if !root.row-on(root.focus-row) {
-            root.focus-row = 0;
+        if (root.drawer == "target" && !root.auto) || (root.drawer == "range" && !root.auto && !root.manual) {
+            root.drawer = "";
         }
     }
     changed manual => {
-        if !root.row-on(root.focus-row) {
-            root.focus-row = 0;
+        if root.drawer == "range" && !root.auto && !root.manual {
+            root.drawer = "";
         }
     }
 
@@ -177,265 +260,332 @@ export component PerformancePage inherits Rectangle {
             self.focus();
         }
         key-pressed(event) => {
-            if !App.status.connected {
-                return reject;
-            }
-            if event.text == Key.UpArrow {
-                root.step-row(-1);
+            // X: keep these settings for the game in the foreground.
+            if (event.text == Key.F2 || event.text == "x") && App.status.connected {
+                App.save-profile();
                 return accept;
             }
-            if event.text == Key.DownArrow {
-                root.step-row(1);
-                return accept;
-            }
-            if event.text == Key.LeftArrow {
-                root.side(-1);
-                return accept;
-            }
-            if event.text == Key.RightArrow {
-                root.side(1);
-                return accept;
-            }
-            if event.text == Key.Return || event.text == " " {
-                if root.focus-row == 0 {
-                    root.pick-mode(root.mode-col);
-                } else if root.focus-row == 4 {
-                    root.activate-more(root.more-col);
+            if root.open {
+                if event.text == Key.Escape {
+                    root.drawer = "";
+                } else if event.text == Key.LeftArrow {
+                    root.side(-1);
+                } else if event.text == Key.RightArrow {
+                    root.side(1);
+                } else if event.text == Key.UpArrow || event.text == Key.DownArrow || event.text == Key.F3 || event.text == "y" {
+                    root.range-knob = 1 - root.range-knob;
+                } else if event.text == Key.Return || event.text == " " {
+                    root.apply();
                 }
                 return accept;
             }
-            // X: keep these settings for the game in the foreground.
-            if event.text == Key.F2 || event.text == "x" {
-                App.save-profile();
+            if event.text == Key.UpArrow || event.text == Key.DownArrow {
+                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 1);
+                root.card = min(root.card, root.cards(root.shelf) - 1);
+                return accept;
+            }
+            if event.text == Key.LeftArrow || event.text == Key.RightArrow {
+                root.card = clamp(root.card + (event.text == Key.LeftArrow ? -1 : 1), 0, root.cards(root.shelf) - 1);
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                root.activate();
                 return accept;
             }
             return reject;
         }
     }
 
+    // Live: the game in front, the figures, the last minute of power.
+    HeroLine {
+        x: 48px;
+        y: 36px;
+        width: parent.width - 96px;
+        title: App.status.game;
+        detail: !App.status.connected ? @tr("Service not connected") : (App.status.game == "" ? @tr("General settings") : (App.status.active-profile != "" ? "· " + @tr("game profile") + " " : "") + "· " + root.mode-text);
+    }
+
     HorizontalLayout {
-        width: parent.width;
-        height: parent.height;
-        spacing: 40px;
+        x: 48px;
+        y: 68px;
+        width: parent.width - 96px;
+        height: 96px;
+        spacing: 56px;
+        HeroFigure {
+            value: App.known(App.status.power-tenths, App.tenths(App.status.power-tenths));
+            unit: @tr("W");
+            warn: App.status.thermal-limited;
+            note: App.status.thermal-limited ? @tr("Thermal limit reached") : App.status.tdp < 0 ? " " : App.learned-watts > 0 ? @tr("limit {} · {} learned", App.watts(App.status.tdp), App.watts(App.learned-watts)) : @tr("limit {}", App.watts(App.status.tdp));
+        }
 
-        VerticalLayout {
-            width: 784px;
-            spacing: 10px;
+        HeroFigure {
+            value: App.known(App.status.fps, App.status.fps);
+            unit: "FPS";
+            note: root.auto ? @tr("target {}", App.fps-value(App.status.target-fps)) : " ";
+        }
 
-            Row {
-                focused: root.active && root.focus-row == 0;
-                VerticalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-top: 14px;
-                    padding-bottom: 14px;
-                    spacing: 12px;
-                    HorizontalLayout {
-                        SectionTitle {
-                            text: @tr("Mode");
-                        }
+        HeroFigure {
+            value: App.known(App.status.temp, App.status.temp);
+            unit: "°C";
+            note: "CPU";
+        }
 
-                        Text {
-                            horizontal-stretch: 1;
-                            text: App.status.active-profile != "" ? @tr("{} · game profile", App.status.active-profile) : @tr("General settings");
-                            color: Theme.dim;
-                            font-size: 13px;
-                            horizontal-alignment: right;
-                            // Top, like the title: the row may be taller than both.
-                            vertical-alignment: top;
-                            overflow: elide;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        spacing: 12px;
-                        for icon[i] in ["silent", "balanced", "turbo", "auto"]: IconTile {
-                            horizontal-stretch: 1;
-                            preferred-width: 10px;
-                            icon: icon;
-                            label: i == 0 ? App.mode-name("silent") : i == 1 ? App.mode-name("performance") : i == 2 ? App.mode-name("turbo") : @tr("Auto TDP");
-                            selected: root.mode-index == i;
-                            focused: root.active && root.focus-row == 0 && root.mode-col == i;
-                            clicked => {
-                                root.focus-row = 0;
-                                root.mode-col = i;
-                                root.pick-mode(i);
-                                fs.focus();
-                            }
-                        }
-                    }
-                }
-            }
-
-            Row {
-                focused: root.active && root.focus-row == 1;
-                enabled: root.auto;
-                VerticalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-top: 14px;
-                    padding-bottom: 14px;
-                    spacing: 12px;
-                    SectionTitle {
-                        text: @tr("Target");
-                    }
-
-                    Ruler {
-                        labels: [App.fps-value(30), App.fps-value(40), App.fps-value(45), App.fps-value(60), App.fps-value(90), App.fps-value(120)];
-                        selected: root.auto ? root.target-index : -1;
-                        pick(i) => {
-                            root.focus-row = 1;
-                            App.set-target-fps(root.target-stops[i]);
-                            fs.focus();
-                        }
-                    }
-                }
-            }
-
-            Row {
-                focused: root.active && (root.focus-row == 2 || root.focus-row == 3);
-                enabled: root.auto || root.manual;
-                VerticalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-top: 14px;
-                    padding-bottom: 14px;
-                    spacing: 12px;
-                    SectionTitle {
-                        text: root.manual ? @tr("Power limit") : @tr("Power range");
-                    }
-
-                    HorizontalLayout {
-                        spacing: 14px;
-                        if !root.manual: Stepper {
-                            width: 104px;
-                            value: App.watts(App.status.min-watts);
-                            active: root.active && root.focus-row == 2;
-                            step(d) => {
-                                root.focus-row = 2;
-                                App.change-min-watts(d);
-                                fs.focus();
-                            }
-                        }
-                        PowerBar {
-                            horizontal-stretch: 1;
-                            two-knobs: !root.manual;
-                            low: App.status.min-watts;
-                            high: root.manual ? max(App.status.tdp, 0) : App.status.max-watts;
-                            active: !root.active ? 0 : root.manual && root.focus-row == 2 ? 2 : root.focus-row == 2 ? 1 : root.focus-row == 3 ? 2 : 0;
-                        }
-
-                        Stepper {
-                            width: 104px;
-                            value: root.manual ? App.known(App.status.tdp, App.watts(App.status.tdp)) : App.watts(App.status.max-watts);
-                            active: root.active && (root.manual ? root.focus-row == 2 : root.focus-row == 3);
-                            step(d) => {
-                                if root.manual {
-                                    root.focus-row = 2;
-                                    App.change-tdp(d);
-                                } else {
-                                    root.focus-row = 3;
-                                    App.change-max-watts(d);
-                                }
-                                fs.focus();
-                            }
-                        }
-                    }
-                }
-            }
-
-            Row {
-                focused: root.active && root.focus-row == 4;
-                HorizontalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-top: 14px;
-                    padding-bottom: 14px;
-                    spacing: 12px;
-                    for label[i] in [@tr("On battery"), @tr("Temperature"), @tr("Screen"), @tr("Bench")]: ValueTile {
-                        horizontal-stretch: 1;
-                        preferred-width: 10px;
-                        label: label;
-                        value: i == 0 ? (App.status.battery-cap == 0 ? @tr("None") : @tr("{} max", App.watts(App.status.battery-cap)))
-                            : i == 1 ? (App.status.temp-limit == 0 ? @tr("None") : @tr("{} max", App.celsius(App.status.temp-limit)))
-                            : i == 2 ? (App.refresh-hz > 0 ? @tr("{} Hz", App.refresh-hz) : "—")
-                            : App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("Start · {}", App.duration(App.bench-duration(3, 15)));
-                        focused: root.active && root.focus-row == 4 && root.more-col == i;
-                        clicked => {
-                            root.focus-row = 4;
-                            root.more-col = i;
-                            root.activate-more(i);
-                            fs.focus();
-                        }
-                    }
-                }
-            }
-
-            Rectangle {
-                vertical-stretch: 1;
-            }
+        Rectangle {
+            horizontal-stretch: 1;
         }
 
         VerticalLayout {
-            padding-top: 12px;
-            spacing: 26px;
-            HorizontalLayout {
-                spacing: 20px;
-                Figure {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    label: @tr("Power draw");
-                    value: App.known(App.status.power-tenths, App.tenths(App.status.power-tenths));
-                    unit: @tr("W");
-                    note: App.status.thermal-limited ? @tr("Thermal limit reached") : App.status.tdp >= 0 ? @tr("limit {}", App.watts(App.status.tdp)) : " ";
-                }
+            alignment: end;
+            padding-bottom: 6px;
+            Graph {
+                width: 420px;
+                height: 84px;
+                line: App.graphs.power-line;
+                area: "";
+                reference: App.graphs.limit-line;
+                tint: Theme.accent;
+            }
+        }
+    }
 
-                Figure {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    label: @tr("Frame rate");
-                    value: App.known(App.status.fps, App.status.fps);
-                    unit: "FPS";
-                    note: root.auto ? @tr("target {}", App.status.target-fps) : " ";
+    ShelfPane {
+        x: 0;
+        y: 256px;
+        width: parent.width;
+        height: 330px;
+        front: root.shelf;
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 0;
+            front: root.shelf;
+            icon: "turbo";
+            title: @tr("Power");
+            ShelfCard {
+                label: @tr("Mode");
+                icon: "dial";
+                value: App.status.connected ? (root.mode-text != "" ? root.mode-text : "—") : "—";
+                enabled: root.usable("mode");
+                focused: root.active && root.shelf == 0 && root.card == 0;
+                clicked => {
+                    root.shelf = 0;
+                    root.card = 0;
+                    root.activate();
+                    fs.focus();
                 }
             }
 
-            VerticalLayout {
-                spacing: 10px;
-                Graph {
-                    height: 140px;
-                    line: App.graphs.power-line;
-                    area: "";
-                    reference: App.graphs.limit-line;
-                    tint: Theme.accent;
-                }
-
-                HorizontalLayout {
-                    spacing: 18px;
-                    LegendKey {
-                        text: @tr("Power draw");
-                        ink: Theme.accent;
-                    }
-
-                    LegendKey {
-                        text: @tr("Limit");
-                        ink: Theme.reference;
-                        dashed: true;
-                    }
-
-                    Text {
-                        horizontal-stretch: 1;
-                        text: @tr("1 min");
-                        vertical-alignment: center;
-                        color: Theme.dim;
-                        font-size: 13px;
-                        horizontal-alignment: right;
-                    }
+            ShelfCard {
+                label: @tr("Target");
+                icon: "target";
+                value: App.status.connected ? App.fps-value(App.status.target-fps) : "—";
+                enabled: root.usable("target");
+                focused: root.active && root.shelf == 0 && root.card == 1;
+                clicked => {
+                    root.shelf = 0;
+                    root.card = 1;
+                    root.activate();
+                    fs.focus();
                 }
             }
 
-            Rectangle {
-                vertical-stretch: 1;
+            ShelfCard {
+                label: root.manual ? @tr("Power limit") : @tr("Power range");
+                icon: "range";
+                value: !App.status.connected ? "—" : root.manual ? App.known(App.status.tdp, App.watts(App.status.tdp)) : root.auto ? App.status.min-watts + " – " + App.watts(App.status.max-watts) : "—";
+                enabled: root.usable("range");
+                focused: root.active && root.shelf == 0 && root.card == 2;
+                clicked => {
+                    root.shelf = 0;
+                    root.card = 2;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("On battery");
+                icon: "battery";
+                value: !App.status.connected ? "—" : App.status.battery-cap == 0 ? @tr("None") : @tr("{} max", App.watts(App.status.battery-cap));
+                enabled: root.usable("battery");
+                focused: root.active && root.shelf == 0 && root.card == 3;
+                clicked => {
+                    root.shelf = 0;
+                    root.card = 3;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Temperature");
+                icon: "thermo";
+                value: !App.status.connected ? "—" : App.status.temp-limit == 0 ? @tr("None") : @tr("{} max", App.celsius(App.status.temp-limit));
+                enabled: root.usable("temp");
+                focused: root.active && root.shelf == 0 && root.card == 4;
+                clicked => {
+                    root.shelf = 0;
+                    root.card = 4;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 1;
+            front: root.shelf;
+            icon: "bench";
+            title: @tr("Measures and screen");
+            ShelfCard {
+                label: @tr("Bench");
+                icon: "bench";
+                value: App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("Start · {}", App.duration(App.bench-duration(3, 15)));
+                focused: root.active && root.shelf == 1 && root.card == 0;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Screen");
+                icon: "screen";
+                value: App.refresh-hz > 0 ? @tr("{} Hz", App.refresh-hz) : "—";
+                enabled: root.usable("screen");
+                focused: root.active && root.shelf == 1 && root.card == 1;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 1;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Game profiles");
+                icon: "profiles";
+                value: App.profiles.length;
+                focused: root.active && root.shelf == 1 && root.card == 2;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 2;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+    }
+
+    Drawer {
+        width: parent.width;
+        page-height: parent.height;
+        open: root.open;
+        sheet-height: root.sheet == "mode" ? 226px : root.sheet == "range" ? 212px : 200px;
+        title: root.sheet == "mode" ? @tr("Mode") : root.sheet == "target" ? @tr("Target") : root.sheet == "range" ? (root.manual ? @tr("Power limit") : @tr("Power range")) : root.sheet == "battery" ? @tr("On battery") : root.sheet == "temp" ? @tr("Temperature") : @tr("Screen");
+        note: root.sheet == "mode" ? root.profile-note
+            : root.sheet == "target" ? App.known(App.status.fps, @tr("{} now", App.fps-value(App.status.fps)))
+            : root.sheet == "range" ? App.known(App.status.power-tenths, App.learned-watts > 0 ? @tr("{} now · {} learned", App.watts-tenths(App.status.power-tenths), App.watts(App.learned-watts)) : @tr("{} now", App.watts-tenths(App.status.power-tenths)))
+            : root.sheet == "temp" ? App.known(App.status.temp, @tr("{} now", App.celsius(App.status.temp)))
+            : "";
+
+        if root.sheet == "mode": HorizontalLayout {
+            spacing: 12px;
+            for icon[i] in ["silent", "balanced", "turbo", "auto"]: IconTile {
+                horizontal-stretch: 1;
+                preferred-width: 10px;
+                icon: icon;
+                label: i == 0 ? App.mode-name("silent") : i == 1 ? App.mode-name("performance") : i == 2 ? App.mode-name("turbo") : @tr("Auto TDP");
+                selected: root.mode-index == i;
+                focused: root.active && root.mode-col == i;
+                clicked => {
+                    root.mode-col = i;
+                    root.pick-mode(i);
+                    fs.focus();
+                }
+            }
+        }
+
+        if root.sheet == "target": Ruler {
+            y: 4px;
+            labels: [App.fps-value(30), App.fps-value(40), App.fps-value(45), App.fps-value(60), App.fps-value(90), App.fps-value(120)];
+            selected: root.target-index;
+            pick(i) => {
+                App.set-target-fps(root.target-stops[i]);
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "range": HorizontalLayout {
+            y: 4px;
+            height: 46px;
+            spacing: 18px;
+            if !root.manual: Stepper {
+                width: 112px;
+                value: App.watts(App.status.min-watts);
+                active: root.active && root.range-knob == 0;
+                step(d) => {
+                    root.range-knob = 0;
+                    App.change-min-watts(d);
+                    fs.focus();
+                }
+            }
+            PowerBar {
+                horizontal-stretch: 1;
+                two-knobs: !root.manual;
+                low: App.status.min-watts;
+                high: root.manual ? max(App.status.tdp, 0) : App.status.max-watts;
+                active: !root.active ? 0 : root.manual ? 2 : root.range-knob + 1;
+            }
+
+            Stepper {
+                width: 112px;
+                value: root.manual ? App.known(App.status.tdp, App.watts(App.status.tdp)) : App.watts(App.status.max-watts);
+                active: root.active && (root.manual || root.range-knob == 1);
+                step(d) => {
+                    if root.manual {
+                        App.change-tdp(d);
+                    } else {
+                        root.range-knob = 1;
+                        App.change-max-watts(d);
+                    }
+                    fs.focus();
+                }
+            }
+        }
+
+        if root.sheet == "battery": Ruler {
+            y: 4px;
+            labels: [@tr("None"), App.watts(10), App.watts(15), App.watts(20)];
+            selected: root.battery-index;
+            pick(i) => {
+                App.set-battery-cap(root.battery-stops[i]);
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "temp": Ruler {
+            y: 4px;
+            labels: [@tr("None"), App.celsius(80), App.celsius(85), App.celsius(90)];
+            selected: root.temp-index;
+            pick(i) => {
+                App.set-temp-limit(root.temp-stops[i]);
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "screen": RefreshTiles {
+            height: 56px;
+            focus-col: root.active ? root.refresh-col : -1;
+            pick(i) => {
+                root.refresh-col = i;
+                App.set-refresh(App.refresh-rates[i]);
+                fs.focus();
             }
         }
     }

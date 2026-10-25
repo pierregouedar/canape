@@ -48,12 +48,6 @@ msgstr "TDP automatico"
 msgid "Thermal limit reached"
 msgstr "Limite termico raggiunto"
 
-msgid "Frame rate"
-msgstr "Frame rate"
-
-msgid "CPU temperature"
-msgstr "Temperatura CPU"
-
 msgid "On battery"
 msgstr "A batteria"
 
@@ -156,11 +150,8 @@ msgstr "Automatica"
 msgid "Language"
 msgstr "Lingua"
 
-
 msgid "Service connected"
 msgstr "Servizio connesso"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -173,10 +164,6 @@ msgstr "{} °C"
 
 msgid "{} %"
 msgstr "{}%"
-
-msgctxt "decimal separator"
-msgid "."
-msgstr ","
 
 msgid "Silent"
 msgstr "Silenzioso"
@@ -192,9 +179,6 @@ msgstr "Colore di accento"
 
 msgid "Offline"
 msgstr "Offline"
-
-msgid "Power draw"
-msgstr "Consumo"
 
 msgid "Hue"
 msgstr "Tonalità"
@@ -249,9 +233,6 @@ msgstr "Hardware"
 msgid "Fans"
 msgstr "Ventole"
 
-msgid "CPU fan"
-msgstr "Ventola CPU"
-
 msgid "{} rpm"
 msgstr "{} giri/min"
 
@@ -263,7 +244,6 @@ msgstr "Curve personalizzate impostate da un altro client."
 
 msgid "Frame rate limit"
 msgstr "Limite FPS"
-
 
 msgid "Controller"
 msgstr "Controller"
@@ -343,12 +323,6 @@ msgstr "obiettivo {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 min"
-
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "Scegli"
 
@@ -364,17 +338,11 @@ msgstr "Profili di gioco"
 msgid "Games"
 msgstr "Giochi"
 
-msgid "General"
-msgstr "Generale"
-
 msgid "General settings"
 msgstr "Impostazioni generali"
 
 msgid "Installing…"
 msgstr "Installazione…"
-
-msgid "Limit"
-msgstr "Limite"
 
 msgid "No Steam API key"
 msgstr "Nessuna chiave API Steam"
@@ -613,9 +581,6 @@ msgstr "Illuminazione delle levette"
 msgid "Follows the accent colour"
 msgstr "Segue il colore d'accento"
 
-msgid "Back buttons and lighting"
-msgstr "Tasti posteriori e illuminazione"
-
 msgid "Other games"
 msgstr "Altri giochi"
 
@@ -768,3 +733,83 @@ msgstr "Easy Anti-Cheat non è stato installato (rifiutato): {} potrebbe non avv
 
 msgid "Easy Anti-Cheat could not be installed: {} may not start"
 msgstr "Impossibile installare Easy Anti-Cheat: {} potrebbe non avviarsi"
+
+msgid "Open"
+msgstr "Apri"
+
+msgid "Adjust"
+msgstr "Regola"
+
+msgid "Apply"
+msgstr "Applica"
+
+msgid "Close"
+msgstr "Chiudi"
+
+msgid "Minimum / maximum"
+msgstr "Minimo / massimo"
+
+msgid "game profile"
+msgstr "profilo del gioco"
+
+msgid "limit {} · {} learned"
+msgstr "limite {} · {} appresi"
+
+msgid "Measures and screen"
+msgstr "Misure e schermo"
+
+msgid "Cooling"
+msgstr "Raffreddamento"
+
+msgid "Custom"
+msgstr "Personalizzate"
+
+msgid "Paddle held"
+msgstr "Levetta premuta"
+
+msgid "Paddle toggles"
+msgstr "Levetta alterna"
+
+msgid "Screen and battery"
+msgstr "Schermo e batteria"
+
+msgid "API key"
+msgstr "Chiave API"
+
+msgid "No API key"
+msgstr "Nessuna chiave API"
+
+msgid "not signed in"
+msgstr "non connesso"
+
+msgid "Appearance"
+msgstr "Aspetto"
+
+msgid "The Ally's buttons"
+msgstr "Tasti dell'Ally"
+
+msgid "Library"
+msgstr "Libreria"
+
+msgid "Missing covers"
+msgstr "Copertine mancanti"
+
+msgid "Accounts"
+msgstr "Account"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Aggiungi la tua chiave API Web di Steam (steamcommunity.com/dev/apikey) come steam_api_key in shell.json: Canapé elencherà i giochi che possiedi, per installarli dalla libreria."
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Aggiungi id e segreto client di un'applicazione Twitch come igdb_client_id e igdb_client_secret in shell.json: le pagine dei giochi mostreranno quanto serve per finirli."
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "Una volta connesso, Canapé installa i giochi Epic senza il loro launcher."
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "Una volta connesso, Canapé installa i giochi GOG senza GOG Galaxy."
+
+
+msgctxt "decimal separator"
+msgid "."
+msgstr ","
