@@ -7,7 +7,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::bench::{BenchPlan, BenchProgress, BenchReport};
 use crate::fan::{Fan, FanCurve, FanCurves, FanPreset};
-use crate::settings::{AutoTdpSettings, ControllerMode, GyroSettings, PerformanceMode, Profile};
+use crate::settings::{
+    AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, GyroSettings, Lighting,
+    PerformanceMode, Profile,
+};
 
 pub const PIPE_NAME: &str = r"\\.\pipe\canape";
 pub const PROTOCOL_VERSION: u32 = 1;
@@ -94,10 +97,28 @@ pub enum Request {
     SetGyro {
         settings: GyroSettings,
     },
+    /// What one back button sends. Saved and written again at startup and
+    /// after every controller mode change.
+    SetBackButton {
+        button: BackButton,
+        target: ButtonTarget,
+    },
+    /// Both back buttons back to their own keys.
+    ResetBackButtons,
+    /// Light of the stick rings, `None` to leave it to the controller.
+    /// Saved and written again at startup; a ring that follows the accent
+    /// changes with it.
+    SetLighting {
+        lighting: Option<Lighting>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[allow(
+    clippy::large_enum_variant,
+    reason = "one response per message, encoded at once: the status is not worth a box"
+)]
 pub enum Response {
     Hello {
         protocol_version: u32,
@@ -183,6 +204,12 @@ pub struct Status {
     /// Gyro aiming in effect: the global settings, or the active profile's.
     #[serde(default)]
     pub gyro: GyroSettings,
+    /// What the back buttons send.
+    #[serde(default)]
+    pub back_buttons: BackButtons,
+    /// Light of the stick rings set through Canape, if any.
+    #[serde(default)]
+    pub lighting: Option<Lighting>,
 }
 
 /// What [`Request::SaveForegroundProfile`] saves.
@@ -198,6 +225,15 @@ pub enum ProfilePart {
 /// True for `#RRGGBB`.
 pub fn is_hex_color(color: &str) -> bool {
     color.len() == 7 && color.starts_with('#') && color[1..].chars().all(|c| c.is_ascii_hexdigit())
+}
+
+/// Red, green and blue of `#RRGGBB`.
+pub fn hex_rgb(color: &str) -> Option<[u8; 3]> {
+    if !is_hex_color(color) {
+        return None;
+    }
+    let channel = |i: usize| u8::from_str_radix(&color[i..i + 2], 16).ok();
+    Some([channel(1)?, channel(3)?, channel(5)?])
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -235,6 +271,8 @@ mod tests {
         assert!(!is_hex_color("2563eb"));
         assert!(!is_hex_color("#25g3eb"));
         assert!(!is_hex_color("#fff"));
+        assert_eq!(hex_rgb("#FF3d00"), Some([255, 61, 0]));
+        assert_eq!(hex_rgb("#ff3d0"), None);
     }
 
     #[test]
@@ -273,6 +311,23 @@ mod tests {
             }
         );
         assert_eq!(
+            decode::<Request>(r#"{"type":"set_back_button","button":"m1","target":"pad_a"}"#)
+                .unwrap(),
+            Request::SetBackButton {
+                button: BackButton::M1,
+                target: ButtonTarget::PadA
+            }
+        );
+        assert_eq!(
+            decode::<Request>(r#"{"type":"set_lighting","lighting":{"level":2}}"#).unwrap(),
+            Request::SetLighting {
+                lighting: Some(Lighting {
+                    level: 2,
+                    color: None
+                })
+            }
+        );
+        assert_eq!(
             encode(&Request::ResetFanCurves).unwrap(),
             "{\"type\":\"reset_fan_curves\"}\n"
         );
@@ -289,6 +344,8 @@ mod tests {
         assert_eq!(status.controller_mode, None);
         assert_eq!(status.battery_charge_limit, None);
         assert_eq!(status.gyro, GyroSettings::default());
+        assert!(status.back_buttons.is_default());
+        assert_eq!(status.lighting, None);
     }
 
     #[test]

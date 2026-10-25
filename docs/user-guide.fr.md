@@ -147,7 +147,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 | **Croix** ou **stick gauche** | Haut et bas changent de rangée ; gauche et droite se déplacent dans la rangée ou changent sa valeur. Maintenu, le déplacement se répète après 0,4 s. Dans Jeux, gauche et droite parcourent l'étagère, haut et bas passent d'une étagère à l'autre. |
 | **A** | Choisir ; dans Jeux, lancer le jeu (ou l'installer) |
 | **X** | Enregistrer pour le jeu au premier plan (Performance, Matériel, Banc d'essai) ; supprimer un profil (Profils de jeu) |
-| **B** | Quitter une sous-page (Profils de jeu, Banc d'essai), sinon revenir à Jeux |
+| **B** | Quitter une sous-page (Profils de jeu, Banc d'essai, Boutons arrière et éclairage), sinon revenir à Jeux |
 
 La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé depuis Canapé garde toute la manette. Quand Canapé revient au premier plan, un bouton encore enfoncé pour le jeu n'agit pas tant qu'il n'a pas été relâché ; la première fois (au démarrage de l'Ally par exemple), la manette est ignorée pendant 2 s (la fenêtre n'apparaît qu'environ 1,5 s après), pour qu'un appui pendant l'ouverture de session ne lance pas un jeu. Les mêmes règles valent pour les touches du clavier, y compris l'Entrée et l'Échap que des outils comme Steam Input envoient pour A et B. La rangée ou la tuile sélectionnée est entourée de blanc ; la couleur d'accent marque ce qui est choisi (trait sous une tuile, valeur d'une ligne). Au clavier (développement), les mêmes actions passent par les flèches, Entrée, F2 (X), Échap et Page préc. / Page suiv.
 
@@ -278,7 +278,7 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 
 > [!NOTE]
 
-Six rangées, parcourues comme la page Performance : haut et bas changent de rangée, gauche et droite se déplacent dans les tuiles (A choisit) ou changent la limite de FPS tout de suite, la dernière rangée ouvre la [visée au gyroscope](#visée-au-gyroscope), **X** enregistre les ventilateurs, la limite de FPS, la fréquence de l'écran et la visée au gyroscope pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)). À droite : la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU. « — » quand le firmware ne donne pas de mesure.
+Six rangées, parcourues comme la page Performance : haut et bas changent de rangée, gauche et droite se déplacent dans les tuiles (A choisit) ou changent la limite de FPS tout de suite, la dernière rangée ouvre, à gauche, la [visée au gyroscope](#visée-au-gyroscope) et, à droite, les [boutons arrière et l'éclairage](#boutons-arrière-et-éclairage), **X** enregistre les ventilateurs, la limite de FPS, la fréquence de l'écran et la visée au gyroscope pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)). À droite : la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU. « — » quand le firmware ne donne pas de mesure.
 
 **Ventilateurs**
 
@@ -361,6 +361,37 @@ Ouverte depuis la rangée **Visée au gyroscope** de la page Matériel ; **B** y
 - **Par jeu** : **X** garde ces réglages dans le profil du jeu au premier plan, avec les ventilateurs et la limite de FPS. Un profil sans réglages de gyroscope suit les réglages généraux. Pendant qu'un jeu qui a ses propres réglages est devant, un changement va dans son profil.
 - Les palettes servent à la visée même quand **Utiliser les boutons de l'Ally** est désactivé. En mode **Tant qu'une palette est tenue**, tenir une palette dans un jeu qui l'utilise aussi fait les deux.
 - **Coût** : rien tant que le gyroscope est coupé ou les palettes relâchées ; pendant la visée, le shell lit le capteur toutes les 10 ms.
+
+#### Boutons arrière et éclairage
+
+Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairage ›** ouvre une page qui choisit ce qu'envoient M1 et M2, les deux boutons du dos (à gauche), et l'éclairage des anneaux autour des sticks (à droite). Gauche et droite parcourent les choix et appliquent chacun tout de suite ; B revient à la page Matériel.
+
+| Choix | Le bouton envoie |
+|---|---|
+| Par défaut | Sa propre touche, comme en sortie d'usine |
+| Désactivé | Rien |
+| A, B, X, Y, LB, RB, LT, RT, clics des sticks, croix, View, Menu, Xbox | Ce bouton de manette |
+| Échap, Entrée, Espace, Tab, Retour arrière, flèches, Page précédente / suivante, Maj, Ctrl, Windows, F11, F12 | Cette touche |
+| Clic gauche, droit, du milieu, molette vers le haut / le bas | Cette action de souris |
+| Volume + / −, couper le micro, clavier tactile | Cette action |
+
+- C'est la manette elle-même qui traduit : cela marche dans tous les jeux et programmes, quel que soit ce qui lit la manette.
+- Le choix est général (pas par jeu), mémorisé, et réécrit au démarrage du service et après chaque changement de mode de la manette.
+- Avec le bouton gauche sous l'écran maintenu, M1 et M2 gardent leurs propres touches.
+- **Rétablir les boutons d'origine** rend à M1 et M2 leurs propres touches.
+- Steam Input, ou un jeu qui connaissait déjà M1 et M2 par leurs propres touches, voit le nouveau bouton à la place.
+
+> [!NOTE]
+> Pas encore essayé sur l'Ally : les paquets ont été vérifiés auprès de quatre projets open source qui pilotent la manette de l'Ally (voir le guide du développeur), mais jamais envoyés à une vraie. Seules les manettes des ROG Ally et Ally X sont connues. Si un bouton se comporte bizarrement, **Rétablir les boutons d'origine**.
+
+**Éclairage des sticks**
+
+- **Luminosité** : Par défaut, Désactivé, Faible, Moyenne, Forte, appliquée tout de suite. **Par défaut** laisse les anneaux à la manette : Canapé cesse de les changer, et l'éclairage propre de la manette devrait revenir au prochain redémarrage.
+- **Couleur** : la première pastille, un anneau, suit la couleur d'accent choisie dans les Réglages (et change avec elle) ; les autres sont des couleurs fixes, le blanc d'abord. A applique celle qui a le focus ; choisie alors que les anneaux sont éteints ou sur Par défaut, elle les allume en Forte.
+- Une seule couleur pour les deux anneaux, sans effet. Le choix est général, mémorisé et réécrit au démarrage du service.
+
+> [!NOTE]
+> Pas encore essayé sur l'Ally (vérifié auprès de projets open source, comme les boutons arrière). Si les anneaux ont l'air faux, choisissez **Par défaut** et redémarrez l'Ally.
 
 ### Réglages
 
@@ -522,7 +553,7 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | Fichier | Contenu |
 |---|---|
 | `%ProgramData%\Canape\service.log` | Journal du service : modèle détecté, état d'ADL au démarrage, chaque commande qui modifie l'état et sa réponse (`SetTdp { watts: 12 } -> Ok`), programmes en conflit, erreurs. |
-| `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS, limite de charge, mode de la manette, profils, dernier banc d'essai. |
+| `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS, limite de charge, mode de la manette, boutons arrière, éclairage des sticks, profils, dernier banc d'essai. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Journal du shell : démarrages (avec leurs arguments), langue choisie, état d'ADL, erreurs du service. |
 | `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `refresh_hz`, `ally_buttons`. |
 | `%LOCALAPPDATA%\Canape\covers\` | Jaquettes téléchargées (`<boutique>_<id>.jpg` / `.png`, marqueurs `.miss`). |
@@ -562,6 +593,8 @@ Exemples (écrits ici sous forme lisible ; échappez les guillemets dans PowerSh
 | `{"type":"set_fps_limit","fps":null}` | Retire la limite de FPS (ou `"fps":40` pour une limite, de 30 à 120) |
 | `{"type":"set_controller_mode","mode":"gamepad"}` | Manette remise en mode manette de jeu (`wasd`, `mouse`) |
 | `{"type":"set_gyro","settings":{"activation":"off"}}` | Visée au gyroscope coupée (`hold`, `toggle`, `always` ; autres champs : `sensitivity`, `horizontal` `yaw` ou `roll`, `invert_y`) |
+| `{"type":"reset_back_buttons"}` | M1 et M2 rendus à leurs propres touches |
+| `{"type":"set_lighting","lighting":null}` | Anneaux des sticks laissés à la manette (de retour au prochain redémarrage) |
 | `{"type":"list_profiles"}` | Profils enregistrés |
 | `{"type":"get_bench_report"}` | Dernier banc d'essai |
 | `{"type":"cancel_bench"}` | Annule le banc d'essai en cours |

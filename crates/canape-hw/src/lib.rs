@@ -4,7 +4,7 @@
 //! the screen ([`display`]) belong to the user session: the shell uses
 //! them directly.
 
-use canape_core::{ControllerMode, Fan, FanCurve, PerformanceMode};
+use canape_core::{BackButtons, ControllerMode, Fan, FanCurve, PerformanceMode};
 
 #[cfg(windows)]
 mod adl;
@@ -87,6 +87,17 @@ pub trait Device: Send {
     }
     fn set_controller_mode(&mut self, _mode: ControllerMode) -> Result<()> {
         Err(HwError::Unsupported("controller mode"))
+    }
+    /// What the back buttons send, kept by the controller until it is
+    /// powered off.
+    fn set_back_buttons(&mut self, _buttons: &BackButtons) -> Result<()> {
+        Err(HwError::Unsupported("back buttons"))
+    }
+    /// Light of the stick rings: `level` 0 (off) to
+    /// [`canape_core::settings::LIGHTING_MAX_LEVEL`], one colour for every
+    /// ring. Callers check the level.
+    fn set_lighting(&mut self, _level: u8, _rgb: [u8; 3]) -> Result<()> {
+        Err(HwError::Unsupported("stick lighting"))
     }
 }
 

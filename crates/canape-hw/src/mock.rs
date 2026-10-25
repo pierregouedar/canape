@@ -1,4 +1,6 @@
-use canape_core::{ControllerMode, Fan, FanCurve, FanCurves, FanPreset, PerformanceMode};
+use canape_core::{
+    BackButtons, ControllerMode, Fan, FanCurve, FanCurves, FanPreset, PerformanceMode,
+};
 
 use crate::{Device, HwError, Result, Telemetry};
 
@@ -20,6 +22,9 @@ pub struct MockDevice {
     pub fan_curves: FanCurves,
     pub fps_limit: Option<u32>,
     pub controller_mode: Option<ControllerMode>,
+    pub back_buttons: BackButtons,
+    /// Level and colour of the stick rings, once written.
+    pub lighting: Option<(u8, [u8; 3])>,
 }
 
 impl Default for MockDevice {
@@ -35,6 +40,8 @@ impl Default for MockDevice {
             fan_curves: FanCurves::default(),
             fps_limit: None,
             controller_mode: None,
+            back_buttons: BackButtons::default(),
+            lighting: None,
         }
     }
 }
@@ -146,6 +153,19 @@ impl Device for MockDevice {
 
     fn set_controller_mode(&mut self, mode: ControllerMode) -> Result<()> {
         self.controller_mode = Some(mode);
+        Ok(())
+    }
+
+    fn set_back_buttons(&mut self, buttons: &BackButtons) -> Result<()> {
+        self.back_buttons = *buttons;
+        Ok(())
+    }
+
+    fn set_lighting(&mut self, level: u8, rgb: [u8; 3]) -> Result<()> {
+        if level > canape_core::settings::LIGHTING_MAX_LEVEL {
+            return Err(HwError::OutOfRange(format!("lighting level {level}")));
+        }
+        self.lighting = Some((level, rgb));
         Ok(())
     }
 }

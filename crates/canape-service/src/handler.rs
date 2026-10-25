@@ -1,11 +1,11 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use canape_autotdp::{Config, Controller};
-use canape_core::settings::{FPS_LIMIT_RANGE, GYRO_SENSITIVITY_RANGE};
+use canape_core::settings::{DEFAULT_ACCENT, FPS_LIMIT_RANGE, GYRO_SENSITIVITY_RANGE};
 use canape_core::{
-    AutoTdpSettings, BenchPlan, BenchProgress, BenchReport, ControllerMode, Fan, FanCurve,
-    FanCurves, FanPreset, GyroSettings, PerformanceMode, Profile, ProfilePart, Request, Response,
-    Status, protocol,
+    AutoTdpSettings, BackButtons, BenchPlan, BenchProgress, BenchReport, ControllerMode, Fan,
+    FanCurve, FanCurves, FanPreset, GyroSettings, Lighting, PerformanceMode, Profile, ProfilePart,
+    Request, Response, Status, protocol,
 };
 use canape_hw::{Device, Telemetry};
 use serde::{Deserialize, Serialize};
@@ -41,6 +41,8 @@ pub struct Saved {
     pub controller_mode: Option<ControllerMode>,
     /// Global gyro aiming (a profile may override it).
     pub gyro: GyroSettings,
+    pub back_buttons: BackButtons,
+    pub lighting: Option<Lighting>,
 }
 
 /// Service state and request dispatch, independent of the transport.
@@ -75,6 +77,8 @@ pub struct Handler {
     controller_mode: Option<ControllerMode>,
     /// Gyro aiming in effect: the global settings, or the active profile's.
     gyro: GyroSettings,
+    back_buttons: BackButtons,
+    lighting: Option<Lighting>,
     /// Something worth saving changed outside a request (learned watts, bench).
     dirty: bool,
 }
@@ -104,6 +108,8 @@ impl Handler {
             fps_limit: None,
             controller_mode: None,
             gyro: GyroSettings::default(),
+            back_buttons: BackButtons::default(),
+            lighting: None,
             dirty: false,
         }
     }
@@ -225,6 +231,13 @@ impl Handler {
                     };
                 }
                 self.accent = Some(color.to_ascii_lowercase());
+                // Rings that follow the accent take the new one. A failed
+                // write does not undo the accent.
+                if let Some(lighting) = self.lighting.clone()
+                    && lighting.color.is_none()
+                {
+                    let _ = self.write_lighting(lighting);
+                }
                 Response::Ok
             }
             // While a run is in progress, the previous one.
@@ -308,10 +321,34 @@ impl Handler {
                 }
                 response
             }
-            Request::SetControllerMode { mode } => self.apply(
-                |d| d.set_controller_mode(mode),
-                |s| s.controller_mode = Some(mode),
-            ),
+            Request::SetControllerMode { mode } => {
+                let response = self.apply(
+                    |d| d.set_controller_mode(mode),
+                    |s| s.controller_mode = Some(mode),
+                );
+                if response != Response::Ok || self.back_buttons.is_default() {
+                    return response;
+                }
+                // A mode change may bring the mode's own bindings back.
+                let buttons = self.back_buttons;
+                self.apply(|d| d.set_back_buttons(&buttons), |_| {})
+            }
+            Request::SetBackButton { button, target } => {
+                let mut buttons = self.back_buttons;
+                buttons.set(button, target);
+                self.write_back_buttons(buttons)
+            }
+            Request::ResetBackButtons => self.write_back_buttons(BackButtons::default()),
+            Request::SetLighting { lighting: None } => {
+                self.lighting = None;
+                Response::Ok
+            }
+            Request::SetLighting {
+                lighting: Some(lighting),
+            } => match lighting.normalized() {
+                Ok(lighting) => self.write_lighting(lighting),
+                Err(message) => Response::Error { message },
+            },
             Request::SetGyro { settings } => {
                 let (low, high) = GYRO_SENSITIVITY_RANGE;
                 if !(low..=high).contains(&settings.sensitivity) {
@@ -447,6 +484,8 @@ impl Handler {
             controller_mode: self.controller_mode,
             battery_charge_limit: self.battery_limit,
             gyro: self.gyro,
+            back_buttons: self.back_buttons,
+            lighting: self.lighting.clone(),
         }
     }
 
@@ -477,6 +516,8 @@ impl Handler {
             fps_limit: self.fps_limit,
             controller_mode: None,
             gyro: self.gyro,
+            back_buttons: BackButtons::default(),
+            lighting: None,
         };
         let global = self
             .before_bench
@@ -490,6 +531,8 @@ impl Handler {
             last_bench: self.last_bench.clone(),
             accent: self.accent.clone(),
             controller_mode: self.controller_mode,
+            back_buttons: self.back_buttons,
+            lighting: self.lighting.clone(),
             ..global
         }
     }
@@ -508,6 +551,19 @@ impl Handler {
         }
         if let Some(mode) = saved.controller_mode {
             requests.push(Request::SetControllerMode { mode });
+        }
+        // Without a saved mode, nothing above writes the buttons.
+        if saved.controller_mode.is_none() && !saved.back_buttons.is_default() {
+            if let Response::Error { message } = self.write_back_buttons(saved.back_buttons) {
+                errors.push(message);
+            }
+        } else {
+            self.back_buttons = saved.back_buttons;
+        }
+        if let Some(lighting) = saved.lighting.clone() {
+            requests.push(Request::SetLighting {
+                lighting: Some(lighting),
+            });
         }
         for request in requests {
             if let Response::Error { message } = self.handle(request) {
@@ -863,6 +919,32 @@ impl Handler {
             custom: self.fan_curves.clone(),
             defaults,
         }
+    }
+
+    /// Writes `lighting`, its colour or the accent's.
+    fn write_lighting(&mut self, lighting: Lighting) -> Response {
+        let color = lighting
+            .color
+            .as_deref()
+            .or(self.accent.as_deref())
+            .unwrap_or(DEFAULT_ACCENT);
+        let Some(rgb) = protocol::hex_rgb(color) else {
+            return Response::Error {
+                message: format!("not a #RRGGBB colour: {color}"),
+            };
+        };
+        let level = lighting.level;
+        self.apply(
+            |d| d.set_lighting(level, rgb),
+            |s| s.lighting = Some(lighting),
+        )
+    }
+
+    fn write_back_buttons(&mut self, buttons: BackButtons) -> Response {
+        self.apply(
+            |d| d.set_back_buttons(&buttons),
+            |s| s.back_buttons = buttons,
+        )
     }
 
     fn apply(
@@ -1399,6 +1481,163 @@ mod tests {
         assert_eq!(h.status().controller_mode, Some(ControllerMode::Mouse));
         assert_eq!(h.handle(Request::SetFpsLimit { fps: None }), Response::Ok);
         assert_eq!(h.status().fps_limit, None);
+    }
+
+    #[test]
+    fn back_buttons_are_kept_and_reset() {
+        use canape_core::{BackButton, ButtonTarget};
+        let mut h = handler();
+        assert!(h.status().back_buttons.is_default());
+        assert_eq!(
+            h.handle(Request::SetBackButton {
+                button: BackButton::M1,
+                target: ButtonTarget::PadA,
+            }),
+            Response::Ok
+        );
+        h.handle(Request::SetBackButton {
+            button: BackButton::M2,
+            target: ButtonTarget::KeyF12,
+        });
+        // A mode change keeps them.
+        h.handle(Request::SetControllerMode {
+            mode: ControllerMode::Mouse,
+        });
+        let buttons = h.status().back_buttons;
+        assert_eq!(buttons.m1, ButtonTarget::PadA);
+        assert_eq!(buttons.m2, ButtonTarget::KeyF12);
+
+        let json = serde_json::to_string(&h.saved()).unwrap();
+        let mut restored = handler();
+        assert!(
+            restored
+                .restore(&serde_json::from_str(&json).unwrap())
+                .is_empty()
+        );
+        assert_eq!(restored.status().back_buttons, buttons);
+
+        assert_eq!(h.handle(Request::ResetBackButtons), Response::Ok);
+        assert!(h.status().back_buttons.is_default());
+        assert!(h.saved().back_buttons.is_default());
+    }
+
+    #[test]
+    fn lighting_follows_the_accent_and_is_kept() {
+        let mut h = handler();
+        assert_eq!(h.status().lighting, None);
+        let follow = Lighting {
+            level: 2,
+            color: None,
+        };
+        assert_eq!(
+            h.handle(Request::SetLighting {
+                lighting: Some(follow.clone()),
+            }),
+            Response::Ok
+        );
+        assert!(matches!(
+            h.handle(Request::SetLighting {
+                lighting: Some(Lighting {
+                    level: 9,
+                    color: None,
+                }),
+            }),
+            Response::Error { .. }
+        ));
+        assert_eq!(h.status().lighting, Some(follow.clone()));
+        h.handle(Request::SetAccent {
+            color: "#10B981".into(),
+        });
+
+        let json = serde_json::to_string(&h.saved()).unwrap();
+        let mut restored = handler();
+        assert!(
+            restored
+                .restore(&serde_json::from_str(&json).unwrap())
+                .is_empty()
+        );
+        assert_eq!(restored.status().lighting, Some(follow));
+
+        let red = Lighting {
+            level: 3,
+            color: Some("#FF0000".into()),
+        };
+        h.handle(Request::SetLighting {
+            lighting: Some(red),
+        });
+        assert_eq!(
+            h.status().lighting.and_then(|l| l.color).as_deref(),
+            Some("#ff0000")
+        );
+        assert_eq!(
+            h.handle(Request::SetLighting { lighting: None }),
+            Response::Ok
+        );
+        assert_eq!(h.saved().lighting, None);
+    }
+
+    #[test]
+    fn lighting_writes_the_accent_colour() {
+        use std::sync::{Arc, Mutex};
+
+        type Writes = Arc<Mutex<Vec<(u8, [u8; 3])>>>;
+        /// The mock, with the lighting writes kept where the test sees them.
+        struct Rings(MockDevice, Writes);
+        impl Device for Rings {
+            fn name(&self) -> &str {
+                self.0.name()
+            }
+            fn tdp_range(&self) -> (u32, u32) {
+                self.0.tdp_range()
+            }
+            fn set_tdp(&mut self, watts: u32) -> canape_hw::Result<()> {
+                self.0.set_tdp(watts)
+            }
+            fn set_performance_mode(&mut self, mode: PerformanceMode) -> canape_hw::Result<()> {
+                self.0.set_performance_mode(mode)
+            }
+            fn set_battery_charge_limit(&mut self, percent: u8) -> canape_hw::Result<()> {
+                self.0.set_battery_charge_limit(percent)
+            }
+            fn telemetry(&mut self) -> canape_hw::Result<Telemetry> {
+                self.0.telemetry()
+            }
+            fn set_lighting(&mut self, level: u8, rgb: [u8; 3]) -> canape_hw::Result<()> {
+                self.1.lock().unwrap().push((level, rgb));
+                Ok(())
+            }
+        }
+
+        let writes = Arc::new(Mutex::new(Vec::new()));
+        let mut h = Handler::new(Box::new(Rings(MockDevice::default(), writes.clone())));
+        let follow = Some(Lighting {
+            level: 1,
+            color: None,
+        });
+        h.handle(Request::SetLighting {
+            lighting: follow.clone(),
+        });
+        h.handle(Request::SetAccent {
+            color: "#102030".into(),
+        });
+        h.handle(Request::SetLighting {
+            lighting: Some(Lighting {
+                level: 3,
+                color: Some("#00ff7f".into()),
+            }),
+        });
+        // A fixed colour no longer follows the accent.
+        h.handle(Request::SetAccent {
+            color: "#ffffff".into(),
+        });
+        assert_eq!(
+            *writes.lock().unwrap(),
+            [
+                (1, [0xff, 0x3d, 0x5e]),
+                (1, [0x10, 0x20, 0x30]),
+                (3, [0x00, 0xff, 0x7f]),
+            ]
+        );
     }
 
     #[test]

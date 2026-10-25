@@ -501,3 +501,120 @@ msgstr "Yukarı ve aşağıyı ters çevir"
 
 msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
 msgstr "Bir oyun öndeyken fareyi hareket ettirir. Yalnızca oyun kumandasını okuyan oyunlar bunu yok sayar."
+
+msgid "Default"
+msgstr "Varsayılan"
+
+msgid "Disabled"
+msgstr "Devre dışı"
+
+msgid "Left stick click"
+msgstr "Sol çubuk tıklaması"
+
+msgid "Right stick click"
+msgstr "Sağ çubuk tıklaması"
+
+msgid "D-pad up"
+msgstr "Yön tuşu yukarı"
+
+msgid "D-pad down"
+msgstr "Yön tuşu aşağı"
+
+msgid "D-pad left"
+msgstr "Yön tuşu sol"
+
+msgid "D-pad right"
+msgstr "Yön tuşu sağ"
+
+msgid "Esc key"
+msgstr "Esc tuşu"
+
+msgid "Enter key"
+msgstr "Enter tuşu"
+
+msgid "Space bar"
+msgstr "Boşluk tuşu"
+
+msgid "Tab key"
+msgstr "Tab tuşu"
+
+msgid "Backspace key"
+msgstr "Geri silme tuşu"
+
+msgid "Up arrow"
+msgstr "Yukarı ok"
+
+msgid "Down arrow"
+msgstr "Aşağı ok"
+
+msgid "Left arrow"
+msgstr "Sol ok"
+
+msgid "Right arrow"
+msgstr "Sağ ok"
+
+msgid "Page up"
+msgstr "Sayfa yukarı"
+
+msgid "Page down"
+msgstr "Sayfa aşağı"
+
+msgid "Shift key"
+msgstr "Shift tuşu"
+
+msgid "Ctrl key"
+msgstr "Ctrl tuşu"
+
+msgid "Windows key"
+msgstr "Windows tuşu"
+
+msgid "Left click"
+msgstr "Sol tık"
+
+msgid "Right click"
+msgstr "Sağ tık"
+
+msgid "Middle click"
+msgstr "Orta tık"
+
+msgid "Scroll up"
+msgstr "Yukarı kaydır"
+
+msgid "Scroll down"
+msgstr "Aşağı kaydır"
+
+msgid "Volume up"
+msgstr "Sesi aç"
+
+msgid "Volume down"
+msgstr "Sesi kıs"
+
+msgid "Mute the microphone"
+msgstr "Mikrofonu kapat"
+
+msgid "Touch keyboard"
+msgstr "Dokunmatik klavye"
+
+msgid "Back buttons"
+msgstr "Arka düğmeler"
+
+msgid "Restore the default buttons"
+msgstr "Orijinal düğmeleri geri yükle"
+
+msgid "Low"
+msgstr "Düşük"
+
+msgid "Medium"
+msgstr "Orta"
+
+msgid "High"
+msgstr "Yüksek"
+
+msgid "Stick lighting"
+msgstr "Çubuk aydınlatması"
+
+msgid "Follows the accent colour"
+msgstr "Vurgu rengini izler"
+
+msgid "Back buttons and lighting"
+msgstr "Arka düğmeler ve aydınlatma"

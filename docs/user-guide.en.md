@@ -147,7 +147,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 | **D-pad** or **left stick** | Up and down change row; left and right move along the row or change its value. Held, the move repeats after 0.4 s. In Games, left and right move along the shelf, up and down swap the shelves. |
 | **A** | Choose; in Games, launch the game (or install it) |
 | **X** | Save for the game in the foreground (Performance, Hardware, Bench); delete a profile (Game profiles) |
-| **B** | Leave a sub-page (Game profiles, Bench), otherwise back to Games |
+| **B** | Leave a sub-page (Game profiles, Bench, Back buttons and lighting), otherwise back to Games |
 
 The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. When Canapé comes back to the front, a button still held for the game does nothing until it is released; the first time (when the Ally starts, for example), the gamepad is ignored for 2 s (the window only shows about 1.5 s later), so that a press while signing in does not launch a game. The same rules apply to keyboard keys, including the Enter and Escape that tools such as Steam Input send for A and B. The focused row or tile has a white outline; the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
 
@@ -278,7 +278,7 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
 > [!NOTE]
 
-Six rows, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, the last row opens [Gyro aiming](#gyro-aiming), **X** saves the fans, the frame rate limit, the screen refresh rate and gyro aiming for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
+Six rows, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, the last row opens [Gyro aiming](#gyro-aiming) on the left and [Back buttons and lighting](#back-buttons-and-lighting) on the right, **X** saves the fans, the frame rate limit, the screen refresh rate and gyro aiming for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
 
 **Fans**
 
@@ -361,6 +361,37 @@ Opened from the **Gyro aiming** row of the Hardware page; **B** goes back. While
 - **Per game**: **X** keeps these settings in the profile of the game in the foreground, with the fans and the frame rate limit. A profile without its own gyro settings follows the global ones. While a game with its own settings is in front, a change goes into its profile.
 - The paddles go to gyro aiming even when **Use the Ally's buttons** is off. In **While held** mode, holding a paddle in a game that also uses it does both.
 - **Cost**: nothing while the gyro is off or the paddles are released; while aiming, the shell reads the sensor every 10 ms.
+
+#### Back buttons and lighting
+
+On the page's last row, on the right, **Back buttons and lighting ›** opens a page that chooses what M1 and M2, the two buttons on the back, send (on the left), and the light of the rings around the sticks (on the right). Left and right go through the choices and apply each one at once; B goes back to the Hardware page.
+
+| Choice | The button sends |
+|---|---|
+| Default | Its own key, as from the factory |
+| Disabled | Nothing |
+| A, B, X, Y, LB, RB, LT, RT, stick clicks, D-pad, View, Menu, Xbox | That gamepad button |
+| Esc, Enter, Space, Tab, Backspace, arrows, Page up / down, Shift, Ctrl, Windows, F11, F12 | That key |
+| Left, right, middle click, scroll up / down | That mouse action |
+| Volume up / down, mute the microphone, touch keyboard | That action |
+
+- The controller itself does the translation: it works in every game and program, whatever reads the gamepad.
+- The choice is global (not per game), remembered, and written again when the service starts and after every change of controller mode.
+- With the left button under the screen held, M1 and M2 keep their own keys.
+- **Restore the default buttons** gives M1 and M2 their own keys back.
+- Steam Input, or a game that already knows M1 and M2 by their own keys, sees the new button instead.
+
+> [!NOTE]
+> Not tried on the Ally yet: the packets were checked against four open-source projects that drive the Ally's controller (see the developer guide), but never sent to a real one. Only the ROG Ally and Ally X controllers are known. If a button behaves oddly, **Restore the default buttons**.
+
+**Stick lighting**
+
+- **Brightness**: Default, Off, Low, Medium, High, applied at once. **Default** leaves the rings to the controller: Canapé stops changing them, and the controller's own lighting should come back at the next restart.
+- **Colour**: the first swatch, a ring, follows the accent colour picked in Settings (and changes with it); the others are fixed colours, white first. A applies the focused one; picked while the rings are off or on Default, it lights them on High.
+- One colour for both rings, without effects. The choice is global, remembered and written again when the service starts.
+
+> [!NOTE]
+> Not tried on the Ally yet (checked against open-source projects, like the back buttons). If the rings look wrong, choose **Default** and restart the Ally.
 
 ### Settings
 
@@ -522,7 +553,7 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | File | Contents |
 |---|---|
 | `%ProgramData%\Canape\service.log` | Service log: detected model, ADL state at startup, every command that changes the state and its response (`SetTdp { watts: 12 } -> Ok`), conflicting programs, errors. |
-| `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, profiles, last bench. |
+| `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, back buttons, stick lighting, profiles, last bench. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Shell log: launches (with their arguments), chosen language, ADL state, service errors. |
 | `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `refresh_hz`, `ally_buttons`. |
 | `%LOCALAPPDATA%\Canape\covers\` | Downloaded covers (`<store>_<id>.jpg` / `.png`, `.miss` markers). |
@@ -562,6 +593,8 @@ Examples (written in readable form here; escape the quotes in PowerShell 5.1):
 | `{"type":"set_fps_limit","fps":null}` | Removes the frame rate limit (or `"fps":40` for a limit, 30 to 120) |
 | `{"type":"set_controller_mode","mode":"gamepad"}` | Controller back to gamepad mode (`wasd`, `mouse`) |
 | `{"type":"set_gyro","settings":{"activation":"off"}}` | Gyro aiming off (`hold`, `toggle`, `always`; other fields: `sensitivity`, `horizontal` `yaw` or `roll`, `invert_y`) |
+| `{"type":"reset_back_buttons"}` | M1 and M2 back to their own keys |
+| `{"type":"set_lighting","lighting":null}` | Stick rings left to the controller (back at the next restart) |
 | `{"type":"list_profiles"}` | Saved profiles |
 | `{"type":"get_bench_report"}` | Last bench |
 | `{"type":"cancel_bench"}` | Cancels the running bench |

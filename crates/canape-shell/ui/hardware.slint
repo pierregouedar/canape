@@ -3,8 +3,8 @@
 // picks a tile; X saves the fans and the frame rate cap for the game in
 // the foreground:
 //   0 fan presets, 1 frame rate cap, 2 controller mode, 3 battery charge
-//   limit, 4 refresh rate (when the screen reports its rates), then gyro
-//   aiming, which A opens.
+//   limit, 4 refresh rate (when the screen reports its rates), then a row
+//   of two lines that open the gyro aiming and the controller pages.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
@@ -65,6 +65,8 @@ component Curve inherits Rectangle {
 
 export component HardwarePage inherits Rectangle {
     callback open-gyro();
+    // Opens the controller page.
+    callback open-controller();
     in-out property <int> focus-row: 0;
     in-out property <int> fan-col: root.fan-index >= 0 ? root.fan-index : 0;
     in-out property <int> controller-col: root.controller-index >= 0 ? root.controller-index : 0;
@@ -82,6 +84,8 @@ export component HardwarePage inherits Rectangle {
     property <int> refresh-index: root.index-of-refresh(App.refresh-hz);
     property <int> gyro-row: App.refresh-rates.length > 0 ? 5 : 4;
     property <int> rows: root.gyro-row + 1;
+    // On the last row: 0 gyro aiming, 1 back buttons and lighting.
+    in-out property <int> more-col: 0;
 
     pure function index-of-refresh(hz: int) -> int {
         // Past the end, an array reads as 0.
@@ -96,7 +100,9 @@ export component HardwarePage inherits Rectangle {
             root.controller-col = clamp(root.controller-col + d, 0, 2);
         } else if root.focus-row == 3 {
             root.charge-col = clamp(root.charge-col + d, 0, 2);
-        } else if root.focus-row != root.gyro-row {
+        } else if root.focus-row == root.gyro-row {
+            root.more-col = clamp(root.more-col + d, 0, 1);
+        } else {
             root.refresh-col = clamp(root.refresh-col + d, 0, App.refresh-rates.length - 1);
         }
     }
@@ -106,7 +112,11 @@ export component HardwarePage inherits Rectangle {
         } else if root.focus-row == 2 {
             App.set-controller(root.controllers[root.controller-col]);
         } else if root.focus-row == root.gyro-row {
-            root.open-gyro();
+            if root.more-col == 0 {
+                root.open-gyro();
+            } else {
+                root.open-controller();
+            }
         } else if root.focus-row == 3 {
             App.set-charge-limit(root.charge-stops[root.charge-col]);
         } else if root.focus-row == 4 {
@@ -329,15 +339,37 @@ export component HardwarePage inherits Rectangle {
                 }
             }
 
-            SettingLine {
-                label: @tr("Gyro aiming");
-                value: App.gyro-name(App.status.gyro-activation) + " ›";
-                chevrons: false;
-                enabled: App.status.connected;
-                focused: root.active && root.focus-row == root.gyro-row;
-                clicked => {
-                    root.focus-row = root.gyro-row;
-                    root.activate();
+            // The last row: two lines that open sub-pages.
+            HorizontalLayout {
+                spacing: 10px;
+                SettingLine {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    label: @tr("Gyro aiming");
+                    value: App.gyro-name(App.status.gyro-activation) + " ›";
+                    chevrons: false;
+                    enabled: App.status.connected;
+                    focused: root.active && root.focus-row == root.gyro-row && root.more-col == 0;
+                    clicked => {
+                        root.focus-row = root.gyro-row;
+                        root.more-col = 0;
+                        root.activate();
+                    }
+                }
+
+                SettingLine {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    label: @tr("Back buttons and lighting");
+                    value: "›";
+                    chevrons: false;
+                    enabled: App.status.connected;
+                    focused: root.active && root.focus-row == root.gyro-row && root.more-col == 1;
+                    clicked => {
+                        root.focus-row = root.gyro-row;
+                        root.more-col = 1;
+                        root.activate();
+                    }
                 }
             }
 

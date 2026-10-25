@@ -32,7 +32,7 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 | 📥 **Installer ses jeux** | Les jeux Steam et Epic possédés mais pas installés, dans le mode « À installer » de la bibliothèque ; A les installe sans ouvrir l'interface de Steam ni le lanceur Epic (Epic par Legendary, téléchargé à la demande), avec la progression sur la jaquette. |
 | ⚡ **Modes et TDP** | Modes firmware ASUS (Silencieux, Performance, Turbo) ou limite manuelle en watts (sPPT, SPL, fPPT écrits ensemble). |
 | 🤖 **Auto TDP** | Tient l'objectif FPS (30 à 120) avec le moins de watts possible : FPS et charge GPU lus dans le pilote AMD, plafond sur batterie, limite de température, anti-oscillation. |
-| 🌀 **Ventilateurs, limite de FPS, manette** | Préréglages de ventilateurs (Automatique, Silencieux, Équilibré, Maximum) avec un plancher de sécurité à chaud, limite de FPS du pilote AMD, mode de la manette (manette de jeu, clavier, souris). |
+| 🌀 **Ventilateurs, limite de FPS, manette** | Préréglages de ventilateurs (Automatique, Silencieux, Équilibré, Maximum) avec un plancher de sécurité à chaud, limite de FPS du pilote AMD, mode de la manette (manette de jeu, clavier, souris), boutons arrière M1 et M2, couleur des anneaux des sticks. |
 | 🎯 **Visée au gyroscope** | Tourner l'Ally déplace la souris pendant qu'un jeu est devant : en tenant une palette arrière, en bascule ou tout le temps, avec sensibilité, axe et inversion, par jeu si on veut. Sans pilote. Pas encore essayée sur l'Ally ([étude](docs/gyro-study.md)). |
 | 🎯 **Profils par jeu** | Le profil du jeu au premier plan s'applique tout seul, puis rend la main aux réglages généraux. Canapé retient les watts où l'auto TDP se stabilise ; un profil peut aussi garder ses ventilateurs et sa limite de FPS. |
 | 📊 **Banc d'essai** | Balaye plusieurs limites de puissance sur le jeu en cours et propose trois recommandations : meilleur compromis, puissance pour l'objectif, le plus efficace. |
@@ -82,7 +82,7 @@ Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas e
 | M3 | Widget Game Bar relié au service ([rapport](docs/m3-report.md)) | ✅ première version · 🧪 nouvelle version 13 langues pas encore compilée |
 | M4 | Auto TDP réel : FPS et charge GPU via AMD ADL ([rapport](docs/m4-report.md)) | ✅ jusqu'à `99cad07` · 🧪 optimisations suivantes |
 | M5 | Profils par jeu, banc d'essai, shell en 13 langues ([rapport, 1ʳᵉ partie](docs/m5-report.md)) | 🚧 shell, ventilateurs, manette, écran, boutons, bibliothèque et bench essayés sur l'Ally ; auto TDP corrigé · 🧪 installations, widget, limite de FPS corrigée |
-| M6 | Bibliothèque de jeux, installation des jeux Steam et Epic, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | ✅ bibliothèque (Steam, Xbox), ventilateurs, manette, fréquence de l'écran, boutons Armoury / Command Center, essayés sur l'Ally ([M5](docs/m5-report.md)) · 🧪 installation des jeux Steam et Epic, limite de FPS corrigée, fréquence par jeu · ⏳ installation des jeux GOG ([étude](docs/game-install-study.md)) |
+| M6 | Bibliothèque de jeux, installation des jeux Steam et Epic, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | ✅ bibliothèque (Steam, Xbox), ventilateurs, manette, fréquence de l'écran, boutons Armoury / Command Center, essayés sur l'Ally ([M5](docs/m5-report.md)) · 🧪 installation des jeux Steam et Epic, limite de FPS corrigée, fréquence par jeu, boutons arrière M1 / M2, éclairage des sticks · ⏳ installation des jeux GOG ([étude](docs/game-install-study.md)) |
 
 ### Organisation du dépôt
 
@@ -128,7 +128,7 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 | 📥 **Installing games** | The Steam and Epic games you own but have not installed, in the library's "To install" mode; A installs them without opening Steam's interface or the Epic launcher (Epic through Legendary, downloaded on demand), with the progress on the cover. |
 | ⚡ **Modes and TDP** | ASUS firmware modes (Silent, Performance, Turbo) or a manual limit in watts (sPPT, SPL and fPPT written together). |
 | 🤖 **Auto TDP** | Holds the FPS target (30 to 120) with the fewest watts: frame rate and GPU load read from the AMD driver, battery ceiling, temperature limit, anti-oscillation. |
-| 🌀 **Fans, frame rate limit, controller** | Fan presets (Automatic, Silent, Balanced, Maximum) with a safety floor when hot, AMD driver frame rate limit, controller mode (gamepad, keyboard, mouse). |
+| 🌀 **Fans, frame rate limit, controller** | Fan presets (Automatic, Silent, Balanced, Maximum) with a safety floor when hot, AMD driver frame rate limit, controller mode (gamepad, keyboard, mouse), M1 and M2 back buttons, stick ring colour. |
 | 🎯 **Gyro aiming** | Turning the Ally moves the mouse while a game is in front: while holding a back paddle, toggled or all the time, with sensitivity, axis and inversion, per game if you like. No driver. Not tried on the Ally yet ([study](docs/gyro-study.md), French). |
 | 🎯 **Per-game profiles** | The profile of the game in front applies by itself, then hands back to the global settings. Canapé remembers the wattage auto TDP settles on; a profile can also keep its fans and frame rate limit. |
 | 📊 **Bench** | Sweeps several power limits on the running game and gives three recommendations: sweet spot, power for the target, most efficient. |
@@ -178,7 +178,7 @@ Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, n
 | M3 | Game Bar widget talking to the service ([report](docs/m3-report.md)) | ✅ first version · 🧪 new 13-language version not built yet |
 | M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `99cad07` · 🧪 later optimizations |
 | M5 | Per-game profiles, bench, shell in 13 languages ([report, part 1](docs/m5-report.md)) | 🚧 shell, fans, controller, screen, buttons, library and bench tried on the Ally; auto TDP fixed · 🧪 installs, widget, fixed frame rate limit |
-| M6 | Game library, installing Steam and Epic games, fans, frame rate limit, controller mode, display refresh rate, special buttons | ✅ library (Steam, Xbox), fans, controller, screen refresh rate, Armoury / Command Center buttons, tried on the Ally ([M5](docs/m5-report.md)) · 🧪 installing Steam and Epic games, fixed frame rate limit, per-game refresh rate · ⏳ installing GOG games ([study](docs/game-install-study.md), in French) |
+| M6 | Game library, installing Steam and Epic games, fans, frame rate limit, controller mode, display refresh rate, special buttons | ✅ library (Steam, Xbox), fans, controller, screen refresh rate, Armoury / Command Center buttons, tried on the Ally ([M5](docs/m5-report.md)) · 🧪 installing Steam and Epic games, fixed frame rate limit, per-game refresh rate, M1 / M2 back buttons, stick lighting · ⏳ installing GOG games ([study](docs/game-install-study.md), in French) |
 
 ### Repository map
 

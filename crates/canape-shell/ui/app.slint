@@ -12,6 +12,7 @@ import { SettingsPage } from "settings.slint";
 import { PerformancePage } from "performance.slint";
 import { GameView, Library, LibraryPage } from "library.slint";
 import { HardwarePage } from "hardware.slint";
+import { ControllerPage } from "controller.slint";
 import { Reveal } from "kit.slint";
 
 // Plus Jakarta Sans, embedded (OFL, see fonts/OFL.txt). Scripts it lacks,
@@ -90,8 +91,8 @@ export component AppWindow inherits Window {
     preferred-height: 720px;
 
     // Sections 0 Games, 1 Performance, 2 Hardware, 3 Settings; then the
-    // sub-pages 4 Profiles (from Settings), 5 Bench (from Performance) and
-    // 6 Gyro (from Hardware).
+    // sub-pages 4 Profiles (from Settings), 5 Bench (from Performance),
+    // 6 Gyro and 7 Controller (both from Hardware).
     in-out property <int> page: 0;
     property <int> section: root.section-of(root.page);
     // The selected game on the shelf in front, for the hints.
@@ -103,7 +104,7 @@ export component AppWindow inherits Window {
     property <length> enter-y;
 
     pure function section-of(page: int) -> int {
-        page == 4 ? 3 : page == 5 ? 1 : page == 6 ? 2 : page
+        page == 4 ? 3 : page == 5 ? 1 : page == 6 || page == 7 ? 2 : page
     }
     function go(page: int) {
         let to-section = root.section-of(page);
@@ -316,6 +317,9 @@ export component AppWindow inherits Window {
                         open-gyro => {
                             root.go(6);
                         }
+                        open-controller => {
+                            root.go(7);
+                        }
                     }
                 }
                 if root.page == 3: Reveal {
@@ -339,6 +343,15 @@ export component AppWindow inherits Window {
                     from-x: root.enter-x;
                     from-y: root.enter-y;
                     ProfilesPage { }
+                }
+                if root.page == 7: Reveal {
+                    x: 32px;
+                    y: 28px;
+                    width: parent.width - 80px;
+                    height: parent.height - 28px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    ControllerPage { }
                 }
                 if root.page == 5: Reveal {
                     x: 32px;

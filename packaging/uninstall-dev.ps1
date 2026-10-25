@@ -8,8 +8,9 @@
 .DESCRIPTION
   Before removing the service, asks it to put the hardware back to neutral
   settings: firmware fan curves, no frame rate limit, controller in gamepad
-  mode, and no charge limit if one was set through Canape. Once the service
-  is gone, nothing would undo them.
+  mode, back buttons on their own keys, stick rings left to the controller,
+  and no charge limit if one was set through Canape. Once the service is
+  gone, nothing would undo them.
 
   Keeps the user data (settings, profiles, library cache, logs, downloaded
   tools) unless -RemoveData is given, and the development certificate unless
@@ -60,11 +61,13 @@ if ($running -and (Test-Path $ctl)) {
     Ctl @{ type = "reset_fan_curves" } | Out-Null
     Ctl @{ type = "set_fps_limit"; fps = $null } | Out-Null
     Ctl @{ type = "set_controller_mode"; mode = "gamepad" } | Out-Null
+    Ctl @{ type = "reset_back_buttons" } | Out-Null
+    Ctl @{ type = "set_lighting"; lighting = $null } | Out-Null
     if ($status -and $null -ne $status.battery_charge_limit -and $status.battery_charge_limit -lt 100) {
         Ctl @{ type = "set_battery_charge_limit"; percent = 100 } | Out-Null
     }
 } else {
-    Write-Warning "The service is not running: fans, frame rate limit, controller mode and charge limit stay as they are."
+    Write-Warning "The service is not running: fans, frame rate limit, controller mode, back buttons, stick rings and charge limit stay as they are."
 }
 
 Write-Host "2/6 Removing the service"

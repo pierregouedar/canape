@@ -11,6 +11,6 @@ pub use bench::{BenchPlan, BenchPoint, BenchProgress, BenchReport};
 pub use fan::{Fan, FanCurve, FanCurves, FanPreset};
 pub use protocol::{ProfilePart, Request, Response, Status};
 pub use settings::{
-    AutoTdpSettings, ControllerMode, GyroActivation, GyroAxis, GyroSettings, PerformanceMode,
-    Profile,
+    AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, GyroActivation,
+    GyroAxis, GyroSettings, Lighting, PerformanceMode, Profile,
 };

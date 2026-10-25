@@ -188,9 +188,14 @@ Page 3 (`ui/hardware.slint`) only sends requests: the service validates and writ
 | Charge limit chips | `set-charge-limit(percent)` | `set_battery_charge_limit`; chips 60, 80, 100 |
 | Gyro aiming line | `open-gyro()` | none: opens page 6, the Gyro aiming sub-page (`GyroPage` in `pages.slint`) |
 | Gyro page lines | `set-gyro-activation(name)`, `change-gyro-sensitivity(delta)`, `toggle-gyro-roll()`, `toggle-gyro-invert()` | `set_gyro` with `status.gyro` changed (`update_gyro`) |
+| Back buttons and lighting line | `open-controller()` | none: opens sub-page 7, `ui/controller.slint` (B goes back to the Hardware page) |
+| M1 / M2 lines (sub-page) | `set-back-button(button, index)` | `set_back_button` with `ButtonTarget::ALL[index]`, sent at each left / right |
+| Restore the default buttons (sub-page) | `reset-back-buttons()` | `reset_back_buttons` |
+| Brightness line (sub-page) | `set-lighting(level, color)` | `set_lighting`: Default → `null`; Off, Low, Medium, High → levels 0 to 3 with the current colour |
+| Colour swatches (sub-page) | `set-lighting(level, color)` | `set_lighting` with that colour (the first swatch, a ring, `color: null`: follow the accent), at the level shown, High when the rings were off or on Default |
 
 - `hardware.rs`: `preset_name()` maps `status.fan_curves` to the selected tile: `""` when empty (firmware curves), a preset key when every custom curve equals that preset, `custom` otherwise. `curve_paths()` turns the CPU curve into the line and area `Path` commands of the panel (viewbox 90 × 100: one unit per °C from 20 to 110 °C, one per percent), held flat before the first and after the last point. Both are unit-tested.
-- `link.rs` (`status_view`): `cpu_fan_rpm` / `gpu_fan_rpm` (−1 when unknown), the preset name, the CPU curve paths (empty without a custom CPU curve), `fps_limit` (0 for none), `controller_mode` (`""` when Canapé has not set it, so no tile is selected) and `battery_charge_limit` (0 when Canapé has not set it, likewise). `tdp_floor()` / `tdp_ceiling()` read `tdp_min_watts` / `tdp_max_watts` (fallback `MIN_WATTS` 5 and `MAX_WATTS` 35 in `main.rs`) and bound every wattage stepper of the shell.
+- `link.rs` (`status_view`): `cpu_fan_rpm` / `gpu_fan_rpm` (−1 when unknown), the preset name, the CPU curve paths (empty without a custom CPU curve), `fps_limit` (0 for none), `controller_mode` (`""` when Canapé has not set it, so no tile is selected) and `battery_charge_limit` (0 when Canapé has not set it, likewise); `m1` / `m2`, the index of each back button's target in `ButtonTarget::ALL` (0 = its own key). The names of the controller page (`target-names` in `controller.slint`) follow that order; a test in `link.rs` checks they are as many. `lighting-level` (−1 without `lighting`) and `lighting-color` (`""` when it follows the accent). `tdp_floor()` / `tdp_ceiling()` read `tdp_min_watts` / `tdp_max_watts` (fallback `MIN_WATTS` 5 and `MAX_WATTS` 35 in `main.rs`) and bound every wattage stepper of the shell.
 - The Profiles page and the bench's **Save for the game** keep the `fan_curves`, `fps_limit`, `refresh_hz` and `gyro` of an existing profile.
 - **Gyro aiming** (`gyro.rs`, study in [`gyro-study.md`](gyro-study.md), French): the service only stores the settings (`GyroSettings`, global in `state.json` and per profile) and pushes the ones in effect in `status.gyro`; the shell does the rest, since `SendInput` only reaches the desktop of its own session. `link.rs` hands every push to `gyro::follow(settings, foreground.is_some())`, and the settings `Off` when the service is lost; `buttons.rs` hands the paddles to `gyro::paddle(down)`, whatever `ally_buttons` says. A thread waits on a condition variable until aiming is wanted (`Trigger::active`: paddle held, toggled, or always, and a game in front), opens the sensor once (`canape_hw::motion::open()`, logged as `gyro: …`), asks for a 10 ms report interval, then every 10 ms reads the angular velocity, turns it into mouse counts (`Aim::step`) and sends them with `SendInput(MOUSEEVENTF_MOVE)`. While the shell is in front it moves nothing and checks every 250 ms. Back to the sensor's default interval when aiming stops. `Aim`: 0.75 °/s dead zone subtracted from each axis, at most 50 ms per reading, fractions kept between readings; turning left (positive around Y, or around Z with `roll`) moves left, tilting the top away (positive around X) moves up. `Aim` and `Trigger` are unit-tested.
 - **Screen refresh rate** (`screen.rs`): display modes belong to the user's session, so the shell, not the service, switches them. `canape_hw::display::Screen::internal()` picks the active path whose output technology is internal or embedded DisplayPort (`QueryDisplayConfig`, then the source's GDI name), `rates()` lists the rates at the current resolution and depth (`EnumDisplaySettingsExW`), `set_refresh()` calls `ChangeDisplaySettingsExW` with `CDS_UPDATEREGISTRY`. `Profile::refresh_hz` is only stored by the service; at each status push the shell looks up the active profile's rate and `screen::follow` switches on a change of profile only (`Follow::step`, unit-tested): entering a profile remembers the rate it replaces, leaving it goes back to the rate picked on the page (`shell.json` `refresh_hz`, 0 = none) or to that remembered rate. The page re-reads the current rate every 5 pushes. Off Windows, `CANAPE_MOCK_SCREEN=60,120` fakes a screen for screenshots.
@@ -293,6 +298,9 @@ sequenceDiagram
 | `set_fps_limit` | `fps: u32 \| null` (30 to 120) | `ok` / `error` | AMD driver frame rate cap (AC and battery, every game); `null` removes it. Saved; during a profile that has its own cap, changes the profile. **Untested from the service's session 0.** |
 | `set_controller_mode` | `mode`: `gamepad` \| `wasd` \| `mouse` | `ok` / `error` | Mode of the built-in controller (HID). Saved and re-applied at startup. Global, not per profile. **Untested on the device.** |
 | `set_gyro` | `settings: GyroSettings` | `ok` / `error` | Gyro aiming. Stored only: the shell applies it. Saved; during a profile that has its own gyro settings, changes the profile. |
+| `set_back_button` | `button`: `m1` \| `m2`, `target: ButtonTarget` | `ok` / `error` | What one back button sends, written to the controller (HID). Saved, re-applied at startup and after every `set_controller_mode`. Global. **Untested on the device.** |
+| `reset_back_buttons` | — | `ok` / `error` | Both back buttons back to their own keys (the factory binding is written). |
+| `set_lighting` | `lighting: Lighting \| null` | `ok` / `error` | Light of the stick rings (HID). Saved and written again at startup; with no colour, the rings take the accent (`set_accent` writes them again, `#ff3d5e` before any accent). `null`: Canapé stops writing them, nothing is sent (the controller's own lighting is expected back at the next restart). **Untested on the device.** |
 
 Examples:
 
@@ -354,7 +362,9 @@ Examples:
   "fan_curves": {"cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": null, "mid": null},
   "fps_limit": 40,
   "controller_mode": "gamepad",
-  "gyro": {"activation": "hold", "sensitivity": 10, "horizontal": "yaw", "invert_y": false}
+  "gyro": {"activation": "hold", "sensitivity": 10, "horizontal": "yaw", "invert_y": false},
+  "back_buttons": {"m1": "default", "m2": "pad_a"},
+  "lighting": {"level": 2, "color": null}
 }
 ```
 
@@ -381,6 +391,8 @@ Examples:
 | `controller_mode` | `string \| null` | `gamepad`, `wasd`, `mouse`, or `null` if Canapé has not set it. |
 | `battery_charge_limit` | `u8 \| null` | Charge limit in percent, or `null` if Canapé has not set it (the firmware does not report it). Optional on input. |
 | `gyro` | `GyroSettings` | Gyro aiming in effect: global, or the active profile's. Defaults when missing. |
+| `back_buttons` | `BackButtons` | What M1 and M2 send; `default` for both until Canapé changes them. Optional on input. |
+| `lighting` | `Lighting \| null` | Stick rings set through Canapé, `null` when left to the controller. Optional on input. |
 
 ### Nested types
 
@@ -419,6 +431,12 @@ Examples:
 **`ControllerMode`**: `gamepad` (XInput), `wasd` (keyboard), `mouse` (desktop).
 
 **`GyroSettings`**: `activation` (`off`, `hold`: while a back paddle is held, `toggle`: a paddle press turns it on and off, `always`; default `off`), `sensitivity` (mouse counts per degree, 1 to 50, default 10), `horizontal` (`yaw`: turning around the screen's vertical axis, or `roll`: tilting like a wheel; default `yaw`), `invert_y` (default `false`). Every field optional on input.
+
+**`BackButtons`**: `{"m1": ButtonTarget, "m2": ButtonTarget}`, each `default` when missing.
+
+**`Lighting`**: `level` 0 (off) to 3, `color` `#rrggbb` or `null` (follow the accent). A level above 3 or a malformed colour is an error; the colour is stored in lower case.
+
+**`ButtonTarget`**: `default` (the button's own key), `disabled`; gamepad `pad_a`, `pad_b`, `pad_x`, `pad_y`, `pad_lb`, `pad_rb`, `pad_lt`, `pad_rt`, `pad_ls`, `pad_rs` (stick clicks), `dpad_up`, `dpad_down`, `dpad_left`, `dpad_right`, `pad_view`, `pad_menu`, `pad_xbox`; keyboard `key_escape`, `key_enter`, `key_space`, `key_tab`, `key_backspace`, `key_up`, `key_down`, `key_left`, `key_right`, `key_page_up`, `key_page_down`, `key_shift`, `key_ctrl`, `key_windows`, `key_f11`, `key_f12`; mouse `mouse_left`, `mouse_right`, `mouse_middle`, `wheel_up`, `wheel_down`; media `volume_up`, `volume_down`, `mute_mic`, `show_keyboard` (the touch keyboard). `ButtonTarget::ALL` keeps this order.
 
 **`BenchPlan`**: `from_watts` (25), `to_watts` (7), `step_watts` (3), `settle_secs` (5), `measure_secs` (15).
 
@@ -746,6 +764,25 @@ Hence the fix: at startup the shell calls `canape_hw::FrameMetrics::arm()` (a `F
 |---|---|
 | Init | `0x5A` + `ASUS Tech.Inc.` in ASCII, once before the first command (`InitInput`). |
 | Mode | `[0x5A, 0xD1, 0x01, 0x01, mode]`, `1` gamepad, `2` WASD, `3` mouse, then `HidD_SetFeature`. |
+| Button mapping | `[0x5A, 0xD1, 0x02, pair, 0x2C]` then 44 bytes: four 11-byte bindings, the pair's first button, its secondary binding (with the left button under the screen held), the second button, its secondary binding. Pairs: `1` D-pad up / down, `2` D-pad left / right, `3` stick clicks, `4` bumpers, `5` A / B, `6` X / Y, `7` View / Menu, `8` **M2 / M1**, `9` triggers. |
+| Binding | First byte, the group: `0x01` gamepad (code in byte 1), `0x02` keyboard (byte 2), `0x03` mouse (byte 4), `0x05` media (byte 3), `0x04` key combination (count in byte 5, then the codes); all zeros, nothing. |
+| Codes offered | Gamepad: A `01`, B `02`, X `03`, Y `04`, LB `05`, RB `06`, LS `07`, RS `08`, D-pad up `09`, down `0A`, left `0B`, right `0C`, LT `0D`, RT `0E`, View `11`, Menu `12`, Xbox `13`. Keyboard: Esc `76`, Enter `5A`, Space `29`, Tab `0D`, Backspace `66`, arrows up `98`, down `99`, left `9A`, right `9B`, Page up `96`, Page down `97`, left Shift `88`, left Ctrl `8C`, Windows `82`, F11 `78`, F12 `07`, M1 `8F`, M2 `8E`. Mouse: left `01`, right `02`, middle `03`, wheel up `04`, wheel down `05`. Media: mute microphone `01`, volume down `02`, volume up `03`, touch keyboard `19`. |
+| Factory M1 / M2 | `[02 00 8E …] [02 00 8E …] [02 00 8F …] [02 00 8F …]`: M2 sends key `8E` and M1 key `8F`, also with the left screen button held, in gamepad and keyboard modes alike. "Default" and **Restore the default buttons** write exactly this. |
+| Sequence | The init report the first time, then the pair 8 report alone: at each change, at service startup, and after each mode write (a mode change may bring the mode's own bindings back). The secondary bindings always keep the factory keys. Nothing is written after it. |
+
+**Untested on the device.** Where these facts come from (all GPL or LGPL, reimplemented, not copied):
+
+
+**Stick lighting**, on the same interface and report:
+
+| Topic | Fact |
+|---|---|
+| Brightness | `[0x5A, 0xBA, 0xC5, 0xC4, level]`, level 0 (off) to 3. |
+| Colour | `[0x5A, 0xD1, 0x08, 0x0C]` then red, green, blue for each of four zones (two per ring): Canapé writes the same colour in all four. |
+| Sequence | The init report the first time, the brightness, then the colour (a brightness write may bring the controller's own colours back). Off: brightness 0, then black. At startup, and again when the accent changes for rings that follow it. |
+| Default | `set_lighting` `null` writes nothing: the colour set directly is expected to last only until the controller restarts, so its own lighting should come back then. Not verified. |
+
+**Untested on the device.** Sources:
 
 
 ### Gyroscope
@@ -767,10 +804,11 @@ The widget's AppContainer SID is derived by Windows (`DeriveAppContainerSidFromA
 
 | Feature | Planned interface |
 |---|---|
-| Button remapping (bindings) | ASUS HID (report `0x5A`, `0xD1 0x02` commands) |
+| Lighting effects (breathing, colour cycle), one colour per ring, lighting while asleep or off | Aura messages (`0xB3`, `0xB5`, `0xB4`) and the `0xD1 0x09` power flags; the ring colours could also differ per zone in `0xD1 0x08`. |
+| Remapping the other buttons (pairs 1 to 7 and 9), secondary bindings, key combinations, turbo, dead zones | Same `0xD1 0x02` command. The defaults of the other pairs differ between gamepad and keyboard / mouse modes (and between references for the secondary bindings): to be captured on the Ally first. |
 | Gyro on the right stick | A virtual gamepad driver, or a controller command not documented anywhere: see [`gyro-study.md`](gyro-study.md) |
 
-The refresh rate and the Armoury / Command Center buttons are done: see [The Hardware page](#the-hardware-page).
+The refresh rate, the Armoury / Command Center buttons, the back buttons and a static ring colour are done: see [The Hardware page](#the-hardware-page).
 
 ## Conventions
 

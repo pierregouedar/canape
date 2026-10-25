@@ -501,3 +501,120 @@ msgstr "Inverser haut et bas"
 
 msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
 msgstr "Déplace la souris pendant qu'un jeu est au premier plan. Les jeux qui ne lisent que la manette l'ignorent."
+
+msgid "Default"
+msgstr "Par défaut"
+
+msgid "Disabled"
+msgstr "Désactivé"
+
+msgid "Left stick click"
+msgstr "Clic du stick gauche"
+
+msgid "Right stick click"
+msgstr "Clic du stick droit"
+
+msgid "D-pad up"
+msgstr "Croix haut"
+
+msgid "D-pad down"
+msgstr "Croix bas"
+
+msgid "D-pad left"
+msgstr "Croix gauche"
+
+msgid "D-pad right"
+msgstr "Croix droite"
+
+msgid "Esc key"
+msgstr "Touche Échap"
+
+msgid "Enter key"
+msgstr "Touche Entrée"
+
+msgid "Space bar"
+msgstr "Barre d'espace"
+
+msgid "Tab key"
+msgstr "Touche Tab"
+
+msgid "Backspace key"
+msgstr "Touche Retour arrière"
+
+msgid "Up arrow"
+msgstr "Flèche haut"
+
+msgid "Down arrow"
+msgstr "Flèche bas"
+
+msgid "Left arrow"
+msgstr "Flèche gauche"
+
+msgid "Right arrow"
+msgstr "Flèche droite"
+
+msgid "Page up"
+msgstr "Page précédente"
+
+msgid "Page down"
+msgstr "Page suivante"
+
+msgid "Shift key"
+msgstr "Touche Maj"
+
+msgid "Ctrl key"
+msgstr "Touche Ctrl"
+
+msgid "Windows key"
+msgstr "Touche Windows"
+
+msgid "Left click"
+msgstr "Clic gauche"
+
+msgid "Right click"
+msgstr "Clic droit"
+
+msgid "Middle click"
+msgstr "Clic du milieu"
+
+msgid "Scroll up"
+msgstr "Molette vers le haut"
+
+msgid "Scroll down"
+msgstr "Molette vers le bas"
+
+msgid "Volume up"
+msgstr "Volume +"
+
+msgid "Volume down"
+msgstr "Volume −"
+
+msgid "Mute the microphone"
+msgstr "Couper le micro"
+
+msgid "Touch keyboard"
+msgstr "Clavier tactile"
+
+msgid "Back buttons"
+msgstr "Boutons arrière"
+
+msgid "Restore the default buttons"
+msgstr "Rétablir les boutons d'origine"
+
+msgid "Low"
+msgstr "Faible"
+
+msgid "Medium"
+msgstr "Moyenne"
+
+msgid "High"
+msgstr "Forte"
+
+msgid "Stick lighting"
+msgstr "Éclairage des sticks"
+
+msgid "Follows the accent colour"
+msgstr "Suit la couleur d'accent"
+
+msgid "Back buttons and lighting"
+msgstr "Boutons arrière et éclairage"

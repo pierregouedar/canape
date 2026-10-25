@@ -9,8 +9,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use canape_core::{
-    BenchReport, ControllerMode, GyroActivation, GyroAxis, PerformanceMode, Profile, Request,
-    Response, Status, protocol,
+    BenchReport, ButtonTarget, ControllerMode, GyroActivation, GyroAxis, PerformanceMode, Profile,
+    Request, Response, Status, protocol,
 };
 use canape_ipc::Connection;
 use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
@@ -446,7 +446,25 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
         gyro_sensitivity: s.gyro.sensitivity as i32,
         gyro_roll: s.gyro.horizontal == GyroAxis::Roll,
         gyro_invert: s.gyro.invert_y,
+        m1: target_index(s.back_buttons.m1),
+        m2: target_index(s.back_buttons.m2),
+        lighting_level: s.lighting.as_ref().map_or(-1, |l| i32::from(l.level)),
+        lighting_color: s
+            .lighting
+            .as_ref()
+            .and_then(|l| l.color.clone())
+            .unwrap_or_default()
+            .into(),
     }
+}
+
+/// Position of `target` in [`ButtonTarget::ALL`], the order of the
+/// controller page's names.
+fn target_index(target: ButtonTarget) -> i32 {
+    ButtonTarget::ALL
+        .iter()
+        .position(|&t| t == target)
+        .map_or(0, |i| i as i32)
 }
 
 /// Lowest wattage this model accepts, when the service knows it.
@@ -558,6 +576,33 @@ mod tests {
         assert_eq!(view.gyro_activation, "off");
         assert_eq!(view.gyro_sensitivity, 10);
         assert!(!view.gyro_roll && !view.gyro_invert);
+    }
+
+    #[test]
+    fn back_buttons_index_the_page_names() {
+        let mut status = Status::default();
+        status.back_buttons.m2 = ButtonTarget::PadA;
+        let view = status_view(Some(&status));
+        assert_eq!((view.m1, view.m2), (0, 2));
+        assert_eq!(view.lighting_level, -1);
+        status.lighting = Some(canape_core::Lighting {
+            level: 0,
+            color: Some("#ffffff".into()),
+        });
+        let view = status_view(Some(&status));
+        assert_eq!(
+            (view.lighting_level, view.lighting_color.as_str()),
+            (0, "#ffffff")
+        );
+        // The page names one target per entry of ButtonTarget::ALL.
+        let page = include_str!("../ui/controller.slint");
+        let list = page
+            .split("target-names: [")
+            .nth(1)
+            .and_then(|rest| rest.split("];").next())
+            .unwrap();
+        let names = list.lines().filter(|l| l.trim().ends_with(',')).count();
+        assert_eq!(names, ButtonTarget::ALL.len());
     }
 
     #[test]

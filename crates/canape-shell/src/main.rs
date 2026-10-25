@@ -39,8 +39,8 @@ use std::time::Duration;
 
 use canape_core::settings::GYRO_SENSITIVITY_RANGE;
 use canape_core::{
-    AutoTdpSettings, BenchPlan, ControllerMode, GyroActivation, GyroAxis, GyroSettings,
-    PerformanceMode, Request,
+    AutoTdpSettings, BackButton, BenchPlan, ButtonTarget, ControllerMode, GyroActivation, GyroAxis,
+    GyroSettings, Lighting, PerformanceMode, Request,
 };
 
 use slint::{ComponentHandle, Timer, TimerMode};
@@ -361,6 +361,32 @@ fn connect(ui: &AppWindow, link: &Link) {
                 fps: (fps > 0).then_some(fps as u32),
             })
         }
+    });
+    app.on_set_back_button({
+        let link = link.clone();
+        move |button, index| {
+            let button = match button.as_str() {
+                "m2" => BackButton::M2,
+                _ => BackButton::M1,
+            };
+            if let Some(&target) = ButtonTarget::ALL.get(index as usize) {
+                link.send(Request::SetBackButton { button, target });
+            }
+        }
+    });
+    app.on_set_lighting({
+        let link = link.clone();
+        move |level, color| {
+            let lighting = u8::try_from(level).ok().map(|level| Lighting {
+                level,
+                color: (!color.is_empty()).then(|| color.to_string()),
+            });
+            link.send(Request::SetLighting { lighting });
+        }
+    });
+    app.on_reset_back_buttons({
+        let link = link.clone();
+        move || link.send(Request::ResetBackButtons)
     });
     app.on_set_controller({
         let link = link.clone();

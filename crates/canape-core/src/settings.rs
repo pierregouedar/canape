@@ -156,6 +156,202 @@ impl Default for GyroSettings {
 /// Sensitivities accepted by `set_gyro`, in mouse counts per degree.
 pub const GYRO_SENSITIVITY_RANGE: (u32, u32) = (1, 50);
 
+/// The two buttons on the back of the Ally, as ASUS names them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BackButton {
+    M1,
+    M2,
+}
+
+/// What a back button sends. The controller's firmware does the
+/// translation, so it works in every program.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ButtonTarget {
+    /// The button's own key, as it leaves the factory.
+    #[default]
+    Default,
+    /// Nothing at all.
+    Disabled,
+    PadA,
+    PadB,
+    PadX,
+    PadY,
+    PadLb,
+    PadRb,
+    PadLt,
+    PadRt,
+    /// Left stick click.
+    PadLs,
+    /// Right stick click.
+    PadRs,
+    DpadUp,
+    DpadDown,
+    DpadLeft,
+    DpadRight,
+    PadView,
+    PadMenu,
+    /// The guide button.
+    PadXbox,
+    KeyEscape,
+    KeyEnter,
+    KeySpace,
+    KeyTab,
+    KeyBackspace,
+    KeyUp,
+    KeyDown,
+    KeyLeft,
+    KeyRight,
+    KeyPageUp,
+    KeyPageDown,
+    KeyShift,
+    KeyCtrl,
+    KeyWindows,
+    KeyF11,
+    KeyF12,
+    MouseLeft,
+    MouseRight,
+    MouseMiddle,
+    WheelUp,
+    WheelDown,
+    VolumeUp,
+    VolumeDown,
+    MuteMic,
+    /// The touch keyboard.
+    ShowKeyboard,
+}
+
+impl ButtonTarget {
+    /// Every target, in the order the shell offers them.
+    pub const ALL: [ButtonTarget; 44] = [
+        Self::Default,
+        Self::Disabled,
+        Self::PadA,
+        Self::PadB,
+        Self::PadX,
+        Self::PadY,
+        Self::PadLb,
+        Self::PadRb,
+        Self::PadLt,
+        Self::PadRt,
+        Self::PadLs,
+        Self::PadRs,
+        Self::DpadUp,
+        Self::DpadDown,
+        Self::DpadLeft,
+        Self::DpadRight,
+        Self::PadView,
+        Self::PadMenu,
+        Self::PadXbox,
+        Self::KeyEscape,
+        Self::KeyEnter,
+        Self::KeySpace,
+        Self::KeyTab,
+        Self::KeyBackspace,
+        Self::KeyUp,
+        Self::KeyDown,
+        Self::KeyLeft,
+        Self::KeyRight,
+        Self::KeyPageUp,
+        Self::KeyPageDown,
+        Self::KeyShift,
+        Self::KeyCtrl,
+        Self::KeyWindows,
+        Self::KeyF11,
+        Self::KeyF12,
+        Self::MouseLeft,
+        Self::MouseRight,
+        Self::MouseMiddle,
+        Self::WheelUp,
+        Self::WheelDown,
+        Self::VolumeUp,
+        Self::VolumeDown,
+        Self::MuteMic,
+        Self::ShowKeyboard,
+    ];
+
+    /// The JSON name, such as `pad_a`.
+    pub fn key(self) -> String {
+        serde_json::to_value(self)
+            .ok()
+            .and_then(|v| v.as_str().map(str::to_owned))
+            .unwrap_or_default()
+    }
+
+    /// The target with this JSON name.
+    pub fn from_key(key: &str) -> Option<Self> {
+        serde_json::from_value(serde_json::Value::String(key.to_owned())).ok()
+    }
+}
+
+/// What each back button sends.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct BackButtons {
+    pub m1: ButtonTarget,
+    pub m2: ButtonTarget,
+}
+
+impl BackButtons {
+    pub fn get(&self, button: BackButton) -> ButtonTarget {
+        match button {
+            BackButton::M1 => self.m1,
+            BackButton::M2 => self.m2,
+        }
+    }
+
+    pub fn set(&mut self, button: BackButton, target: ButtonTarget) {
+        match button {
+            BackButton::M1 => self.m1 = target,
+            BackButton::M2 => self.m2 = target,
+        }
+    }
+
+    /// Both buttons as they leave the factory.
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
+/// Accent colour of the shell until the user picks one.
+pub const DEFAULT_ACCENT: &str = "#ff3d5e";
+
+/// Brightest level of the stick rings.
+pub const LIGHTING_MAX_LEVEL: u8 = 3;
+
+/// Light of the rings around the sticks.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Lighting {
+    /// 0 off, 1 to [`LIGHTING_MAX_LEVEL`] brighter.
+    pub level: u8,
+    /// `#rrggbb`; `None` follows the accent colour.
+    #[serde(default)]
+    pub color: Option<String>,
+}
+
+impl Lighting {
+    /// The same lighting with its colour in lower case, or why it is not
+    /// valid.
+    pub fn normalized(&self) -> Result<Self, String> {
+        if self.level > LIGHTING_MAX_LEVEL {
+            return Err(format!(
+                "lighting level {} above {LIGHTING_MAX_LEVEL}",
+                self.level
+            ));
+        }
+        if let Some(color) = &self.color
+            && !crate::protocol::is_hex_color(color)
+        {
+            return Err(format!("not a #RRGGBB colour: {color}"));
+        }
+        Ok(Self {
+            level: self.level,
+            color: self.color.as_ref().map(|c| c.to_ascii_lowercase()),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,6 +410,38 @@ mod tests {
         let partial: GyroSettings = serde_json::from_str(r#"{"activation":"always"}"#).unwrap();
         assert_eq!(partial.activation, GyroActivation::Always);
         assert_eq!(partial.sensitivity, 10);
+    }
+
+    #[test]
+    fn button_targets_in_json() {
+        assert_eq!(ButtonTarget::PadLb.key(), "pad_lb");
+        assert_eq!(ButtonTarget::KeyF11.key(), "key_f11");
+        for target in ButtonTarget::ALL {
+            assert_eq!(ButtonTarget::from_key(&target.key()), Some(target));
+        }
+        for (i, a) in ButtonTarget::ALL.iter().enumerate() {
+            assert!(!ButtonTarget::ALL[i + 1..].contains(a), "{a:?} twice");
+        }
+        assert_eq!(ButtonTarget::from_key("pad_z"), None);
+        let buttons: BackButtons = serde_json::from_str(r#"{"m2":"pad_a"}"#).unwrap();
+        assert_eq!(buttons.get(BackButton::M1), ButtonTarget::Default);
+        assert_eq!(buttons.get(BackButton::M2), ButtonTarget::PadA);
+        assert!(!buttons.is_default());
+    }
+
+    #[test]
+    fn lighting_is_checked() {
+        let light = |level, color: Option<&str>| Lighting {
+            level,
+            color: color.map(str::to_owned),
+        };
+        assert_eq!(
+            light(2, Some("#FF8800")).normalized(),
+            Ok(light(2, Some("#ff8800")))
+        );
+        assert_eq!(light(0, None).normalized(), Ok(light(0, None)));
+        assert!(light(4, None).normalized().is_err());
+        assert!(light(1, Some("orange")).normalized().is_err());
     }
 
     #[test]

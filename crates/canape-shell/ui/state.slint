@@ -61,6 +61,14 @@ export struct StatusView {
     // Sideways from tilting like a wheel rather than turning.
     gyro-roll: bool,
     gyro-invert: bool,
+    // What the back buttons send: indexes in ButtonTarget::ALL, 0 for
+    // their own keys.
+    m1: int,
+    m2: int,
+    // Stick rings: level 0 (off) to 3, -1 when Canapé leaves them to the
+    // controller; colour "#rrggbb", "" when it follows the accent.
+    lighting-level: int,
+    lighting-color: string,
 }
 
 export struct ProfileView {
@@ -182,6 +190,12 @@ export global App {
     callback set-controller(string);
     // Percent, 40 to 100.
     callback set-charge-limit(int);
+    // "m1" or "m2", and an index in ButtonTarget::ALL.
+    callback set-back-button(string, int);
+    callback reset-back-buttons();
+    // Level -1 leaves the rings to the controller; colour "" follows the
+    // accent.
+    callback set-lighting(int, string);
     // Saves the current fan curves, frame rate cap and gyro aiming in the
     // profile of the game in the foreground.
     callback save-hardware-profile();

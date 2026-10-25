@@ -501,3 +501,120 @@ msgstr "Inverti alto e basso"
 
 msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
 msgstr "Muove il mouse mentre un gioco è in primo piano. I giochi che leggono solo il controller la ignorano."
+
+msgid "Default"
+msgstr "Predefinito"
+
+msgid "Disabled"
+msgstr "Disattivato"
+
+msgid "Left stick click"
+msgstr "Clic levetta sinistra"
+
+msgid "Right stick click"
+msgstr "Clic levetta destra"
+
+msgid "D-pad up"
+msgstr "Croce su"
+
+msgid "D-pad down"
+msgstr "Croce giù"
+
+msgid "D-pad left"
+msgstr "Croce sinistra"
+
+msgid "D-pad right"
+msgstr "Croce destra"
+
+msgid "Esc key"
+msgstr "Tasto Esc"
+
+msgid "Enter key"
+msgstr "Tasto Invio"
+
+msgid "Space bar"
+msgstr "Barra spaziatrice"
+
+msgid "Tab key"
+msgstr "Tasto Tab"
+
+msgid "Backspace key"
+msgstr "Tasto Backspace"
+
+msgid "Up arrow"
+msgstr "Freccia su"
+
+msgid "Down arrow"
+msgstr "Freccia giù"
+
+msgid "Left arrow"
+msgstr "Freccia sinistra"
+
+msgid "Right arrow"
+msgstr "Freccia destra"
+
+msgid "Page up"
+msgstr "Pagina su"
+
+msgid "Page down"
+msgstr "Pagina giù"
+
+msgid "Shift key"
+msgstr "Tasto Maiusc"
+
+msgid "Ctrl key"
+msgstr "Tasto Ctrl"
+
+msgid "Windows key"
+msgstr "Tasto Windows"
+
+msgid "Left click"
+msgstr "Clic sinistro"
+
+msgid "Right click"
+msgstr "Clic destro"
+
+msgid "Middle click"
+msgstr "Clic centrale"
+
+msgid "Scroll up"
+msgstr "Rotella su"
+
+msgid "Scroll down"
+msgstr "Rotella giù"
+
+msgid "Volume up"
+msgstr "Volume su"
+
+msgid "Volume down"
+msgstr "Volume giù"
+
+msgid "Mute the microphone"
+msgstr "Disattiva il microfono"
+
+msgid "Touch keyboard"
+msgstr "Tastiera touch"
+
+msgid "Back buttons"
+msgstr "Tasti posteriori"
+
+msgid "Restore the default buttons"
+msgstr "Ripristina i tasti originali"
+
+msgid "Low"
+msgstr "Bassa"
+
+msgid "Medium"
+msgstr "Media"
+
+msgid "High"
+msgstr "Alta"
+
+msgid "Stick lighting"
+msgstr "Illuminazione delle levette"
+
+msgid "Follows the accent colour"
+msgstr "Segue il colore d'accento"
+
+msgid "Back buttons and lighting"
+msgstr "Tasti posteriori e illuminazione"
