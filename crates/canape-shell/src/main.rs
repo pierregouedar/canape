@@ -35,7 +35,9 @@ mod shelves;
 use std::rc::Rc;
 use std::time::Duration;
 
-use canape_core::{AutoTdpSettings, BenchPlan, ControllerMode, PerformanceMode, Request};
+use canape_core::{
+    AutoTdpSettings, BackButton, BenchPlan, ButtonTarget, ControllerMode, PerformanceMode, Request,
+};
 
 use slint::{ComponentHandle, Timer, TimerMode};
 
@@ -346,6 +348,22 @@ fn connect(ui: &AppWindow, link: &Link) {
                 fps: (fps > 0).then_some(fps as u32),
             })
         }
+    });
+    app.on_set_back_button({
+        let link = link.clone();
+        move |button, index| {
+            let button = match button.as_str() {
+                "m2" => BackButton::M2,
+                _ => BackButton::M1,
+            };
+            if let Some(&target) = ButtonTarget::ALL.get(index as usize) {
+                link.send(Request::SetBackButton { button, target });
+            }
+        }
+    });
+    app.on_reset_back_buttons({
+        let link = link.clone();
+        move || link.send(Request::ResetBackButtons)
     });
     app.on_set_controller({
         let link = link.clone();

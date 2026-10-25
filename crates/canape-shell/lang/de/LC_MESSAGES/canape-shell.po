@@ -465,3 +465,102 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "Profil dieses Spiels"
+
+msgid "Default"
+msgstr "Standard"
+
+msgid "Disabled"
+msgstr "Deaktiviert"
+
+msgid "Left stick click"
+msgstr "Linker Stick gedrückt"
+
+msgid "Right stick click"
+msgstr "Rechter Stick gedrückt"
+
+msgid "D-pad up"
+msgstr "Steuerkreuz oben"
+
+msgid "D-pad down"
+msgstr "Steuerkreuz unten"
+
+msgid "D-pad left"
+msgstr "Steuerkreuz links"
+
+msgid "D-pad right"
+msgstr "Steuerkreuz rechts"
+
+msgid "Esc key"
+msgstr "Esc-Taste"
+
+msgid "Enter key"
+msgstr "Eingabetaste"
+
+msgid "Space bar"
+msgstr "Leertaste"
+
+msgid "Tab key"
+msgstr "Tab-Taste"
+
+msgid "Backspace key"
+msgstr "Rücktaste"
+
+msgid "Up arrow"
+msgstr "Pfeil nach oben"
+
+msgid "Down arrow"
+msgstr "Pfeil nach unten"
+
+msgid "Left arrow"
+msgstr "Pfeil nach links"
+
+msgid "Right arrow"
+msgstr "Pfeil nach rechts"
+
+msgid "Page up"
+msgstr "Bild auf"
+
+msgid "Page down"
+msgstr "Bild ab"
+
+msgid "Shift key"
+msgstr "Umschalttaste"
+
+msgid "Ctrl key"
+msgstr "Strg-Taste"
+
+msgid "Windows key"
+msgstr "Windows-Taste"
+
+msgid "Left click"
+msgstr "Linksklick"
+
+msgid "Right click"
+msgstr "Rechtsklick"
+
+msgid "Middle click"
+msgstr "Mittelklick"
+
+msgid "Scroll up"
+msgstr "Mausrad hoch"
+
+msgid "Scroll down"
+msgstr "Mausrad runter"
+
+msgid "Volume up"
+msgstr "Lauter"
+
+msgid "Volume down"
+msgstr "Leiser"
+
+msgid "Mute the microphone"
+msgstr "Mikrofon stummschalten"
+
+msgid "Touch keyboard"
+msgstr "Bildschirmtastatur"
+
+msgid "Back buttons"
+msgstr "Hintere Tasten"
+
+msgid "Restore the default buttons"
+msgstr "Ursprüngliche Tasten wiederherstellen"

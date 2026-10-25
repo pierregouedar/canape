@@ -465,3 +465,102 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "이 게임의 프로필"
+
+msgid "Default"
+msgstr "기본값"
+
+msgid "Disabled"
+msgstr "사용 안 함"
+
+msgid "Left stick click"
+msgstr "왼쪽 스틱 누르기"
+
+msgid "Right stick click"
+msgstr "오른쪽 스틱 누르기"
+
+msgid "D-pad up"
+msgstr "방향 패드 위"
+
+msgid "D-pad down"
+msgstr "방향 패드 아래"
+
+msgid "D-pad left"
+msgstr "방향 패드 왼쪽"
+
+msgid "D-pad right"
+msgstr "방향 패드 오른쪽"
+
+msgid "Esc key"
+msgstr "Esc 키"
+
+msgid "Enter key"
+msgstr "Enter 키"
+
+msgid "Space bar"
+msgstr "스페이스 바"
+
+msgid "Tab key"
+msgstr "Tab 키"
+
+msgid "Backspace key"
+msgstr "Backspace 키"
+
+msgid "Up arrow"
+msgstr "위쪽 화살표"
+
+msgid "Down arrow"
+msgstr "아래쪽 화살표"
+
+msgid "Left arrow"
+msgstr "왼쪽 화살표"
+
+msgid "Right arrow"
+msgstr "오른쪽 화살표"
+
+msgid "Page up"
+msgstr "Page Up"
+
+msgid "Page down"
+msgstr "Page Down"
+
+msgid "Shift key"
+msgstr "Shift 키"
+
+msgid "Ctrl key"
+msgstr "Ctrl 키"
+
+msgid "Windows key"
+msgstr "Windows 키"
+
+msgid "Left click"
+msgstr "왼쪽 클릭"
+
+msgid "Right click"
+msgstr "오른쪽 클릭"
+
+msgid "Middle click"
+msgstr "가운데 클릭"
+
+msgid "Scroll up"
+msgstr "위로 스크롤"
+
+msgid "Scroll down"
+msgstr "아래로 스크롤"
+
+msgid "Volume up"
+msgstr "볼륨 높이기"
+
+msgid "Volume down"
+msgstr "볼륨 낮추기"
+
+msgid "Mute the microphone"
+msgstr "마이크 음소거"
+
+msgid "Touch keyboard"
+msgstr "터치 키보드"
+
+msgid "Back buttons"
+msgstr "뒷면 버튼"
+
+msgid "Restore the default buttons"
+msgstr "원래 버튼으로 복원"

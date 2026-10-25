@@ -185,9 +185,12 @@ La page 3 (`ui/hardware.slint`) ne fait qu'envoyer des requêtes : le service va
 | Garder ces réglages pour ce jeu | `save-hardware-profile()` | `save_profile` pour `status.foreground` : le profil existant (ou un nouveau avec `status.auto_tdp`) avec `fan_curves: Some(status.fan_curves)` (un ensemble vide veut dire « les courbes du firmware » pour ce jeu), `fps_limit: status.fps_limit` et `refresh_hz` (la fréquence actuelle de l'écran) |
 | Puces de l'écran | `set-refresh(hz)` | aucune : le shell change l'écran lui-même (`screen.rs`, `canape_hw::display::Screen`) et enregistre `refresh_hz` dans `shell.json` |
 | Tuiles de la manette | `set-controller(mode)` | `set_controller_mode` |
+| Ligne Boutons arrière | `open-controller()` | aucune : ouvre la sous-page 6, `ui/controller.slint` (B revient à la page Matériel) |
+| Lignes M1 / M2 (sous-page) | `set-back-button(button, index)` | `set_back_button` avec `ButtonTarget::ALL[index]`, envoyé à chaque gauche / droite |
+| Rétablir les boutons d'origine (sous-page) | `reset-back-buttons()` | `reset_back_buttons` |
 
 - `hardware.rs` : `preset_name()` traduit `status.fan_curves` en tuile sélectionnée : `""` si vide (courbes du firmware), la clé d'un préréglage si chaque courbe personnalisée lui est égale, `custom` sinon. `curve_paths()` transforme la courbe du CPU en commandes `Path` de la ligne et de l'aire du cadre (viewbox 90 × 100 : une unité par °C de 20 à 110 °C, une par pour cent), prolongée à plat avant le premier point et après le dernier. Les deux sont couvertes par des tests unitaires.
-- `link.rs` (`status_view`) : `cpu_fan_rpm` / `gpu_fan_rpm` (−1 si inconnus), le nom du préréglage, les chemins de la courbe du CPU (vides sans courbe CPU personnalisée), `fps_limit` (0 pour aucune) et `controller_mode` (`""` tant que Canapé ne l'a pas réglé, donc aucune tuile sélectionnée). `tdp_floor()` / `tdp_ceiling()` lisent `tdp_min_watts` / `tdp_max_watts` (repli sur `MIN_WATTS` 5 et `MAX_WATTS` 35 dans `main.rs`) et bornent tous les réglages de puissance du shell.
+- `link.rs` (`status_view`) : `cpu_fan_rpm` / `gpu_fan_rpm` (−1 si inconnus), le nom du préréglage, les chemins de la courbe du CPU (vides sans courbe CPU personnalisée), `fps_limit` (0 pour aucune), `controller_mode` (`""` tant que Canapé ne l'a pas réglé, donc aucune tuile sélectionnée) et `m1` / `m2`, l'indice de la cible de chaque bouton arrière dans `ButtonTarget::ALL` (0 = sa propre touche). Les noms de la page manette (`target-names` dans `controller.slint`) suivent cet ordre ; un test de `link.rs` vérifie qu'ils sont aussi nombreux. `tdp_floor()` / `tdp_ceiling()` lisent `tdp_min_watts` / `tdp_max_watts` (repli sur `MIN_WATTS` 5 et `MAX_WATTS` 35 dans `main.rs`) et bornent tous les réglages de puissance du shell.
 - La page Profils et le bouton **Profil du jeu** du banc d'essai conservent les `fan_curves`, `fps_limit` et `refresh_hz` d'un profil existant.
 - **Fréquence de l'écran** (`screen.rs`) : les modes d'affichage appartiennent à la session de l'utilisateur, c'est donc le shell, pas le service, qui les change. `canape_hw::display::Screen::internal()` retient le chemin actif dont la technologie de sortie est interne ou DisplayPort intégré (`QueryDisplayConfig`, puis le nom GDI de la source), `rates()` liste les fréquences à la résolution et à la profondeur actuelles (`EnumDisplaySettingsExW`), `set_refresh()` appelle `ChangeDisplaySettingsExW` avec `CDS_UPDATEREGISTRY`. Le service ne fait que stocker `Profile::refresh_hz` ; à chaque statut, le shell cherche la fréquence du profil actif et `screen::follow` ne change l'écran qu'au changement de profil (`Follow::step`, testé) : entrer dans un profil mémorise la fréquence remplacée, en sortir revient à la fréquence choisie sur la page (`refresh_hz` de `shell.json`, 0 = aucune) ou à celle mémorisée. La page relit la fréquence actuelle tous les 5 statuts. Hors Windows, `CANAPE_MOCK_SCREEN=60,120` simule un écran pour les captures.
 - **Boutons de l'Ally** (`buttons.rs`, Windows) : un thread lance `canape_hw::listen_buttons`, qui ouvre la même interface HID que le mode de la manette (VID `0x0B05`, PID `0x1ABE`/`0x1B4C`, rapport de fonctionnalité `0x5A`), envoie le rapport de réveil, puis lit les rapports d'entrée : code 166 Command Center, 56 ou 147 Armoury, 165 / 0 palettes arrière enfoncées / relâchées, 236 ignoré (`pad::parse_input`, testé). Armoury → `instance::bring_to_front()` (un appui Alt synthétique, puis `SetForegroundWindow`), ou la section Jeux si Canapé est déjà devant ; Command Center → Win+G (`SendInput`). Les codes inconnus sont journalisés. Après une erreur, le thread réessaie toutes les 5 s, toutes les 60 s quand aucune interface n'existe. `ally_buttons: false` dans `shell.json` désactive les actions.
@@ -288,6 +291,8 @@ sequenceDiagram
 | `save_foreground_profile` | `part: "power" \| "hardware"` | `ok` / `error` | Enregistre dans le profil du jeu au premier plan (créé avec l'auto TDP actuel s'il n'existe pas) l'auto TDP et la puissance tenue (`power`), ou les courbes et la limite de FPS (`hardware`) ; le reste du profil est gardé. Erreur sans jeu au premier plan. Utilisé par le widget. |
 | `set_fps_limit` | `fps: u32 \| null` (30 à 120) | `ok` / `error` | Plafond de FPS du pilote AMD (secteur et batterie, tous les jeux) ; `null` le retire. Enregistré ; pendant un profil qui a son propre plafond, modifie le profil. **Non testé depuis la session 0 du service.** |
 | `set_controller_mode` | `mode` : `gamepad` \| `wasd` \| `mouse` | `ok` / `error` | Mode de la manette intégrée (HID). Enregistré et réappliqué au démarrage. Global, pas par profil. **Non testé sur l'appareil.** |
+| `set_back_button` | `button` : `m1` \| `m2`, `target: ButtonTarget` | `ok` / `error` | Ce qu'envoie un bouton arrière, écrit dans la manette (HID). Enregistré, réappliqué au démarrage et après chaque `set_controller_mode`. Global. **Non testé sur l'appareil.** |
+| `reset_back_buttons` | — | `ok` / `error` | Les deux boutons arrière reviennent à leurs propres touches (l'association d'usine est écrite). |
 
 Exemples :
 
@@ -347,7 +352,8 @@ Exemples :
   "gpu_fan_rpm": 3100,
   "fan_curves": {"cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": null, "mid": null},
   "fps_limit": 40,
-  "controller_mode": "gamepad"
+  "controller_mode": "gamepad",
+  "back_buttons": {"m1": "default", "m2": "pad_a"}
 }
 ```
 
@@ -372,6 +378,7 @@ Exemples :
 | `fan_curves` | `FanCurves` | Courbes personnalisées en vigueur (globales ou du profil actif) ; un ventilateur à `null` suit la courbe du mode. |
 | `fps_limit` | `u32 \| null` | Plafond de FPS posé par Canapé (`null` : aucun posé par Canapé ; le logiciel AMD peut en avoir un). |
 | `controller_mode` | `string \| null` | `gamepad`, `wasd`, `mouse`, ou `null` si Canapé ne l'a pas réglé. |
+| `back_buttons` | `BackButtons` | Ce qu'envoient M1 et M2 ; `default` pour les deux tant que Canapé ne les a pas changés. Facultatif en entrée. |
 
 ### Types imbriqués
 
@@ -408,6 +415,10 @@ Exemples :
 | `max_cooling` | `[[30,35],[40,45],[50,55],[60,65],[70,80],[75,90],[80,100],[85,100]]` |
 
 **`ControllerMode`** : `gamepad` (XInput), `wasd` (clavier), `mouse` (bureau).
+
+**`BackButtons`** : `{"m1": ButtonTarget, "m2": ButtonTarget}`, chacun `default` s'il manque.
+
+**`ButtonTarget`** : `default` (la propre touche du bouton), `disabled` ; manette `pad_a`, `pad_b`, `pad_x`, `pad_y`, `pad_lb`, `pad_rb`, `pad_lt`, `pad_rt`, `pad_ls`, `pad_rs` (clics des sticks), `dpad_up`, `dpad_down`, `dpad_left`, `dpad_right`, `pad_view`, `pad_menu`, `pad_xbox` ; clavier `key_escape`, `key_enter`, `key_space`, `key_tab`, `key_backspace`, `key_up`, `key_down`, `key_left`, `key_right`, `key_page_up`, `key_page_down`, `key_shift`, `key_ctrl`, `key_windows`, `key_f11`, `key_f12` ; souris `mouse_left`, `mouse_right`, `mouse_middle`, `wheel_up`, `wheel_down` ; média `volume_up`, `volume_down`, `mute_mic`, `show_keyboard` (le clavier tactile). `ButtonTarget::ALL` garde cet ordre.
 
 **`BenchPlan`** : `from_watts` (25), `to_watts` (7), `step_watts` (3), `settle_secs` (5), `measure_secs` (15).
 
@@ -732,6 +743,13 @@ D'où la solution : au démarrage, le shell appelle `canape_hw::FrameMetrics::ar
 |---|---|
 | Initialisation | `0x5A` + `ASUS Tech.Inc.` en ASCII, une fois avant la première commande (`InitInput`). |
 | Mode | `[0x5A, 0xD1, 0x01, 0x01, mode]`, `1` manette, `2` WASD, `3` souris, puis `HidD_SetFeature`. |
+| Association des boutons | `[0x5A, 0xD1, 0x02, paire, 0x2C]` puis 44 octets : quatre associations de 11 octets, le premier bouton de la paire, son association secondaire (bouton gauche sous l'écran maintenu), le second bouton, son association secondaire. Paires : `1` croix haut / bas, `2` croix gauche / droite, `3` clics des sticks, `4` gâchettes hautes, `5` A / B, `6` X / Y, `7` View / Menu, `8` **M2 / M1**, `9` gâchettes. |
+| Association | Premier octet, le groupe : `0x01` manette (code à l'octet 1), `0x02` clavier (octet 2), `0x03` souris (octet 4), `0x05` média (octet 3), `0x04` combinaison de touches (nombre à l'octet 5, puis les codes) ; que des zéros, rien. |
+| Codes proposés | Manette : A `01`, B `02`, X `03`, Y `04`, LB `05`, RB `06`, LS `07`, RS `08`, croix haut `09`, bas `0A`, gauche `0B`, droite `0C`, LT `0D`, RT `0E`, View `11`, Menu `12`, Xbox `13`. Clavier : Échap `76`, Entrée `5A`, Espace `29`, Tab `0D`, Retour arrière `66`, flèches haut `98`, bas `99`, gauche `9A`, droite `9B`, Page précédente `96`, Page suivante `97`, Maj gauche `88`, Ctrl gauche `8C`, Windows `82`, F11 `78`, F12 `07`, M1 `8F`, M2 `8E`. Souris : gauche `01`, droit `02`, milieu `03`, molette haut `04`, molette bas `05`. Média : couper le micro `01`, volume − `02`, volume + `03`, clavier tactile `19`. |
+| M1 / M2 d'usine | `[02 00 8E …] [02 00 8E …] [02 00 8F …] [02 00 8F …]` : M2 envoie la touche `8E` et M1 la touche `8F`, y compris avec le bouton gauche sous l'écran maintenu, en mode manette comme en mode clavier. « Par défaut » et **Rétablir les boutons d'origine** écrivent exactement ceci. |
+| Séquence | Le rapport d'initialisation la première fois, puis le rapport de la paire 8 seul : à chaque changement, au démarrage du service et après chaque écriture du mode (un changement de mode peut ramener les associations propres au mode). Les associations secondaires gardent toujours les touches d'usine. Rien n'est écrit après. |
+
+**Non testé sur l'appareil.** D'où viennent ces faits (tous sous GPL ou LGPL, réimplémentés, pas copiés) :
 
 
 ### ACL du pipe
@@ -742,9 +760,9 @@ Le SID AppContainer du widget est dérivé par Windows (`DeriveAppContainerSidFr
 
 | Fonction | Interface prévue |
 |---|---|
-| Réassignation des boutons | HID ASUS (rapport `0x5A`, commandes `0xD1 0x02`) |
+| Réassignation des autres boutons (paires 1 à 7 et 9), associations secondaires, combinaisons de touches, turbo, zones mortes | Même commande `0xD1 0x02`. Les valeurs d'usine des autres paires diffèrent entre les modes manette et clavier / souris (et entre références pour les associations secondaires) : à capturer d'abord sur l'Ally. |
 
-La fréquence de l'écran et les boutons Armoury / Command Center sont faits : voir [La page Matériel](#la-page-matériel).
+La fréquence de l'écran, les boutons Armoury / Command Center et les boutons arrière sont faits : voir [La page Matériel](#la-page-matériel).
 
 ## Conventions
 

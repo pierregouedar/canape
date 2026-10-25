@@ -1,4 +1,6 @@
-use canape_core::{ControllerMode, Fan, FanCurve, FanCurves, FanPreset, PerformanceMode};
+use canape_core::{
+    BackButtons, ControllerMode, Fan, FanCurve, FanCurves, FanPreset, PerformanceMode,
+};
 
 use crate::{Device, HwError, Result, Telemetry};
 
@@ -20,6 +22,7 @@ pub struct MockDevice {
     pub fan_curves: FanCurves,
     pub fps_limit: Option<u32>,
     pub controller_mode: Option<ControllerMode>,
+    pub back_buttons: BackButtons,
 }
 
 impl Default for MockDevice {
@@ -35,6 +38,7 @@ impl Default for MockDevice {
             fan_curves: FanCurves::default(),
             fps_limit: None,
             controller_mode: None,
+            back_buttons: BackButtons::default(),
         }
     }
 }
@@ -146,6 +150,11 @@ impl Device for MockDevice {
 
     fn set_controller_mode(&mut self, mode: ControllerMode) -> Result<()> {
         self.controller_mode = Some(mode);
+        Ok(())
+    }
+
+    fn set_back_buttons(&mut self, buttons: &BackButtons) -> Result<()> {
+        self.back_buttons = *buttons;
         Ok(())
     }
 }

@@ -465,3 +465,102 @@ msgstr "{} ГБ"
 
 msgid "This game's profile"
 msgstr "Профиль этой игры"
+
+msgid "Default"
+msgstr "По умолчанию"
+
+msgid "Disabled"
+msgstr "Отключено"
+
+msgid "Left stick click"
+msgstr "Нажатие левого стика"
+
+msgid "Right stick click"
+msgstr "Нажатие правого стика"
+
+msgid "D-pad up"
+msgstr "Крестовина вверх"
+
+msgid "D-pad down"
+msgstr "Крестовина вниз"
+
+msgid "D-pad left"
+msgstr "Крестовина влево"
+
+msgid "D-pad right"
+msgstr "Крестовина вправо"
+
+msgid "Esc key"
+msgstr "Клавиша Esc"
+
+msgid "Enter key"
+msgstr "Клавиша Enter"
+
+msgid "Space bar"
+msgstr "Пробел"
+
+msgid "Tab key"
+msgstr "Клавиша Tab"
+
+msgid "Backspace key"
+msgstr "Клавиша Backspace"
+
+msgid "Up arrow"
+msgstr "Стрелка вверх"
+
+msgid "Down arrow"
+msgstr "Стрелка вниз"
+
+msgid "Left arrow"
+msgstr "Стрелка влево"
+
+msgid "Right arrow"
+msgstr "Стрелка вправо"
+
+msgid "Page up"
+msgstr "Page Up"
+
+msgid "Page down"
+msgstr "Page Down"
+
+msgid "Shift key"
+msgstr "Клавиша Shift"
+
+msgid "Ctrl key"
+msgstr "Клавиша Ctrl"
+
+msgid "Windows key"
+msgstr "Клавиша Windows"
+
+msgid "Left click"
+msgstr "Левый клик"
+
+msgid "Right click"
+msgstr "Правый клик"
+
+msgid "Middle click"
+msgstr "Средний клик"
+
+msgid "Scroll up"
+msgstr "Прокрутка вверх"
+
+msgid "Scroll down"
+msgstr "Прокрутка вниз"
+
+msgid "Volume up"
+msgstr "Громче"
+
+msgid "Volume down"
+msgstr "Тише"
+
+msgid "Mute the microphone"
+msgstr "Выключить микрофон"
+
+msgid "Touch keyboard"
+msgstr "Сенсорная клавиатура"
+
+msgid "Back buttons"
+msgstr "Задние кнопки"
+
+msgid "Restore the default buttons"
+msgstr "Вернуть исходные кнопки"

@@ -2,7 +2,7 @@
 //! backend lives in `windows` (on top of [`atk`]) and a [`mock::MockDevice`]
 //! serves development and tests on any OS.
 
-use canape_core::{ControllerMode, Fan, FanCurve, PerformanceMode};
+use canape_core::{BackButtons, ControllerMode, Fan, FanCurve, PerformanceMode};
 
 #[cfg(windows)]
 mod adl;
@@ -82,6 +82,11 @@ pub trait Device: Send {
     }
     fn set_controller_mode(&mut self, _mode: ControllerMode) -> Result<()> {
         Err(HwError::Unsupported("controller mode"))
+    }
+    /// What the back buttons send, kept by the controller until it is
+    /// powered off.
+    fn set_back_buttons(&mut self, _buttons: &BackButtons) -> Result<()> {
+        Err(HwError::Unsupported("back buttons"))
     }
 }
 

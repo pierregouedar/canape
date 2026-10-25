@@ -465,3 +465,102 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "此游戏的配置"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "Disabled"
+msgstr "禁用"
+
+msgid "Left stick click"
+msgstr "左摇杆按下"
+
+msgid "Right stick click"
+msgstr "右摇杆按下"
+
+msgid "D-pad up"
+msgstr "方向键上"
+
+msgid "D-pad down"
+msgstr "方向键下"
+
+msgid "D-pad left"
+msgstr "方向键左"
+
+msgid "D-pad right"
+msgstr "方向键右"
+
+msgid "Esc key"
+msgstr "Esc 键"
+
+msgid "Enter key"
+msgstr "Enter 键"
+
+msgid "Space bar"
+msgstr "空格键"
+
+msgid "Tab key"
+msgstr "Tab 键"
+
+msgid "Backspace key"
+msgstr "Backspace 键"
+
+msgid "Up arrow"
+msgstr "上箭头"
+
+msgid "Down arrow"
+msgstr "下箭头"
+
+msgid "Left arrow"
+msgstr "左箭头"
+
+msgid "Right arrow"
+msgstr "右箭头"
+
+msgid "Page up"
+msgstr "Page Up"
+
+msgid "Page down"
+msgstr "Page Down"
+
+msgid "Shift key"
+msgstr "Shift 键"
+
+msgid "Ctrl key"
+msgstr "Ctrl 键"
+
+msgid "Windows key"
+msgstr "Windows 键"
+
+msgid "Left click"
+msgstr "左键单击"
+
+msgid "Right click"
+msgstr "右键单击"
+
+msgid "Middle click"
+msgstr "中键单击"
+
+msgid "Scroll up"
+msgstr "向上滚动"
+
+msgid "Scroll down"
+msgstr "向下滚动"
+
+msgid "Volume up"
+msgstr "调高音量"
+
+msgid "Volume down"
+msgstr "调低音量"
+
+msgid "Mute the microphone"
+msgstr "麦克风静音"
+
+msgid "Touch keyboard"
+msgstr "触摸键盘"
+
+msgid "Back buttons"
+msgstr "背键"
+
+msgid "Restore the default buttons"
+msgstr "恢复原始按键"

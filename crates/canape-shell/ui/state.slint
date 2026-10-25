@@ -52,6 +52,10 @@ export struct StatusView {
     fps-limit: int,
     // "gamepad", "wasd", "mouse" or "" when unknown.
     controller: string,
+    // What the back buttons send: indexes in ButtonTarget::ALL, 0 for
+    // their own keys.
+    m1: int,
+    m2: int,
 }
 
 export struct ProfileView {
@@ -171,6 +175,9 @@ export global App {
     // 0 removes the cap.
     callback set-fps-limit(int);
     callback set-controller(string);
+    // "m1" or "m2", and an index in ButtonTarget::ALL.
+    callback set-back-button(string, int);
+    callback reset-back-buttons();
     // Saves the current fan curves and frame rate cap in the profile of the
     // game in the foreground.
     callback save-hardware-profile();

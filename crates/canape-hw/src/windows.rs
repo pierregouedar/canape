@@ -7,7 +7,7 @@
 use std::ffi::c_void;
 use std::time::{Duration, Instant};
 
-use canape_core::{ControllerMode, Fan, FanCurve, PerformanceMode};
+use canape_core::{BackButtons, ControllerMode, Fan, FanCurve, PerformanceMode};
 use windows_sys::Win32::Foundation::{
     CloseHandle, GENERIC_READ, GENERIC_WRITE, HANDLE, INVALID_HANDLE_VALUE,
 };
@@ -99,6 +99,22 @@ impl AllyDevice {
             firmware_mode: None,
             controller_ready: false,
         })
+    }
+
+    /// Sends feature reports to the controller, built for the interface's
+    /// report length, with the init report first the first time.
+    fn write_controller(&mut self, reports: impl Fn(usize) -> Vec<Vec<u8>>) -> Result<()> {
+        let init = !self.controller_ready;
+        hid::write_input(|len| {
+            let mut all = Vec::new();
+            if init {
+                all.push(pad::init_report(len));
+            }
+            all.extend(reports(len));
+            all
+        })?;
+        self.controller_ready = true;
+        Ok(())
     }
 
     fn call(&self, input: &[u8]) -> Result<[u8; atk::OUTPUT_LEN]> {
@@ -307,19 +323,13 @@ impl Device for AllyDevice {
     }
 
     /// UNTESTED on the device. The init report once, then the mode command.
-    /// Button bindings could be written after the mode; Canape keeps the
-    /// firmware's.
+    /// The service writes the back buttons again after it.
     fn set_controller_mode(&mut self, mode: ControllerMode) -> Result<()> {
-        let init = !self.controller_ready;
-        hid::write_input(|len| {
-            let mut reports = Vec::new();
-            if init {
-                reports.push(pad::init_report(len));
-            }
-            reports.push(pad::mode_report(mode, len));
-            reports
-        })?;
-        self.controller_ready = true;
-        Ok(())
+        self.write_controller(|len| vec![pad::mode_report(mode, len)])
+    }
+
+    /// UNTESTED on the device. One mapping report for the back button pair.
+    fn set_back_buttons(&mut self, buttons: &BackButtons) -> Result<()> {
+        self.write_controller(|len| vec![pad::back_buttons_report(buttons, len)])
     }
 }

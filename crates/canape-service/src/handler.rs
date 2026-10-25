@@ -3,9 +3,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use canape_autotdp::{Config, Controller};
 use canape_core::settings::FPS_LIMIT_RANGE;
 use canape_core::{
-    AutoTdpSettings, BenchPlan, BenchProgress, BenchReport, ControllerMode, Fan, FanCurve,
-    FanCurves, FanPreset, PerformanceMode, Profile, ProfilePart, Request, Response, Status,
-    protocol,
+    AutoTdpSettings, BackButtons, BenchPlan, BenchProgress, BenchReport, ControllerMode, Fan,
+    FanCurve, FanCurves, FanPreset, PerformanceMode, Profile, ProfilePart, Request, Response,
+    Status, protocol,
 };
 use canape_hw::{Device, Telemetry};
 use serde::{Deserialize, Serialize};
@@ -39,6 +39,7 @@ pub struct Saved {
     /// Global frame rate cap (a profile may override it).
     pub fps_limit: Option<u32>,
     pub controller_mode: Option<ControllerMode>,
+    pub back_buttons: BackButtons,
 }
 
 /// Service state and request dispatch, independent of the transport.
@@ -71,6 +72,7 @@ pub struct Handler {
     /// Frame rate cap in effect: the global one, or the active profile's.
     fps_limit: Option<u32>,
     controller_mode: Option<ControllerMode>,
+    back_buttons: BackButtons,
     /// Something worth saving changed outside a request (learned watts, bench).
     dirty: bool,
 }
@@ -99,6 +101,7 @@ impl Handler {
             fan_curves: FanCurves::default(),
             fps_limit: None,
             controller_mode: None,
+            back_buttons: BackButtons::default(),
             dirty: false,
         }
     }
@@ -302,10 +305,24 @@ impl Handler {
                 }
                 response
             }
-            Request::SetControllerMode { mode } => self.apply(
-                |d| d.set_controller_mode(mode),
-                |s| s.controller_mode = Some(mode),
-            ),
+            Request::SetControllerMode { mode } => {
+                let response = self.apply(
+                    |d| d.set_controller_mode(mode),
+                    |s| s.controller_mode = Some(mode),
+                );
+                if response != Response::Ok || self.back_buttons.is_default() {
+                    return response;
+                }
+                // A mode change may bring the mode's own bindings back.
+                let buttons = self.back_buttons;
+                self.apply(|d| d.set_back_buttons(&buttons), |_| {})
+            }
+            Request::SetBackButton { button, target } => {
+                let mut buttons = self.back_buttons;
+                buttons.set(button, target);
+                self.write_back_buttons(buttons)
+            }
+            Request::ResetBackButtons => self.write_back_buttons(BackButtons::default()),
         }
     }
 
@@ -428,6 +445,7 @@ impl Handler {
             fan_preset: FanPreset::of(&self.fan_curves),
             fps_limit: self.fps_limit,
             controller_mode: self.controller_mode,
+            back_buttons: self.back_buttons,
         }
     }
 
@@ -457,6 +475,7 @@ impl Handler {
             fan_curves: self.fan_curves.clone(),
             fps_limit: self.fps_limit,
             controller_mode: None,
+            back_buttons: BackButtons::default(),
         };
         let global = self
             .before_bench
@@ -470,6 +489,7 @@ impl Handler {
             last_bench: self.last_bench.clone(),
             accent: self.accent.clone(),
             controller_mode: self.controller_mode,
+            back_buttons: self.back_buttons,
             ..global
         }
     }
@@ -487,6 +507,14 @@ impl Handler {
         }
         if let Some(mode) = saved.controller_mode {
             requests.push(Request::SetControllerMode { mode });
+        }
+        // Without a saved mode, nothing above writes the buttons.
+        if saved.controller_mode.is_none() && !saved.back_buttons.is_default() {
+            if let Response::Error { message } = self.write_back_buttons(saved.back_buttons) {
+                errors.push(message);
+            }
+        } else {
+            self.back_buttons = saved.back_buttons;
         }
         for request in requests {
             if let Response::Error { message } = self.handle(request) {
@@ -826,6 +854,13 @@ impl Handler {
             custom: self.fan_curves.clone(),
             defaults,
         }
+    }
+
+    fn write_back_buttons(&mut self, buttons: BackButtons) -> Response {
+        self.apply(
+            |d| d.set_back_buttons(&buttons),
+            |s| s.back_buttons = buttons,
+        )
     }
 
     fn apply(
@@ -1351,6 +1386,44 @@ mod tests {
         assert_eq!(h.status().controller_mode, Some(ControllerMode::Mouse));
         assert_eq!(h.handle(Request::SetFpsLimit { fps: None }), Response::Ok);
         assert_eq!(h.status().fps_limit, None);
+    }
+
+    #[test]
+    fn back_buttons_are_kept_and_reset() {
+        use canape_core::{BackButton, ButtonTarget};
+        let mut h = handler();
+        assert!(h.status().back_buttons.is_default());
+        assert_eq!(
+            h.handle(Request::SetBackButton {
+                button: BackButton::M1,
+                target: ButtonTarget::PadA,
+            }),
+            Response::Ok
+        );
+        h.handle(Request::SetBackButton {
+            button: BackButton::M2,
+            target: ButtonTarget::KeyF12,
+        });
+        // A mode change keeps them.
+        h.handle(Request::SetControllerMode {
+            mode: ControllerMode::Mouse,
+        });
+        let buttons = h.status().back_buttons;
+        assert_eq!(buttons.m1, ButtonTarget::PadA);
+        assert_eq!(buttons.m2, ButtonTarget::KeyF12);
+
+        let json = serde_json::to_string(&h.saved()).unwrap();
+        let mut restored = handler();
+        assert!(
+            restored
+                .restore(&serde_json::from_str(&json).unwrap())
+                .is_empty()
+        );
+        assert_eq!(restored.status().back_buttons, buttons);
+
+        assert_eq!(h.handle(Request::ResetBackButtons), Response::Ok);
+        assert!(h.status().back_buttons.is_default());
+        assert!(h.saved().back_buttons.is_default());
     }
 
     #[test]

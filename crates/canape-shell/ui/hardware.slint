@@ -2,11 +2,13 @@
 // Left and right move along a row of tiles or change the row's value; A
 // picks a tile; X saves the fans and the frame rate cap for the game in
 // the foreground:
-//   0 fan presets, 1 frame rate cap, 2 controller mode, 3 refresh rate.
+//   0 fan presets, 1 frame rate cap, 2 controller mode, 3 refresh rate
+//   (when the screen offers several), then the line that opens the
+//   controller page.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
-import { ChoiceTile, Figure, IconTile, LegendKey, Row, Ruler, SectionTitle } from "kit.slint";
+import { ChoiceTile, Figure, IconTile, LegendKey, Row, Ruler, SectionTitle, SettingLine } from "kit.slint";
 
 // The CPU fan's custom curve: duty (0 to 100 %) against temperature
 // (20 to 110 °C), from hardware.rs.
@@ -62,6 +64,8 @@ component Curve inherits Rectangle {
 }
 
 export component HardwarePage inherits Rectangle {
+    // Opens the controller page.
+    callback open-controller();
     in-out property <int> focus-row: 0;
     in-out property <int> fan-col: root.fan-index >= 0 ? root.fan-index : 0;
     in-out property <int> controller-col: root.controller-index >= 0 ? root.controller-index : 0;
@@ -74,7 +78,9 @@ export component HardwarePage inherits Rectangle {
     property <[int]> fps-stops: [0, 30, 40, 45, 60, 90, 120];
     property <int> fps-index: App.status.fps-limit <= 0 ? 0 : App.status.fps-limit <= 30 ? 1 : App.status.fps-limit <= 40 ? 2 : App.status.fps-limit <= 45 ? 3 : App.status.fps-limit <= 60 ? 4 : App.status.fps-limit <= 90 ? 5 : 6;
     property <int> refresh-index: root.index-of-refresh(App.refresh-hz);
-    property <int> rows: App.refresh-rates.length > 0 ? 4 : 3;
+    property <int> screen-row: App.refresh-rates.length > 0 ? 3 : -1;
+    property <int> more-row: App.refresh-rates.length > 0 ? 4 : 3;
+    property <int> rows: root.more-row + 1;
 
     pure function index-of-refresh(hz: int) -> int {
         // Past the end, an array reads as 0.
@@ -87,7 +93,7 @@ export component HardwarePage inherits Rectangle {
             App.set-fps-limit(root.fps-stops[clamp(root.fps-index + d, 0, 6)]);
         } else if root.focus-row == 2 {
             root.controller-col = clamp(root.controller-col + d, 0, 2);
-        } else {
+        } else if root.focus-row == root.screen-row {
             root.refresh-col = clamp(root.refresh-col + d, 0, App.refresh-rates.length - 1);
         }
     }
@@ -96,8 +102,10 @@ export component HardwarePage inherits Rectangle {
             App.set-fan-preset(root.fan-presets[root.fan-col]);
         } else if root.focus-row == 2 {
             App.set-controller(root.controllers[root.controller-col]);
-        } else if root.focus-row == 3 {
+        } else if root.focus-row == root.screen-row {
             App.set-refresh(App.refresh-rates[root.refresh-col]);
+        } else if root.focus-row == root.more-row {
+            root.open-controller();
         }
     }
 
@@ -114,7 +122,7 @@ export component HardwarePage inherits Rectangle {
                 root.focus-row = min(root.rows - 1, root.focus-row + 1);
                 return accept;
             }
-            if !App.status.connected && root.focus-row != 3 {
+            if !App.status.connected && root.focus-row != root.screen-row {
                 return reject;
             }
             if event.text == Key.LeftArrow {
@@ -280,6 +288,18 @@ export component HardwarePage inherits Rectangle {
                             fs.focus();
                         }
                     }
+                }
+            }
+
+            SettingLine {
+                label: @tr("Back buttons");
+                value: "›";
+                chevrons: false;
+                enabled: App.status.connected;
+                focused: root.active && root.focus-row == root.more-row;
+                clicked => {
+                    root.focus-row = root.more-row;
+                    root.activate();
                 }
             }
 

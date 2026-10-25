@@ -465,3 +465,102 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "Profiel van dit spel"
+
+msgid "Default"
+msgstr "Standaard"
+
+msgid "Disabled"
+msgstr "Uitgeschakeld"
+
+msgid "Left stick click"
+msgstr "Linkerstick indrukken"
+
+msgid "Right stick click"
+msgstr "Rechterstick indrukken"
+
+msgid "D-pad up"
+msgstr "D-pad omhoog"
+
+msgid "D-pad down"
+msgstr "D-pad omlaag"
+
+msgid "D-pad left"
+msgstr "D-pad links"
+
+msgid "D-pad right"
+msgstr "D-pad rechts"
+
+msgid "Esc key"
+msgstr "Esc-toets"
+
+msgid "Enter key"
+msgstr "Enter-toets"
+
+msgid "Space bar"
+msgstr "Spatiebalk"
+
+msgid "Tab key"
+msgstr "Tab-toets"
+
+msgid "Backspace key"
+msgstr "Backspace-toets"
+
+msgid "Up arrow"
+msgstr "Pijl omhoog"
+
+msgid "Down arrow"
+msgstr "Pijl omlaag"
+
+msgid "Left arrow"
+msgstr "Pijl links"
+
+msgid "Right arrow"
+msgstr "Pijl rechts"
+
+msgid "Page up"
+msgstr "Page Up"
+
+msgid "Page down"
+msgstr "Page Down"
+
+msgid "Shift key"
+msgstr "Shift-toets"
+
+msgid "Ctrl key"
+msgstr "Ctrl-toets"
+
+msgid "Windows key"
+msgstr "Windows-toets"
+
+msgid "Left click"
+msgstr "Linkermuisknop"
+
+msgid "Right click"
+msgstr "Rechtermuisknop"
+
+msgid "Middle click"
+msgstr "Middelste muisknop"
+
+msgid "Scroll up"
+msgstr "Scrollen omhoog"
+
+msgid "Scroll down"
+msgstr "Scrollen omlaag"
+
+msgid "Volume up"
+msgstr "Volume omhoog"
+
+msgid "Volume down"
+msgstr "Volume omlaag"
+
+msgid "Mute the microphone"
+msgstr "Microfoon dempen"
+
+msgid "Touch keyboard"
+msgstr "Schermtoetsenbord"
+
+msgid "Back buttons"
+msgstr "Achterknoppen"
+
+msgid "Restore the default buttons"
+msgstr "Oorspronkelijke knoppen herstellen"

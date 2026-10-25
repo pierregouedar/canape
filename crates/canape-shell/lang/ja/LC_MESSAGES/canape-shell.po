@@ -465,3 +465,102 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "このゲームのプロファイル"
+
+msgid "Default"
+msgstr "既定"
+
+msgid "Disabled"
+msgstr "無効"
+
+msgid "Left stick click"
+msgstr "左スティック押し込み"
+
+msgid "Right stick click"
+msgstr "右スティック押し込み"
+
+msgid "D-pad up"
+msgstr "十字キー上"
+
+msgid "D-pad down"
+msgstr "十字キー下"
+
+msgid "D-pad left"
+msgstr "十字キー左"
+
+msgid "D-pad right"
+msgstr "十字キー右"
+
+msgid "Esc key"
+msgstr "Esc キー"
+
+msgid "Enter key"
+msgstr "Enter キー"
+
+msgid "Space bar"
+msgstr "スペースキー"
+
+msgid "Tab key"
+msgstr "Tab キー"
+
+msgid "Backspace key"
+msgstr "Backspace キー"
+
+msgid "Up arrow"
+msgstr "上矢印"
+
+msgid "Down arrow"
+msgstr "下矢印"
+
+msgid "Left arrow"
+msgstr "左矢印"
+
+msgid "Right arrow"
+msgstr "右矢印"
+
+msgid "Page up"
+msgstr "Page Up"
+
+msgid "Page down"
+msgstr "Page Down"
+
+msgid "Shift key"
+msgstr "Shift キー"
+
+msgid "Ctrl key"
+msgstr "Ctrl キー"
+
+msgid "Windows key"
+msgstr "Windows キー"
+
+msgid "Left click"
+msgstr "左クリック"
+
+msgid "Right click"
+msgstr "右クリック"
+
+msgid "Middle click"
+msgstr "中クリック"
+
+msgid "Scroll up"
+msgstr "上スクロール"
+
+msgid "Scroll down"
+msgstr "下スクロール"
+
+msgid "Volume up"
+msgstr "音量を上げる"
+
+msgid "Volume down"
+msgstr "音量を下げる"
+
+msgid "Mute the microphone"
+msgstr "マイクをミュート"
+
+msgid "Touch keyboard"
+msgstr "タッチキーボード"
+
+msgid "Back buttons"
+msgstr "背面ボタン"
+
+msgid "Restore the default buttons"
+msgstr "ボタンを元に戻す"

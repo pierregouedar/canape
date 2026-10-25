@@ -7,7 +7,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::bench::{BenchPlan, BenchProgress, BenchReport};
 use crate::fan::{Fan, FanCurve, FanCurves, FanPreset};
-use crate::settings::{AutoTdpSettings, ControllerMode, PerformanceMode, Profile};
+use crate::settings::{
+    AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, PerformanceMode,
+    Profile,
+};
 
 pub const PIPE_NAME: &str = r"\\.\pipe\canape";
 pub const PROTOCOL_VERSION: u32 = 1;
@@ -88,6 +91,14 @@ pub enum Request {
     SetControllerMode {
         mode: ControllerMode,
     },
+    /// What one back button sends. Saved and written again at startup and
+    /// after every controller mode change.
+    SetBackButton {
+        button: BackButton,
+        target: ButtonTarget,
+    },
+    /// Both back buttons back to their own keys.
+    ResetBackButtons,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -171,6 +182,9 @@ pub struct Status {
     pub fps_limit: Option<u32>,
     #[serde(default)]
     pub controller_mode: Option<ControllerMode>,
+    /// What the back buttons send.
+    #[serde(default)]
+    pub back_buttons: BackButtons,
 }
 
 /// What [`Request::SaveForegroundProfile`] saves.
@@ -247,6 +261,14 @@ mod tests {
             }
         );
         assert_eq!(
+            decode::<Request>(r#"{"type":"set_back_button","button":"m1","target":"pad_a"}"#)
+                .unwrap(),
+            Request::SetBackButton {
+                button: BackButton::M1,
+                target: ButtonTarget::PadA
+            }
+        );
+        assert_eq!(
             encode(&Request::ResetFanCurves).unwrap(),
             "{\"type\":\"reset_fan_curves\"}\n"
         );
@@ -261,6 +283,7 @@ mod tests {
         assert_eq!(status.tdp_min_watts, None);
         assert!(status.fan_curves.is_empty());
         assert_eq!(status.controller_mode, None);
+        assert!(status.back_buttons.is_default());
     }
 
     #[test]

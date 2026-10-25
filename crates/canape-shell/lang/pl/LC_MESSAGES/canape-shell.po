@@ -465,3 +465,102 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "Profil tej gry"
+
+msgid "Default"
+msgstr "Domyślne"
+
+msgid "Disabled"
+msgstr "Wyłączone"
+
+msgid "Left stick click"
+msgstr "Wciśnięcie lewej gałki"
+
+msgid "Right stick click"
+msgstr "Wciśnięcie prawej gałki"
+
+msgid "D-pad up"
+msgstr "Krzyżak w górę"
+
+msgid "D-pad down"
+msgstr "Krzyżak w dół"
+
+msgid "D-pad left"
+msgstr "Krzyżak w lewo"
+
+msgid "D-pad right"
+msgstr "Krzyżak w prawo"
+
+msgid "Esc key"
+msgstr "Klawisz Esc"
+
+msgid "Enter key"
+msgstr "Klawisz Enter"
+
+msgid "Space bar"
+msgstr "Spacja"
+
+msgid "Tab key"
+msgstr "Klawisz Tab"
+
+msgid "Backspace key"
+msgstr "Klawisz Backspace"
+
+msgid "Up arrow"
+msgstr "Strzałka w górę"
+
+msgid "Down arrow"
+msgstr "Strzałka w dół"
+
+msgid "Left arrow"
+msgstr "Strzałka w lewo"
+
+msgid "Right arrow"
+msgstr "Strzałka w prawo"
+
+msgid "Page up"
+msgstr "Page Up"
+
+msgid "Page down"
+msgstr "Page Down"
+
+msgid "Shift key"
+msgstr "Klawisz Shift"
+
+msgid "Ctrl key"
+msgstr "Klawisz Ctrl"
+
+msgid "Windows key"
+msgstr "Klawisz Windows"
+
+msgid "Left click"
+msgstr "Lewy przycisk myszy"
+
+msgid "Right click"
+msgstr "Prawy przycisk myszy"
+
+msgid "Middle click"
+msgstr "Środkowy przycisk myszy"
+
+msgid "Scroll up"
+msgstr "Przewiń w górę"
+
+msgid "Scroll down"
+msgstr "Przewiń w dół"
+
+msgid "Volume up"
+msgstr "Głośniej"
+
+msgid "Volume down"
+msgstr "Ciszej"
+
+msgid "Mute the microphone"
+msgstr "Wycisz mikrofon"
+
+msgid "Touch keyboard"
+msgstr "Klawiatura dotykowa"
+
+msgid "Back buttons"
+msgstr "Przyciski tylne"
+
+msgid "Restore the default buttons"
+msgstr "Przywróć oryginalne przyciski"

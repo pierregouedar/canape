@@ -185,9 +185,12 @@ Page 3 (`ui/hardware.slint`) only sends requests: the service validates and writ
 | Keep these settings for this game | `save-hardware-profile()` | `save_profile` for `status.foreground`: the existing profile (or a new one with `status.auto_tdp`) with `fan_curves: Some(status.fan_curves)` (an empty set means "the firmware's curves" for that game), `fps_limit: status.fps_limit` and `refresh_hz` (the screen's current rate) |
 | Screen chips | `set-refresh(hz)` | none: the shell switches the screen itself (`screen.rs`, `canape_hw::display::Screen`) and saves `refresh_hz` in `shell.json` |
 | Controller tiles | `set-controller(mode)` | `set_controller_mode` |
+| Back buttons line | `open-controller()` | none: opens sub-page 6, `ui/controller.slint` (B goes back to the Hardware page) |
+| M1 / M2 lines (sub-page) | `set-back-button(button, index)` | `set_back_button` with `ButtonTarget::ALL[index]`, sent at each left / right |
+| Restore the default buttons (sub-page) | `reset-back-buttons()` | `reset_back_buttons` |
 
 - `hardware.rs`: `preset_name()` maps `status.fan_curves` to the selected tile: `""` when empty (firmware curves), a preset key when every custom curve equals that preset, `custom` otherwise. `curve_paths()` turns the CPU curve into the line and area `Path` commands of the panel (viewbox 90 × 100: one unit per °C from 20 to 110 °C, one per percent), held flat before the first and after the last point. Both are unit-tested.
-- `link.rs` (`status_view`): `cpu_fan_rpm` / `gpu_fan_rpm` (−1 when unknown), the preset name, the CPU curve paths (empty without a custom CPU curve), `fps_limit` (0 for none) and `controller_mode` (`""` when Canapé has not set it, so no tile is selected). `tdp_floor()` / `tdp_ceiling()` read `tdp_min_watts` / `tdp_max_watts` (fallback `MIN_WATTS` 5 and `MAX_WATTS` 35 in `main.rs`) and bound every wattage stepper of the shell.
+- `link.rs` (`status_view`): `cpu_fan_rpm` / `gpu_fan_rpm` (−1 when unknown), the preset name, the CPU curve paths (empty without a custom CPU curve), `fps_limit` (0 for none), `controller_mode` (`""` when Canapé has not set it, so no tile is selected) and `m1` / `m2`, the index of each back button's target in `ButtonTarget::ALL` (0 = its own key). The names of the controller page (`target-names` in `controller.slint`) follow that order; a test in `link.rs` checks they are as many. `tdp_floor()` / `tdp_ceiling()` read `tdp_min_watts` / `tdp_max_watts` (fallback `MIN_WATTS` 5 and `MAX_WATTS` 35 in `main.rs`) and bound every wattage stepper of the shell.
 - The Profiles page and the bench's **Save for the game** keep the `fan_curves`, `fps_limit` and `refresh_hz` of an existing profile.
 - **Screen refresh rate** (`screen.rs`): display modes belong to the user's session, so the shell, not the service, switches them. `canape_hw::display::Screen::internal()` picks the active path whose output technology is internal or embedded DisplayPort (`QueryDisplayConfig`, then the source's GDI name), `rates()` lists the rates at the current resolution and depth (`EnumDisplaySettingsExW`), `set_refresh()` calls `ChangeDisplaySettingsExW` with `CDS_UPDATEREGISTRY`. `Profile::refresh_hz` is only stored by the service; at each status push the shell looks up the active profile's rate and `screen::follow` switches on a change of profile only (`Follow::step`, unit-tested): entering a profile remembers the rate it replaces, leaving it goes back to the rate picked on the page (`shell.json` `refresh_hz`, 0 = none) or to that remembered rate. The page re-reads the current rate every 5 pushes. Off Windows, `CANAPE_MOCK_SCREEN=60,120` fakes a screen for screenshots.
 - **Ally buttons** (`buttons.rs`, Windows): a thread runs `canape_hw::listen_buttons`, which opens the same HID interface as the controller mode (VID `0x0B05`, PID `0x1ABE`/`0x1B4C`, feature report `0x5A`), sends the wake-up report, then reads input reports: code 166 Command Center, 56 or 147 Armoury, 165 / 0 back paddles down / up, 236 ignored (`pad::parse_input`, unit-tested). Armoury → `instance::bring_to_front()` (a synthetic Alt tap, then `SetForegroundWindow`) or the Games section when already in front; Command Center → Win+G (`SendInput`). Unknown codes are logged. After an error the thread retries every 5 s, every 60 s when no interface exists. `shell.json` `ally_buttons: false` turns the actions off.
@@ -288,6 +291,8 @@ sequenceDiagram
 | `save_foreground_profile` | `part: "power" \| "hardware"` | `ok` / `error` | Saves into the foreground game's profile (created with the current auto TDP if there is none) the auto TDP and the wattage held (`power`), or the curves and frame rate limit (`hardware`); the rest of the profile is kept. Error without a game in the foreground. Used by the widget. |
 | `set_fps_limit` | `fps: u32 \| null` (30 to 120) | `ok` / `error` | AMD driver frame rate cap (AC and battery, every game); `null` removes it. Saved; during a profile that has its own cap, changes the profile. **Untested from the service's session 0.** |
 | `set_controller_mode` | `mode`: `gamepad` \| `wasd` \| `mouse` | `ok` / `error` | Mode of the built-in controller (HID). Saved and re-applied at startup. Global, not per profile. **Untested on the device.** |
+| `set_back_button` | `button`: `m1` \| `m2`, `target: ButtonTarget` | `ok` / `error` | What one back button sends, written to the controller (HID). Saved, re-applied at startup and after every `set_controller_mode`. Global. **Untested on the device.** |
+| `reset_back_buttons` | — | `ok` / `error` | Both back buttons back to their own keys (the factory binding is written). |
 
 Examples:
 
@@ -347,7 +352,8 @@ Examples:
   "gpu_fan_rpm": 3100,
   "fan_curves": {"cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": null, "mid": null},
   "fps_limit": 40,
-  "controller_mode": "gamepad"
+  "controller_mode": "gamepad",
+  "back_buttons": {"m1": "default", "m2": "pad_a"}
 }
 ```
 
@@ -372,6 +378,7 @@ Examples:
 | `fan_curves` | `FanCurves` | Custom curves in effect (global or the active profile's); a `null` fan follows the mode's curve. |
 | `fps_limit` | `u32 \| null` | Frame rate cap set through Canapé (`null`: none set by Canapé; the AMD software may still have one). |
 | `controller_mode` | `string \| null` | `gamepad`, `wasd`, `mouse`, or `null` if Canapé has not set it. |
+| `back_buttons` | `BackButtons` | What M1 and M2 send; `default` for both until Canapé changes them. Optional on input. |
 
 ### Nested types
 
@@ -408,6 +415,10 @@ Examples:
 | `max_cooling` | `[[30,35],[40,45],[50,55],[60,65],[70,80],[75,90],[80,100],[85,100]]` |
 
 **`ControllerMode`**: `gamepad` (XInput), `wasd` (keyboard), `mouse` (desktop).
+
+**`BackButtons`**: `{"m1": ButtonTarget, "m2": ButtonTarget}`, each `default` when missing.
+
+**`ButtonTarget`**: `default` (the button's own key), `disabled`; gamepad `pad_a`, `pad_b`, `pad_x`, `pad_y`, `pad_lb`, `pad_rb`, `pad_lt`, `pad_rt`, `pad_ls`, `pad_rs` (stick clicks), `dpad_up`, `dpad_down`, `dpad_left`, `dpad_right`, `pad_view`, `pad_menu`, `pad_xbox`; keyboard `key_escape`, `key_enter`, `key_space`, `key_tab`, `key_backspace`, `key_up`, `key_down`, `key_left`, `key_right`, `key_page_up`, `key_page_down`, `key_shift`, `key_ctrl`, `key_windows`, `key_f11`, `key_f12`; mouse `mouse_left`, `mouse_right`, `mouse_middle`, `wheel_up`, `wheel_down`; media `volume_up`, `volume_down`, `mute_mic`, `show_keyboard` (the touch keyboard). `ButtonTarget::ALL` keeps this order.
 
 **`BenchPlan`**: `from_watts` (25), `to_watts` (7), `step_watts` (3), `settle_secs` (5), `measure_secs` (15).
 
@@ -732,6 +743,13 @@ Hence the fix: at startup the shell calls `canape_hw::FrameMetrics::arm()` (a `F
 |---|---|
 | Init | `0x5A` + `ASUS Tech.Inc.` in ASCII, once before the first command (`InitInput`). |
 | Mode | `[0x5A, 0xD1, 0x01, 0x01, mode]`, `1` gamepad, `2` WASD, `3` mouse, then `HidD_SetFeature`. |
+| Button mapping | `[0x5A, 0xD1, 0x02, pair, 0x2C]` then 44 bytes: four 11-byte bindings, the pair's first button, its secondary binding (with the left button under the screen held), the second button, its secondary binding. Pairs: `1` D-pad up / down, `2` D-pad left / right, `3` stick clicks, `4` bumpers, `5` A / B, `6` X / Y, `7` View / Menu, `8` **M2 / M1**, `9` triggers. |
+| Binding | First byte, the group: `0x01` gamepad (code in byte 1), `0x02` keyboard (byte 2), `0x03` mouse (byte 4), `0x05` media (byte 3), `0x04` key combination (count in byte 5, then the codes); all zeros, nothing. |
+| Codes offered | Gamepad: A `01`, B `02`, X `03`, Y `04`, LB `05`, RB `06`, LS `07`, RS `08`, D-pad up `09`, down `0A`, left `0B`, right `0C`, LT `0D`, RT `0E`, View `11`, Menu `12`, Xbox `13`. Keyboard: Esc `76`, Enter `5A`, Space `29`, Tab `0D`, Backspace `66`, arrows up `98`, down `99`, left `9A`, right `9B`, Page up `96`, Page down `97`, left Shift `88`, left Ctrl `8C`, Windows `82`, F11 `78`, F12 `07`, M1 `8F`, M2 `8E`. Mouse: left `01`, right `02`, middle `03`, wheel up `04`, wheel down `05`. Media: mute microphone `01`, volume down `02`, volume up `03`, touch keyboard `19`. |
+| Factory M1 / M2 | `[02 00 8E …] [02 00 8E …] [02 00 8F …] [02 00 8F …]`: M2 sends key `8E` and M1 key `8F`, also with the left screen button held, in gamepad and keyboard modes alike. "Default" and **Restore the default buttons** write exactly this. |
+| Sequence | The init report the first time, then the pair 8 report alone: at each change, at service startup, and after each mode write (a mode change may bring the mode's own bindings back). The secondary bindings always keep the factory keys. Nothing is written after it. |
+
+**Untested on the device.** Where these facts come from (all GPL or LGPL, reimplemented, not copied):
 
 
 ### Pipe ACL
@@ -742,9 +760,9 @@ The widget's AppContainer SID is derived by Windows (`DeriveAppContainerSidFromA
 
 | Feature | Planned interface |
 |---|---|
-| Button remapping (bindings) | ASUS HID (report `0x5A`, `0xD1 0x02` commands) |
+| Remapping the other buttons (pairs 1 to 7 and 9), secondary bindings, key combinations, turbo, dead zones | Same `0xD1 0x02` command. The defaults of the other pairs differ between gamepad and keyboard / mouse modes (and between references for the secondary bindings): to be captured on the Ally first. |
 
-The refresh rate and the Armoury / Command Center buttons are done: see [The Hardware page](#the-hardware-page).
+The refresh rate, the Armoury / Command Center buttons and the back buttons are done: see [The Hardware page](#the-hardware-page).
 
 ## Conventions
 

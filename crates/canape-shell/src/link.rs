@@ -9,7 +9,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use canape_core::{
-    BenchReport, ControllerMode, PerformanceMode, Profile, Request, Response, Status, protocol,
+    BenchReport, ButtonTarget, ControllerMode, PerformanceMode, Profile, Request, Response, Status,
+    protocol,
 };
 use canape_ipc::Connection;
 use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
@@ -429,7 +430,18 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
             None => "",
         }
         .into(),
+        m1: target_index(s.back_buttons.m1),
+        m2: target_index(s.back_buttons.m2),
     }
+}
+
+/// Position of `target` in [`ButtonTarget::ALL`], the order of the
+/// controller page's names.
+fn target_index(target: ButtonTarget) -> i32 {
+    ButtonTarget::ALL
+        .iter()
+        .position(|&t| t == target)
+        .map_or(0, |i| i as i32)
 }
 
 /// Lowest wattage this model accepts, when the service knows it.
@@ -538,6 +550,23 @@ mod tests {
         assert_eq!(view.foreground, "game.exe");
         assert!(view.bench_running);
         assert_eq!((view.bench_step, view.bench_steps), (2, 7));
+    }
+
+    #[test]
+    fn back_buttons_index_the_page_names() {
+        let mut status = Status::default();
+        status.back_buttons.m2 = ButtonTarget::PadA;
+        let view = status_view(Some(&status));
+        assert_eq!((view.m1, view.m2), (0, 2));
+        // The page names one target per entry of ButtonTarget::ALL.
+        let page = include_str!("../ui/controller.slint");
+        let list = page
+            .split("target-names: [")
+            .nth(1)
+            .and_then(|rest| rest.split("];").next())
+            .unwrap();
+        let names = list.lines().filter(|l| l.trim().ends_with(',')).count();
+        assert_eq!(names, ButtonTarget::ALL.len());
     }
 
     #[test]

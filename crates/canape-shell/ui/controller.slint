@@ -1,0 +1,192 @@
+// Controller sub-page (from the hardware page): what the back buttons
+// send. Up and down change line, left and right change the value (sent at
+// once), A acts on a line without a value:
+//   0 M1, 1 M2, 2 restore the default buttons.
+
+import { Theme } from "theme.slint";
+import { App } from "state.slint";
+import { SectionTitle, SettingLine } from "kit.slint";
+
+export component ControllerPage inherits Rectangle {
+    in-out property <int> focus-row: 0;
+    property <bool> active: fs.has-focus;
+    // In the order of ButtonTarget::ALL (canape-core): StatusView.m1 and
+    // m2 index it, and so does set-back-button.
+    property <[string]> target-names: [
+        @tr("Default"),
+        @tr("Disabled"),
+        "A",
+        "B",
+        "X",
+        "Y",
+        "LB",
+        "RB",
+        "LT",
+        "RT",
+        @tr("Left stick click"),
+        @tr("Right stick click"),
+        @tr("D-pad up"),
+        @tr("D-pad down"),
+        @tr("D-pad left"),
+        @tr("D-pad right"),
+        "View",
+        "Menu",
+        "Xbox",
+        @tr("Esc key"),
+        @tr("Enter key"),
+        @tr("Space bar"),
+        @tr("Tab key"),
+        @tr("Backspace key"),
+        @tr("Up arrow"),
+        @tr("Down arrow"),
+        @tr("Left arrow"),
+        @tr("Right arrow"),
+        @tr("Page up"),
+        @tr("Page down"),
+        @tr("Shift key"),
+        @tr("Ctrl key"),
+        @tr("Windows key"),
+        "F11",
+        "F12",
+        @tr("Left click"),
+        @tr("Right click"),
+        @tr("Middle click"),
+        @tr("Scroll up"),
+        @tr("Scroll down"),
+        @tr("Volume up"),
+        @tr("Volume down"),
+        @tr("Mute the microphone"),
+        @tr("Touch keyboard"),
+    ];
+    // Shown at once; the status confirms.
+    in-out property <int> m1-pick: App.status.m1;
+    in-out property <int> m2-pick: App.status.m2;
+    property <int> m1-status: App.status.m1;
+    property <int> m2-status: App.status.m2;
+    changed m1-status => {
+        root.m1-pick = root.m1-status;
+    }
+    changed m2-status => {
+        root.m2-pick = root.m2-status;
+    }
+
+    function step(row: int, d: int) {
+        let count = root.target-names.length;
+        if row == 0 {
+            root.m1-pick = Math.mod(root.m1-pick + d + count, count);
+            App.set-back-button("m1", root.m1-pick);
+        } else if row == 1 {
+            root.m2-pick = Math.mod(root.m2-pick + d + count, count);
+            App.set-back-button("m2", root.m2-pick);
+        }
+    }
+    function activate() {
+        if root.focus-row == 2 {
+            App.reset-back-buttons();
+        }
+    }
+    function line-focused(r: int) -> bool {
+        root.active && root.focus-row == r
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        key-pressed(event) => {
+            if event.text == Key.UpArrow {
+                root.focus-row = max(0, root.focus-row - 1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.focus-row = min(2, root.focus-row + 1);
+                return accept;
+            }
+            if !App.status.connected {
+                return reject;
+            }
+            if event.text == Key.LeftArrow {
+                root.step(root.focus-row, -1);
+                return accept;
+            }
+            if event.text == Key.RightArrow {
+                root.step(root.focus-row, 1);
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                root.activate();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    HorizontalLayout {
+        width: parent.width;
+        height: parent.height;
+        spacing: 40px;
+
+        VerticalLayout {
+            horizontal-stretch: 1;
+            preferred-width: 10px;
+            spacing: 2px;
+            alignment: start;
+
+            SectionTitle {
+                height: 36px;
+                x: 16px;
+                text: @tr("Back buttons");
+            }
+
+            SettingLine {
+                label: "M1";
+                value: root.target-names[root.m1-pick];
+                enabled: App.status.connected;
+                focused: root.line-focused(0);
+                clicked => {
+                    root.focus-row = 0;
+                    fs.focus();
+                }
+                step(d) => {
+                    root.focus-row = 0;
+                    root.step(0, d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                label: "M2";
+                value: root.target-names[root.m2-pick];
+                enabled: App.status.connected;
+                focused: root.line-focused(1);
+                clicked => {
+                    root.focus-row = 1;
+                    fs.focus();
+                }
+                step(d) => {
+                    root.focus-row = 1;
+                    root.step(1, d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                label: @tr("Restore the default buttons");
+                value: "";
+                chevrons: false;
+                enabled: App.status.connected && (App.status.m1 != 0 || App.status.m2 != 0);
+                focused: root.line-focused(2);
+                clicked => {
+                    root.focus-row = 2;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+
+        Rectangle {
+            horizontal-stretch: 1;
+            preferred-width: 10px;
+        }
+    }
+}

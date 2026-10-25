@@ -100,6 +100,164 @@ pub enum ControllerMode {
     Mouse,
 }
 
+/// The two buttons on the back of the Ally, as ASUS names them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BackButton {
+    M1,
+    M2,
+}
+
+/// What a back button sends. The controller's firmware does the
+/// translation, so it works in every program.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ButtonTarget {
+    /// The button's own key, as it leaves the factory.
+    #[default]
+    Default,
+    /// Nothing at all.
+    Disabled,
+    PadA,
+    PadB,
+    PadX,
+    PadY,
+    PadLb,
+    PadRb,
+    PadLt,
+    PadRt,
+    /// Left stick click.
+    PadLs,
+    /// Right stick click.
+    PadRs,
+    DpadUp,
+    DpadDown,
+    DpadLeft,
+    DpadRight,
+    PadView,
+    PadMenu,
+    /// The guide button.
+    PadXbox,
+    KeyEscape,
+    KeyEnter,
+    KeySpace,
+    KeyTab,
+    KeyBackspace,
+    KeyUp,
+    KeyDown,
+    KeyLeft,
+    KeyRight,
+    KeyPageUp,
+    KeyPageDown,
+    KeyShift,
+    KeyCtrl,
+    KeyWindows,
+    KeyF11,
+    KeyF12,
+    MouseLeft,
+    MouseRight,
+    MouseMiddle,
+    WheelUp,
+    WheelDown,
+    VolumeUp,
+    VolumeDown,
+    MuteMic,
+    /// The touch keyboard.
+    ShowKeyboard,
+}
+
+impl ButtonTarget {
+    /// Every target, in the order the shell offers them.
+    pub const ALL: [ButtonTarget; 44] = [
+        Self::Default,
+        Self::Disabled,
+        Self::PadA,
+        Self::PadB,
+        Self::PadX,
+        Self::PadY,
+        Self::PadLb,
+        Self::PadRb,
+        Self::PadLt,
+        Self::PadRt,
+        Self::PadLs,
+        Self::PadRs,
+        Self::DpadUp,
+        Self::DpadDown,
+        Self::DpadLeft,
+        Self::DpadRight,
+        Self::PadView,
+        Self::PadMenu,
+        Self::PadXbox,
+        Self::KeyEscape,
+        Self::KeyEnter,
+        Self::KeySpace,
+        Self::KeyTab,
+        Self::KeyBackspace,
+        Self::KeyUp,
+        Self::KeyDown,
+        Self::KeyLeft,
+        Self::KeyRight,
+        Self::KeyPageUp,
+        Self::KeyPageDown,
+        Self::KeyShift,
+        Self::KeyCtrl,
+        Self::KeyWindows,
+        Self::KeyF11,
+        Self::KeyF12,
+        Self::MouseLeft,
+        Self::MouseRight,
+        Self::MouseMiddle,
+        Self::WheelUp,
+        Self::WheelDown,
+        Self::VolumeUp,
+        Self::VolumeDown,
+        Self::MuteMic,
+        Self::ShowKeyboard,
+    ];
+
+    /// The JSON name, such as `pad_a`.
+    pub fn key(self) -> String {
+        serde_json::to_value(self)
+            .ok()
+            .and_then(|v| v.as_str().map(str::to_owned))
+            .unwrap_or_default()
+    }
+
+    /// The target with this JSON name.
+    pub fn from_key(key: &str) -> Option<Self> {
+        serde_json::from_value(serde_json::Value::String(key.to_owned())).ok()
+    }
+}
+
+/// What each back button sends.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct BackButtons {
+    pub m1: ButtonTarget,
+    pub m2: ButtonTarget,
+}
+
+impl BackButtons {
+    pub fn get(&self, button: BackButton) -> ButtonTarget {
+        match button {
+            BackButton::M1 => self.m1,
+            BackButton::M2 => self.m2,
+        }
+    }
+
+    pub fn set(&mut self, button: BackButton, target: ButtonTarget) {
+        match button {
+            BackButton::M1 => self.m1 = target,
+            BackButton::M2 => self.m2 = target,
+        }
+    }
+
+    /// Both buttons as they leave the factory.
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -140,6 +298,23 @@ mod tests {
         let profile: Profile = serde_json::from_str(json).unwrap();
         assert_eq!(profile.fan_curves, None);
         assert_eq!(profile.fps_limit, None);
+    }
+
+    #[test]
+    fn button_targets_in_json() {
+        assert_eq!(ButtonTarget::PadLb.key(), "pad_lb");
+        assert_eq!(ButtonTarget::KeyF11.key(), "key_f11");
+        for target in ButtonTarget::ALL {
+            assert_eq!(ButtonTarget::from_key(&target.key()), Some(target));
+        }
+        for (i, a) in ButtonTarget::ALL.iter().enumerate() {
+            assert!(!ButtonTarget::ALL[i + 1..].contains(a), "{a:?} twice");
+        }
+        assert_eq!(ButtonTarget::from_key("pad_z"), None);
+        let buttons: BackButtons = serde_json::from_str(r#"{"m2":"pad_a"}"#).unwrap();
+        assert_eq!(buttons.get(BackButton::M1), ButtonTarget::Default);
+        assert_eq!(buttons.get(BackButton::M2), ButtonTarget::PadA);
+        assert!(!buttons.is_default());
     }
 
     #[test]
