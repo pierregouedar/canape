@@ -571,29 +571,29 @@ Pour repartir de zéro côté réglages : arrêtez le service, supprimez `%Progr
 
 ## Désinstaller
 
-Il n'y a pas encore de script de désinstallation. D'abord, sur la page **Matériel**, remettez les ventilateurs en **Automatique**, la limite de FPS sur **Aucune** et la manette en **Manette de jeu** : une fois le service parti, plus rien ne les annulera. Ensuite, dans un Terminal administrateur :
-
 1. **Choisir un autre accueil** dans Paramètres → Jeux → Expérience plein écran (voir [Revenir à Winhanced ou à l'app Xbox](#revenir-à-winhanced-ou-à-lapp-xbox)).
-2. **Retirer le service** :
+2. Dans un **Terminal administrateur**, à la racine du dépôt :
    ```powershell
-   & "C:\Program Files\Canape\canape-service.exe" uninstall
+   powershell -ExecutionPolicy Bypass -File packaging\uninstall-dev.ps1
    ```
-3. **Retirer les paquets** (identité du shell et widget) :
-   ```powershell
-   Get-AppxPackage -Name Canape | Remove-AppxPackage
-   Get-AppxPackage -Name Canape.Widget | Remove-AppxPackage
-   ```
-4. **Supprimer les fichiers** :
-   ```powershell
-   Get-Process canape-shell -ErrorAction SilentlyContinue | Stop-Process -Force
-   Remove-Item -Recurse "C:\Program Files\Canape", "$env:ProgramData\Canape", "$env:LOCALAPPDATA\Canape"
-   ```
-5. **Retirer le certificat de développement** (si plus rien ne s'en sert) :
-   ```powershell
-   Get-ChildItem Cert:\LocalMachine\TrustedPeople, Cert:\CurrentUser\My |
-       Where-Object Subject -eq "CN=Canape Dev" | Remove-Item
-   Remove-Item -Recurse "$HOME\dev\canape-cert"
-   ```
+
+| Étape | Ce que fait le script |
+|---|---|
+| 1/6 | Tant que le service tourne, remet le matériel au neutre : ventilateurs sur les courbes du firmware (**Automatique**), pas de limite de FPS, manette en mode **Manette de jeu**, et limite de charge à 100 % si Canapé en avait réglé une. Une fois le service parti, plus rien ne les annulerait. Si le service ne tourne pas, il le signale et continue. |
+| 2/6 | Ferme le shell, arrête et supprime le service `CanapeService`. |
+| 3/6 | Retire le paquet d'identité du shell (`Canape`) et celui du widget (`Canape.Widget`). |
+| 4/6 | Efface la valeur d'accueil du FSE (`GamingHomeApp`) si elle désigne encore Canapé. |
+| 5/6 | Supprime `C:\Program Files\Canape`. |
+| 6/6 | Garde vos données sauf demande contraire (voir les options). |
+
+| Option | Effet |
+|---|---|
+| `-RemoveData` | Supprime aussi `%ProgramData%\Canape` (réglages, profils, dernier banc d'essai, journal du service) et `%LOCALAPPDATA%\Canape` (réglages du shell, cache de la bibliothèque, Legendary téléchargé, journal du shell). |
+| `-RemoveCertificate` | Retire aussi le certificat de développement `CN=Canape Dev` et `$HOME\dev\canape-cert`. Gardez-le si vous réinstallez : `build-widget.ps1` en a besoin. |
+| `-InstallDir`, `-CertDir` | Les mêmes que pour `install-dev.ps1`, si vous les avez changés. |
+
+> [!NOTE]
+> Le script n'a **pas encore été essayé sur l'Ally**. Si une étape échoue, les commandes qu'il lance sont dans `packaging\uninstall-dev.ps1` et peuvent se taper à la main.
 
 Les jeux installés depuis Canapé restent sur le disque, et la configuration de Legendary (connexion Epic comprise) reste dans `%USERPROFILE%\.config\legendary`.
 

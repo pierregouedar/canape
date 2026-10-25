@@ -9,6 +9,7 @@
 | `identity/Assets/` | Logos provisoires |
 | `../crates/canape-shell/canape-shell.exe.manifest` | Lie l'exe au paquet (`msix`) et le garde `asInvoker` ; intégré à la compilation |
 | `install-dev.ps1` | Compile, installe le service `CanapeService`, signe et enregistre le paquet sur la machine de dev |
+| `uninstall-dev.ps1` | L'inverse, widget compris ; remet d'abord ventilateurs, limite de FPS, manette et limite de charge au neutre. `-RemoveData`, `-RemoveCertificate` (voir le [guide d'utilisation](../docs/user-guide.fr.md#désinstaller)) |
 
 ## M1 : démarrer Canapé en FSE sur l'Ally
 
