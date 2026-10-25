@@ -215,7 +215,7 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 > [!NOTE]
 > **Nothing in this part has been tried on the Ally yet**: not the Steam owned list through the Web API, not installing through Steam, not the Legendary download, not the Epic sign-in, not installing and launching Epic games through Legendary. Only the UI (on Linux, with the fake library and a simulated install) and the reading of Steam's, Epic's and GitHub's answers (against recorded answers) were tested.
 
-The **To install** shelf lists the games you own on Steam or Epic but have not installed on the console (the last shelf: down until you reach it). **A** opens the game's page, then **A** on the page ("Install") installs it without opening Steam's interface or the Epic launcher: a single press on the shelf never starts a download. A game already installed, from any store (same id or same title), does not show in this list.
+The **To install** shelf lists the games you own on Steam or Epic but have not installed on the console (the last shelf: down until you reach it). **A** opens the game's page, then **A** on the page ("Install") installs it without opening Steam's interface or the Epic launcher: a single press on the shelf never starts a download. A game already installed, from any store (same id or same title), does not show in this list. GOG and Xbox app games are never in it: Canapé gets no list of the games owned there (the Xbox app offers none to other programs), so they only show once installed with GOG Galaxy or the Xbox app, and then launch like the others.
 
 **Steam: set up once**
 
