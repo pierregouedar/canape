@@ -619,9 +619,29 @@ impl State {
                 .and_then(|appid| canape_library::steam::hero(steam, appid)),
             _ => None,
         };
+        // An Epic game: Epic's own key art, downloaded once.
+        let epic_wide = game
+            .id
+            .strip_prefix("epic:")
+            .filter(|_| hero.is_none())
+            .map(|app| {
+                (
+                    self.roots
+                        .legendary
+                        .as_ref()
+                        .map(|(config, _)| config.clone()),
+                    app.to_owned(),
+                )
+            });
+        let covers_dir = self.covers_dir.clone();
+        let online = !self.fixture && crate::i18n::ShellSettings::load().online_covers;
         let cover = game.cover.clone();
         let id = game.id;
         thread::spawn(move || {
+            let hero = hero.or_else(|| {
+                let (config, app) = epic_wide?;
+                epic_wide_art(&covers_dir, &id, config.as_deref(), &app, online)
+            });
             let (cw, ch) = ((240.0 * scale) as u32, (360.0 * scale) as u32);
             let cover = cover.and_then(|path| {
                 canape_library::cover::load(&path, cw, ch)
@@ -635,9 +655,10 @@ impl State {
                         )
                     })
             });
-            // Steam's art is about 3.1 times as wide as high.
+            // Steam's art is about 3.1 times as wide as high; Epic's (16:9)
+            // is cropped to the same band.
             let art = hero.and_then(|path| {
-                canape_library::cover::load(&path, width, (width as f32 / 3.1) as u32)
+                canape_library::cover::load_filled(&path, width, (width as f32 / 3.1) as u32)
                     .map_err(|err| crate::log(&format!("library: art {}: {err}", path.display())))
                     .ok()
                     .map(|mut rgb| {
@@ -964,7 +985,7 @@ impl State {
             ));
             publish(&cache_path, games.clone());
             // A fixture never goes online.
-            if !fixture && download_covers(&games, &HashMap::new(), &covers) {
+            if !fixture && download_covers(&games, &epic_covers(&games, &roots), &covers) {
                 online::attach(&mut games, &covers);
                 publish(&cache_path, games);
             }
@@ -1866,6 +1887,48 @@ fn download_covers(games: &[Game], art: &HashMap<String, String>, dir: &Path) ->
             false
         }
     }
+}
+
+/// Epic's key art for the game `id` (Legendary's app `app`): downloaded
+/// earlier, else (when covers may be downloaded) from the link in
+/// Legendary's metadata. Blocks: run it on a thread.
+fn epic_wide_art(
+    dir: &Path,
+    id: &str,
+    config: Option<&Path>,
+    app: &str,
+    download: bool,
+) -> Option<PathBuf> {
+    if let Some(path) = online::cached_wide(dir, id) {
+        return Some(path);
+    }
+    let url = legendary::metadata_art(config.filter(|_| download)?, app).wide?;
+    #[cfg(windows)]
+    {
+        let http = canape_library::http::WinHttp::new().ok()?;
+        online::wide_art(dir, id, Some(&url), &http)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = url;
+        None
+    }
+}
+
+/// Links to Epic's box art for the installed Epic games, from Legendary's
+/// metadata: their cover when they have none.
+fn epic_covers(games: &[Game], roots: &Roots) -> HashMap<String, String> {
+    let Some((config, _)) = &roots.legendary else {
+        return HashMap::new();
+    };
+    games
+        .iter()
+        .filter(|g| g.cover.is_none())
+        .filter_map(|g| {
+            let app = g.id.strip_prefix("epic:")?;
+            Some((g.id.clone(), legendary::metadata_art(config, app).tall?))
+        })
+        .collect()
 }
 
 /// Keeps decoding the covers asked for, in order, skipping those no

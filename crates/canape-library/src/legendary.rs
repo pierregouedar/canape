@@ -117,6 +117,72 @@ struct KeyImage {
     url: String,
 }
 
+/// Epic's art for a game, as links sized for Canapé (Epic's image server
+/// scales on request).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Art {
+    /// Landscape key art (16:9), for the game page.
+    pub wide: Option<String>,
+    /// Portrait box art (3:4), for the cover.
+    pub tall: Option<String>,
+}
+
+/// The first image of `images` of one of `kinds`, in that order.
+fn image<'a>(images: &'a [KeyImage], kinds: &[&str]) -> Option<&'a str> {
+    kinds.iter().find_map(|kind| {
+        images
+            .iter()
+            .find(|i| i.kind == *kind && i.url.starts_with("https://"))
+            .map(|i| i.url.as_str())
+    })
+}
+
+fn art_of(images: &[KeyImage]) -> Art {
+    Art {
+        wide: image(
+            images,
+            &["DieselGameBox", "OfferImageWide", "DieselStoreFrontWide"],
+        )
+        .map(|url| format!("{url}?w=1920&h=1080&resize=1")),
+        tall: image(
+            images,
+            &["DieselGameBoxTall", "OfferImageTall", "Thumbnail"],
+        )
+        .map(|url| format!("{url}?w=600&h=900&resize=1")),
+    }
+}
+
+#[derive(Deserialize)]
+struct MetadataFile {
+    #[serde(default)]
+    metadata: Option<Metadata>,
+}
+
+/// The art of a game's metadata file, as Legendary keeps it for every
+/// owned game (`metadata/<app>.json` in its config folder).
+pub fn parse_metadata_art(json: &[u8]) -> Art {
+    serde_json::from_slice::<MetadataFile>(json)
+        .ok()
+        .and_then(|f| f.metadata)
+        .map(|m| art_of(&m.key_images))
+        .unwrap_or_default()
+}
+
+/// Epic's art for the game `app`, from Legendary's metadata.
+pub fn metadata_art(config: &Path, app: &str) -> Art {
+    // App names are Epic's ids; anything else is not a file name of ours.
+    if app.is_empty()
+        || !app
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"-_.".contains(&b))
+    {
+        return Art::default();
+    }
+    std::fs::read(config.join("metadata").join(format!("{app}.json")))
+        .map(|json| parse_metadata_art(&json))
+        .unwrap_or_default()
+}
+
 /// Games of a `legendary list --json` answer, as entries to install.
 /// Games installed through another store (Ubisoft, EA) are left out:
 /// Legendary cannot install them.
@@ -135,14 +201,7 @@ pub fn parse_list(json: &[u8]) -> Option<Vec<Owned>> {
                 })
             })
             .map(|g| {
-                let art_url = g.metadata.as_ref().and_then(|m| {
-                    m.key_images
-                        .iter()
-                        .find(|i| i.kind == "DieselGameBoxTall")
-                        .filter(|i| i.url.starts_with("https://"))
-                        // Epic's image server scales on request.
-                        .map(|i| format!("{}?w=600&h=900&resize=1", i.url))
-                });
+                let art_url = g.metadata.as_ref().and_then(|m| art_of(&m.key_images).tall);
                 Owned {
                     game: Game {
                         id: format!("epic:{}", g.app_name),
@@ -274,6 +333,47 @@ mod tests {
             }
         );
         assert!(parse_list(b"{}").is_none());
+    }
+
+    #[test]
+    fn metadata_gives_wide_and_tall_art() {
+        let json = br#"{"app_name": "Anemone", "app_title": "World of Goo",
+            "asset_infos": {}, "base_urls": [],
+            "metadata": {"id": "item", "namespace": "ns", "keyImages": [
+                {"type": "Thumbnail", "url": "https://cdn1.epicgames.com/thumb.jpg"},
+                {"type": "DieselGameBox", "url": "https://cdn1.epicgames.com/wide.jpg"},
+                {"type": "DieselGameBoxTall", "url": "https://cdn1.epicgames.com/tall.jpg"}]}}"#;
+        assert_eq!(
+            parse_metadata_art(json),
+            Art {
+                wide: Some("https://cdn1.epicgames.com/wide.jpg?w=1920&h=1080&resize=1".into()),
+                tall: Some("https://cdn1.epicgames.com/tall.jpg?w=600&h=900&resize=1".into()),
+            }
+        );
+        // Only a thumbnail, and a plain-HTTP wide image: no wide art.
+        let json = br#"{"metadata": {"keyImages": [
+                {"type": "Thumbnail", "url": "https://cdn1.epicgames.com/thumb.jpg"},
+                {"type": "DieselGameBox", "url": "http://cdn1.epicgames.com/wide.jpg"}]}}"#;
+        let art = parse_metadata_art(json);
+        assert_eq!(art.wide, None);
+        assert_eq!(
+            art.tall.as_deref(),
+            Some("https://cdn1.epicgames.com/thumb.jpg?w=600&h=900&resize=1")
+        );
+        assert_eq!(parse_metadata_art(b"{}"), Art::default());
+        assert_eq!(parse_metadata_art(b"no"), Art::default());
+
+        let dir = std::env::temp_dir().join(format!("canape-legendary-{}", std::process::id()));
+        std::fs::create_dir_all(dir.join("metadata")).unwrap();
+        std::fs::write(
+            dir.join("metadata/Anemone.json"),
+            br#"{"metadata": {"keyImages": [{"type": "DieselGameBox", "url": "https://e/w.jpg"}]}}"#,
+        )
+        .unwrap();
+        assert!(metadata_art(&dir, "Anemone").wide.is_some());
+        assert_eq!(metadata_art(&dir, "../Anemone"), Art::default());
+        assert_eq!(metadata_art(&dir, "Missing"), Art::default());
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
