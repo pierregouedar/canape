@@ -4,7 +4,7 @@ Objectif : afficher sur la fiche d'un jeu, dans la ligne des infos (« Joué hie
 
 Résumé : **HowLongToBeat n'est pas implémenté.** Le site n'a pas d'API publique ; l'accès dont dépendent les bibliothèques open source change tous les deux ou trois mois et demande d'imiter un navigateur. C'est trop fragile pour un appel WinHTTP « posé une fois ». Si la fonction est voulue, la voie raisonnable est **IGDB** (données « time to beat » officielles, API documentée), avec une clé que l'utilisateur crée lui-même, comme pour SteamGridDB.
 
-État : étude seule, rien dans le code. Recherche faite le 25 octobre 2026.
+État : étude faite le 25 octobre 2026. HowLongToBeat n'est pas implémenté ; **la voie IGDB est implémentée** (approuvée par le propriétaire du projet) : `canape-library/src/igdb.rs` et `canape-shell/src/timetobeat.rs`, décrits dans le guide développeur (« Durée de jeu ») et le guide utilisateur (« Durée de jeu (IGDB) »). Différences avec la recommandation ci-dessous : pas de réglage, la présence de `igdb_client_id` et `igdb_client_secret` dans `shell.json` suffit ; la recherche se fait à l'ouverture de la fiche (6 par minute au plus), pas après chaque scan ; le jeton est gardé dans `igdb-token.json`. Les noms des champs IGDB n'ont toujours pas été vérifiés sur la documentation officielle ni sur l'API réelle : à essayer sur l'Ally.
 
 ## HowLongToBeat aujourd'hui
 
@@ -49,7 +49,7 @@ Un échec silencieux tous les deux mois, sur une fonction que l'on ne peut pas r
    - transport : le trait `Http` gagne un POST (WinHTTP le fait déjà, il suffit d'envoyer un corps) ; l'analyse des réponses reste pure et testée sur des réponses enregistrées, comme `online.rs`.
 3. **Coût estimé** : un module de bibliothèque d'environ 250 lignes avec ses tests, le POST dans `http.rs`, une ligne de réglage, une chaîne traduite. Les noms exacts des champs IGDB sont à vérifier sur la documentation officielle au moment de l'écrire (elle n'était pas joignable depuis l'environnement de cette étude).
 
-Décision attendue du propriétaire du projet : faut-il la durée de jeu au prix d'une deuxième clé à créer (Twitch / IGDB), ou laisser la fiche sans ?
+Décision du propriétaire du projet : la durée de jeu par IGDB, avec une application Twitch créée par l'utilisateur. Implémentée (voir l'état en tête).
 
 ## Sources
 

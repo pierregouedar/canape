@@ -2,7 +2,8 @@
 //! GOG Galaxy and the Xbox app (and by Canapé itself, through Legendary and
 //! gogdl), plus the games the user listed in `games.json` ([`external`]),
 //! merged into one list for the shell. Games
-//! without art on disk can get a cover downloaded ([`online`]).
+//! without art on disk can get a cover downloaded ([`online`]), and any
+//! game its time to beat from IGDB ([`igdb`]).
 //!
 //! Every store is read from its own files (or the registry for GOG) with
 //! pure parsers that are tested on Linux; only finding the files and
@@ -23,6 +24,7 @@ pub mod gog;
 pub mod gogdl;
 #[cfg(windows)]
 pub mod http;
+pub mod igdb;
 pub mod install;
 mod launch;
 pub mod legendary;

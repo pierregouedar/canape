@@ -663,3 +663,9 @@ msgstr "Folder gier"
 
 msgid "{} GB free"
 msgstr "{} GB wolne"
+
+msgid "Main story ~{} h"
+msgstr "Fabuła ~{} godz."
+
+msgid "Main story ~{} min"
+msgstr "Fabuła ~{} min"

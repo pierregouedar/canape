@@ -663,3 +663,9 @@ msgstr "游戏文件夹"
 
 msgid "{} GB free"
 msgstr "可用 {} GB"
+
+msgid "Main story ~{} h"
+msgstr "主线约 {} 小时"
+
+msgid "Main story ~{} min"
+msgstr "主线约 {} 分钟"

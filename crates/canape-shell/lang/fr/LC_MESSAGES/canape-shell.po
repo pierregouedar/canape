@@ -663,3 +663,9 @@ msgstr "Dossier des jeux"
 
 msgid "{} GB free"
 msgstr "{} Go libres"
+
+msgid "Main story ~{} h"
+msgstr "Histoire ~{} h"
+
+msgid "Main story ~{} min"
+msgstr "Histoire ~{} min"

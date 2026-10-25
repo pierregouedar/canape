@@ -179,7 +179,7 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 
 <img src="images/en/game-page.png" alt="A game page, with its profile" width="720">
 
-**Game page**: the cover large, the store, the title, when it was last played, the time played (Steam, with the API key) and the space it takes on disk (Steam, Epic, GOG; for an Epic or GOG game to install, the space it will take and the free space of the games folder, see [Installing owned games](#installing-owned-games)); behind, the game's wide art that Steam keeps on disk, when there is some. **A** launches the game ("Launching…", the cover comes forward a little) or, if it is not installed, installs it, with the progress under the button. **B** goes back to the shelf, on the same game. Once launched, the game moves first on Recent. Under the button, **This game's profile** sums up its profile (target, power range, learned power, frame rate limit): Canapé learns which program the game is the first time it is launched from Canapé (the first full-screen program to come to the front within 2 minutes, Steam, launchers and their windows aside), and shows it once a profile exists for it.
+**Game page**: the cover large, the store, the title, when it was last played, the time played (Steam, with the API key), how long the main story takes ("Main story ~25 h", see [Time to beat](#games) below, with a Twitch application) and the space it takes on disk (Steam, Epic, GOG; for an Epic or GOG game to install, the space it will take and the free space of the games folder, see [Installing owned games](#installing-owned-games)); behind, the game's wide art that Steam keeps on disk, when there is some. **A** launches the game ("Launching…", the cover comes forward a little) or, if it is not installed, installs it, with the progress under the button. **B** goes back to the shelf, on the same game. Once launched, the game moves first on Recent. Under the button, **This game's profile** sums up its profile (target, power range, learned power, frame rate limit): Canapé learns which program the game is the first time it is launched from Canapé (the first full-screen program to come to the front within 2 minutes, Steam, launchers and their windows aside), and shows it once a profile exists for it.
 
 **Where the games come from**
 
@@ -208,6 +208,30 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 
 > [!NOTE]
 > Not tried on the Ally yet: the download goes through WinHTTP (built into Windows) and was only tested on Linux against recorded answers.
+
+**Time to beat (IGDB)**
+
+A game's page can show the average time to finish its main story, for example "Main story ~25 h", from [IGDB](https://www.igdb.com)'s "time to beat" data (Twitch's game database). This needs a free Twitch application of your own; without it nothing is asked and the page shows no time. There is no setting: the two values in `shell.json` are the switch.
+
+1. Sign in at [dev.twitch.tv/console](https://dev.twitch.tv/console) with a Twitch account (Twitch requires two-factor authentication to register an application).
+2. **Applications → Register Your Application**: any name (for example "Canape ROG Ally"), **OAuth Redirect URLs** `http://localhost`, category **Application Integration**, client type **Confidential**. Create it.
+3. Open the application (**Manage**): copy the **Client ID**, then click **New Secret** and copy the secret.
+4. Add them to `%LOCALAPPDATA%\Canape\shell.json`, next to the other keys:
+
+   ```json
+   "igdb_client_id": "…",
+   "igdb_client_secret": "…"
+   ```
+
+5. Restart Canapé (or wait ten minutes) and open a game's page: the time shows a second or two later if IGDB knows it.
+
+- Steam games are found by their Steam id, others by their exact title (the game itself rather than a DLC, a bundle or an edition). "Main story" is IGDB players' usual time, else the fastest one.
+- The id and the secret only go to Twitch (`id.twitch.tv`), which gives a token valid about two months; only the id and that token go to IGDB (`api.igdb.com`). Neither the secret nor the token is written to the logs.
+- Each game is asked for once, when its page opens, then kept 30 days in `%LOCALAPPDATA%\Canape\igdb.json` (7 days for a game IGDB does not know). At most 6 lookups a minute; after an error (network, refused key), none for 10 minutes, and one line in `shell.log`.
+- IGDB has fewer games and fewer submissions than some other sites: many games have no time.
+
+> [!NOTE]
+> Not tried on the Ally yet. The IGDB field names (`external_games`, `game_type`, `game_time_to_beats`…) come from the known documentation and were not checked against the real API: if no time shows, `shell.log` says why.
 
 #### Adding other games
 
@@ -609,11 +633,12 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%ProgramData%\Canape\service.log` | Service log: detected model, ADL state at startup, every command that changes the state and its response (`SetTdp { watts: 12 } -> Ok`), conflicting programs, errors. |
 | `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, back buttons, stick lighting, profiles, last bench. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Shell log: launches (with their arguments), chosen language, ADL state, service errors. |
-| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `refresh_hz`, `ally_buttons`. |
+| `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `igdb_client_id`, `igdb_client_secret`, `refresh_hz`, `ally_buttons`. |
 | `%LOCALAPPDATA%\Canape\games.json` | The games added by hand or from **Settings → Add a game** (see [Adding other games](#adding-other-games)). |
 | `%LOCALAPPDATA%\Canape\covers\` | Downloaded covers (`<store>_<id>.jpg` / `.png`, `.miss` markers). |
 | `%LOCALAPPDATA%\Canape\library.json` | The games of the last scan, shown at once on the next start. Can be deleted: the next scan writes it again. |
 | `%LOCALAPPDATA%\Canape\recent.json` | When each game was last launched from Canapé (for the "Recent" order). |
+| `%LOCALAPPDATA%\Canape\igdb.json` | Times to beat asked of IGDB, per game, with their date. `igdb-token.json` next to it: the current Twitch token. Both can be deleted. |
 | `%LOCALAPPDATA%\Canape\owned.json` | The owned games from the last request to Steam and Epic, shown at once in To install mode. Can be deleted: the next request writes it again. |
 | `%LOCALAPPDATA%\Canape\tools\` | `legendary.exe`, downloaded at the first Epic sign-in. Without it, Canapé no longer lists owned Epic games nor the ones Legendary installed; the next Epic sign-in downloads it again. |
 | `%USERPROFILE%\.config\legendary\` | Legendary's configuration, written by Legendary itself: Epic sign-in, games it installed (`installed.json`). |
