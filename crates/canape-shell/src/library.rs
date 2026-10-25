@@ -154,9 +154,13 @@ struct State {
     owned_path: PathBuf,
     /// Installs running: id → share done.
     installing: HashMap<String, f32>,
-    /// Steam installs whose dialog is open: Canapé comes back to the front
-    /// once the download starts, over Steam's window.
+    /// Steam installs not downloading yet: Steam may show a window meanwhile
+    /// (its install dialog, or its start), so Canapé comes back to the front
+    /// once the download starts.
     steam_dialogs: HashSet<String>,
+    /// The game in front, as the foreground poll last saw it: Steam is not
+    /// restarted for an install while one runs.
+    foreground: Option<String>,
     /// Canapé's helper programs (Legendary).
     tools_dir: PathBuf,
     /// Clears the install or store error after a while.
@@ -1024,13 +1028,20 @@ impl State {
             gogdl: gogdl.is_file().then(|| (gogdl, gog_dir())),
             games_dir: self.games_dir(),
             language: crate::i18n::current().to_owned(),
+            game_running: self.foreground.is_some(),
         }
     }
 
     /// Starts installing `game` on its own thread.
-    fn install(&mut self, game: &Game, install: Install) {
+    fn install(&mut self, game: &Game, mut install: Install) {
         if self.installing.contains_key(&game.id) {
             return;
+        }
+        // Owned lists cached before Steam installs carried a name.
+        if let Install::Steam { name, .. } = &mut install
+            && name.is_empty()
+        {
+            name.clone_from(&game.title);
         }
         crate::log(&format!("library: installing {} ({install:?})", game.id));
         self.installing.insert(game.id.clone(), 0.0);
@@ -1086,6 +1097,9 @@ impl State {
                 // The new game shows up in the installed list.
                 self.just_installed = Some(id.to_owned());
                 self.scan();
+            }
+            Event::Note(message) => {
+                crate::log(&format!("library: installing {id}: {message}"));
             }
             Event::Failed(message) => {
                 self.steam_dialogs.remove(id);
@@ -1765,8 +1779,14 @@ fn spawn_decoder(wanted: Arc<Mutex<HashSet<String>>>) -> Sender<Job> {
 /// The game in front changed (see foreground.rs).
 #[cfg_attr(not(windows), allow(dead_code))]
 pub fn foreground_seen(exe: Option<String>) {
-    let Some(exe) = exe else { return };
-    let _ = slint::invoke_from_event_loop(move || with_state(|state| state.learn_exe(&exe)));
+    let _ = slint::invoke_from_event_loop(move || {
+        with_state(|state| {
+            if let Some(exe) = &exe {
+                state.learn_exe(exe);
+            }
+            state.foreground = exe;
+        })
+    });
 }
 
 /// What the list of games to add needs: where `games.json` is, every game
@@ -1855,6 +1875,7 @@ pub fn start(ui: &AppWindow) {
         owned_path,
         installing: HashMap::new(),
         steam_dialogs: HashSet::new(),
+        foreground: None,
         tools_dir,
         error_timer: Timer::default(),
         just_installed: None,
