@@ -585,6 +585,7 @@ impl State {
                 .into(),
         });
         library.set_detail_art(Image::default());
+        library.set_detail_part(0);
         library.set_detail(true);
         self.detail = Some(game.id.clone());
         if let Some(install) = install

@@ -681,3 +681,9 @@ msgstr "~{} Std."
 
 msgid "~{} min"
 msgstr "~{} Min."
+
+msgid "More"
+msgstr "Mehr"
+
+msgid "Top"
+msgstr "Nach oben"

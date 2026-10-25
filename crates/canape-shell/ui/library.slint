@@ -141,6 +141,10 @@ export global Library {
     // The game page of the selected game is open, and what it shows.
     in-out property <bool> detail;
     in property <DetailView> detail-view;
+    // The part of the game page in view: 0 the top, 1 below the fold.
+    in-out property <int> detail-part;
+    // The game page has a part below the fold.
+    out property <bool> detail-more: root.detail-view.beat-rushed > 0 || root.detail-view.beat-minutes > 0 || root.detail-view.beat-complete > 0;
     // Wide art behind the game page (Steam's), drawn at the window's width
     // and faded into the background; empty when there is none.
     in property <image> detail-art;
@@ -344,236 +348,322 @@ component ShelfTitle inherits HorizontalLayout {
 
 // The game page, over the shelves: the cover large, what is known about the
 // game, and the button that plays or installs it. Its lines slide in like
-// the title on the shelf.
+// the title on the shelf. Below the fold, which Down scrolls to, how long
+// the game takes.
 component GamePage inherits Rectangle {
     in property <GameView> game;
     in property <DetailView> view;
     in property <bool> pressed;
+    // The part below the fold is in view.
+    in property <bool> lower;
     callback play();
+    // Asks for the part below the fold (true) or the top.
+    callback scroll-to(bool);
     // The game does not fit in the games folder.
     property <bool> short: !root.game.installed && root.view.free-tenths >= 0 && root.view.size-tenths > root.view.free-tenths;
-
-    cover := Rectangle {
-        x: 0;
-        y: 96px;
-        width: 240px;
-        height: 360px;
-        border-radius: 12px;
-        clip: true;
-        background: root.game.art ? Theme.surface-high : Theme.accent.mix(Theme.surface, 0.3);
-        drop-shadow-blur: 40px;
-        drop-shadow-color: #00000099;
-        drop-shadow-offset-y: 20px;
-        // Launching: the cover comes forward a little.
-        property <length> lift: Library.launching == root.game.id ? 8px : 0;
-        animate lift { duration: 500ms; easing: cubic-bezier(0.16, 1, 0.3, 1); }
-
-        Image {
-            y: -cover.lift;
-            width: 100%;
-            height: 100%;
-            source: root.view.cover.width > 0 ? root.view.cover : root.game.cover;
-            image-fit: fill;
-        }
-
-        if !root.game.art: Text {
-            x: 16px;
-            y: parent.height - self.height - 16px;
-            width: parent.width - 32px;
-            text: root.game.title;
-            color: Theme.text;
-            font-size: 20px;
-            font-weight: 700;
-            wrap: word-wrap;
-        }
-    }
-
-    VerticalLayout {
-        x: 280px - 14px;
-        y: 96px;
-        width: parent.width - 280px;
-        height: 360px;
-        spacing: 14px;
-        alignment: end;
-
-        store := RevealLine {
-            order: 0;
-            spacing: 8px;
-            alignment: start;
-            height: 16px;
-            VerticalLayout {
-                alignment: center;
-                StoreLogo {
-                    width: 15px;
-                    height: 15px;
-                    store: root.game.source;
-                    ink: Theme.dim;
-                    opacity: store.shown;
-                }
-            }
-            Text {
-                text: Library.store-name(root.game.source).to-uppercase();
-                color: Theme.dim;
-                font-size: 13px;
-                font-weight: 600;
-                letter-spacing: 1px;
-                vertical-alignment: center;
-                opacity: store.shown;
-            }
-        }
-
-        title := RevealLine {
-            order: 1;
-            Text {
-                text: root.game.title;
-                color: Theme.text;
-                font-size: 52px;
-                font-weight: 700;
-                letter-spacing: -1px;
-                wrap: word-wrap;
-                max-height: 130px;
-                overflow: elide;
-                opacity: title.shown;
-            }
-        }
-
-        // When it was played, for how long, and its size: only what is
-        // known.
-        facts := RevealLine {
-            order: 2;
-            Text {
-                text: (root.game.installed ? Library.played-text(root.game.played) : @tr("Not installed"))
-                    + (root.view.minutes >= 60 ? " · " + @tr("{} h played", Math.round(root.view.minutes / 60)) : root.view.minutes > 0 ? " · " + @tr("{} min played", root.view.minutes) : "")
-                    + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "")
-                    + (!root.game.installed && root.view.free-tenths >= 0 ? " · " + @tr("{} GB free in {}", App.tenths(root.view.free-tenths), root.view.folder) : "");
-                color: Theme.text.mix(Theme.dim, 0.6);
-                font-size: 16px;
-                overflow: elide;
-                opacity: facts.shown;
-            }
-        }
-
-        action := RevealLine {
-            order: 3;
-            padding-top: 10px;
-            spacing: 16px;
-            alignment: start;
-            PrimaryButton {
-                opacity: action.shown;
-                pressed: root.pressed;
-                label: Library.launching == root.game.id ? @tr("Launching…") : root.game.progress >= 0 ? @tr("Installing…") : root.game.installed ? @tr("Play") : @tr("Install");
-                clicked => {
-                    root.play();
-                }
-            }
-            VerticalLayout {
-                alignment: center;
-                Text {
-                    opacity: action.shown;
-                    text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.short && root.game.progress < 0 ? @tr("Not enough space: free some up, or pick another games folder in Settings.") : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
-                    color: Library.install-error != "" || Library.failed != "" || (root.short && root.game.progress < 0) ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
-                    font-size: 14px;
-                    overflow: elide;
-                }
-            }
-        }
-    }
-
-    // Under the cover's column: how long the game takes (IGDB), then the
-    // game's profile, each when known.
     property <bool> beat-known: root.view.beat-rushed > 0 || root.view.beat-minutes > 0 || root.view.beat-complete > 0;
-    property <length> panel-y: 96px + 360px + 32px;
+    // Where the part below the fold starts: just past the bottom of the
+    // page, under the hints.
+    property <length> fold: root.height;
+    // The fade at the top of the part below the fold.
+    property <length> fade: 36px;
 
-    if root.beat-known: Rectangle {
-        x: 280px;
-        y: root.panel-y;
-        width: 420px;
-        height: 88px;
-        border-radius: 12px;
-        background: Theme.surface.with-alpha(0.85);
+    // A wheel or a swipe scrolls too.
+    TouchArea {
+        scroll-event(event) => {
+            if event.delta-y < 0 {
+                root.scroll-to(true);
+                return accept;
+            }
+            if event.delta-y > 0 {
+                root.scroll-to(false);
+                return accept;
+            }
+            reject
+        }
+    }
 
-        VerticalLayout {
-            padding-left: 16px;
-            padding-right: 16px;
-            padding-top: 12px;
-            padding-bottom: 12px;
-            spacing: 6px;
-            Text {
-                text: @tr("Time to beat");
-                color: Theme.dim;
-                font-size: 13px;
+    // Clips the scrolled page under the header; wider than the page, so
+    // that the cover's shadow still shows at its left.
+    Rectangle {
+        x: -48px;
+        width: root.width + 96px;
+        height: root.height;
+        clip: true;
+
+        Rectangle {
+            x: 48px;
+            y: root.lower ? -root.fold : 0;
+            width: root.width;
+            height: root.fold + root.height;
+            animate y { duration: 260ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+            cover := Rectangle {
+                x: 0;
+                y: 96px;
+                width: 240px;
+                height: 360px;
+                border-radius: 12px;
+                clip: true;
+                background: root.game.art ? Theme.surface-high : Theme.accent.mix(Theme.surface, 0.3);
+                drop-shadow-blur: 40px;
+                drop-shadow-color: #00000099;
+                drop-shadow-offset-y: 20px;
+                // Launching: the cover comes forward a little.
+                property <length> lift: Library.launching == root.game.id ? 8px : 0;
+                animate lift { duration: 500ms; easing: cubic-bezier(0.16, 1, 0.3, 1); }
+
+                Image {
+                    y: -cover.lift;
+                    width: 100%;
+                    height: 100%;
+                    source: root.view.cover.width > 0 ? root.view.cover : root.game.cover;
+                    image-fit: fill;
+                }
+
+                if !root.game.art: Text {
+                    x: 16px;
+                    y: parent.height - self.height - 16px;
+                    width: parent.width - 32px;
+                    text: root.game.title;
+                    color: Theme.text;
+                    font-size: 20px;
+                    font-weight: 700;
+                    wrap: word-wrap;
+                }
             }
 
-            HorizontalLayout {
-                spacing: 16px;
-                for time[i] in [root.view.beat-rushed, root.view.beat-minutes, root.view.beat-complete]: VerticalLayout {
-                    horizontal-stretch: 1;
-                    preferred-width: 10px;
-                    spacing: 2px;
-                    Text {
-                        text: time >= 60 ? @tr("~{} h", Math.round(time / 60)) : time > 0 ? @tr("~{} min", time) : "—";
-                        color: time > 0 ? Theme.text : Theme.dim;
-                        font-size: 22px;
-                        font-weight: 600;
+            VerticalLayout {
+                x: 280px - 14px;
+                y: 96px;
+                width: parent.width - 280px;
+                height: 360px;
+                spacing: 14px;
+                alignment: end;
+
+                store := RevealLine {
+                    order: 0;
+                    spacing: 8px;
+                    alignment: start;
+                    height: 16px;
+                    VerticalLayout {
+                        alignment: center;
+                        StoreLogo {
+                            width: 15px;
+                            height: 15px;
+                            store: root.game.source;
+                            ink: Theme.dim;
+                            opacity: store.shown;
+                        }
                     }
                     Text {
-                        text: i == 0 ? @tr("Main story") : i == 1 ? @tr("Main + extras") : @tr("Completionist");
+                        text: Library.store-name(root.game.source).to-uppercase();
                         color: Theme.dim;
-                        font-size: 12px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        letter-spacing: 1px;
+                        vertical-alignment: center;
+                        opacity: store.shown;
+                    }
+                }
+
+                title := RevealLine {
+                    order: 1;
+                    Text {
+                        text: root.game.title;
+                        color: Theme.text;
+                        font-size: 52px;
+                        font-weight: 700;
+                        letter-spacing: -1px;
+                        wrap: word-wrap;
+                        max-height: 130px;
+                        overflow: elide;
+                        opacity: title.shown;
+                    }
+                }
+
+                // When it was played, for how long, and its size: only what
+                // is known.
+                facts := RevealLine {
+                    order: 2;
+                    Text {
+                        text: (root.game.installed ? Library.played-text(root.game.played) : @tr("Not installed"))
+                            + (root.view.minutes >= 60 ? " · " + @tr("{} h played", Math.round(root.view.minutes / 60)) : root.view.minutes > 0 ? " · " + @tr("{} min played", root.view.minutes) : "")
+                            + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "")
+                            + (!root.game.installed && root.view.free-tenths >= 0 ? " · " + @tr("{} GB free in {}", App.tenths(root.view.free-tenths), root.view.folder) : "");
+                        color: Theme.text.mix(Theme.dim, 0.6);
+                        font-size: 16px;
+                        overflow: elide;
+                        opacity: facts.shown;
+                    }
+                }
+
+                action := RevealLine {
+                    order: 3;
+                    padding-top: 10px;
+                    spacing: 16px;
+                    alignment: start;
+                    PrimaryButton {
+                        opacity: action.shown;
+                        pressed: root.pressed;
+                        label: Library.launching == root.game.id ? @tr("Launching…") : root.game.progress >= 0 ? @tr("Installing…") : root.game.installed ? @tr("Play") : @tr("Install");
+                        clicked => {
+                            root.play();
+                        }
+                    }
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            opacity: action.shown;
+                            text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.short && root.game.progress < 0 ? @tr("Not enough space: free some up, or pick another games folder in Settings.") : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
+                            color: Library.install-error != "" || Library.failed != "" || (root.short && root.game.progress < 0) ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
+                            font-size: 14px;
+                            overflow: elide;
+                        }
+                    }
+                }
+            }
+
+            // The game's profile, under the cover's column, once its
+            // executable is known and has one: every profile is laid at the
+            // same place, only the matching one shows.
+            for profile in App.profiles: Rectangle {
+                x: 280px;
+                y: 96px + 360px + 32px;
+                width: min(420px, root.width - self.x);
+                height: 88px;
+                border-radius: 12px;
+                background: Theme.surface.with-alpha(0.85);
+                visible: root.view.exe != "" && profile.exe.to-lowercase() == root.view.exe.to-lowercase();
+
+                VerticalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    padding-top: 12px;
+                    alignment: start;
+                    spacing: 6px;
+                    Text {
+                        text: @tr("This game's profile");
+                        color: Theme.dim;
+                        font-size: 13px;
+                    }
+
+                    Text {
+                        text: (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "") + (profile.fps-limit > 0 ? " · " + @tr("limit {}", App.fps-value(profile.fps-limit)) : "");
+                        color: Theme.text;
+                        font-size: 16px;
+                        font-weight: 600;
                         overflow: elide;
                     }
                 }
             }
-        }
-    }
 
-    // The game's profile, once its executable is known and has one: every
-    // profile is laid at the same place, only the matching one shows.
-    for profile in App.profiles: Rectangle {
-        x: root.beat-known ? 280px + 420px + 16px : 280px;
-        y: root.panel-y;
-        width: min(420px, root.width - self.x);
-        height: 88px;
-        border-radius: 12px;
-        background: Theme.surface.with-alpha(0.85);
-        visible: root.view.exe != "" && profile.exe.to-lowercase() == root.view.exe.to-lowercase();
-
-        VerticalLayout {
-            padding-left: 16px;
-            padding-right: 16px;
-            padding-top: 12px;
-            alignment: start;
-            spacing: 6px;
-            Text {
-                text: @tr("This game's profile");
-                color: Theme.dim;
-                font-size: 13px;
+            // Install progress under the button.
+            if root.game.progress >= 0: Rectangle {
+                x: 280px;
+                y: 96px + 360px + 24px;
+                width: 360px;
+                height: 4px;
+                border-radius: 2px;
+                background: Theme.surface-focus;
+                Rectangle {
+                    x: 0;
+                    width: parent.width * root.game.progress;
+                    border-radius: 2px;
+                    background: Theme.accent;
+                    animate width { duration: 400ms; }
+                }
             }
 
-            Text {
-                text: (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "") + (profile.fps-limit > 0 ? " · " + @tr("limit {}", App.fps-value(profile.fps-limit)) : "");
-                color: Theme.text;
-                font-size: 16px;
-                font-weight: 600;
-                overflow: elide;
-            }
-        }
-    }
+            // Below the fold, on an opaque background (cheaper to draw while
+            // it scrolls in) under a short fade: the time to beat.
+            if root.beat-known: Rectangle {
+                x: -48px;
+                y: root.fold;
+                width: root.width + 96px;
+                height: root.height;
 
-    // Install progress under the button.
-    if root.game.progress >= 0: Rectangle {
-        x: 280px;
-        y: 96px + 360px + 24px;
-        width: 360px;
-        height: 4px;
-        border-radius: 2px;
-        background: Theme.surface-focus;
-        Rectangle {
-            x: 0;
-            width: parent.width * root.game.progress;
-            border-radius: 2px;
-            background: Theme.accent;
-            animate width { duration: 400ms; }
+                Rectangle {
+                    y: 0;
+                    height: root.fade;
+                    background: @linear-gradient(180deg, Theme.background.with-alpha(0) 0%, Theme.background 100%);
+                }
+
+                Rectangle {
+                    y: root.fade;
+                    height: parent.height - root.fade;
+                    background: Theme.background;
+                }
+
+                // Main story, main + extras, completionist: a coloured
+                // strip each, the time large under it.
+                Rectangle {
+                    x: 48px;
+                    y: root.fade;
+                    width: root.width;
+                    height: 36px + 112px;
+
+                    Text {
+                        x: 0;
+                        y: 0;
+                        height: 24px;
+                        text: @tr("Time to beat");
+                        color: Theme.text;
+                        font-size: 18px;
+                        font-weight: 600;
+                        vertical-alignment: center;
+                    }
+
+                    Text {
+                        x: parent.width - self.width;
+                        y: 0;
+                        height: 24px;
+                        vertical-alignment: center;
+                        text: "IGDB";
+                        color: Theme.faint;
+                        font-size: 12px;
+                    }
+
+                    for time[i] in [root.view.beat-rushed, root.view.beat-minutes, root.view.beat-complete]: Rectangle {
+                        property <length> pitch: (parent.width + 16px) / 3;
+                        x: i * self.pitch;
+                        y: 36px;
+                        width: self.pitch - 16px;
+                        height: 112px;
+                        border-radius: 12px;
+                        clip: true;
+                        background: Theme.surface;
+
+                        Rectangle {
+                            y: 0;
+                            height: 36px;
+                            background: i == 0 ? #2c5d9e : i == 1 ? #6a3f9e : #9e3f5c;
+                            Text {
+                                x: 16px;
+                                width: parent.width - 32px;
+                                text: i == 0 ? @tr("Main story") : i == 1 ? @tr("Main + extras") : @tr("Completionist");
+                                color: #ffffff;
+                                font-size: 15px;
+                                font-weight: 600;
+                                vertical-alignment: center;
+                                overflow: elide;
+                            }
+                        }
+
+                        Text {
+                            x: 16px;
+                            y: 36px;
+                            width: parent.width - 32px;
+                            height: parent.height - 36px;
+                            text: time >= 60 ? @tr("~{} h", Math.round(time / 60)) : time > 0 ? @tr("~{} min", time) : "—";
+                            color: time > 0 ? Theme.text : Theme.dim;
+                            font-size: 36px;
+                            font-weight: 700;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -653,8 +743,17 @@ export component LibraryPage inherits Rectangle {
                     Library.close-detail();
                     return accept;
                 }
-                if event.text == Key.Return || event.text == " " {
-                    root.act();
+                if Library.detail-part == 0 {
+                    if event.text == Key.DownArrow && Library.detail-more {
+                        Library.detail-part = 1;
+                    }
+                    if event.text == Key.Return || event.text == " " {
+                        root.act();
+                    }
+                    return accept;
+                }
+                if event.text == Key.UpArrow {
+                    Library.detail-part = 0;
                 }
                 return accept;
             }
@@ -708,8 +807,13 @@ export component LibraryPage inherits Rectangle {
         game: root.current;
         view: Library.detail-view;
         pressed: root.pressed;
+        lower: Library.detail-part == 1;
         play => {
             root.act();
+            fs.focus();
+        }
+        scroll-to(down) => {
+            Library.detail-part = down && Library.detail-more ? 1 : 0;
             fs.focus();
         }
     }

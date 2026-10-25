@@ -681,3 +681,9 @@ msgstr "约 {} 小时"
 
 msgid "~{} min"
 msgstr "约 {} 分钟"
+
+msgid "More"
+msgstr "更多"
+
+msgid "Top"
+msgstr "顶部"

@@ -681,3 +681,9 @@ msgstr "~{} sa"
 
 msgid "~{} min"
 msgstr "~{} dk"
+
+msgid "More"
+msgstr "Daha fazla"
+
+msgid "Top"
+msgstr "Yukarı"

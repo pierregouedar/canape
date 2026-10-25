@@ -681,3 +681,9 @@ msgstr "~{} godz."
 
 msgid "~{} min"
 msgstr "~{} min"
+
+msgid "More"
+msgstr "Więcej"
+
+msgid "Top"
+msgstr "Na górę"

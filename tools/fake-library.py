@@ -14,6 +14,8 @@ library's "To install" mode; A there runs a pretend one-minute install.
 Two games no store knows are in `<out>/library/games.json` (one with its
 own cover, one without), and `<out>/library/shortcuts` holds shortcuts
 for Settings -> Add a game (one is an uninstaller, which is left out).
+Three Steam games have a time to beat (`igdb-fixture.json`), shown below
+the fold of their game page.
 """
 
 import hashlib
@@ -257,6 +259,18 @@ def main(out):
         # The first game's executable, as learnt at its launch: its profile
         # shows on the game page.
         json.dump({"launched": launched, "exes": {"steam:900001": "ashentide.exe"}}, f, indent=1)
+    # Time to beat, as the shell caches IGDB's answers: three times for
+    # the first game, only some for the next two.
+    hour = 3600
+    beats = {
+        "steam:900001": {"hastily": 11 * hour, "normally": 16 * hour, "completely": 38 * hour},
+        "steam:900002": {"hastily": 5 * hour, "normally": 7 * hour},
+        "steam:900005": {"normally": 45 * 60},
+    }
+    with open(os.path.join(out, "appdata", "Canape", "igdb-fixture.json"), "w") as f:
+        json.dump({"version": 1, "games": {
+            game_id: {"at": now, "times": dict(times, count=12)}
+            for game_id, times in beats.items()}}, f, indent=1)
     print(f"LOCALAPPDATA={out}/appdata CANAPE_LIBRARY_FIXTURE={library}")
 
 

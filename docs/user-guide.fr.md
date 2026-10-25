@@ -181,6 +181,11 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 
 **Fiche du jeu** : la jaquette en grand, la boutique, le titre, quand il a été joué, le temps de jeu (Steam, avec la clé API), et la place qu'il prend sur le disque (Steam, Epic, GOG ; pour un jeu Epic ou GOG à installer, la place qu'il prendra et la place libre du dossier des jeux, voir [Installer des jeux possédés](#installer-des-jeux-possédés)) ; derrière, la grande image du jeu que Steam garde sur le disque, s'il y en a une. **A** lance le jeu (« Lancement… », la jaquette avance un peu) ou, s'il n'est pas installé, l'installe, avec la progression sous le bouton. **B** revient à l'étagère, sur le même jeu. Une fois lancé, le jeu passe en tête de Récents. Sous le bouton, **Profil de ce jeu** résume son profil (objectif, plage de puissance, puissance apprise, limite de FPS) : Canapé apprend quel programme est le jeu la première fois qu'il est lancé depuis Canapé (le premier programme plein écran qui passe devant dans les 2 minutes, hors Steam, lanceurs et leurs fenêtres), et l'affiche dès qu'un profil existe pour lui.
 
+Sous la fiche, une seconde partie : depuis le bouton, **bas** fait défiler la page jusqu'à elle (l'indication **Plus** apparaît quand elle a quelque chose à montrer), **haut** remonte, **B** revient toujours à l'étagère. Elle montre la [durée de jeu](#durée-de-jeu-igdb) quand elle est connue.
+
+> [!NOTE]
+> Pas encore essayé sur l'Ally : le défilement de la fiche n'a été vu que sous Linux, avec la bibliothèque de test.
+
 **D'où viennent les jeux**
 
 | Boutique | Ce que lit Canapé | Lancement | Jaquettes |
@@ -211,7 +216,7 @@ Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutili
 
 **Durée de jeu (IGDB)**
 
-Sous la jaquette, la fiche d'un jeu peut afficher un bandeau **Durée de jeu** avec trois durées moyennes : **Histoire** (en allant droit au but), **Histoire + extras** et **Complétionniste** (tout finir), par exemple « ~12 h · ~18 h · ~35 h », d'après les données « time to beat » d'[IGDB](https://www.igdb.com) (la base de jeux de Twitch). Il faut pour cela une application Twitch à vous, gratuite ; sans elle, rien n'est demandé et la fiche n'affiche pas de durée. Il n'y a pas de réglage : la présence des deux valeurs dans `shell.json` suffit.
+Sous la fiche (**bas** depuis le bouton), un bandeau **Durée de jeu** pleine largeur peut montrer trois durées moyennes, chacune dans son bloc sous un bandeau de couleur : **Histoire** (en allant droit au but), **Histoire + extras** et **Complétionniste** (tout finir), par exemple « ~12 h », « ~18 h », « ~35 h » (« — » pour une durée inconnue ; pas de bandeau quand aucune ne l'est), d'après les données « time to beat » d'[IGDB](https://www.igdb.com) (la base de jeux de Twitch). Il faut pour cela une application Twitch à vous, gratuite ; sans elle, rien n'est demandé et la fiche n'affiche pas de durée. Il n'y a pas de réglage : la présence des deux valeurs dans `shell.json` suffit.
 
 1. Connectez-vous sur [dev.twitch.tv/console](https://dev.twitch.tv/console) avec un compte Twitch (Twitch exige la double authentification pour créer une application).
 2. **Applications → Register Your Application** : un nom au choix (par exemple « Canape ROG Ally »), **OAuth Redirect URLs** `http://localhost`, catégorie **Application Integration**, type de client **Confidential**. Enregistrez.

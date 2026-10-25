@@ -681,3 +681,9 @@ msgstr "~{} h"
 
 msgid "~{} min"
 msgstr "~{} min"
+
+msgid "More"
+msgstr "Plus"
+
+msgid "Top"
+msgstr "Haut"

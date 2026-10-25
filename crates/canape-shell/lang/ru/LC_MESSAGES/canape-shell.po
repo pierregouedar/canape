@@ -681,3 +681,9 @@ msgstr "~{} ч"
 
 msgid "~{} min"
 msgstr "~{} мин"
+
+msgid "More"
+msgstr "Ещё"
+
+msgid "Top"
+msgstr "Наверх"

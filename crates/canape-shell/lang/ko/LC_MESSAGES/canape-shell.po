@@ -681,3 +681,9 @@ msgstr "약 {}시간"
 
 msgid "~{} min"
 msgstr "약 {}분"
+
+msgid "More"
+msgstr "더 보기"
+
+msgid "Top"
+msgstr "위로"

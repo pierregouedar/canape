@@ -681,3 +681,9 @@ msgstr "~{} u"
 
 msgid "~{} min"
 msgstr "~{} min"
+
+msgid "More"
+msgstr "Meer"
+
+msgid "Top"
+msgstr "Boven"

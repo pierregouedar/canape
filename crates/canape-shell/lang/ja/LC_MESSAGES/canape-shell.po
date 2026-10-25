@@ -681,3 +681,9 @@ msgstr "約 {} 時間"
 
 msgid "~{} min"
 msgstr "約 {} 分"
+
+msgid "More"
+msgstr "もっと見る"
+
+msgid "Top"
+msgstr "上へ"

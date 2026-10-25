@@ -181,6 +181,11 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 
 **Game page**: the cover large, the store, the title, when it was last played, the time played (Steam, with the API key), and the space it takes on disk (Steam, Epic, GOG; for an Epic or GOG game to install, the space it will take and the free space of the games folder, see [Installing owned games](#installing-owned-games)); behind, the game's wide art that Steam keeps on disk, when there is some. **A** launches the game ("Launching…", the cover comes forward a little) or, if it is not installed, installs it, with the progress under the button. **B** goes back to the shelf, on the same game. Once launched, the game moves first on Recent. Under the button, **This game's profile** sums up its profile (target, power range, learned power, frame rate limit): Canapé learns which program the game is the first time it is launched from Canapé (the first full-screen program to come to the front within 2 minutes, Steam, launchers and their windows aside), and shows it once a profile exists for it.
 
+Below the page, a second part: from the button, **down** scrolls the page to it (the **More** hint shows when it has something to show), **up** scrolls back, **B** always goes back to the shelf. It shows the [time to beat](#time-to-beat-igdb) when known.
+
+> [!NOTE]
+> Not tried on the Ally yet: the page scrolling was only seen on Linux, with the fake library.
+
 **Where the games come from**
 
 | Store | What Canapé reads | Launch | Covers |
@@ -211,7 +216,7 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 
 **Time to beat (IGDB)**
 
-Under the cover, a game's page can show a **Time to beat** panel with three average times: **Main story** (going straight through), **Main + extras** and **Completionist** (finishing everything), for example "~12 h · ~18 h · ~35 h", from [IGDB](https://www.igdb.com)'s "time to beat" data (Twitch's game database). This needs a free Twitch application of your own; without it nothing is asked and the page shows no time. There is no setting: the two values in `shell.json` are the switch.
+Below the game page (**down** from the button), a full-width **Time to beat** band can show three average times, each in its block under a coloured strip: **Main story** (going straight through), **Main + extras** and **Completionist** (finishing everything), for example "~12 h", "~18 h", "~35 h" ("—" for an unknown one; no band when none is known), from [IGDB](https://www.igdb.com)'s "time to beat" data (Twitch's game database). This needs a free Twitch application of your own; without it nothing is asked and the page shows no time. There is no setting: the two values in `shell.json` are the switch.
 
 1. Sign in at [dev.twitch.tv/console](https://dev.twitch.tv/console) with a Twitch account (Twitch requires two-factor authentication to register an application).
 2. **Applications → Register Your Application**: any name (for example "Canape ROG Ally"), **OAuth Redirect URLs** `http://localhost`, category **Application Integration**, client type **Confidential**. Create it.
