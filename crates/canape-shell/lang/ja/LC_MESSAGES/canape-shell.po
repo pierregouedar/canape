@@ -327,9 +327,6 @@ msgstr "目標 {}"
 msgid "W"
 msgstr "W"
 
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "選択"
 
@@ -344,9 +341,6 @@ msgstr "ゲームプロファイル"
 
 msgid "Games"
 msgstr "ゲーム"
-
-msgid "General"
-msgstr "一般"
 
 msgid "General settings"
 msgstr "全体設定"
@@ -761,3 +755,39 @@ msgstr "パドルで切替"
 
 msgid "Screen and battery"
 msgstr "画面とバッテリー"
+
+msgid "API key"
+msgstr "API キー"
+
+msgid "No API key"
+msgstr "API キーなし"
+
+msgid "not signed in"
+msgstr "未サインイン"
+
+msgid "Appearance"
+msgstr "外観"
+
+msgid "The Ally's buttons"
+msgstr "Ally のボタン"
+
+msgid "Library"
+msgstr "ライブラリ"
+
+msgid "Missing covers"
+msgstr "足りないカバー"
+
+msgid "Accounts"
+msgstr "アカウント"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Steam Web API キー（steamcommunity.com/dev/apikey）を shell.json の steam_api_key に追加すると、Canapé が所有ゲームを一覧にし、ライブラリからインストールできます。"
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Twitch アプリのクライアント ID とシークレットを shell.json の igdb_client_id と igdb_client_secret に追加すると、ゲームページにクリア時間が表示されます。"
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "サインインすると、Canapé はランチャーなしで Epic のゲームをインストールします。"
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "サインインすると、Canapé は GOG Galaxy なしで GOG のゲームをインストールします。"

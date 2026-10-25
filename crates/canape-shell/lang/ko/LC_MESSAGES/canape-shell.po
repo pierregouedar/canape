@@ -327,9 +327,6 @@ msgstr "목표 {}"
 msgid "W"
 msgstr "W"
 
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "선택"
 
@@ -344,9 +341,6 @@ msgstr "게임 프로필"
 
 msgid "Games"
 msgstr "게임"
-
-msgid "General"
-msgstr "일반"
 
 msgid "General settings"
 msgstr "전체 설정"
@@ -761,3 +755,39 @@ msgstr "패들로 전환"
 
 msgid "Screen and battery"
 msgstr "화면 및 배터리"
+
+msgid "API key"
+msgstr "API 키"
+
+msgid "No API key"
+msgstr "API 키 없음"
+
+msgid "not signed in"
+msgstr "로그인 안 됨"
+
+msgid "Appearance"
+msgstr "모양"
+
+msgid "The Ally's buttons"
+msgstr "Ally 버튼"
+
+msgid "Library"
+msgstr "라이브러리"
+
+msgid "Missing covers"
+msgstr "없는 표지"
+
+msgid "Accounts"
+msgstr "계정"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Steam Web API 키(steamcommunity.com/dev/apikey)를 shell.json의 steam_api_key에 추가하면 Canapé가 보유한 게임을 보여 주고 라이브러리에서 설치할 수 있습니다."
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Twitch 애플리케이션의 클라이언트 ID와 시크릿을 shell.json의 igdb_client_id와 igdb_client_secret에 추가하면 게임 페이지에 클리어 시간이 표시됩니다."
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "로그인하면 Canapé가 런처 없이 Epic 게임을 설치합니다."
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "로그인하면 Canapé가 GOG Galaxy 없이 GOG 게임을 설치합니다."

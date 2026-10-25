@@ -327,9 +327,6 @@ msgstr "цель {}"
 msgid "W"
 msgstr "Вт"
 
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "Выбрать"
 
@@ -344,9 +341,6 @@ msgstr "Профили игр"
 
 msgid "Games"
 msgstr "Игры"
-
-msgid "General"
-msgstr "Общие"
 
 msgid "General settings"
 msgstr "Общие настройки"
@@ -761,3 +755,39 @@ msgstr "Кнопка переключает"
 
 msgid "Screen and battery"
 msgstr "Экран и батарея"
+
+msgid "API key"
+msgstr "Ключ API"
+
+msgid "No API key"
+msgstr "Нет ключа API"
+
+msgid "not signed in"
+msgstr "вход не выполнен"
+
+msgid "Appearance"
+msgstr "Оформление"
+
+msgid "The Ally's buttons"
+msgstr "Кнопки Ally"
+
+msgid "Library"
+msgstr "Библиотека"
+
+msgid "Missing covers"
+msgstr "Нет обложек"
+
+msgid "Accounts"
+msgstr "Учётные записи"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Добавьте ключ Steam Web API (steamcommunity.com/dev/apikey) как steam_api_key в shell.json: Canapé покажет ваши игры, чтобы устанавливать их из библиотеки."
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Добавьте id и секрет клиента приложения Twitch как igdb_client_id и igdb_client_secret в shell.json: страницы игр покажут, сколько времени нужно на прохождение."
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "После входа Canapé устанавливает игры Epic без их лаунчера."
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "После входа Canapé устанавливает игры GOG без GOG Galaxy."

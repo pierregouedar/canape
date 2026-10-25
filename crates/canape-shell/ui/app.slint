@@ -108,7 +108,8 @@ export component AppWindow inherits Window {
     property <int> performance-card: 0;
     property <int> hardware-shelf: 0;
     property <int> hardware-card: 0;
-    property <int> settings-row: 0;
+    property <int> settings-shelf: 0;
+    property <int> settings-card: 0;
     // The section the game profiles were opened from: Performance or
     // Settings.
     property <int> profiles-from: 3;
@@ -345,14 +346,17 @@ export component AppWindow inherits Window {
                     }
                 }
                 if root.page == 3: Reveal {
-                    x: 32px;
-                    y: 28px;
-                    width: parent.width - 80px;
-                    height: parent.height - 28px;
+                    x: 0;
+                    y: 0;
+                    width: parent.width;
+                    height: parent.height + 54px;
                     from-x: root.enter-x;
                     from-y: root.enter-y;
                     SettingsPage {
-                        focus-row <=> root.settings-row;
+                        width: parent.width;
+                        height: parent.height;
+                        shelf <=> root.settings-shelf;
+                        card <=> root.settings-card;
                         open-profiles => {
                             root.go(4);
                         }

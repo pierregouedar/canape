@@ -327,9 +327,6 @@ msgstr "doel {}"
 msgid "W"
 msgstr "W"
 
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "Kiezen"
 
@@ -344,9 +341,6 @@ msgstr "Spelprofielen"
 
 msgid "Games"
 msgstr "Games"
-
-msgid "General"
-msgstr "Algemeen"
 
 msgid "General settings"
 msgstr "Algemene instellingen"
@@ -761,3 +755,39 @@ msgstr "Peddel schakelt"
 
 msgid "Screen and battery"
 msgstr "Scherm en accu"
+
+msgid "API key"
+msgstr "API-sleutel"
+
+msgid "No API key"
+msgstr "Geen API-sleutel"
+
+msgid "not signed in"
+msgstr "niet aangemeld"
+
+msgid "Appearance"
+msgstr "Weergave"
+
+msgid "The Ally's buttons"
+msgstr "Knoppen van de Ally"
+
+msgid "Library"
+msgstr "Bibliotheek"
+
+msgid "Missing covers"
+msgstr "Ontbrekende hoezen"
+
+msgid "Accounts"
+msgstr "Accounts"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "Voeg je Steam Web API-sleutel (steamcommunity.com/dev/apikey) toe als steam_api_key in shell.json: Canapé toont dan je games, om ze vanuit de bibliotheek te installeren."
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "Voeg de client-id en het geheim van een Twitch-applicatie toe als igdb_client_id en igdb_client_secret in shell.json: gamepagina's tonen dan hoe lang een game duurt."
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "Eenmaal aangemeld installeert Canapé Epic-games zonder hun launcher."
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "Eenmaal aangemeld installeert Canapé GOG-games zonder GOG Galaxy."

@@ -1,24 +1,52 @@
-// Settings page: lines the D-pad moves through, the general settings on
-// the left and the accent colour on the right. Up and down change line,
-// left and right change its value, A acts on it:
-//   0 language (A applies the one shown), 1 the Ally's buttons, 2 online
-//   covers, 3 Epic account, 4 GOG account, 5 games folder, 6 game
-//   profiles, 7 add a game, 8 accent presets, 9 hue, 10 saturation,
-//   11 brightness.
+// Settings page: Canapé's version, the service and the accounts at the
+// top, then three shelves of setting cards, moved through as on the
+// performance page. A opens the card's drawer (or the games to add and
+// the game profiles, which are pages of their own). Cards:
+//   shelf 0, appearance: language, accent colour, the Ally's buttons;
+//   shelf 1, library: games folder, missing covers, add a game, game
+//   profiles;
+//   shelf 2, accounts: Steam, Epic Games, GOG, time to beat (IGDB).
+// In the language drawer the arrows move over the languages and A applies
+// one; in the accent drawer, up and down go from the presets (A applies
+// one) to the hue, saturation and brightness tracks, which left and right
+// move.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
 import { Library } from "library.slint";
-import { Logo } from "widgets.slint";
-import { Row, SectionTitle, SettingLine, Swatch, TrackLine } from "kit.slint";
+import { ChoiceTile, Drawer, HeroLine, HintSet, PageHints, SettingLine, Shelf, ShelfCard, ShelfPane, Swatch, TrackLine } from "kit.slint";
+
+// An account in the hero: the store, then who is signed in.
+component AccountChip inherits Rectangle {
+    in property <string> text;
+    in property <bool> signed-in;
+    height: 32px;
+    width: label.preferred-width + 28px;
+    border-radius: 16px;
+    background: Theme.card;
+    label := Text {
+        text: root.text;
+        color: root.signed-in ? Theme.text.mix(Theme.dim, 0.6) : Theme.dim;
+        font-size: 13px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
 
 export component SettingsPage inherits Rectangle {
-    // Opens the game profiles.
+    // Opens the game profiles, and the list of games to add.
     callback open-profiles();
-    // Opens the list of games to add.
     callback open-add-games();
-    in-out property <int> focus-row: 0;
+    in-out property <int> shelf: 0;
+    in-out property <int> card: 0;
+    // The card whose drawer is open, "" when none; `sheet` keeps the last
+    // one so the drawer keeps its content while it closes.
+    in-out property <string> drawer;
+    property <string> sheet;
+    property <bool> open: root.drawer != "";
     property <bool> active: fs.has-focus;
+    property <string> focused-key: root.key(root.shelf, root.card);
+
     property <[{ code: string, name: string }]> languages: [
         { code: "auto", name: @tr("Automatic") },
         { code: "en", name: "English" },
@@ -36,7 +64,7 @@ export component SettingsPage inherits Rectangle {
         { code: "zh_CN", name: "简体中文" },
     ];
     property <int> language-index: App.language == "en" ? 1 : App.language == "fr" ? 2 : App.language == "es" ? 3 : App.language == "de" ? 4 : App.language == "it" ? 5 : App.language == "pt" ? 6 : App.language == "nl" ? 7 : App.language == "pl" ? 8 : App.language == "ru" ? 9 : App.language == "tr" ? 10 : App.language == "ja" ? 11 : App.language == "ko" ? 12 : App.language == "zh_CN" ? 13 : 0;
-    // The language shown on the line; A applies it.
+    // The language the focus is on in the drawer; A applies it.
     in-out property <int> language-pick: root.language-index;
     // The hex code is what gets saved; the colour, what gets drawn.
     property <[{ hex: string, color: color }]> presets: [
@@ -50,10 +78,72 @@ export component SettingsPage inherits Rectangle {
         { hex: "#ec4899", color: #ec4899 },
     ];
     in-out property <int> preset-col: 0;
+    // Accent drawer: 0 the presets, 1 hue, 2 saturation, 3 brightness.
+    in-out property <int> accent-row: 0;
+    // On / off drawers: 0 on, 1 off.
+    in-out property <int> toggle-col: 0;
     // Darkest accent the picker allows: below, it no longer reads on the
     // dark background.
     property <float> min-value: 0.4;
 
+    property <HintSet> hints: !root.open ? {
+        move-glyph: "dpad",
+        move: @tr("Shelves"),
+        a: root.focused-key == "add" || root.focused-key == "profiles" ? @tr("Open") : @tr("Adjust"),
+        b: @tr("Back"),
+    } : root.drawer == "language" ? {
+        move-glyph: "dpad",
+        move: @tr("Choose"),
+        a: @tr("Apply"),
+        b: @tr("Close"),
+    } : root.drawer == "accent" ? {
+        move-glyph: "updown",
+        move: @tr("Setting"),
+        move2-glyph: "leftright",
+        move2: @tr("Value"),
+        a: root.accent-row == 0 ? @tr("Apply") : "",
+        b: @tr("Close"),
+    } : root.drawer == "ally" || root.drawer == "covers" ? {
+        move-glyph: "leftright",
+        move: @tr("Choose"),
+        a: @tr("Apply"),
+        b: @tr("Close"),
+    } : root.drawer == "folder" ? {
+        move-glyph: "leftright",
+        move: @tr("Value"),
+        b: @tr("Close"),
+    } : root.drawer == "epic" || root.drawer == "gog" ? {
+        a: @tr("Sign in"),
+        b: @tr("Close"),
+    } : {
+        b: @tr("Close"),
+    };
+    init => {
+        PageHints.current = self.hints;
+    }
+    changed hints => {
+        PageHints.current = self.hints;
+    }
+
+    pure function key(s: int, c: int) -> string {
+        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : ["steam", "epic", "gog", "igdb"][c]
+    }
+    pure function cards(s: int) -> int {
+        s == 0 ? 3 : 4
+    }
+    function activate() {
+        if root.focused-key == "add" {
+            root.open-add-games();
+        } else if root.focused-key == "profiles" {
+            root.open-profiles();
+        } else {
+            root.language-pick = root.language-index;
+            root.accent-row = 0;
+            root.toggle-col = (root.focused-key == "ally" ? App.ally-buttons : App.online-covers) ? 0 : 1;
+            root.sheet = root.focused-key;
+            root.drawer = root.focused-key;
+        }
+    }
     function hue(d: int) {
         // 360° is 0° again: stop just before, so the knob stays right.
         App.pick-accent-hsv(clamp(Theme.accent-hue + d * 5, 0, 359), Theme.accent-saturation, Theme.accent-value);
@@ -64,74 +154,93 @@ export component SettingsPage inherits Rectangle {
     function brightness(d: int) {
         App.pick-accent-hsv(Theme.accent-hue, Theme.accent-saturation, clamp(Theme.accent-value + d * 0.05, root.min-value, 1));
     }
-    // Left (-1) or right (1) on the focused line.
+    // Left (-1) or right (1) in the open drawer.
     function side(d: int) {
-        if root.focus-row == 0 {
-            root.language-pick = Math.mod(root.language-pick + d + root.languages.length, root.languages.length);
-        } else if root.focus-row == 1 {
-            App.toggle-ally-buttons();
-        } else if root.focus-row == 2 {
-            App.toggle-online-covers();
-        } else if root.focus-row == 5 {
+        if root.drawer == "language" {
+            root.language-pick = clamp(root.language-pick + d, 0, root.languages.length - 1);
+        } else if root.drawer == "accent" {
+            if root.accent-row == 0 {
+                root.preset-col = clamp(root.preset-col + d, 0, root.presets.length - 1);
+            } else if root.accent-row == 1 {
+                root.hue(d);
+            } else if root.accent-row == 2 {
+                root.saturation(d);
+            } else {
+                root.brightness(d);
+            }
+        } else if root.drawer == "ally" || root.drawer == "covers" {
+            root.toggle-col = clamp(root.toggle-col + d, 0, 1);
+        } else if root.drawer == "folder" {
             Library.games-folder-step(d);
-        } else if root.focus-row == 8 {
-            root.preset-col = clamp(root.preset-col + d, 0, root.presets.length - 1);
-        } else if root.focus-row == 9 {
-            root.hue(d);
-        } else if root.focus-row == 10 {
-            root.saturation(d);
-        } else if root.focus-row == 11 {
-            root.brightness(d);
         }
     }
-    function activate() {
-        if root.focus-row == 0 {
+    // Up (-1) or down (1) in the open drawer.
+    function vertical(d: int) {
+        if root.drawer == "language" {
+            let to = root.language-pick + d * 7;
+            if to >= 0 && to < root.languages.length {
+                root.language-pick = to;
+            }
+        } else if root.drawer == "accent" {
+            root.accent-row = clamp(root.accent-row + d, 0, 3);
+        }
+    }
+    function apply() {
+        if root.drawer == "language" {
             App.set-language(root.languages[root.language-pick].code);
-        } else if root.focus-row == 1 {
-            App.toggle-ally-buttons();
-        } else if root.focus-row == 2 {
-            App.toggle-online-covers();
-        } else if root.focus-row == 3 {
+        } else if root.drawer == "accent" {
+            if root.accent-row == 0 {
+                App.pick-accent(root.presets[root.preset-col].hex);
+            }
+        } else if root.drawer == "ally" {
+            if App.ally-buttons != (root.toggle-col == 0) {
+                App.toggle-ally-buttons();
+            }
+        } else if root.drawer == "covers" {
+            if App.online-covers != (root.toggle-col == 0) {
+                App.toggle-online-covers();
+            }
+        } else if root.drawer == "epic" {
             if !Library.epic-busy {
                 Library.epic-login();
             }
-        } else if root.focus-row == 4 {
+        } else if root.drawer == "gog" {
             if !Library.gog-busy {
                 Library.gog-login();
             }
-        } else if root.focus-row == 5 {
-            Library.games-folder-step(1);
-        } else if root.focus-row == 6 {
-            root.open-profiles();
-        } else if root.focus-row == 7 {
-            root.open-add-games();
-        } else if root.focus-row == 8 {
-            App.pick-accent(root.presets[root.preset-col].hex);
+        } else {
+            root.drawer = "";
         }
     }
-    function line-focused(r: int) -> bool {
-        root.active && root.focus-row == r
-    }
+
+    property <length> sheet-height: root.sheet == "language" ? 232px : root.sheet == "accent" ? 254px : 186px;
+    // A taller drawer lifts the shelves so the card stays in view.
+    property <length> lift: root.open ? max(0px, 420px - (root.height - root.sheet-height)) : 0px;
 
     fs := FocusScope {
         init => {
             self.focus();
         }
         key-pressed(event) => {
-            if event.text == Key.UpArrow {
-                root.focus-row = max(0, root.focus-row - 1);
+            if root.open {
+                if event.text == Key.Escape {
+                    root.drawer = "";
+                } else if event.text == Key.LeftArrow || event.text == Key.RightArrow {
+                    root.side(event.text == Key.LeftArrow ? -1 : 1);
+                } else if event.text == Key.UpArrow || event.text == Key.DownArrow {
+                    root.vertical(event.text == Key.UpArrow ? -1 : 1);
+                } else if event.text == Key.Return || event.text == " " {
+                    root.apply();
+                }
                 return accept;
             }
-            if event.text == Key.DownArrow {
-                root.focus-row = min(11, root.focus-row + 1);
+            if event.text == Key.UpArrow || event.text == Key.DownArrow {
+                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 2);
+                root.card = min(root.card, root.cards(root.shelf) - 1);
                 return accept;
             }
-            if event.text == Key.LeftArrow {
-                root.side(-1);
-                return accept;
-            }
-            if event.text == Key.RightArrow {
-                root.side(1);
+            if event.text == Key.LeftArrow || event.text == Key.RightArrow {
+                root.card = clamp(root.card + (event.text == Key.LeftArrow ? -1 : 1), 0, root.cards(root.shelf) - 1);
                 return accept;
             }
             if event.text == Key.Return || event.text == " " {
@@ -142,199 +251,297 @@ export component SettingsPage inherits Rectangle {
         }
     }
 
+    // Canapé itself: its version, the service, the accounts.
     HorizontalLayout {
-        width: parent.width;
-        height: parent.height;
+        x: 48px;
+        y: 36px;
+        width: parent.width - 96px;
+        height: 110px;
         spacing: 40px;
-
         VerticalLayout {
+            spacing: 8px;
+            alignment: end;
+            HeroLine {
+                title: "Canapé";
+                detail: App.version;
+            }
+
+            Text {
+                text: App.status.connected ? @tr("Service connected") : @tr("Service not connected");
+                color: App.status.connected ? Theme.text : Theme.warn;
+                font-size: 44px;
+                font-weight: 700;
+                letter-spacing: -1px;
+            }
+
+            Text {
+                text: Library.install-error != "" ? Library.install-error : @tr("Installed · {}", Library.total);
+                color: Library.install-error != "" ? Theme.warn : Theme.dim;
+                font-size: 13px;
+                overflow: elide;
+            }
+        }
+
+        HorizontalLayout {
             horizontal-stretch: 1;
-            preferred-width: 10px;
-            spacing: 2px;
-            alignment: start;
-
-            SectionTitle {
-                height: 36px;
-                x: 16px;
-                text: @tr("General");
+            alignment: end;
+            spacing: 10px;
+            padding-bottom: 4px;
+            VerticalLayout {
+                alignment: end;
+                AccountChip {
+                    text: "Steam · " + (Library.steam-key ? @tr("API key") : @tr("No API key"));
+                    signed-in: Library.steam-key;
+                }
             }
 
-            SettingLine {
+            VerticalLayout {
+                alignment: end;
+                AccountChip {
+                    text: "Epic · " + (Library.epic-account != "" ? Library.epic-account : @tr("not signed in"));
+                    signed-in: Library.epic-account != "";
+                }
+            }
+
+            VerticalLayout {
+                alignment: end;
+                AccountChip {
+                    text: "GOG · " + (Library.gog-account != "" ? Library.gog-account : @tr("not signed in"));
+                    signed-in: Library.gog-account != "";
+                }
+            }
+        }
+    }
+
+    ShelfPane {
+        x: 0;
+        y: 256px - root.lift;
+        animate y { duration: 200ms; easing: cubic-bezier(0.16, 1, 0.3, 1); }
+        width: parent.width;
+        height: 330px;
+        front: root.shelf;
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 0;
+            front: root.shelf;
+            icon: "palette";
+            title: @tr("Appearance");
+            ShelfCard {
                 label: @tr("Language");
-                value: root.languages[root.language-pick].name;
-                focused: root.line-focused(0);
+                icon: "globe";
+                value: root.languages[root.language-index].name;
+                focused: root.active && root.shelf == 0 && root.card == 0;
                 clicked => {
-                    root.focus-row = 0;
-                    fs.focus();
-                }
-                step(d) => {
-                    root.focus-row = 0;
-                    root.side(d);
+                    root.shelf = 0;
+                    root.card = 0;
+                    root.activate();
                     fs.focus();
                 }
             }
 
-            SettingLine {
-                label: @tr("Use the Ally's buttons");
+            ShelfCard {
+                label: @tr("Accent colour");
+                icon: "drop";
+                value: Theme.accent-hex.to-uppercase();
+                focused: root.active && root.shelf == 0 && root.card == 1;
+                clicked => {
+                    root.shelf = 0;
+                    root.card = 1;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("The Ally's buttons");
+                icon: "gamepad";
                 value: App.ally-buttons ? @tr("On") : @tr("Off");
-                focused: root.line-focused(1);
+                focused: root.active && root.shelf == 0 && root.card == 2;
                 clicked => {
-                    root.focus-row = 1;
-                    App.toggle-ally-buttons();
-                    fs.focus();
-                }
-                step(d) => {
-                    root.focus-row = 1;
-                    App.toggle-ally-buttons();
-                    fs.focus();
-                }
-            }
-
-            SettingLine {
-                label: @tr("Download missing covers");
-                value: App.online-covers ? @tr("On") : @tr("Off");
-                focused: root.line-focused(2);
-                clicked => {
-                    root.focus-row = 2;
-                    App.toggle-online-covers();
-                    fs.focus();
-                }
-                step(d) => {
-                    root.focus-row = 2;
-                    App.toggle-online-covers();
-                    fs.focus();
-                }
-            }
-
-            SettingLine {
-                label: @tr("Epic Games account");
-                value: Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-waiting ? @tr("Waiting for the Epic code…") : Library.epic-account != "" ? Library.epic-account : @tr("Sign in");
-                chevrons: false;
-                focused: root.line-focused(3);
-                clicked => {
-                    root.focus-row = 3;
+                    root.shelf = 0;
+                    root.card = 2;
                     root.activate();
                     fs.focus();
-                }
-            }
-
-            // While Epic's page is open: what to copy.
-            if Library.epic-waiting: HorizontalLayout {
-                padding-left: 16px;
-                padding-right: 16px;
-                padding-bottom: 6px;
-                Text {
-                    text: @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.");
-                    color: Theme.dim;
-                    font-size: 13px;
-                    wrap: word-wrap;
-                }
-            }
-
-            SettingLine {
-                label: @tr("GOG account");
-                value: Library.gog-busy ? @tr("Opening the GOG sign-in…") : Library.gog-waiting ? @tr("Waiting for the GOG address…") : Library.gog-account != "" ? Library.gog-account : @tr("Sign in");
-                chevrons: false;
-                focused: root.line-focused(4);
-                clicked => {
-                    root.focus-row = 4;
-                    root.activate();
-                    fs.focus();
-                }
-            }
-
-            // While GOG's page is open: what to copy.
-            if Library.gog-waiting: HorizontalLayout {
-                padding-left: 16px;
-                padding-right: 16px;
-                padding-bottom: 6px;
-                Text {
-                    text: @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.");
-                    color: Theme.dim;
-                    font-size: 13px;
-                    wrap: word-wrap;
-                }
-            }
-
-            SettingLine {
-                label: @tr("Games folder");
-                value: Library.games-folder + (Library.games-free-tenths >= 0 ? " · " + @tr("{} GB free", App.tenths(Library.games-free-tenths)) : "");
-                focused: root.line-focused(5);
-                clicked => {
-                    root.focus-row = 5;
-                    root.activate();
-                    fs.focus();
-                }
-                step(d) => {
-                    root.focus-row = 5;
-                    Library.games-folder-step(d);
-                    fs.focus();
-                }
-            }
-
-            SettingLine {
-                label: @tr("Game profiles");
-                value: App.profiles.length + " ›";
-                chevrons: false;
-                focused: root.line-focused(6);
-                clicked => {
-                    root.focus-row = 6;
-                    root.activate();
-                }
-            }
-
-            SettingLine {
-                label: @tr("Add a game");
-                value: Library.external + " ›";
-                chevrons: false;
-                focused: root.line-focused(7);
-                clicked => {
-                    root.focus-row = 7;
-                    root.activate();
-                }
-            }
-
-            // A failed sign-in or download, also shown on the games page.
-            if Library.install-error != "": HorizontalLayout {
-                padding-left: 16px;
-                padding-right: 16px;
-                padding-top: 10px;
-                Text {
-                    text: Library.install-error;
-                    color: Theme.warn;
-                    font-size: 13px;
-                    wrap: word-wrap;
                 }
             }
         }
 
-        VerticalLayout {
-            horizontal-stretch: 1;
-            preferred-width: 10px;
-            spacing: 2px;
-
-            SectionTitle {
-                height: 36px;
-                x: 16px;
-                text: @tr("Accent colour");
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 1;
+            front: root.shelf;
+            icon: "library";
+            title: @tr("Library");
+            ShelfCard {
+                label: @tr("Games folder");
+                icon: "folder";
+                value: Library.games-folder != "" ? Library.games-folder : "—";
+                focused: root.active && root.shelf == 1 && root.card == 0;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
             }
 
-            Row {
+            ShelfCard {
+                label: @tr("Missing covers");
+                icon: "image";
+                value: App.online-covers ? @tr("On") : @tr("Off");
+                focused: root.active && root.shelf == 1 && root.card == 1;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 1;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Add a game");
+                icon: "plus";
+                value: Library.external;
+                focused: root.active && root.shelf == 1 && root.card == 2;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 2;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Game profiles");
+                icon: "profiles";
+                value: App.profiles.length;
+                focused: root.active && root.shelf == 1 && root.card == 3;
+                clicked => {
+                    root.shelf = 1;
+                    root.card = 3;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 2;
+            front: root.shelf;
+            icon: "user";
+            title: @tr("Accounts");
+            ShelfCard {
+                label: "Steam";
+                store: "Steam";
+                value: Library.steam-key ? @tr("API key") : @tr("No API key");
+                focused: root.active && root.shelf == 2 && root.card == 0;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: "Epic Games";
+                store: "Epic";
+                value: Library.epic-busy || Library.epic-waiting ? "…" : Library.epic-account != "" ? Library.epic-account : @tr("Sign in");
+                focused: root.active && root.shelf == 2 && root.card == 1;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 1;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: "GOG";
+                store: "GOG";
+                value: Library.gog-busy || Library.gog-waiting ? "…" : Library.gog-account != "" ? Library.gog-account : @tr("Sign in");
+                focused: root.active && root.shelf == 2 && root.card == 2;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 2;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Time to beat");
+                icon: "hourglass";
+                value: Library.igdb-keys ? "IGDB" : @tr("Off");
+                focused: root.active && root.shelf == 2 && root.card == 3;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 3;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+    }
+
+    Drawer {
+        width: parent.width;
+        page-height: parent.height;
+        open: root.open;
+        sheet-height: root.sheet-height;
+        title: root.sheet == "language" ? @tr("Language") : root.sheet == "accent" ? @tr("Accent colour") : root.sheet == "ally" ? @tr("Use the Ally's buttons") : root.sheet == "folder" ? @tr("Games folder") : root.sheet == "covers" ? @tr("Download missing covers") : root.sheet == "steam" ? "Steam" : root.sheet == "epic" ? @tr("Epic Games account") : root.sheet == "gog" ? @tr("GOG account") : @tr("Time to beat");
+        note: root.sheet == "folder" && Library.games-free-tenths >= 0 ? @tr("{} GB free", App.tenths(Library.games-free-tenths))
+            : root.sheet == "accent" ? Theme.accent-hex.to-uppercase()
+            : root.sheet == "steam" ? (Library.steam-key ? @tr("Steam API key set") : @tr("No Steam API key"))
+            : root.sheet == "epic" ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-waiting ? @tr("Waiting for the Epic code…") : Library.epic-account)
+            : root.sheet == "gog" ? (Library.gog-busy ? @tr("Opening the GOG sign-in…") : Library.gog-waiting ? @tr("Waiting for the GOG address…") : Library.gog-account)
+            : "";
+
+        if root.sheet == "language": VerticalLayout {
+            spacing: 10px;
+            alignment: start;
+            for r in 2: HorizontalLayout {
+                spacing: 10px;
+                for c in 7: ChoiceTile {
+                    horizontal-stretch: 1;
+                    preferred-width: 10px;
+                    height: 48px;
+                    label: root.languages[r * 7 + c].name;
+                    selected: root.language-index == r * 7 + c;
+                    focused: root.active && root.language-pick == r * 7 + c;
+                    clicked => {
+                        root.language-pick = r * 7 + c;
+                        root.apply();
+                        fs.focus();
+                    }
+                }
+            }
+        }
+
+        if root.sheet == "accent": HorizontalLayout {
+            spacing: 40px;
+            Rectangle {
+                width: 8 * 40px + 7 * 12px + 24px;
                 height: 64px;
                 border-radius: 10px;
-                focused: root.line-focused(8);
+                background: root.active && root.accent-row == 0 ? Theme.surface-high : transparent;
                 HorizontalLayout {
                     padding-left: 12px;
                     padding-right: 12px;
-                    alignment: space-between;
+                    spacing: 12px;
                     for preset[i] in root.presets: VerticalLayout {
                         alignment: center;
                         Swatch {
                             swatch: preset.color;
                             selected: Theme.accent-hex == preset.hex;
-                            focused: root.line-focused(8) && root.preset-col == i;
+                            focused: root.active && root.accent-row == 0 && root.preset-col == i;
                             clicked => {
-                                root.focus-row = 8;
+                                root.accent-row = 0;
                                 root.preset-col = i;
                                 App.pick-accent(preset.hex);
                                 fs.focus();
@@ -344,72 +551,98 @@ export component SettingsPage inherits Rectangle {
                 }
             }
 
-            TrackLine {
-                label: @tr("Hue");
-                value: Theme.accent-hue / 360;
-                track: @linear-gradient(90deg, hsv(0, 1, 1) 0%, hsv(60, 1, 1) 16.7%, hsv(120, 1, 1) 33.3%, hsv(180, 1, 1) 50%, hsv(240, 1, 1) 66.7%, hsv(300, 1, 1) 83.3%, hsv(359, 1, 1) 100%);
-                focused: root.line-focused(9);
-                moved(v) => {
-                    root.focus-row = 9;
-                    App.pick-accent-hsv(min(v, 0.999) * 360, Theme.accent-saturation, Theme.accent-value);
-                    fs.focus();
-                }
-            }
-
-            TrackLine {
-                label: @tr("Saturation");
-                value: Theme.accent-saturation;
-                track: @linear-gradient(90deg, hsv(Theme.accent-hue, 0, Theme.accent-value) 0%, hsv(Theme.accent-hue, 1, Theme.accent-value) 100%);
-                focused: root.line-focused(10);
-                moved(v) => {
-                    root.focus-row = 10;
-                    App.pick-accent-hsv(Theme.accent-hue, v, Theme.accent-value);
-                    fs.focus();
-                }
-            }
-
-            TrackLine {
-                label: @tr("Brightness");
-                value: max(0, (Theme.accent-value - root.min-value) / (1 - root.min-value));
-                track: @linear-gradient(90deg, hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value) 0%, hsv(Theme.accent-hue, Theme.accent-saturation, 1) 100%);
-                focused: root.line-focused(11);
-                moved(v) => {
-                    root.focus-row = 11;
-                    App.pick-accent-hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value + v * (1 - root.min-value));
-                    fs.focus();
-                }
-            }
-
-            Rectangle {
-                vertical-stretch: 1;
-            }
-
-            HorizontalLayout {
-                padding-left: 16px;
-                spacing: 12px;
-                VerticalLayout {
-                    alignment: center;
-                    Logo { }
-                }
-
-                VerticalLayout {
-                    alignment: center;
-                    spacing: 2px;
-                    Text {
-                        text: @tr("Canapé {}", App.version);
-                        color: Theme.text;
-                        font-size: 14px;
-                        font-weight: 600;
+            VerticalLayout {
+                spacing: 4px;
+                alignment: start;
+                TrackLine {
+                    height: 42px;
+                    label: @tr("Hue");
+                    value: Theme.accent-hue / 360;
+                    track: @linear-gradient(90deg, hsv(0, 1, 1) 0%, hsv(60, 1, 1) 16.7%, hsv(120, 1, 1) 33.3%, hsv(180, 1, 1) 50%, hsv(240, 1, 1) 66.7%, hsv(300, 1, 1) 83.3%, hsv(359, 1, 1) 100%);
+                    focused: root.active && root.accent-row == 1;
+                    moved(v) => {
+                        root.accent-row = 1;
+                        App.pick-accent-hsv(min(v, 0.999) * 360, Theme.accent-saturation, Theme.accent-value);
+                        fs.focus();
                     }
+                }
 
-                    Text {
-                        text: (App.status.connected ? @tr("Service connected") : @tr("Service not connected")) + " · " + (Library.steam-key ? @tr("Steam API key set") : @tr("No Steam API key"));
-                        color: Theme.dim;
-                        font-size: 13px;
-                        overflow: elide;
+                TrackLine {
+                    height: 42px;
+                    label: @tr("Saturation");
+                    value: Theme.accent-saturation;
+                    track: @linear-gradient(90deg, hsv(Theme.accent-hue, 0, Theme.accent-value) 0%, hsv(Theme.accent-hue, 1, Theme.accent-value) 100%);
+                    focused: root.active && root.accent-row == 2;
+                    moved(v) => {
+                        root.accent-row = 2;
+                        App.pick-accent-hsv(Theme.accent-hue, v, Theme.accent-value);
+                        fs.focus();
+                    }
+                }
+
+                TrackLine {
+                    height: 42px;
+                    label: @tr("Brightness");
+                    value: max(0, (Theme.accent-value - root.min-value) / (1 - root.min-value));
+                    track: @linear-gradient(90deg, hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value) 0%, hsv(Theme.accent-hue, Theme.accent-saturation, 1) 100%);
+                    focused: root.active && root.accent-row == 3;
+                    moved(v) => {
+                        root.accent-row = 3;
+                        App.pick-accent-hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value + v * (1 - root.min-value));
+                        fs.focus();
                     }
                 }
             }
+        }
+
+        if root.sheet == "ally" || root.sheet == "covers": HorizontalLayout {
+            spacing: 12px;
+            alignment: start;
+            for i in 2: ChoiceTile {
+                width: 180px;
+                label: i == 0 ? @tr("On") : @tr("Off");
+                selected: (root.sheet == "ally" ? App.ally-buttons : App.online-covers) == (i == 0);
+                focused: root.active && root.toggle-col == i;
+                clicked => {
+                    root.toggle-col = i;
+                    root.apply();
+                    fs.focus();
+                }
+            }
+        }
+
+        if root.sheet == "folder": SettingLine {
+            x: 0;
+            y: 0;
+            width: 720px;
+            label: @tr("Games folder");
+            value: Library.games-folder;
+            focused: root.active;
+            step(d) => {
+                Library.games-folder-step(d);
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "steam" || root.sheet == "igdb": Text {
+            x: 0;
+            y: 0;
+            width: 900px;
+            text: root.sheet == "steam" ? @tr("Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library.") : @tr("Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat.");
+            color: Theme.text.mix(Theme.dim, 0.6);
+            font-size: 15px;
+            wrap: word-wrap;
+        }
+
+        if root.sheet == "epic" || root.sheet == "gog": Text {
+            x: 0;
+            y: 0;
+            width: 900px;
+            text: root.sheet == "epic" ? (Library.epic-waiting ? @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.") : @tr("Canapé installs Epic games without their launcher once you are signed in."))
+                : (Library.gog-waiting ? @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.") : @tr("Canapé installs GOG games without GOG Galaxy once you are signed in."));
+            color: Theme.text.mix(Theme.dim, 0.6);
+            font-size: 15px;
+            wrap: word-wrap;
         }
     }
 }

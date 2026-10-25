@@ -1167,6 +1167,13 @@ impl State {
         let library = ui.global::<Library>();
         let settings = crate::i18n::ShellSettings::load();
         library.set_steam_key(!settings.steam_api_key.trim().is_empty());
+        library.set_igdb_keys(
+            canape_library::igdb::Credentials::new(
+                &settings.igdb_client_id,
+                &settings.igdb_client_secret,
+            )
+            .is_some(),
+        );
         library.set_owned_loading(self.owned_loading);
     }
 

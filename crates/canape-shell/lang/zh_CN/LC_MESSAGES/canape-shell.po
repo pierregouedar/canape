@@ -327,9 +327,6 @@ msgstr "目标 {}"
 msgid "W"
 msgstr "W"
 
-msgid "Canapé {}"
-msgstr "Canapé {}"
-
 msgid "Choose"
 msgstr "选择"
 
@@ -344,9 +341,6 @@ msgstr "游戏配置"
 
 msgid "Games"
 msgstr "游戏"
-
-msgid "General"
-msgstr "常规"
 
 msgid "General settings"
 msgstr "全局设置"
@@ -761,3 +755,39 @@ msgstr "背键切换"
 
 msgid "Screen and battery"
 msgstr "屏幕与电池"
+
+msgid "API key"
+msgstr "API 密钥"
+
+msgid "No API key"
+msgstr "无 API 密钥"
+
+msgid "not signed in"
+msgstr "未登录"
+
+msgid "Appearance"
+msgstr "外观"
+
+msgid "The Ally's buttons"
+msgstr "Ally 按键"
+
+msgid "Library"
+msgstr "游戏库"
+
+msgid "Missing covers"
+msgstr "缺失的封面"
+
+msgid "Accounts"
+msgstr "账户"
+
+msgid "Add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json: Canapé then lists the games you own, to install them from the library."
+msgstr "在 shell.json 中以 steam_api_key 添加你的 Steam Web API 密钥（steamcommunity.com/dev/apikey）：Canapé 会列出你拥有的游戏，可从游戏库安装。"
+
+msgid "Add the client id and secret of a Twitch application as igdb_client_id and igdb_client_secret in shell.json: game pages then show how long a game takes to beat."
+msgstr "在 shell.json 中以 igdb_client_id 和 igdb_client_secret 添加一个 Twitch 应用的客户端 ID 和密钥：游戏页面会显示通关所需时间。"
+
+msgid "Canapé installs Epic games without their launcher once you are signed in."
+msgstr "登录后，Canapé 无需启动器即可安装 Epic 游戏。"
+
+msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
+msgstr "登录后，Canapé 无需 GOG Galaxy 即可安装 GOG 游戏。"

@@ -119,6 +119,9 @@ export global Library {
     in property <int> backdrop-x;
     // A Steam Web API key is set in shell.json.
     in property <bool> steam-key;
+    // IGDB keys (igdb_client_id and igdb_client_secret) are set in
+    // shell.json: game pages show the time to beat.
+    in property <bool> igdb-keys;
     // Signed-in Epic account (through Legendary), "" when none.
     in property <string> epic-account;
     // Legendary is being downloaded or its sign-in window is open.
