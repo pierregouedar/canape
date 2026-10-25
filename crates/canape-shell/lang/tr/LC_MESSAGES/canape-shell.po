@@ -664,8 +664,20 @@ msgstr "Oyun klasörü"
 msgid "{} GB free"
 msgstr "{} GB boş"
 
-msgid "Main story ~{} h"
-msgstr "Hikâye ~{} sa"
+msgid "Time to beat"
+msgstr "Oynanış süresi"
 
-msgid "Main story ~{} min"
-msgstr "Hikâye ~{} dk"
+msgid "Main story"
+msgstr "Hikâye"
+
+msgid "Main + extras"
+msgstr "Hikâye + ekstralar"
+
+msgid "Completionist"
+msgstr "Tamamı"
+
+msgid "~{} h"
+msgstr "~{} sa"
+
+msgid "~{} min"
+msgstr "~{} dk"

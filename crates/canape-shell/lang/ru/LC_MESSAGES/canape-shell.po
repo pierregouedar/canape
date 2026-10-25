@@ -664,8 +664,20 @@ msgstr "Папка игр"
 msgid "{} GB free"
 msgstr "{} ГБ свободно"
 
-msgid "Main story ~{} h"
-msgstr "Сюжет ~{} ч"
+msgid "Time to beat"
+msgstr "Время прохождения"
 
-msgid "Main story ~{} min"
-msgstr "Сюжет ~{} мин"
+msgid "Main story"
+msgstr "Сюжет"
+
+msgid "Main + extras"
+msgstr "Сюжет + доп. задания"
+
+msgid "Completionist"
+msgstr "Полностью"
+
+msgid "~{} h"
+msgstr "~{} ч"
+
+msgid "~{} min"
+msgstr "~{} мин"

@@ -664,8 +664,20 @@ msgstr "Pasta de jogos"
 msgid "{} GB free"
 msgstr "{} GB livres"
 
-msgid "Main story ~{} h"
-msgstr "História ~{} h"
+msgid "Time to beat"
+msgstr "Duração"
 
-msgid "Main story ~{} min"
-msgstr "História ~{} min"
+msgid "Main story"
+msgstr "História"
+
+msgid "Main + extras"
+msgstr "História + extras"
+
+msgid "Completionist"
+msgstr "Completista"
+
+msgid "~{} h"
+msgstr "~{} h"
+
+msgid "~{} min"
+msgstr "~{} min"

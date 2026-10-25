@@ -664,8 +664,20 @@ msgstr "游戏文件夹"
 msgid "{} GB free"
 msgstr "可用 {} GB"
 
-msgid "Main story ~{} h"
-msgstr "主线约 {} 小时"
+msgid "Time to beat"
+msgstr "通关时长"
 
-msgid "Main story ~{} min"
-msgstr "主线约 {} 分钟"
+msgid "Main story"
+msgstr "主线"
+
+msgid "Main + extras"
+msgstr "主线 + 支线"
+
+msgid "Completionist"
+msgstr "全收集"
+
+msgid "~{} h"
+msgstr "约 {} 小时"
+
+msgid "~{} min"
+msgstr "约 {} 分钟"

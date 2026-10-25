@@ -148,7 +148,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 | **D-pad** or **left stick** | Up and down change row; left and right move along the row or change its value. Held, the move repeats after 0.4 s. In Games, left and right move along the shelf, up and down swap the shelves. |
 | **A** | Choose; in Games, launch the game (or install it) |
 | **X** | Save for the game in the foreground (Performance, Hardware, Bench); delete a profile (Game profiles) |
-| **B** | Leave a sub-page (Game profiles, Bench, Back buttons and lighting), otherwise back to Games |
+| **B** | Leave a sub-page (Game profiles, Add a game, Bench, Gyro aiming, Back buttons and lighting) back on the line it was opened from, otherwise back to Games |
 
 The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. When Canapé comes back to the front, a button still held for the game does nothing until it is released; the first time (when the Ally starts, for example), the gamepad is ignored for 2 s (the window only shows about 1.5 s later), so that a press while signing in does not launch a game. The same rules apply to keyboard keys, including the Enter and Escape that tools such as Steam Input send for A and B. The focused row or tile has a white outline; the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
 
@@ -179,7 +179,7 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 
 <img src="images/en/game-page.png" alt="A game page, with its profile" width="720">
 
-**Game page**: the cover large, the store, the title, when it was last played, the time played (Steam, with the API key), how long the main story takes ("Main story ~25 h", see [Time to beat](#games) below, with a Twitch application) and the space it takes on disk (Steam, Epic, GOG; for an Epic or GOG game to install, the space it will take and the free space of the games folder, see [Installing owned games](#installing-owned-games)); behind, the game's wide art that Steam keeps on disk, when there is some. **A** launches the game ("Launching…", the cover comes forward a little) or, if it is not installed, installs it, with the progress under the button. **B** goes back to the shelf, on the same game. Once launched, the game moves first on Recent. Under the button, **This game's profile** sums up its profile (target, power range, learned power, frame rate limit): Canapé learns which program the game is the first time it is launched from Canapé (the first full-screen program to come to the front within 2 minutes, Steam, launchers and their windows aside), and shows it once a profile exists for it.
+**Game page**: the cover large, the store, the title, when it was last played, the time played (Steam, with the API key), and the space it takes on disk (Steam, Epic, GOG; for an Epic or GOG game to install, the space it will take and the free space of the games folder, see [Installing owned games](#installing-owned-games)); behind, the game's wide art that Steam keeps on disk, when there is some. **A** launches the game ("Launching…", the cover comes forward a little) or, if it is not installed, installs it, with the progress under the button. **B** goes back to the shelf, on the same game. Once launched, the game moves first on Recent. Under the button, **This game's profile** sums up its profile (target, power range, learned power, frame rate limit): Canapé learns which program the game is the first time it is launched from Canapé (the first full-screen program to come to the front within 2 minutes, Steam, launchers and their windows aside), and shows it once a profile exists for it.
 
 **Where the games come from**
 
@@ -211,7 +211,7 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 
 **Time to beat (IGDB)**
 
-A game's page can show the average time to finish its main story, for example "Main story ~25 h", from [IGDB](https://www.igdb.com)'s "time to beat" data (Twitch's game database). This needs a free Twitch application of your own; without it nothing is asked and the page shows no time. There is no setting: the two values in `shell.json` are the switch.
+Under the cover, a game's page can show a **Time to beat** panel with three average times: **Main story** (going straight through), **Main + extras** and **Completionist** (finishing everything), for example "~12 h · ~18 h · ~35 h", from [IGDB](https://www.igdb.com)'s "time to beat" data (Twitch's game database). This needs a free Twitch application of your own; without it nothing is asked and the page shows no time. There is no setting: the two values in `shell.json` are the switch.
 
 1. Sign in at [dev.twitch.tv/console](https://dev.twitch.tv/console) with a Twitch account (Twitch requires two-factor authentication to register an application).
 2. **Applications → Register Your Application**: any name (for example "Canape ROG Ally"), **OAuth Redirect URLs** `http://localhost`, category **Application Integration**, client type **Confidential**. Create it.

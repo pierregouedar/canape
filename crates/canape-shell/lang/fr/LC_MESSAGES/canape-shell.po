@@ -664,8 +664,20 @@ msgstr "Dossier des jeux"
 msgid "{} GB free"
 msgstr "{} Go libres"
 
-msgid "Main story ~{} h"
-msgstr "Histoire ~{} h"
+msgid "Time to beat"
+msgstr "Durée de jeu"
 
-msgid "Main story ~{} min"
-msgstr "Histoire ~{} min"
+msgid "Main story"
+msgstr "Histoire"
+
+msgid "Main + extras"
+msgstr "Histoire + extras"
+
+msgid "Completionist"
+msgstr "Complétionniste"
+
+msgid "~{} h"
+msgstr "~{} h"
+
+msgid "~{} min"
+msgstr "~{} min"

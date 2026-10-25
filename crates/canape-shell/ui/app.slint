@@ -104,6 +104,11 @@ export component AppWindow inherits Window {
     property <length> enter-x;
     property <length> enter-y;
 
+    // The row each section page had: coming back from a sub-page keeps it.
+    property <int> performance-row: 0;
+    property <int> hardware-row: 0;
+    property <int> hardware-more-col: 0;
+    property <int> settings-row: 0;
     pure function section-of(page: int) -> int {
         page == 4 || page == 8 ? 3 : page == 5 ? 1 : page == 6 || page == 7 ? 2 : page
     }
@@ -302,6 +307,7 @@ export component AppWindow inherits Window {
                     from-x: root.enter-x;
                     from-y: root.enter-y;
                     PerformancePage {
+                        focus-row <=> root.performance-row;
                         open-bench => {
                             root.go(5);
                         }
@@ -315,6 +321,8 @@ export component AppWindow inherits Window {
                     from-x: root.enter-x;
                     from-y: root.enter-y;
                     HardwarePage {
+                        focus-row <=> root.hardware-row;
+                        more-col <=> root.hardware-more-col;
                         open-gyro => {
                             root.go(6);
                         }
@@ -331,6 +339,7 @@ export component AppWindow inherits Window {
                     from-x: root.enter-x;
                     from-y: root.enter-y;
                     SettingsPage {
+                        focus-row <=> root.settings-row;
                         open-profiles => {
                             root.go(4);
                         }

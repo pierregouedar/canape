@@ -664,8 +664,20 @@ msgstr "Gamemap"
 msgid "{} GB free"
 msgstr "{} GB vrij"
 
-msgid "Main story ~{} h"
-msgstr "Verhaal ~{} u"
+msgid "Time to beat"
+msgstr "Speelduur"
 
-msgid "Main story ~{} min"
-msgstr "Verhaal ~{} min"
+msgid "Main story"
+msgstr "Verhaal"
+
+msgid "Main + extras"
+msgstr "Verhaal + extra's"
+
+msgid "Completionist"
+msgstr "Completionist"
+
+msgid "~{} h"
+msgstr "~{} u"
+
+msgid "~{} min"
+msgstr "~{} min"
