@@ -181,6 +181,11 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 
 **Game page**: the cover large, the store, the title, when it was last played, the time played (Steam, with the API key), and the space it takes on disk (Steam, Epic, GOG; for an Epic or GOG game to install, the space it will take and the free space of the games folder, see [Installing owned games](#installing-owned-games)); behind, the game's wide art that Steam keeps on disk, when there is some. **A** launches the game ("Launching…", the cover comes forward a little) or, if it is not installed, installs it, with the progress under the button. **B** goes back to the shelf, on the same game. Once launched, the game moves first on Recent. Under the button, **This game's profile** sums up its profile (target, power range, learned power, frame rate limit): Canapé learns which program the game is the first time it is launched from Canapé (the first full-screen program to come to the front within 2 minutes, Steam, launchers and their windows aside), and shows it once a profile exists for it.
 
+Below the page, a second part: from the button, **down** scrolls the page to it (the **More** hint shows when it has something to show), **up** scrolls back, **B** always goes back to the shelf. It shows the **time to beat** and the **achievements** (both described below) when known.
+
+> [!NOTE]
+> Not tried on the Ally yet: the page scrolling was only seen on Linux, with the fake library.
+
 **Where the games come from**
 
 | Store | What Canapé reads | Launch | Covers |
@@ -211,7 +216,7 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 
 **Time to beat (IGDB)**
 
-Under the cover, a game's page can show a **Time to beat** panel with three average times: **Main story** (going straight through), **Main + extras** and **Completionist** (finishing everything), for example "~12 h · ~18 h · ~35 h", from [IGDB](https://www.igdb.com)'s "time to beat" data (Twitch's game database). This needs a free Twitch application of your own; without it nothing is asked and the page shows no time. There is no setting: the two values in `shell.json` are the switch.
+Below the game page (**down** from the button), a full-width **Time to beat** band can show three average times, each in its block under a coloured strip: **Main story** (going straight through), **Main + extras** and **Completionist** (finishing everything), for example "~12 h", "~18 h", "~35 h" ("—" for an unknown one; no band when none is known), from [IGDB](https://www.igdb.com)'s "time to beat" data (Twitch's game database). This needs a free Twitch application of your own; without it nothing is asked and the page shows no time. There is no setting: the two values in `shell.json` are the switch.
 
 1. Sign in at [dev.twitch.tv/console](https://dev.twitch.tv/console) with a Twitch account (Twitch requires two-factor authentication to register an application).
 2. **Applications → Register Your Application**: any name (for example "Canape ROG Ally"), **OAuth Redirect URLs** `http://localhost`, category **Application Integration**, client type **Confidential**. Create it.
@@ -232,6 +237,20 @@ Under the cover, a game's page can show a **Time to beat** panel with three aver
 
 > [!NOTE]
 > Not tried on the Ally yet. The IGDB field names (`external_games`, `game_type`, `game_time_to_beats`…) come from the known documentation and were not checked against the real API: if no time shows, `shell.log` says why.
+
+**Achievements (Steam)**
+
+Below the time to beat (or alone below the game page), a Steam game shows its **Achievements**: how many are unlocked ("23 / 51 · 45 %") with a bar, then one tile per achievement, icon and name: the unlocked ones first (the latest first), then the locked ones, with their grey icon (the most common first). The D-pad moves along the tiles, which scroll by rows at the edge; the line under them gives the focused one's description, the day it was unlocked and the share of players who have it. Up from the first row goes back to the top of the page.
+
+- Steam games only (installed or to install), with the Steam Web API key already used for the owned games (`steam_api_key` in `shell.json`, see [Installing owned games](#installing-owned-games)) and the Steam account last signed in on the device. Without the key nothing is asked and the part does not show.
+- Steam only answers for a public profile: in Steam, **Profile → Edit profile → Privacy settings**, **Game details** must be **Public**. With private game details, or for a game without achievements, nothing shows (one line in `shell.log`).
+- Names and descriptions come in the interface language when the game is translated. A hidden achievement keeps its description secret until it is unlocked.
+- The list is kept in `%LOCALAPPDATA%\Canape\achievements.json` and shows at once; it is asked for again when the page opens if it is more than an hour old (or in another language). Icons are downloaded once into `%LOCALAPPDATA%\Canape\achievement-icons`, only those on screen, three at a time. After a network error, nothing is asked for 10 minutes.
+- The key only goes to Steam (`api.steampowered.com`) and never appears in the logs.
+- GOG, Epic, Xbox and other games: no achievements. GOG has an achievements service, but it needs each game's own identifiers (from the game's build files) and an exchange of your GOG sign-in that could disturb the one gogdl keeps: left out for now.
+
+> [!NOTE]
+> Not tried on the Ally yet: neither the Steam requests (written from Valve's published Web API documentation and tested on answers written from it, not recorded ones), nor the icon downloads, nor the grid on the device. Only the page (on Linux, with the fake library) and the reading of the answers were tested.
 
 #### Adding other games
 
@@ -641,6 +660,7 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%LOCALAPPDATA%\Canape\library.json` | The games of the last scan, shown at once on the next start. Can be deleted: the next scan writes it again. |
 | `%LOCALAPPDATA%\Canape\recent.json` | When each game was last launched from Canapé (for the "Recent" order). |
 | `%LOCALAPPDATA%\Canape\igdb.json` | Times to beat asked of IGDB, per game, with their date. `igdb-token.json` next to it: the current Twitch token. Both can be deleted. |
+| `%LOCALAPPDATA%\Canape\achievements.json` | Steam achievements per game, with their date and language; `achievement-icons\` next to it: their downloaded icons. Both can be deleted. |
 | `%LOCALAPPDATA%\Canape\owned.json` | The owned games from the last request to Steam and Epic, shown at once in To install mode. Can be deleted: the next request writes it again. |
 | `%LOCALAPPDATA%\Canape\tools\` | `legendary.exe`, downloaded at the first Epic sign-in. Without it, Canapé no longer lists owned Epic games nor the ones Legendary installed; the next Epic sign-in downloads it again. |
 | `%USERPROFILE%\.config\legendary\` | Legendary's configuration, written by Legendary itself: Epic sign-in, games it installed (`installed.json`). |

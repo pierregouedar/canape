@@ -24,7 +24,7 @@ import "fonts/PlusJakartaSans-Bold.ttf";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
-export { Library, GameView, ShelfView, DetailView, AddGameView } from "library.slint";
+export { Library, GameView, ShelfView, DetailView, AddGameView, AchievementView } from "library.slint";
 
 // A section name; the current one is brighter and underlined.
 component Section inherits Rectangle {
@@ -184,14 +184,14 @@ export component AppWindow inherits Window {
                 animate opacity { duration: 240ms; easing: ease-in-out; }
             }
 
-            // The game page's wide art, over the glow.
+            // The game page's wide art, over the glow; gone below the fold.
             Image {
                 x: 0;
                 y: 0;
                 width: self.source.width * 1phx;
                 height: self.source.height * 1phx;
                 source: Library.detail-art;
-                opacity: Library.detail && Library.detail-art.width > 0 ? 1 : 0;
+                opacity: Library.detail && Library.detail-part == 0 && Library.detail-art.width > 0 ? 1 : 0;
                 visible: self.opacity > 0;
                 animate opacity { duration: 300ms; easing: ease-out; }
             }
@@ -423,7 +423,17 @@ export component AppWindow inherits Window {
                     glyph: "leftright";
                     text: @tr("Value");
                 }
-                Hint {
+                // The game page: Down shows what is below the fold, Up
+                // goes back to the top.
+                if root.page == 0 && Library.detail && Library.detail-part == 0 && Library.detail-more: Hint {
+                    glyph: "updown";
+                    text: @tr("More");
+                }
+                if root.page == 0 && Library.detail && Library.detail-part == 1: Hint {
+                    glyph: "updown";
+                    text: @tr("Top");
+                }
+                if root.page != 0 || !Library.detail || Library.detail-part == 0: Hint {
                     glyph: "A";
                     text: root.page != 0 ? @tr("Choose") : !Library.detail ? (root.front-games > 0 ? @tr("Details") : @tr("Choose")) : root.front-game.installed ? @tr("Play") : @tr("Install");
                 }

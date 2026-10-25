@@ -723,3 +723,27 @@ msgstr "Lenta"
 
 msgid "Fast"
 msgstr "Veloce"
+
+msgid "More"
+msgstr "Altro"
+
+msgid "Top"
+msgstr "In alto"
+
+msgid "Achievements"
+msgstr "Obiettivi"
+
+msgid "Hidden achievement"
+msgstr "Obiettivo nascosto"
+
+msgid "Locked"
+msgstr "Bloccato"
+
+msgid "Unlocked on {}"
+msgstr "Sbloccato il {}"
+
+msgid "Unlocked"
+msgstr "Sbloccato"
+
+msgid "{} % of players"
+msgstr "{} % dei giocatori"

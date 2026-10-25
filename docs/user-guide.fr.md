@@ -181,6 +181,11 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 
 **Fiche du jeu** : la jaquette en grand, la boutique, le titre, quand il a été joué, le temps de jeu (Steam, avec la clé API), et la place qu'il prend sur le disque (Steam, Epic, GOG ; pour un jeu Epic ou GOG à installer, la place qu'il prendra et la place libre du dossier des jeux, voir [Installer des jeux possédés](#installer-des-jeux-possédés)) ; derrière, la grande image du jeu que Steam garde sur le disque, s'il y en a une. **A** lance le jeu (« Lancement… », la jaquette avance un peu) ou, s'il n'est pas installé, l'installe, avec la progression sous le bouton. **B** revient à l'étagère, sur le même jeu. Une fois lancé, le jeu passe en tête de Récents. Sous le bouton, **Profil de ce jeu** résume son profil (objectif, plage de puissance, puissance apprise, limite de FPS) : Canapé apprend quel programme est le jeu la première fois qu'il est lancé depuis Canapé (le premier programme plein écran qui passe devant dans les 2 minutes, hors Steam, lanceurs et leurs fenêtres), et l'affiche dès qu'un profil existe pour lui.
 
+Sous la fiche, une seconde partie : depuis le bouton, **bas** fait défiler la page jusqu'à elle (l'indication **Plus** apparaît quand elle a quelque chose à montrer), **haut** remonte, **B** revient toujours à l'étagère. Elle montre la **durée de jeu** et les **succès** (décrits plus bas) quand ils sont connus.
+
+> [!NOTE]
+> Pas encore essayé sur l'Ally : le défilement de la fiche n'a été vu que sous Linux, avec la bibliothèque de test.
+
 **D'où viennent les jeux**
 
 | Boutique | Ce que lit Canapé | Lancement | Jaquettes |
@@ -211,7 +216,7 @@ Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutili
 
 **Durée de jeu (IGDB)**
 
-Sous la jaquette, la fiche d'un jeu peut afficher un bandeau **Durée de jeu** avec trois durées moyennes : **Histoire** (en allant droit au but), **Histoire + extras** et **Complétionniste** (tout finir), par exemple « ~12 h · ~18 h · ~35 h », d'après les données « time to beat » d'[IGDB](https://www.igdb.com) (la base de jeux de Twitch). Il faut pour cela une application Twitch à vous, gratuite ; sans elle, rien n'est demandé et la fiche n'affiche pas de durée. Il n'y a pas de réglage : la présence des deux valeurs dans `shell.json` suffit.
+Sous la fiche (**bas** depuis le bouton), un bandeau **Durée de jeu** pleine largeur peut montrer trois durées moyennes, chacune dans son bloc sous un bandeau de couleur : **Histoire** (en allant droit au but), **Histoire + extras** et **Complétionniste** (tout finir), par exemple « ~12 h », « ~18 h », « ~35 h » (« — » pour une durée inconnue ; pas de bandeau quand aucune ne l'est), d'après les données « time to beat » d'[IGDB](https://www.igdb.com) (la base de jeux de Twitch). Il faut pour cela une application Twitch à vous, gratuite ; sans elle, rien n'est demandé et la fiche n'affiche pas de durée. Il n'y a pas de réglage : la présence des deux valeurs dans `shell.json` suffit.
 
 1. Connectez-vous sur [dev.twitch.tv/console](https://dev.twitch.tv/console) avec un compte Twitch (Twitch exige la double authentification pour créer une application).
 2. **Applications → Register Your Application** : un nom au choix (par exemple « Canape ROG Ally »), **OAuth Redirect URLs** `http://localhost`, catégorie **Application Integration**, type de client **Confidential**. Enregistrez.
@@ -232,6 +237,20 @@ Sous la jaquette, la fiche d'un jeu peut afficher un bandeau **Durée de jeu** a
 
 > [!NOTE]
 > Pas encore essayé sur l'Ally. Les noms des champs IGDB (`external_games`, `game_type`, `game_time_to_beats`…) viennent de la documentation connue et n'ont pas été vérifiés sur l'API réelle : si aucune durée n'apparaît, `shell.log` dit pourquoi.
+
+**Succès (Steam)**
+
+Sous la durée de jeu (ou seule sous la fiche), un jeu Steam montre ses **Succès** : combien sont débloqués (« 23 / 51 · 45 % ») avec une barre, puis une tuile par succès, icône et nom : d'abord les débloqués (les plus récents en premier), puis les verrouillés, icône grisée (les plus courants en premier). La croix directionnelle se déplace entre les tuiles, qui défilent par rangées au bord ; la ligne en dessous donne la description de celle qui a le focus, le jour où elle a été débloquée et la part des joueurs qui l'ont. Haut depuis la première rangée remonte en haut de la fiche.
+
+- Jeux Steam seulement (installés ou à installer), avec la clé d'API Web Steam déjà utilisée pour les jeux possédés (`steam_api_key` dans `shell.json`, voir [Installer des jeux possédés](#installer-des-jeux-possédés)) et le dernier compte Steam connecté sur l'appareil. Sans la clé, rien n'est demandé et la partie n'apparaît pas.
+- Steam ne répond que pour un profil public : dans Steam, **Profil → Modifier le profil → Paramètres de confidentialité**, **Détails des jeux** doit être **Public**. Avec des détails des jeux privés, ou pour un jeu sans succès, rien ne s'affiche (une ligne dans `shell.log`).
+- Noms et descriptions arrivent dans la langue de l'interface quand le jeu est traduit. Un succès caché garde sa description secrète tant qu'il n'est pas débloqué.
+- La liste est gardée dans `%LOCALAPPDATA%\Canape\achievements.json` et s'affiche tout de suite ; elle est redemandée à l'ouverture de la fiche si elle a plus d'une heure (ou est dans une autre langue). Les icônes sont téléchargées une fois dans `%LOCALAPPDATA%\Canape\achievement-icons`, seulement celles à l'écran, trois à la fois. Après une erreur réseau, plus rien n'est demandé pendant 10 minutes.
+- La clé ne va qu'à Steam (`api.steampowered.com`) et n'apparaît jamais dans les journaux.
+- Jeux GOG, Epic, Xbox et autres : pas de succès. GOG a un service de succès, mais il demande les identifiants propres à chaque jeu (dans les fichiers de sa version) et un échange de votre connexion GOG qui pourrait déranger celle que garde gogdl : laissé de côté pour l'instant.
+
+> [!NOTE]
+> Pas encore essayé sur l'Ally : ni les requêtes Steam (écrites d'après la documentation publiée de l'API Web de Valve et testées sur des réponses écrites d'après elle, pas enregistrées), ni le téléchargement des icônes, ni la grille sur l'appareil. Seules la fiche (sous Linux, avec la bibliothèque de test) et la lecture des réponses ont été testées.
 
 #### Ajouter d'autres jeux
 
@@ -641,6 +660,7 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |
 | `%LOCALAPPDATA%\Canape\recent.json` | Quand chaque jeu a été lancé depuis Canapé pour la dernière fois (pour l'ordre « Récents »). |
 | `%LOCALAPPDATA%\Canape\igdb.json` | Durées de jeu demandées à IGDB, par jeu, avec leur date. `igdb-token.json` à côté : le jeton Twitch en cours. Les deux peuvent être supprimés. |
+| `%LOCALAPPDATA%\Canape\achievements.json` | Succès Steam par jeu, avec leur date et leur langue ; `achievement-icons\` à côté : leurs icônes téléchargées. Les deux peuvent être supprimés. |
 | `%LOCALAPPDATA%\Canape\owned.json` | Les jeux possédés de la dernière demande à Steam et à Epic, affichés tout de suite en mode À installer. Peut être supprimé : la demande suivante le réécrit. |
 | `%LOCALAPPDATA%\Canape\tools\` | `legendary.exe`, téléchargé à la première connexion Epic. Sans lui, Canapé ne liste plus les jeux Epic possédés ni ceux installés par Legendary ; la prochaine connexion Epic le télécharge de nouveau. |
 | `%USERPROFILE%\.config\legendary\` | Configuration de Legendary, écrite par Legendary lui-même : connexion Epic, jeux qu'il a installés (`installed.json`). |

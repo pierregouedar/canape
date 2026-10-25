@@ -723,3 +723,27 @@ msgstr "Wolna"
 
 msgid "Fast"
 msgstr "Szybka"
+
+msgid "More"
+msgstr "Więcej"
+
+msgid "Top"
+msgstr "Na górę"
+
+msgid "Achievements"
+msgstr "Osiągnięcia"
+
+msgid "Hidden achievement"
+msgstr "Ukryte osiągnięcie"
+
+msgid "Locked"
+msgstr "Zablokowane"
+
+msgid "Unlocked on {}"
+msgstr "Odblokowano {}"
+
+msgid "Unlocked"
+msgstr "Odblokowane"
+
+msgid "{} % of players"
+msgstr "{} % graczy"

@@ -723,3 +723,27 @@ msgstr "느리게"
 
 msgid "Fast"
 msgstr "빠르게"
+
+msgid "More"
+msgstr "더 보기"
+
+msgid "Top"
+msgstr "위로"
+
+msgid "Achievements"
+msgstr "도전 과제"
+
+msgid "Hidden achievement"
+msgstr "숨겨진 도전 과제"
+
+msgid "Locked"
+msgstr "잠김"
+
+msgid "Unlocked on {}"
+msgstr "{} 달성"
+
+msgid "Unlocked"
+msgstr "달성"
+
+msgid "{} % of players"
+msgstr "플레이어의 {} %"

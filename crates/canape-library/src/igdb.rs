@@ -84,7 +84,8 @@ impl Token {
     }
 }
 
-fn write(path: &Path, text: &str) -> io::Result<()> {
+/// Writes `text` to `path` through a temporary file, creating its folder.
+pub(crate) fn write(path: &Path, text: &str) -> io::Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }

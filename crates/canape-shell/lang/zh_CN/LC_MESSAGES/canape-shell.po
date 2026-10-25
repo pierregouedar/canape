@@ -723,3 +723,27 @@ msgstr "慢"
 
 msgid "Fast"
 msgstr "快"
+
+msgid "More"
+msgstr "更多"
+
+msgid "Top"
+msgstr "顶部"
+
+msgid "Achievements"
+msgstr "成就"
+
+msgid "Hidden achievement"
+msgstr "隐藏成就"
+
+msgid "Locked"
+msgstr "未解锁"
+
+msgid "Unlocked on {}"
+msgstr "解锁于 {}"
+
+msgid "Unlocked"
+msgstr "已解锁"
+
+msgid "{} % of players"
+msgstr "{} % 的玩家"
