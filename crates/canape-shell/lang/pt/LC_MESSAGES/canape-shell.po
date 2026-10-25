@@ -618,3 +618,18 @@ msgstr "Segue a cor de destaque"
 
 msgid "Back buttons and lighting"
 msgstr "Botões traseiros e iluminação"
+
+msgid "Other games"
+msgstr "Outros jogos"
+
+msgid "Add a game"
+msgstr "Adicionar um jogo"
+
+msgid "Added"
+msgstr "Adicionado"
+
+msgid "Looking for shortcuts…"
+msgstr "A procurar atalhos…"
+
+msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
+msgstr "Nenhum atalho para um jogo no menu Iniciar nem no ambiente de trabalho. Os jogos também podem ser listados em games.json, em %LOCALAPPDATA%\\Canape."

@@ -126,6 +126,8 @@ struct State {
     jobs: Sender<Job>,
     last_scan: Option<Instant>,
     scanning: bool,
+    /// Scan again once the running scan is done (games.json changed).
+    rescan: bool,
     /// Development fixture: nothing is really launched.
     fixture: bool,
     roots: Roots,
@@ -196,14 +198,15 @@ fn played_index(game: &Game, now: u64, offset: i64) -> i32 {
     }
 }
 
-/// Where the games come from: the real stores, or in a development build
-/// the fake machine of `CANAPE_LIBRARY_FIXTURE` (see
+/// Where the games come from: the real stores and `games.json` in `dir`, or
+/// in a development build the fake machine of `CANAPE_LIBRARY_FIXTURE` (see
 /// [`canape_library::Roots::fixture`]).
-fn roots(tools_dir: &Path) -> (Roots, bool) {
+fn roots(dir: &Path, tools_dir: &Path) -> (Roots, bool) {
     match std::env::var_os("CANAPE_LIBRARY_FIXTURE") {
         Some(dir) if cfg!(debug_assertions) => (Roots::fixture(&PathBuf::from(dir)), true),
         _ => {
             let mut roots = Roots::system();
+            roots.external = Some(dir.join("games.json"));
             let exe = tools::legendary_path(tools_dir);
             roots.legendary = canape_library::legendary::config_dir()
                 .filter(|_| exe.is_file())
@@ -695,6 +698,7 @@ impl State {
 
     fn scan(&mut self) {
         if self.scanning {
+            self.rescan = true;
             return;
         }
         self.scanning = true;
@@ -706,6 +710,11 @@ impl State {
         let fixture = self.fixture;
         thread::spawn(move || {
             let started = Instant::now();
+            if let Some(path) = &roots.external
+                && let Err(err) = canape_library::external::load(path)
+            {
+                crate::log(&format!("library: {}: {err}", path.display()));
+            }
             let mut games = canape_library::scan(&roots);
             // Launcher installs handed to Legendary launch without the
             // launcher from now on: scan again to pick them up.
@@ -1161,6 +1170,9 @@ fn publish(cache_path: &Path, games: Vec<Game>) {
                 library.set_scanning(false);
                 library.set_ready(true);
             }
+            if std::mem::take(&mut state.rescan) {
+                state.scan();
+            }
         })
     });
 }
@@ -1246,6 +1258,25 @@ pub fn foreground_seen(exe: Option<String>) {
     let _ = slint::invoke_from_event_loop(move || with_state(|state| state.learn_exe(&exe)));
 }
 
+/// What the list of games to add needs: where `games.json` is, every game
+/// found, and whether the library is a development fixture.
+pub fn snapshot() -> Option<(PathBuf, Vec<Game>, bool)> {
+    let mut out = None;
+    with_state(|state| {
+        out = state
+            .roots
+            .external
+            .clone()
+            .map(|path| (path, state.all.clone(), state.fixture));
+    });
+    out
+}
+
+/// Scans again: `games.json` changed.
+pub fn rescan() {
+    with_state(State::scan);
+}
+
 /// Tells whether the library page is the one shown.
 pub fn set_shown(shown: bool) {
     LIBRARY_SHOWN.store(shown, Ordering::Relaxed);
@@ -1255,7 +1286,7 @@ pub fn set_shown(shown: bool) {
 pub fn start(ui: &AppWindow) {
     let dir = canape_core::log::dir("LOCALAPPDATA");
     let tools_dir = dir.join("tools");
-    let (roots, fixture) = roots(&tools_dir);
+    let (roots, fixture) = roots(&dir, &tools_dir);
     // A fixture must not overwrite the real cache.
     let suffix = if fixture { "-fixture" } else { "" };
     let cache_path = dir.join(format!("library{suffix}.json"));
@@ -1290,6 +1321,7 @@ pub fn start(ui: &AppWindow) {
         wanted,
         last_scan: None,
         scanning: false,
+        rescan: false,
         fixture,
         roots,
         cache_path,

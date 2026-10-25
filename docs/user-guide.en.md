@@ -22,6 +22,7 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
   - [Controls](#controls)
   - [Shared elements](#shared-elements)
   - [Games](#games)
+    - [Adding other games](#adding-other-games)
     - [Installing owned games](#installing-owned-games)
   - [Performance](#performance)
   - [Hardware](#hardware)
@@ -168,10 +169,10 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 
 | Area | Contents |
 |---|---|
-| **Selected game** | Its store's logo and name (STEAM, EPIC, GOG, XBOX), its title, when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…) and the **Details** button: A opens the game page. Behind it, a glow takes the colour of its cover. |
+| **Selected game** | Its store's logo and name (STEAM, EPIC, GOG, XBOX, OTHER GAMES), its title, when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…) and the **Details** button: A opens the game page. Behind it, a glow takes the colour of its cover. |
 | **Recent** | The last 10 games played, the most recent first. Absent until a game has been played. The selected cover is larger, opaque and outlined in white; the others are dimmed. A game without art shows its title on a tinted card. |
 | **Installed · N** | Every installed game, in alphabetical order. |
-| **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N** | Each store's games, with its logo, installed and to install mixed in alphabetical order. Only stores that have games (a lone store with nothing to install gets no shelf: it would repeat Installed). |
+| **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N**, **Other games · N** | Each store's games, with its logo, installed and to install mixed in alphabetical order, then the games added by hand (see [Adding other games](#adding-other-games)). Only stores that have games (a lone store with nothing to install gets no shelf: it would repeat Installed). |
 | **To install · N** | Always last: the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)). Empty, it explains how to set up Steam and Epic. |
 
 **Moving around**: left and right move along the shelf; it only scrolls when the selection reaches an edge, keeping one game visible beside it. The backdrop takes the selected game's colour once you stop on it. Up and down go to the previous or next shelf: it slides to the top, the next one peeks in at the bottom, dimmed. Each shelf remembers its selected game when you leave it. On To install, the header describes the game to install and the button becomes **Install**. **A** opens the selected game's page.
@@ -188,9 +189,10 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 | **Epic Games** | The launcher's manifests (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, engines and unfinished installs are left out. Plus the games installed from Canapé with Legendary (see [below](#installing-owned-games)). | Through Legendary, without the launcher. Once signed in to Epic in Canapé, games installed by the Epic launcher are handed to Legendary at the next scan (`legendary import`, no new download); until then, or if that fails, through the launcher | Downloaded (see below), else a title card |
 | **GOG** | The registry (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), where GOG Galaxy and the offline installers register each game. DLC are left out. | The game's executable directly, without Galaxy | Downloaded (see below), else a title card |
 | **Xbox app** | The `XboxGames` folders of every drive (`Content\MicrosoftGame.config`). | Through Windows (`shell:AppsFolder\…`) | The game's square logo |
+| **Other games** | `%LOCALAPPDATA%\Canape\games.json` (see [Adding other games](#adding-other-games)). | The program directly, with its arguments | The one given in `games.json`, else downloaded by title (SteamGridDB), else a title card |
 
 - The last played time comes from Steam for Steam games, and from Canapé for every game launched from it.
-- A game installed from two stores shows once: the copy played last, else the Steam one, then GOG, Epic and Xbox.
+- A game installed from two stores shows once: the copy played last, else the Steam one, then GOG, Epic, Xbox and last `games.json`.
 - The list shows at once from the last scan; a new scan runs in the background at every start, and again when you come back to the library after a minute away. A game installed meanwhile appears then.
 - Xbox app games installed outside an `XboxGames` folder are not found.
 - Canapé launches games itself, without rights: like every app of the session.
@@ -206,6 +208,44 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 
 > [!NOTE]
 > Not tried on the Ally yet: the download goes through WinHTTP (built into Windows) and was only tested on Linux against recorded answers.
+
+#### Adding other games
+
+<img src="images/en/add-game.png" alt="Add a game sub-page" width="720">
+
+<sub>Made-up shortcuts (`tools/fake-library.py`).</sub>
+
+> [!NOTE]
+> **Not tried on the Ally yet**: neither reading the Start menu and desktop shortcuts nor launching these games. Only the UI (on Linux, with the fake library), reading `games.json` and reading `.lnk` files (on shortcuts generated from the published format) were tested.
+
+A game no store knows (a standalone `.exe`, an itch.io game, an emulator…) can be added in two ways. These games get their own **Other games** shelf, with a gamepad icon, and launch directly, without a store.
+
+**From Canapé, with the gamepad**: **Settings → Add a game** lists, by name, the games already added ("Added") and the shortcuts of the Start menu (yours and everyone's) and of both desktops that could be games, with the program's name. **A** adds the game, or takes it out if it was added; the library updates at once. Left out: shortcuts to anything but an `.exe` (documents, web pages), Windows' own programs, uninstallers, installers, update tools, manuals and support pages, the stores' clients, and games a store already lists (same title or same program). What is left may include apps that are not games: nothing is added unless you pick it.
+
+**By hand**, in `%LOCALAPPDATA%\Canape\games.json` (the file the sub-page writes):
+
+```json
+{ "games": [
+  { "title": "Celeste", "exe": "D:\\Games\\Celeste\\Celeste.exe" },
+  { "title": "Metroid Fusion", "exe": "D:\\Emu\\mGBA\\mGBA.exe",
+    "args": "\"D:\\Roms\\Metroid Fusion.gba\"", "dir": "D:\\Emu\\mGBA",
+    "cover": "covers\\fusion.png" },
+  { "title": "An itch.io game", "exe": "itch://caves/123/launch" }
+] }
+```
+
+| Field | Role |
+|---|---|
+| `title` | The name shown (required). |
+| `exe` | What is started (required): an executable, a `.lnk` shortcut, a script, or an address (`itch://…`, `steam://…`), opened like a double click. |
+| `args` | Arguments, optional (for example the ROM for an emulator). |
+| `dir` | The working folder; by default, the executable's. |
+| `cover` | A JPEG or PNG cover, portrait if possible; a relative path starts from the folder of `games.json`. Without one, a cover is looked up on SteamGridDB by title if the key is set (see [Downloaded covers](#games)), otherwise a title card shows. |
+
+- In JSON, each `\` of a path is written `\\` (or use `/`, which Windows accepts too).
+- An emulator can be listed several times with different `args`: each game is separate. The Recent history follows the program and its arguments: changing the title keeps it.
+- An unreadable file (a stray comma…) shows none of these games; the error is in `shell.log` and in yellow on the sub-page, and Canapé never rewrites a file it could not read.
+- Changes made by hand show up when you come back to the library after a minute, or at the next start.
 
 #### Installing owned games
 
@@ -406,6 +446,7 @@ Setting lines: up and down move from one to the next (the left column, then the 
 | **Download missing covers** | See [Games](#games). |
 | **Epic Games account** | The signed-in account, or "Sign in": **A** opens the Epic sign-in, downloading Legendary first if needed (see [Installing owned games](#installing-owned-games)). Not tried on the Ally yet. |
 | **Game profiles** | The number of profiles; **A** opens the [Game profiles](#game-profiles) sub-page. |
+| **Add a game** | The number of games in `games.json`; **A** opens the list of games to add (see [Adding other games](#adding-other-games)). Not tried on the Ally yet. |
 | **Accent colour** | Eight ready-made swatches (left and right, A picks) and three lines **Hue**, **Saturation** and **Brightness** that left and right move. The whole interface follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the Game Bar widget follows the accent colour**. |
 
 Bottom right: Canapé's version, the state of the connection to the service and whether a Steam API key is in `shell.json` (its validity is not checked).
@@ -556,6 +597,7 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%ProgramData%\Canape\state.json` | Last applied state, re-applied when the service starts: mode, TDP, auto TDP, fan curves, frame rate limit, charge limit, controller mode, back buttons, stick lighting, profiles, last bench. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Shell log: launches (with their arguments), chosen language, ADL state, service errors. |
 | `%LOCALAPPDATA%\Canape\shell.json` | Shell preferences: `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `refresh_hz`, `ally_buttons`. |
+| `%LOCALAPPDATA%\Canape\games.json` | The games added by hand or from **Settings → Add a game** (see [Adding other games](#adding-other-games)). |
 | `%LOCALAPPDATA%\Canape\covers\` | Downloaded covers (`<store>_<id>.jpg` / `.png`, `.miss` markers). |
 | `%LOCALAPPDATA%\Canape\library.json` | The games of the last scan, shown at once on the next start. Can be deleted: the next scan writes it again. |
 | `%LOCALAPPDATA%\Canape\recent.json` | When each game was last launched from Canapé (for the "Recent" order). |

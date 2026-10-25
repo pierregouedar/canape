@@ -7,7 +7,7 @@
 import { Theme } from "theme.slint";
 import { App, Notice } from "state.slint";
 import { BatteryIcon, Bolt, Hint, Logo } from "widgets.slint";
-import { BenchPage, GyroPage, ProfilesPage } from "pages.slint";
+import { AddGamesPage, BenchPage, GyroPage, ProfilesPage } from "pages.slint";
 import { SettingsPage } from "settings.slint";
 import { PerformancePage } from "performance.slint";
 import { GameView, Library, LibraryPage } from "library.slint";
@@ -24,7 +24,7 @@ import "fonts/PlusJakartaSans-Bold.ttf";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
-export { Library, GameView, ShelfView, DetailView } from "library.slint";
+export { Library, GameView, ShelfView, DetailView, AddGameView } from "library.slint";
 
 // A section name; the current one is brighter and underlined.
 component Section inherits Rectangle {
@@ -92,7 +92,8 @@ export component AppWindow inherits Window {
 
     // Sections 0 Games, 1 Performance, 2 Hardware, 3 Settings; then the
     // sub-pages 4 Profiles (from Settings), 5 Bench (from Performance),
-    // 6 Gyro and 7 Controller (both from Hardware).
+    // 6 Gyro and 7 Controller (both from Hardware), 8 Add a game (from
+    // Settings).
     in-out property <int> page: 0;
     property <int> section: root.section-of(root.page);
     // The selected game on the shelf in front, for the hints.
@@ -104,7 +105,7 @@ export component AppWindow inherits Window {
     property <length> enter-y;
 
     pure function section-of(page: int) -> int {
-        page == 4 ? 3 : page == 5 ? 1 : page == 6 || page == 7 ? 2 : page
+        page == 4 || page == 8 ? 3 : page == 5 ? 1 : page == 6 || page == 7 ? 2 : page
     }
     function go(page: int) {
         let to-section = root.section-of(page);
@@ -333,6 +334,9 @@ export component AppWindow inherits Window {
                         open-profiles => {
                             root.go(4);
                         }
+                        open-add-games => {
+                            root.go(8);
+                        }
                     }
                 }
                 if root.page == 4: Reveal {
@@ -371,6 +375,15 @@ export component AppWindow inherits Window {
                     from-y: root.enter-y;
                     GyroPage { }
                 }
+                if root.page == 8: Reveal {
+                    x: 32px;
+                    y: 28px;
+                    width: parent.width - 80px;
+                    height: parent.height - 28px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    AddGamesPage { }
+                }
             }
 
             HorizontalLayout {
@@ -397,7 +410,7 @@ export component AppWindow inherits Window {
                     glyph: "updown";
                     text: @tr("Setting");
                 }
-                if root.page >= 1 && root.page != 4: Hint {
+                if root.page >= 1 && root.page != 4 && root.page != 8: Hint {
                     glyph: "leftright";
                     text: @tr("Value");
                 }

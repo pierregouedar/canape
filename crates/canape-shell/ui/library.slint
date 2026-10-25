@@ -14,7 +14,8 @@ import { RevealLine } from "kit.slint";
 export struct GameView {
     id: string,
     title: string,
-    // Store name: "Steam", "Epic", "GOG" or "Xbox" (brands: not translated).
+    // Store name: "Steam", "Epic", "GOG" or "Xbox" (brands: not translated),
+    // or "Other" for a game of games.json (see Library.store-name).
     source: string,
     // Empty until decoded, and again once scrolled far away.
     cover: image,
@@ -53,6 +54,16 @@ export struct DetailView {
     exe: string,
 }
 
+// A line of the "Add a game" sub-page.
+export struct AddGameView {
+    // The game's title (a shortcut's name).
+    name: string,
+    // The program's file name.
+    file: string,
+    // In games.json: A takes it out; otherwise A adds it.
+    added: bool,
+}
+
 export global Library {
     // Top to bottom.
     in property <[ShelfView]> shelves;
@@ -89,6 +100,17 @@ export global Library {
     in property <bool> owned-loading;
     // Last install or sign-in failure, "" when none.
     in property <string> install-error;
+    // Games listed in games.json.
+    in property <int> external;
+    // The "Add a game" sub-page: games.json and the shortcuts that could
+    // be games, while they are being looked for, and why games.json could
+    // not be read or written ("" when it could).
+    in property <[AddGameView]> add-games;
+    in property <bool> add-games-loading;
+    in property <string> add-games-error;
+    callback open-add-games();
+    // A on this line: add the game, or take it out of games.json.
+    callback toggle-add-game(int);
 
     // Bring this shelf to the front.
     callback focus-shelf(int);
@@ -112,6 +134,11 @@ export global Library {
     callback focus-changed(bool);
     // The library page was shown (true) or left.
     callback shown(bool);
+
+    // A store's name as shown; "Other" is the games of games.json.
+    public pure function store-name(store: string) -> string {
+        store == "Other" ? @tr("Other games") : store
+    }
 
     public pure function played-text(played: int) -> string {
         if played == 1 {
@@ -280,7 +307,7 @@ component ShelfTitle inherits HorizontalLayout {
         }
     }
     label := Text {
-        text: root.shelf.kind == 0 ? @tr("Recent") : root.shelf.kind == 1 ? @tr("Installed · {}", root.shelf.games.length) : root.shelf.kind == 2 ? root.shelf.store + " · " + root.shelf.games.length : @tr("To install · {}", root.shelf.games.length);
+        text: root.shelf.kind == 0 ? @tr("Recent") : root.shelf.kind == 1 ? @tr("Installed · {}", root.shelf.games.length) : root.shelf.kind == 2 ? Library.store-name(root.shelf.store) + " · " + root.shelf.games.length : @tr("To install · {}", root.shelf.games.length);
         color: root.front ? Theme.text.mix(Theme.dim, 0.6) : Theme.dim;
         font-size: 14px;
         font-weight: 600;
@@ -356,7 +383,7 @@ component GamePage inherits Rectangle {
                 }
             }
             Text {
-                text: root.game.source.to-uppercase();
+                text: Library.store-name(root.game.source).to-uppercase();
                 color: Theme.dim;
                 font-size: 13px;
                 font-weight: 600;
@@ -623,7 +650,7 @@ export component LibraryPage inherits Rectangle {
                 }
             }
             Text {
-                text: root.has-games ? root.current.source.to-uppercase() : root.to-install ? @tr("To install").to-uppercase() : "";
+                text: root.has-games ? Library.store-name(root.current.source).to-uppercase() : root.to-install ? @tr("To install").to-uppercase() : "";
                 color: Theme.dim;
                 font-size: 13px;
                 font-weight: 600;

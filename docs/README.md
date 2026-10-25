@@ -20,6 +20,7 @@ All the project's documentation, in French and English. The milestone reports an
 |---|---|---|
 | [`game-install-study.md`](game-install-study.md) | 🇫🇷 | Étude et état : installer les jeux possédés depuis Canapé sans ouvrir les launchers. Steam et Epic (via Legendary) sont codés, pas encore essayés sur l'Ally ; GOG et Xbox restent ouverts. · Study and status: installing owned games from Canapé without the store launchers. Steam and Epic (through Legendary) are coded, not tried on the Ally yet; GOG and Xbox are still open. |
 | [`gyro-study.md`](gyro-study.md) | 🇫🇷 | Étude et état : la visée au gyroscope. Gyroscope → souris depuis le shell, sans pilote, codé, pas encore essayé sur l'Ally ; le stick droit reste ouvert. · Study and status: gyro aiming. Gyroscope → mouse from the shell, without a driver, coded, not tried on the Ally yet; the right stick is still open. |
+| [`howlongtobeat-study.md`](howlongtobeat-study.md) | 🇫🇷 | Étude : la durée de jeu (HowLongToBeat) sur la fiche du jeu. Pas implémentée : sans API officielle, l'accès au site casse tous les 2 à 3 mois ; IGDB recommandé si la fonction est voulue. · Study: time to beat (HowLongToBeat) on the game page. Not implemented: with no official API, access to the site breaks every 2 to 3 months; IGDB recommended if the feature is wanted. |
 | [`gpu-renderer-test.md`](gpu-renderer-test.md) | 🇫🇷 | Essai sur l'Ally : rendu logiciel face à OpenGL et Direct3D 12 (mémoire, FPS de l'accueil, CPU, effet en jeu) ; on garde le rendu logiciel. · Ally test: software rendering against OpenGL and Direct3D 12 (memory, home page FPS, CPU, in-game effect); software rendering stays. |
 | [`architecture.md`](architecture.md) | 🇫🇷 | Document de conception initial : composants, démarrage en FSE, IPC, matériel, objectifs de légèreté, feuille de route. Sa feuille de route n'est plus à jour : voir l'[état d'avancement](../README.md#état-davancement). · Initial design document; its roadmap is out of date, see the [project status](../README.md#project-status). |
 | [`../packaging/README.md`](../packaging/README.md) | 🇫🇷 | Fichiers du paquet d'identité, script d'installation, pièges de Windows. · Identity package files, install script, Windows pitfalls. |
@@ -53,6 +54,7 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 | [`fr/bench-results.png`](images/fr/bench-results.png) | Banc d'essai (résultats) | Français |
 | [`fr/bench-running.png`](images/fr/bench-running.png) | Banc d'essai en cours | Français |
 | [`fr/settings.png`](images/fr/settings.png) | Réglages (langue, boutons de l'Ally, jaquettes, compte Epic, couleur d'accent) | Français |
+| [`fr/add-game.png`](images/fr/add-game.png) | Ajouter un jeu (raccourcis inventés) | Français |
 | [`en/library.png`](images/en/library.png) | Library (made-up games) | English |
 | [`en/library-install.png`](images/en/library-install.png) | Library, games to install (simulated install) | English |
 | [`en/performance.png`](images/en/performance.png) | Performance | English |
@@ -61,6 +63,7 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 | [`en/bench-results.png`](images/en/bench-results.png) | Bench (results) | English |
 | [`en/bench-running.png`](images/en/bench-running.png) | Bench running | English |
 | [`en/settings.png`](images/en/settings.png) | Settings (language, Ally buttons, covers, Epic account, accent colour) | English |
+| [`en/add-game.png`](images/en/add-game.png) | Add a game (made-up shortcuts) | English |
 | [`ja/library.png`](images/ja/library.png) | ゲーム | 日本語 |
 | [`ru/performance.png`](images/ru/performance.png) | Производительность | Русский |
 | [`de/settings.png`](images/de/settings.png) | Einstellungen | Deutsch |

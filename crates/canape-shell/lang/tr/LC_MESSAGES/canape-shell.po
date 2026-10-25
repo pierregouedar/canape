@@ -618,3 +618,18 @@ msgstr "Vurgu rengini izler"
 
 msgid "Back buttons and lighting"
 msgstr "Arka düğmeler ve aydınlatma"
+
+msgid "Other games"
+msgstr "Diğer oyunlar"
+
+msgid "Add a game"
+msgstr "Oyun ekle"
+
+msgid "Added"
+msgstr "Eklendi"
+
+msgid "Looking for shortcuts…"
+msgstr "Kısayollar aranıyor…"
+
+msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
+msgstr "Başlat menüsünde veya masaüstünde oyun kısayolu yok. Oyunlar %LOCALAPPDATA%\\Canape içindeki games.json dosyasına da yazılabilir."

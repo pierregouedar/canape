@@ -618,3 +618,18 @@ msgstr "Volgt de accentkleur"
 
 msgid "Back buttons and lighting"
 msgstr "Achterknoppen en verlichting"
+
+msgid "Other games"
+msgstr "Andere games"
+
+msgid "Add a game"
+msgstr "Game toevoegen"
+
+msgid "Added"
+msgstr "Toegevoegd"
+
+msgid "Looking for shortcuts…"
+msgstr "Snelkoppelingen zoeken…"
+
+msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
+msgstr "Geen snelkoppeling naar een game in het Startmenu of op het bureaublad. Games kunnen ook in games.json staan, in %LOCALAPPDATA%\\Canape."

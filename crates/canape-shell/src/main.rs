@@ -10,6 +10,7 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod accent;
+mod addgames;
 mod backdrop;
 #[cfg(windows)]
 mod buttons;
@@ -122,6 +123,7 @@ fn main() -> Result<(), slint::PlatformError> {
     }
     library::set_shown(ui.get_page() == 0);
     library::start(&ui);
+    addgames::start(&ui);
 
     ui.global::<App>().set_clock(clock::now().into());
     let clock_timer = Timer::default();

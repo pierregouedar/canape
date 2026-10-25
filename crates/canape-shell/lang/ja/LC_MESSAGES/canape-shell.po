@@ -618,3 +618,18 @@ msgstr "アクセントカラーに合わせる"
 
 msgid "Back buttons and lighting"
 msgstr "背面ボタンとライト"
+
+msgid "Other games"
+msgstr "その他のゲーム"
+
+msgid "Add a game"
+msgstr "ゲームを追加"
+
+msgid "Added"
+msgstr "追加済み"
+
+msgid "Looking for shortcuts…"
+msgstr "ショートカットを検索中…"
+
+msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
+msgstr "スタートメニューやデスクトップにゲームのショートカットがありません。%LOCALAPPDATA%\\Canape の games.json にゲームを記述することもできます。"
