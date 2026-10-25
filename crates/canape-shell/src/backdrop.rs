@@ -98,6 +98,24 @@ pub fn paint(mask: &Mask, color: [u8; 3], background: [u8; 3]) -> Vec<u8> {
     out
 }
 
+/// Fades a game's wide art (RGB, `width` wide) into `background`: fully
+/// towards the bottom, and partly on the left where the game page writes.
+pub fn fade_art(pixels: &mut [u8], width: u32, background: [u8; 3]) {
+    let width = width.max(1) as usize;
+    let height = (pixels.len() / 3 / width).max(1);
+    for (y, row) in pixels.chunks_exact_mut(width * 3).enumerate() {
+        let down = smoothstep(0.3, 1.0, (y as f32 + 0.5) / height as f32);
+        for (x, px) in row.chunks_exact_mut(3).enumerate() {
+            let left = 0.75 * (1.0 - smoothstep(0.0, 0.6, (x as f32 + 0.5) / width as f32));
+            let k = down.max(left);
+            for c in 0..3 {
+                let v = f32::from(px[c]) * (1.0 - k) + f32::from(background[c]) * k;
+                px[c] = v.round() as u8;
+            }
+        }
+    }
+}
+
 fn smoothstep(from: f32, to: f32, x: f32) -> f32 {
     let t = ((x - from) / (to - from)).clamp(0.0, 1.0);
     t * t * (3.0 - 2.0 * t)
@@ -151,6 +169,17 @@ mod tests {
     fn fallback_is_stable() {
         assert_eq!(fallback("steam:10"), fallback("steam:10"));
         assert_ne!(fallback("steam:10"), fallback("steam:20"));
+    }
+
+    #[test]
+    fn art_fades_into_the_background() {
+        let mut pixels = [200u8, 200, 200].repeat(100 * 50);
+        fade_art(&mut pixels, 100, [10, 10, 10]);
+        let at = |x: usize, y: usize| pixels[(y * 100 + x) * 3];
+        // Untouched at the top right, background at the bottom, darker left.
+        assert!(at(99, 0) > 190);
+        assert_eq!(at(99, 49), 10);
+        assert!(at(0, 0) < 70);
     }
 
     #[test]

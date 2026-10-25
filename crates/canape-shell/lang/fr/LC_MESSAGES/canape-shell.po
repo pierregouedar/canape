@@ -442,12 +442,6 @@ msgstr "Revenez au jeu : le banc d'essai démarre tout seul."
 msgid "Waiting for the store…"
 msgstr "En attente de la boutique…"
 
-msgid "Press A again to install"
-msgstr "Appuyez de nouveau sur A pour installer"
-
-msgid "Confirm"
-msgstr "Confirmer"
-
 msgid "Installed · {}"
 msgstr "Installés · {}"
 
@@ -456,3 +450,15 @@ msgstr "Étagères"
 
 msgid "Nothing to install"
 msgstr "Rien à installer"
+
+msgid "Details"
+msgstr "Détails"
+
+msgid "{} h played"
+msgstr "{} h de jeu"
+
+msgid "{} min played"
+msgstr "{} min de jeu"
+
+msgid "{} GB"
+msgstr "{} Go"

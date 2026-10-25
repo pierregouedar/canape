@@ -442,12 +442,6 @@ msgstr "ゲームに戻ると、ベンチが自動で始まります。"
 msgid "Waiting for the store…"
 msgstr "ストアを待っています…"
 
-msgid "Press A again to install"
-msgstr "もう一度 A を押すとインストール"
-
-msgid "Confirm"
-msgstr "確認"
-
 msgid "Installed · {}"
 msgstr "インストール済み · {}"
 
@@ -456,3 +450,15 @@ msgstr "棚"
 
 msgid "Nothing to install"
 msgstr "インストールできるゲームはありません"
+
+msgid "Details"
+msgstr "詳細"
+
+msgid "{} h played"
+msgstr "{} 時間プレイ"
+
+msgid "{} min played"
+msgstr "{} 分プレイ"
+
+msgid "{} GB"
+msgstr "{} GB"

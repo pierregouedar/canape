@@ -442,12 +442,6 @@ msgstr "Wechseln Sie zurück ins Spiel: Der Test startet von selbst."
 msgid "Waiting for the store…"
 msgstr "Warten auf den Store…"
 
-msgid "Press A again to install"
-msgstr "Zum Installieren erneut A drücken"
-
-msgid "Confirm"
-msgstr "Bestätigen"
-
 msgid "Installed · {}"
 msgstr "Installiert · {}"
 
@@ -456,3 +450,15 @@ msgstr "Regale"
 
 msgid "Nothing to install"
 msgstr "Nichts zu installieren"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "{} h played"
+msgstr "{} Std. gespielt"
+
+msgid "{} min played"
+msgstr "{} Min. gespielt"
+
+msgid "{} GB"
+msgstr "{} GB"

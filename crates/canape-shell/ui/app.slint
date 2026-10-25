@@ -10,7 +10,7 @@ import { BatteryIcon, Bolt, Hint, Logo } from "widgets.slint";
 import { BenchPage, ProfilesPage } from "pages.slint";
 import { SettingsPage } from "settings.slint";
 import { PerformancePage } from "performance.slint";
-import { Library, LibraryPage } from "library.slint";
+import { GameView, Library, LibraryPage } from "library.slint";
 import { HardwarePage } from "hardware.slint";
 import { Reveal } from "kit.slint";
 
@@ -23,7 +23,7 @@ import "fonts/PlusJakartaSans-Bold.ttf";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
-export { Library, GameView, ShelfView } from "library.slint";
+export { Library, GameView, ShelfView, DetailView } from "library.slint";
 
 // A section name; the current one is brighter and underlined.
 component Section inherits Rectangle {
@@ -93,6 +93,9 @@ export component AppWindow inherits Window {
     // sub-pages 4 Profiles (from Settings) and 5 Bench (from Performance).
     in-out property <int> page: 0;
     property <int> section: root.page == 4 ? 3 : root.page == 5 ? 1 : root.page;
+    // The selected game on the shelf in front, for the hints.
+    property <int> front-games: Library.shelves[Library.shelf].games.length;
+    property <GameView> front-game: Library.shelves[Library.shelf].games[Library.selected];
     // Where the next page slides in from: the side it comes from in the
     // section order, below for a sub-page, above when leaving one.
     property <length> enter-x;
@@ -105,6 +108,9 @@ export component AppWindow inherits Window {
         root.page = page;
     }
     changed page => {
+        if Library.detail && root.page != 0 {
+            Library.close-detail();
+        }
         Library.shown(root.page == 0);
         // Every page but the library moves with the arrow keys; the
         // library tells the gamepad itself, from its shelf's focus.
@@ -165,6 +171,18 @@ export component AppWindow inherits Window {
                 opacity: Library.backdrop-b-front ? 1 : 0;
                 visible: self.opacity > 0;
                 animate opacity { duration: 240ms; easing: ease-in-out; }
+            }
+
+            // The game page's wide art, over the glow.
+            Image {
+                x: 0;
+                y: 0;
+                width: self.source.width * 1phx;
+                height: self.source.height * 1phx;
+                source: Library.detail-art;
+                opacity: Library.detail && Library.detail-art.width > 0 ? 1 : 0;
+                visible: self.opacity > 0;
+                animate opacity { duration: 300ms; easing: ease-out; }
             }
         }
 
@@ -341,7 +359,7 @@ export component AppWindow inherits Window {
                     color: App.notice == Notice.saved && App.status.connected ? Theme.good : Theme.warn;
                 }
 
-                if root.page == 0 && Library.shelves.length > 1: Hint {
+                if root.page == 0 && !Library.detail && Library.shelves.length > 1: Hint {
                     glyph: "updown";
                     text: @tr("Shelves");
                 }
@@ -355,7 +373,7 @@ export component AppWindow inherits Window {
                 }
                 Hint {
                     glyph: "A";
-                    text: root.page == 0 ? (Library.armed != "" ? @tr("Confirm") : Library.shelves[Library.shelf].games.length > 0 && !Library.shelves[Library.shelf].games[Library.selected].installed ? @tr("Install") : @tr("Play")) : @tr("Choose");
+                    text: root.page != 0 ? @tr("Choose") : !Library.detail ? (root.front-games > 0 ? @tr("Details") : @tr("Choose")) : root.front-game.installed ? @tr("Play") : @tr("Install");
                 }
 
                 if root.page == 1 || root.page == 2 || root.page == 5: Hint {
@@ -366,7 +384,7 @@ export component AppWindow inherits Window {
                     glyph: "X";
                     text: @tr("Delete");
                 }
-                if root.page != 0: Hint {
+                if root.page != 0 || Library.detail: Hint {
                     glyph: "B";
                     text: @tr("Back");
                 }

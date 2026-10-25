@@ -48,6 +48,8 @@ pub fn parse_values(key: &str, values: &HashMap<String, String>) -> Option<Game>
         cover: None,
         launch,
         last_played: None,
+        size: None,
+        playtime: None,
     })
 }
 

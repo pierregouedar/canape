@@ -192,6 +192,8 @@ pub fn scan(root: &Path) -> Vec<Game> {
                 uri: format!(r"shell:AppsFolder\{family}!{}", package.app_id),
             },
             last_played: None,
+            size: None,
+            playtime: None,
         });
     }
     games

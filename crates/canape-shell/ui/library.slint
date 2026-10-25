@@ -7,6 +7,7 @@
 // shelves.rs.
 
 import { Theme } from "theme.slint";
+import { App } from "state.slint";
 import { PadGlyph, StoreLogo } from "widgets.slint";
 import { RevealLine } from "kit.slint";
 
@@ -39,6 +40,16 @@ export struct ShelfView {
     first: int,
 }
 
+// The game page: what the shelf does not show, for the selected game.
+export struct DetailView {
+    // The cover, larger than on the shelf.
+    cover: image,
+    // Bytes on disk in tenths of a gigabyte, -1 when unknown.
+    size-tenths: int,
+    // Minutes played, -1 when unknown.
+    minutes: int,
+}
+
 export global Library {
     // Top to bottom.
     in property <[ShelfView]> shelves;
@@ -56,10 +67,6 @@ export global Library {
     in property <string> launching;
     // Title of a game that could not be launched, "" when none.
     in property <string> failed;
-    // A game to install takes a second A: the id of the one waiting for
-    // it, "" when none. A stray press (or a list that moved under the
-    // focus) never starts a download on its own.
-    in-out property <string> armed;
     // A glow in the selected game's colour, stretched over the window: two
     // layers, the new colour goes into the hidden one, which then fades in
     // over the other.
@@ -82,6 +89,14 @@ export global Library {
 
     // Bring this shelf to the front.
     callback focus-shelf(int);
+    // The game page of the selected game is open, and what it shows.
+    in-out property <bool> detail;
+    in property <DetailView> detail-view;
+    // Wide art behind the game page (Steam's), drawn at the window's width
+    // and faded into the background; empty when there is none.
+    in property <image> detail-art;
+    callback open-detail(int);
+    callback close-detail();
     callback epic-login();
     callback launch(int);
     // The game at this index of the shelf in front was selected, with the
@@ -270,6 +285,157 @@ component ShelfTitle inherits HorizontalLayout {
     }
 }
 
+// The game page, over the shelves: the cover large, what is known about the
+// game, and the button that plays or installs it. Its lines slide in like
+// the title on the shelf.
+component GamePage inherits Rectangle {
+    in property <GameView> game;
+    in property <DetailView> view;
+    in property <bool> pressed;
+    callback play();
+
+    cover := Rectangle {
+        x: 0;
+        y: 96px;
+        width: 240px;
+        height: 360px;
+        border-radius: 12px;
+        clip: true;
+        background: root.game.art ? Theme.surface-high : Theme.accent.mix(Theme.surface, 0.3);
+        drop-shadow-blur: 40px;
+        drop-shadow-color: #00000099;
+        drop-shadow-offset-y: 20px;
+        // Launching: the cover comes forward a little.
+        property <length> lift: Library.launching == root.game.id ? 8px : 0;
+        animate lift { duration: 500ms; easing: cubic-bezier(0.16, 1, 0.3, 1); }
+
+        Image {
+            y: -cover.lift;
+            width: 100%;
+            height: 100%;
+            source: root.view.cover.width > 0 ? root.view.cover : root.game.cover;
+            image-fit: fill;
+        }
+
+        if !root.game.art: Text {
+            x: 16px;
+            y: parent.height - self.height - 16px;
+            width: parent.width - 32px;
+            text: root.game.title;
+            color: Theme.text;
+            font-size: 20px;
+            font-weight: 700;
+            wrap: word-wrap;
+        }
+    }
+
+    VerticalLayout {
+        x: 280px - 14px;
+        y: 96px;
+        width: parent.width - 280px;
+        height: 360px;
+        spacing: 14px;
+        alignment: end;
+
+        store := RevealLine {
+            order: 0;
+            spacing: 8px;
+            alignment: start;
+            height: 16px;
+            VerticalLayout {
+                alignment: center;
+                StoreLogo {
+                    width: 15px;
+                    height: 15px;
+                    store: root.game.source;
+                    ink: Theme.dim;
+                    opacity: store.shown;
+                }
+            }
+            Text {
+                text: root.game.source.to-uppercase();
+                color: Theme.dim;
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 1px;
+                vertical-alignment: center;
+                opacity: store.shown;
+            }
+        }
+
+        title := RevealLine {
+            order: 1;
+            Text {
+                text: root.game.title;
+                color: Theme.text;
+                font-size: 52px;
+                font-weight: 700;
+                letter-spacing: -1px;
+                wrap: word-wrap;
+                max-height: 130px;
+                overflow: elide;
+                opacity: title.shown;
+            }
+        }
+
+        // When it was played, for how long, and its size: only what is known.
+        facts := RevealLine {
+            order: 2;
+            Text {
+                text: (root.game.installed ? Library.played-text(root.game.played) : @tr("Not installed"))
+                    + (root.view.minutes >= 60 ? " · " + @tr("{} h played", Math.round(root.view.minutes / 60)) : root.view.minutes > 0 ? " · " + @tr("{} min played", root.view.minutes) : "")
+                    + (root.view.size-tenths >= 0 ? " · " + @tr("{} GB", App.tenths(root.view.size-tenths)) : "");
+                color: Theme.text.mix(Theme.dim, 0.6);
+                font-size: 16px;
+                overflow: elide;
+                opacity: facts.shown;
+            }
+        }
+
+        action := RevealLine {
+            order: 3;
+            padding-top: 10px;
+            spacing: 16px;
+            alignment: start;
+            PrimaryButton {
+                opacity: action.shown;
+                pressed: root.pressed;
+                label: Library.launching == root.game.id ? @tr("Launching…") : root.game.progress >= 0 ? @tr("Installing…") : root.game.installed ? @tr("Play") : @tr("Install");
+                clicked => {
+                    root.play();
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                Text {
+                    opacity: action.shown;
+                    text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
+                    color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
+                    font-size: 14px;
+                    overflow: elide;
+                }
+            }
+        }
+    }
+
+    // Install progress under the button.
+    if root.game.progress >= 0: Rectangle {
+        x: 280px;
+        y: 96px + 360px + 24px;
+        width: 360px;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.surface-focus;
+        Rectangle {
+            x: 0;
+            width: parent.width * root.game.progress;
+            border-radius: 2px;
+            background: Theme.accent;
+            animate width { duration: 400ms; }
+        }
+    }
+}
+
 export component LibraryPage inherits Rectangle {
     property <ShelfView> front: Library.shelves[Library.shelf];
     property <GameView> current: root.front.games[Library.selected];
@@ -286,7 +452,6 @@ export component LibraryPage inherits Rectangle {
     // Covers fully in view across a shelf.
     property <int> in-view: Math.floor((root.width + 48px) / root.pitch);
     changed sel => {
-        Library.armed = "";
         // The shelf only scrolls when the selection reaches an edge, keeping
         // one game beside it: a step then redraws two covers, not the row.
         if self.sel < Library.first + 1 {
@@ -302,20 +467,21 @@ export component LibraryPage inherits Rectangle {
         // selected one is scaled when drawn.
         Library.view(Math.ceil(root.width / root.pitch) + 1, 116px / 1phx, 174px / 1phx);
     }
+    // A on the shelf opens the game page; A on the page plays or installs.
     function act() {
         root.pressed = true;
-        if root.has-games && !root.current.installed && root.current.progress < 0 && Library.armed != root.current.id {
-            Library.armed = root.current.id;
+        if Library.detail {
+            if root.current.progress < 0 {
+                Library.launch(Library.selected);
+            }
         } else if root.has-games {
-            Library.armed = "";
-            Library.launch(Library.selected);
+            Library.open-detail(Library.selected);
         } else if root.to-install && !Library.epic-busy {
             Library.epic-login();
         }
     }
     function go-shelf(index: int) {
         if index >= 0 && index < Library.shelves.length && index != Library.shelf {
-            Library.armed = "";
             Library.focus-shelf(index);
         }
     }
@@ -332,6 +498,17 @@ export component LibraryPage inherits Rectangle {
             self.focus();
         }
         key-pressed(event) => {
+            if Library.detail {
+                // B goes back to the shelf, on the same game.
+                if event.text == Key.Escape {
+                    Library.close-detail();
+                    return accept;
+                }
+                if event.text == Key.Return || event.text == " " {
+                    root.act();
+                }
+                return accept;
+            }
             if event.text == Key.LeftArrow {
                 Library.selected = max(0, Library.selected - 1);
                 return accept;
@@ -370,12 +547,24 @@ export component LibraryPage inherits Rectangle {
         }
     }
 
+    if Library.detail: GamePage {
+        width: root.width;
+        height: root.height;
+        game: root.current;
+        view: Library.detail-view;
+        pressed: root.pressed;
+        play => {
+            root.act();
+            fs.focus();
+        }
+    }
+
     // The selected game, or why there is none; a new model at each game,
     // so its title fades in.
     // The selected game, or why there is none; a new model at each game,
     // so its lines slide in again, one after the other. The block sits
     // 14px left of its place: each line moves that far to the right.
-    for key in [Library.shelf + ":" + (root.has-games ? root.current.id : "")]: VerticalLayout {
+    for key in (Library.detail ? [] : [Library.shelf + ":" + (root.has-games ? root.current.id : "")]): VerticalLayout {
         x: -14px;
         y: 28px;
         width: 654px;
@@ -425,7 +614,7 @@ export component LibraryPage inherits Rectangle {
         note := RevealLine {
             order: 2;
             Text {
-                text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : !root.has-games && root.to-install ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && Library.armed == root.current.id ? @tr("Press A again to install") : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
+                text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : !root.has-games && root.to-install ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
                 color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
                 font-size: 16px;
                 wrap: word-wrap;
@@ -442,7 +631,7 @@ export component LibraryPage inherits Rectangle {
             PrimaryButton {
                 opacity: button.shown;
                 pressed: root.pressed;
-                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : Library.armed == root.current.id ? @tr("Confirm") : @tr("Install");
+                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : @tr("Install");
                 clicked => {
                     root.act();
                     fs.focus();
@@ -455,6 +644,7 @@ export component LibraryPage inherits Rectangle {
     // of view, the next one peeks in at the bottom.
     // Starts left of the covers: the focus ring reaches past the first one.
     Rectangle {
+        visible: !Library.detail;
         x: -root.margin;
         y: 300px;
         width: parent.width + 48px + root.margin;

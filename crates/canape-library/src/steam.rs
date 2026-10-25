@@ -95,6 +95,8 @@ pub struct Manifest {
     pub name: String,
     pub installdir: String,
     pub last_played: Option<u64>,
+    /// Bytes on disk.
+    pub size: Option<u64>,
 }
 
 /// A manifest, if it describes a fully installed game.
@@ -113,6 +115,10 @@ pub fn parse_manifest(text: &str) -> Option<Manifest> {
         name,
         installdir: app.str("installdir").unwrap_or_default().to_owned(),
         last_played: last_played(app),
+        size: app
+            .str("SizeOnDisk")
+            .and_then(|s| s.trim().parse().ok())
+            .filter(|&s| s > 0),
     })
 }
 
@@ -178,6 +184,40 @@ pub fn cover(steam: &Path, appid: u32) -> Option<PathBuf> {
     candidates.into_iter().find(|p| p.is_file())
 }
 
+/// How an installed game is launched: through `steam.exe -silent`, so a
+/// Steam that is not running yet starts hidden in the tray instead of
+/// opening its window (most games need the client running); the URI alone
+/// when `steam.exe` is not there.
+pub fn launch(steam: &Path, appid: u32) -> Launch {
+    silent(steam, format!("steam://rungameid/{appid}"))
+}
+
+/// A `steam://` URI handed to `steam.exe -silent` (see [`launch`]).
+pub(crate) fn silent(steam: &Path, uri: String) -> Launch {
+    let exe = steam.join("steam.exe");
+    if exe.is_file() {
+        Launch::Exe {
+            path: exe,
+            args: format!("-silent {uri}"),
+            cwd: steam.to_path_buf(),
+        }
+    } else {
+        Launch::Uri { uri }
+    }
+}
+
+/// Steam's wide art for a game (`library_hero.jpg`), for the game's page.
+pub fn hero(steam: &Path, appid: u32) -> Option<PathBuf> {
+    let cache = steam.join("appcache").join("librarycache");
+    let per_app = cache.join(appid.to_string());
+    let mut candidates = vec![
+        cache.join(format!("{appid}_library_hero.jpg")),
+        per_app.join("library_hero.jpg"),
+    ];
+    candidates.extend(dirs(&per_app).iter().map(|d| d.join("library_hero.jpg")));
+    candidates.into_iter().find(|p| p.is_file())
+}
+
 /// The cover found by [`cover`] is one of Steam's landscape images: a
 /// portrait one is worth downloading.
 pub fn landscape(cover: &Path) -> bool {
@@ -239,6 +279,8 @@ struct OwnedGame {
     name: String,
     #[serde(default)]
     rtime_last_played: u64,
+    #[serde(default)]
+    playtime_forever: u32,
 }
 
 /// The owned games of a `GetOwnedGames` answer, as entries to install.
@@ -260,6 +302,8 @@ pub fn parse_owned(json: &[u8]) -> Option<Vec<Game>> {
                     install: crate::install::Install::Steam { appid: g.appid },
                 },
                 last_played: Some(g.rtime_last_played).filter(|&t| t > 0),
+                size: None,
+                playtime: Some(g.playtime_forever).filter(|&m| m > 0),
             })
             .collect(),
     )
@@ -347,10 +391,10 @@ pub fn scan(steam: &Path) -> Vec<Game> {
                 title: m.name,
                 source: Source::Steam,
                 cover: cover(steam, m.appid),
-                launch: Launch::Uri {
-                    uri: format!("steam://rungameid/{}", m.appid),
-                },
+                launch: launch(steam, m.appid),
                 last_played: m.last_played.max(played.get(&m.appid).copied()),
+                size: m.size,
+                playtime: None,
             });
         }
     }
@@ -361,6 +405,29 @@ pub fn scan(steam: &Path) -> Vec<Game> {
 mod tests {
     use super::*;
     use crate::test_util::fixture;
+
+    #[test]
+    fn launches_through_a_hidden_steam() {
+        let steam = std::env::temp_dir().join(format!("canape-steam-{}", std::process::id()));
+        std::fs::create_dir_all(&steam).unwrap();
+        // No steam.exe: the URI alone.
+        assert_eq!(
+            launch(&steam, 400),
+            Launch::Uri {
+                uri: "steam://rungameid/400".into()
+            }
+        );
+        std::fs::write(steam.join("steam.exe"), b"").unwrap();
+        assert_eq!(
+            launch(&steam, 400),
+            Launch::Exe {
+                path: steam.join("steam.exe"),
+                args: "-silent steam://rungameid/400".into(),
+                cwd: steam.clone(),
+            }
+        );
+        std::fs::remove_dir_all(&steam).unwrap();
+    }
 
     #[test]
     fn landscape_covers_are_told_apart() {
@@ -394,6 +461,8 @@ mod tests {
         assert_eq!(games.len(), 2);
         assert_eq!(games[0].id, "steam:400");
         assert_eq!(games[0].last_played, Some(1700000000));
+        assert_eq!(games[0].playtime, Some(12));
+        assert_eq!(games[1].playtime, None);
         assert_eq!(
             games[1].launch,
             Launch::Install {
@@ -463,6 +532,7 @@ mod tests {
                 name: "ELDEN RING".into(),
                 installdir: "ELDEN RING".into(),
                 last_played: Some(1_792_500_000),
+                size: Some(50_310_212_345),
             })
         );
         // Redistributables, an unfinished download.

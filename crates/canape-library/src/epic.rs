@@ -29,6 +29,8 @@ struct Item {
     app_categories: Vec<String>,
     #[serde(rename = "bIsIncompleteInstall")]
     is_incomplete_install: bool,
+    install_size: u64,
+    install_location: String,
 }
 
 /// A game from one manifest, if it is a complete game install.
@@ -66,11 +68,38 @@ pub fn parse_item(text: &str) -> Option<Game> {
             ),
         },
         last_played: None,
+        size: Some(item.install_size).filter(|&s| s > 0),
+        playtime: None,
     })
+}
+
+/// A game installed by the launcher, from one manifest: its app name and
+/// its folder, for handing it to Legendary.
+pub fn parse_install(text: &str) -> Option<(String, PathBuf)> {
+    parse_item(text)?;
+    let item: Item = serde_json::from_str(text).ok()?;
+    (!item.install_location.is_empty())
+        .then(|| (item.app_name, PathBuf::from(item.install_location)))
+}
+
+/// The launcher's installs in `dir` (see [`parse_install`]).
+pub fn installs(dir: &Path) -> Vec<(String, PathBuf)> {
+    manifests(dir)
+        .iter()
+        .filter_map(|text| parse_install(text))
+        .collect()
 }
 
 /// Games from every manifest in `dir`.
 pub fn scan(dir: &Path) -> Vec<Game> {
+    manifests(dir)
+        .iter()
+        .filter_map(|text| parse_item(text))
+        .collect()
+}
+
+/// The text of every `.item` manifest in `dir`, in file name order.
+fn manifests(dir: &Path) -> Vec<String> {
     let mut items: Vec<PathBuf> = std::fs::read_dir(dir)
         .into_iter()
         .flatten()
@@ -85,8 +114,10 @@ pub fn scan(dir: &Path) -> Vec<Game> {
     items
         .iter()
         .filter_map(|p| std::fs::read(p).ok())
-        .filter_map(|bytes| {
-            parse_item(String::from_utf8_lossy(&bytes).trim_start_matches('\u{feff}'))
+        .map(|bytes| {
+            String::from_utf8_lossy(&bytes)
+                .trim_start_matches('\u{feff}')
+                .to_owned()
         })
         .collect()
 }
@@ -108,6 +139,18 @@ mod tests {
             Launch::Uri {
                 uri: "com.epicgames.launcher://apps/fn%3A4fe75bbc5a674f4f9b356b5c90567da5%3AFortnite?action=launch&silent=true".into()
             }
+        );
+    }
+
+    #[test]
+    fn installs_for_legendary() {
+        // The engine install is not a game: only Fortnite is handed over.
+        assert_eq!(
+            installs(&fixture("epic")),
+            [(
+                "Fortnite".to_owned(),
+                PathBuf::from(r"C:\Program Files\Epic Games\Fortnite")
+            )]
         );
     }
 

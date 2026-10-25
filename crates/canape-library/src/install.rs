@@ -14,8 +14,8 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
+use crate::legendary;
 use crate::steam::{self, Download};
-use crate::{Launch, legendary};
 
 /// What installing an owned game takes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -68,21 +68,10 @@ pub fn run(install: &Install, tools: &Tools, mut on: impl FnMut(Event)) {
 }
 
 fn run_steam(steam: &Path, appid: u32, on: &mut impl FnMut(Event)) -> io::Result<()> {
-    let uri = format!("steam://install/{appid}");
-    let exe = steam.join("steam.exe");
     // Through steam.exe: if Steam is not running yet it starts in the
     // tray (-silent) instead of opening its window; if it is, the URI goes
     // to the running client.
-    let launch = if exe.is_file() {
-        Launch::Exe {
-            path: exe,
-            args: format!("-silent {uri}"),
-            cwd: steam.to_path_buf(),
-        }
-    } else {
-        Launch::Uri { uri }
-    };
-    crate::launch(&launch)?;
+    crate::launch(&steam::silent(steam, format!("steam://install/{appid}")))?;
 
     let started = Instant::now();
     let mut seen = false;
@@ -154,6 +143,30 @@ fn legendary_json(exe: &Path, args: &[&str]) -> io::Result<Vec<u8>> {
             args.join(" "),
             output.status
         )))
+    }
+}
+
+/// Hands a game installed by the Epic Games Launcher to Legendary, which
+/// then launches it without the launcher. The files stay where they are;
+/// Legendary only records the install.
+pub fn epic_import(exe: &Path, app: &str, path: &Path) -> io::Result<()> {
+    let output = legendary_command(exe)
+        .arg("import")
+        .arg("--skip-dlcs")
+        .arg(app)
+        .arg(path)
+        .stdout(Stdio::null())
+        .output()?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let last = stderr
+            .lines()
+            .rev()
+            .find(|l| !l.trim().is_empty())
+            .unwrap_or("");
+        Err(io::Error::other(format!("legendary import {app}: {last}")))
     }
 }
 

@@ -442,12 +442,6 @@ msgstr "回到游戏：测试会自动开始。"
 msgid "Waiting for the store…"
 msgstr "正在等待商店…"
 
-msgid "Press A again to install"
-msgstr "再按一次 A 进行安装"
-
-msgid "Confirm"
-msgstr "确认"
-
 msgid "Installed · {}"
 msgstr "已安装 · {}"
 
@@ -456,3 +450,15 @@ msgstr "货架"
 
 msgid "Nothing to install"
 msgstr "没有待安装的游戏"
+
+msgid "Details"
+msgstr "详情"
+
+msgid "{} h played"
+msgstr "已玩 {} 小时"
+
+msgid "{} min played"
+msgstr "已玩 {} 分钟"
+
+msgid "{} GB"
+msgstr "{} GB"

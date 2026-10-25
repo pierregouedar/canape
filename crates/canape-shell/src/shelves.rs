@@ -110,6 +110,8 @@ mod tests {
             cover: None,
             launch: Launch::Uri { uri: String::new() },
             last_played,
+            size: None,
+            playtime: None,
         }
     }
 

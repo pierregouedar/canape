@@ -99,6 +99,12 @@ pub struct Game {
     /// Unix seconds, from the store or from Canapé's own launches.
     #[serde(default)]
     pub last_played: Option<u64>,
+    /// Bytes on disk, from the store's install manifest.
+    #[serde(default)]
+    pub size: Option<u64>,
+    /// Minutes played, from the store's account data (Steam).
+    #[serde(default)]
+    pub playtime: Option<u32>,
 }
 
 /// Where to look for games.
@@ -166,8 +172,19 @@ pub fn scan(roots: &Roots) -> Vec<Game> {
     if let Some(dir) = &roots.steam {
         games.extend(steam::scan(dir));
     }
+    // A launcher install that Legendary took over launches through
+    // Legendary, without the launcher: its own entry is left out.
+    let legendary = roots
+        .legendary
+        .as_ref()
+        .map(|(config, exe)| legendary::scan(config, exe))
+        .unwrap_or_default();
     if let Some(dir) = &roots.epic {
-        games.extend(epic::scan(dir));
+        games.extend(
+            epic::scan(dir)
+                .into_iter()
+                .filter(|g| legendary.iter().all(|l| l.id != g.id)),
+        );
     }
     match &roots.gog {
         GogSource::None => {}
@@ -177,9 +194,7 @@ pub fn scan(roots: &Roots) -> Vec<Game> {
     for dir in &roots.xbox {
         games.extend(xbox::scan(dir));
     }
-    if let Some((config, exe)) = &roots.legendary {
-        games.extend(legendary::scan(config, exe));
-    }
+    games.extend(legendary);
     games
 }
 
@@ -349,6 +364,8 @@ mod tests {
             cover: None,
             launch: Launch::Uri { uri: id.into() },
             last_played,
+            size: None,
+            playtime: None,
         }
     }
 
