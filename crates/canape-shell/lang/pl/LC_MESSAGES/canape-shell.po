@@ -687,3 +687,39 @@ msgstr "Oczekiwanie na kod Epic…"
 
 msgid "Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard."
 msgstr "Zaloguj się do Epic w przeglądarce, a potem skopiuj stronę docelową (lub jej authorizationCode): Canapé odczyta go ze schowka."
+
+msgid "M1, right"
+msgstr "M1, prawy"
+
+msgid "M2, left"
+msgstr "M2, lewy"
+
+msgid "Media"
+msgstr "Multimedia"
+
+msgid "Effect"
+msgstr "Efekt"
+
+msgid "Speed"
+msgstr "Szybkość"
+
+msgid "Steady"
+msgstr "Stały"
+
+msgid "Breathing"
+msgstr "Oddychanie"
+
+msgid "Colour cycle"
+msgstr "Cykl kolorów"
+
+msgid "Rainbow"
+msgstr "Tęcza"
+
+msgid "Strobe"
+msgstr "Stroboskop"
+
+msgid "Slow"
+msgstr "Wolna"
+
+msgid "Fast"
+msgstr "Szybka"

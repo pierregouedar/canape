@@ -7,7 +7,7 @@ use canape_core::{
     FanCurve, FanCurves, FanPreset, GyroSettings, Lighting, PerformanceMode, Profile, ProfilePart,
     Request, Response, Status, protocol,
 };
-use canape_hw::{Device, Telemetry};
+use canape_hw::{Device, HwError, Telemetry};
 use serde::{Deserialize, Serialize};
 
 use crate::bench_run::{BenchRun, Reading, Step};
@@ -235,6 +235,7 @@ impl Handler {
                 // write does not undo the accent.
                 if let Some(lighting) = self.lighting.clone()
                     && lighting.color.is_none()
+                    && lighting.effect.uses_color()
                 {
                     let _ = self.write_lighting(lighting);
                 }
@@ -329,9 +330,16 @@ impl Handler {
                 if response != Response::Ok || self.back_buttons.is_default() {
                     return response;
                 }
-                // A mode change may bring the mode's own bindings back.
+                // A mode change brings the mode's own bindings back. WASD mode
+                // keeps them: the saved buttons return with another mode.
                 let buttons = self.back_buttons;
-                self.apply(|d| d.set_back_buttons(&buttons), |_| {})
+                self.apply(
+                    |d| match d.set_back_buttons(&buttons, mode) {
+                        Err(HwError::Unsupported(_)) => Ok(()),
+                        result => result,
+                    },
+                    |_| {},
+                )
             }
             Request::SetBackButton { button, target } => {
                 let mut buttons = self.back_buttons;
@@ -933,16 +941,19 @@ impl Handler {
                 message: format!("not a #RRGGBB colour: {color}"),
             };
         };
-        let level = lighting.level;
+        let (level, effect, speed) = (lighting.level, lighting.effect, lighting.speed);
         self.apply(
-            |d| d.set_lighting(level, rgb),
+            |d| d.set_lighting(level, rgb, effect, speed),
             |s| s.lighting = Some(lighting),
         )
     }
 
+    /// The bindings go with the mode Canapé set, gamepad when it set none
+    /// (the controller's own after a restart).
     fn write_back_buttons(&mut self, buttons: BackButtons) -> Response {
+        let mode = self.controller_mode.unwrap_or(ControllerMode::Gamepad);
         self.apply(
-            |d| d.set_back_buttons(&buttons),
+            |d| d.set_back_buttons(&buttons, mode),
             |s| s.back_buttons = buttons,
         )
     }
@@ -967,7 +978,7 @@ impl Handler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use canape_core::FanPreset;
+    use canape_core::{FanPreset, LightingEffect, LightingSpeed};
     use canape_hw::mock::MockDevice;
 
     fn handler_with(fps: Option<f32>, gpu_util: Option<f32>) -> Handler {
@@ -1516,6 +1527,29 @@ mod tests {
         );
         assert_eq!(restored.status().back_buttons, buttons);
 
+        // WASD mode keeps its own bindings: the mode change goes through,
+        // a new binding does not, and the saved ones stay for later.
+        assert_eq!(
+            h.handle(Request::SetControllerMode {
+                mode: ControllerMode::Wasd,
+            }),
+            Response::Ok
+        );
+        assert!(matches!(
+            h.handle(Request::SetBackButton {
+                button: BackButton::M1,
+                target: ButtonTarget::PadB,
+            }),
+            Response::Error { .. }
+        ));
+        assert_eq!(h.status().back_buttons, buttons);
+
+        assert_eq!(
+            h.handle(Request::SetControllerMode {
+                mode: ControllerMode::Gamepad,
+            }),
+            Response::Ok
+        );
         assert_eq!(h.handle(Request::ResetBackButtons), Response::Ok);
         assert!(h.status().back_buttons.is_default());
         assert!(h.saved().back_buttons.is_default());
@@ -1528,6 +1562,7 @@ mod tests {
         let follow = Lighting {
             level: 2,
             color: None,
+            ..Lighting::default()
         };
         assert_eq!(
             h.handle(Request::SetLighting {
@@ -1540,6 +1575,7 @@ mod tests {
                 lighting: Some(Lighting {
                     level: 9,
                     color: None,
+                    ..Lighting::default()
                 }),
             }),
             Response::Error { .. }
@@ -1561,6 +1597,7 @@ mod tests {
         let red = Lighting {
             level: 3,
             color: Some("#FF0000".into()),
+            ..Lighting::default()
         };
         h.handle(Request::SetLighting {
             lighting: Some(red),
@@ -1580,7 +1617,7 @@ mod tests {
     fn lighting_writes_the_accent_colour() {
         use std::sync::{Arc, Mutex};
 
-        type Writes = Arc<Mutex<Vec<(u8, [u8; 3])>>>;
+        type Writes = Arc<Mutex<Vec<(u8, [u8; 3], LightingEffect)>>>;
         /// The mock, with the lighting writes kept where the test sees them.
         struct Rings(MockDevice, Writes);
         impl Device for Rings {
@@ -1602,8 +1639,14 @@ mod tests {
             fn telemetry(&mut self) -> canape_hw::Result<Telemetry> {
                 self.0.telemetry()
             }
-            fn set_lighting(&mut self, level: u8, rgb: [u8; 3]) -> canape_hw::Result<()> {
-                self.1.lock().unwrap().push((level, rgb));
+            fn set_lighting(
+                &mut self,
+                level: u8,
+                rgb: [u8; 3],
+                effect: LightingEffect,
+                _speed: LightingSpeed,
+            ) -> canape_hw::Result<()> {
+                self.1.lock().unwrap().push((level, rgb, effect));
                 Ok(())
             }
         }
@@ -1613,6 +1656,7 @@ mod tests {
         let follow = Some(Lighting {
             level: 1,
             color: None,
+            ..Lighting::default()
         });
         h.handle(Request::SetLighting {
             lighting: follow.clone(),
@@ -1624,18 +1668,32 @@ mod tests {
             lighting: Some(Lighting {
                 level: 3,
                 color: Some("#00ff7f".into()),
+                ..Lighting::default()
             }),
         });
         // A fixed colour no longer follows the accent.
         h.handle(Request::SetAccent {
             color: "#ffffff".into(),
         });
+        // Nor does an effect that shows no colour of its own.
+        h.handle(Request::SetLighting {
+            lighting: Some(Lighting {
+                level: 2,
+                effect: LightingEffect::Rainbow,
+                ..Lighting::default()
+            }),
+        });
+        h.handle(Request::SetAccent {
+            color: "#000000".into(),
+        });
+        let steady = LightingEffect::Steady;
         assert_eq!(
             *writes.lock().unwrap(),
             [
-                (1, [0xff, 0x3d, 0x5e]),
-                (1, [0x10, 0x20, 0x30]),
-                (3, [0x00, 0xff, 0x7f]),
+                (1, [0xff, 0x3d, 0x5e], steady),
+                (1, [0x10, 0x20, 0x30], steady),
+                (3, [0x00, 0xff, 0x7f], steady),
+                (2, [0xff, 0xff, 0xff], LightingEffect::Rainbow),
             ]
         );
     }

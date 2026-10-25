@@ -439,7 +439,7 @@ Opened from the **Gyro aiming** row of the Hardware page; **B** goes back. While
 
 #### Back buttons and lighting
 
-On the page's last row, on the right, **Back buttons and lighting ›** opens a page that chooses what M1 and M2, the two buttons on the back, send (on the left), and the light of the rings around the sticks (on the right). Left and right go through the choices and apply each one at once; B goes back to the Hardware page.
+On the page's last row, on the right, **Back buttons and lighting ›** opens a page that chooses what M1 and M2, the two buttons on the back, send (on the left), and the light of the rings around the sticks (on the right). The lines are M1, right and M2, left: the right and left back buttons. **A** on one of them opens a grid of every choice, each with its icon (gamepad buttons, keys, mouse, media), the name of the focused one below; the arrows move, **A** applies the choice, **B** closes the grid without changing anything. On the brightness line, left and right go through the levels; a level not applied yet shows in italics after a dot, and **A** applies it (leaving the line drops it). B goes back to the Hardware page.
 
 | Choice | The button sends |
 |---|---|
@@ -451,7 +451,8 @@ On the page's last row, on the right, **Back buttons and lighting ›** opens a 
 | Volume up / down, mute the microphone, touch keyboard | That action |
 
 - The controller itself does the translation: it works in every game and program, whatever reads the gamepad.
-- The choice is global (not per game), remembered, and written again when the service starts and after every change of controller mode.
+- The choice is global (not per game), remembered, and written again when the service starts and after every change of controller mode. Canapé writes the controller's whole button table each time, with the factory bindings for every other button: a remap made elsewhere (Armoury Crate, another tool) for the other buttons is undone, and so is turbo.
+- It needs the gamepad or mouse mode: in keyboard (WASD) mode the choice is refused, and the saved buttons come back with another mode. Choosing a button while Canapé has not set the mode puts the controller in gamepad mode.
 - With the left button under the screen held, M1 and M2 keep their own keys.
 - **Restore the default buttons** gives M1 and M2 their own keys back.
 - Steam Input, or a game that already knows M1 and M2 by their own keys, sees the new button instead.
@@ -461,12 +462,13 @@ On the page's last row, on the right, **Back buttons and lighting ›** opens a 
 
 **Stick lighting**
 
-- **Brightness**: Default, Off, Low, Medium, High, applied at once. **Default** leaves the rings to the controller: Canapé stops changing them, and the controller's own lighting should come back at the next restart.
+- **Brightness**: Default, Off, Low, Medium, High, applied with A. **Default** leaves the rings to the controller: Canapé stops changing them. The controller keeps the last effect written, even after a restart: Canapé cannot bring back its factory lighting, pick the effect you want instead.
+- **Effect**: Steady, Breathing, Colour cycle, Rainbow, Strobe, applied with A; the controller runs it itself, even when Canapé is closed. **Speed** (Slow, Medium, Fast) for every effect but Steady. Colour cycle and Rainbow go through every colour: the swatches are greyed out.
 - **Colour**: the first swatch, a ring, follows the accent colour picked in Settings (and changes with it); the others are fixed colours, white first. A applies the focused one; picked while the rings are off or on Default, it lights them on High.
-- One colour for both rings, without effects. The choice is global, remembered and written again when the service starts.
+- One colour for both rings. The choice is global, remembered and written again when the service starts.
 
 > [!NOTE]
-> Not tried on the Ally yet (checked against open-source projects, like the back buttons). If the rings look wrong, choose **Default** and restart the Ally.
+> Not tried on the Ally yet (checked against open-source projects, like the back buttons). If the rings look wrong, choose the **Steady** effect and a colour.
 
 ### Settings
 

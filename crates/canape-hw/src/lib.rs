@@ -4,7 +4,9 @@
 //! the screen ([`display`]) belong to the user session: the shell uses
 //! them directly.
 
-use canape_core::{BackButtons, ControllerMode, Fan, FanCurve, PerformanceMode};
+use canape_core::{
+    BackButtons, ControllerMode, Fan, FanCurve, LightingEffect, LightingSpeed, PerformanceMode,
+};
 
 #[cfg(windows)]
 mod adl;
@@ -35,6 +37,9 @@ pub enum HwError {
 }
 
 pub type Result<T> = std::result::Result<T, HwError>;
+
+/// Why the back buttons cannot be set in WASD mode.
+pub const BACK_BUTTONS_IN_WASD: &str = "back buttons in WASD mode";
 
 /// Sensor readings, all optional: not every device reports every value.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -89,14 +94,24 @@ pub trait Device: Send {
         Err(HwError::Unsupported("controller mode"))
     }
     /// What the back buttons send, kept by the controller until it is
-    /// powered off.
-    fn set_back_buttons(&mut self, _buttons: &BackButtons) -> Result<()> {
+    /// powered off. The whole mapping table is written with the mode
+    /// first: `mode` is the one the controller is left in, the others
+    /// get their factory bindings for it. [`HwError::Unsupported`] in
+    /// WASD mode.
+    fn set_back_buttons(&mut self, _buttons: &BackButtons, _mode: ControllerMode) -> Result<()> {
         Err(HwError::Unsupported("back buttons"))
     }
     /// Light of the stick rings: `level` 0 (off) to
     /// [`canape_core::settings::LIGHTING_MAX_LEVEL`], one colour for every
-    /// ring. Callers check the level.
-    fn set_lighting(&mut self, _level: u8, _rgb: [u8; 3]) -> Result<()> {
+    /// ring, with one of the controller's effects (kept by the controller
+    /// until another is written). Callers check the level.
+    fn set_lighting(
+        &mut self,
+        _level: u8,
+        _rgb: [u8; 3],
+        _effect: LightingEffect,
+        _speed: LightingSpeed,
+    ) -> Result<()> {
         Err(HwError::Unsupported("stick lighting"))
     }
 }

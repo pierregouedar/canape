@@ -439,7 +439,7 @@ Ouverte depuis la rangée **Visée au gyroscope** de la page Matériel ; **B** y
 
 #### Boutons arrière et éclairage
 
-Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairage ›** ouvre une page qui choisit ce qu'envoient M1 et M2, les deux boutons du dos (à gauche), et l'éclairage des anneaux autour des sticks (à droite). Gauche et droite parcourent les choix et appliquent chacun tout de suite ; B revient à la page Matériel.
+Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairage ›** ouvre une page qui choisit ce qu'envoient M1 et M2, les deux boutons du dos (à gauche), et l'éclairage des anneaux autour des sticks (à droite). Les lignes sont M1, droite et M2, gauche : les boutons arrière droit et gauche. **A** sur l'une d'elles ouvre une grille de tous les choix, chacun avec son icône (boutons de manette, touches, souris, média), le nom de celui qui a le focus en dessous ; les flèches se déplacent, **A** applique le choix, **B** ferme la grille sans rien changer. Sur la ligne de luminosité, gauche et droite parcourent les niveaux ; un niveau pas encore appliqué s'affiche en italique après un point, et **A** l'applique (quitter la ligne l'abandonne). B revient à la page Matériel.
 
 | Choix | Le bouton envoie |
 |---|---|
@@ -451,7 +451,8 @@ Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairag
 | Volume + / −, couper le micro, clavier tactile | Cette action |
 
 - C'est la manette elle-même qui traduit : cela marche dans tous les jeux et programmes, quel que soit ce qui lit la manette.
-- Le choix est général (pas par jeu), mémorisé, et réécrit au démarrage du service et après chaque changement de mode de la manette.
+- Le choix est général (pas par jeu), mémorisé, et réécrit au démarrage du service et après chaque changement de mode de la manette. Canapé écrit chaque fois toute la table des boutons de la manette, avec les associations d'usine pour tous les autres boutons : une réassociation faite ailleurs (Armoury Crate, un autre outil) pour les autres boutons est défaite, le turbo aussi.
+- Il faut le mode manette ou souris : en mode clavier (WASD) le choix est refusé, et les boutons enregistrés reviennent avec un autre mode. Choisir un bouton alors que Canapé n'a pas réglé le mode met la manette en mode manette.
 - Avec le bouton gauche sous l'écran maintenu, M1 et M2 gardent leurs propres touches.
 - **Rétablir les boutons d'origine** rend à M1 et M2 leurs propres touches.
 - Steam Input, ou un jeu qui connaissait déjà M1 et M2 par leurs propres touches, voit le nouveau bouton à la place.
@@ -461,12 +462,13 @@ Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairag
 
 **Éclairage des sticks**
 
-- **Luminosité** : Par défaut, Désactivé, Faible, Moyenne, Forte, appliquée tout de suite. **Par défaut** laisse les anneaux à la manette : Canapé cesse de les changer, et l'éclairage propre de la manette devrait revenir au prochain redémarrage.
+- **Luminosité** : Par défaut, Désactivé, Faible, Moyenne, Forte, appliquée avec A. **Par défaut** laisse les anneaux à la manette : Canapé cesse de les changer. La manette garde le dernier effet écrit, même après un redémarrage : Canapé ne peut pas ramener son éclairage d'usine, choisissez plutôt l'effet voulu.
+- **Effet** : Fixe, Respiration, Cycle de couleurs, Arc-en-ciel, Stroboscope, appliqué avec A ; la manette le joue elle-même, même Canapé fermé. **Vitesse** (Lente, Moyenne, Rapide) pour tous les effets sauf Fixe. Cycle de couleurs et Arc-en-ciel passent par toutes les couleurs : les pastilles sont grisées.
 - **Couleur** : la première pastille, un anneau, suit la couleur d'accent choisie dans les Réglages (et change avec elle) ; les autres sont des couleurs fixes, le blanc d'abord. A applique celle qui a le focus ; choisie alors que les anneaux sont éteints ou sur Par défaut, elle les allume en Forte.
-- Une seule couleur pour les deux anneaux, sans effet. Le choix est général, mémorisé et réécrit au démarrage du service.
+- Une seule couleur pour les deux anneaux. Le choix est général, mémorisé et réécrit au démarrage du service.
 
 > [!NOTE]
-> Pas encore essayé sur l'Ally (vérifié auprès de projets open source, comme les boutons arrière). Si les anneaux ont l'air faux, choisissez **Par défaut** et redémarrez l'Ally.
+> Pas encore essayé sur l'Ally (vérifié auprès de projets open source, comme les boutons arrière). Si les anneaux ont l'air faux, choisissez l'effet **Fixe** et une couleur.
 
 ### Réglages
 

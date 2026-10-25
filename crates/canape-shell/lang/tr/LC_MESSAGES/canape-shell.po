@@ -687,3 +687,39 @@ msgstr "Epic kodu bekleniyor…"
 
 msgid "Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard."
 msgstr "Tarayıcıda Epic'e giriş yapın, ardından açılan sayfayı (veya authorizationCode değerini) kopyalayın: Canapé onu panodan okur."
+
+msgid "M1, right"
+msgstr "M1, sağ"
+
+msgid "M2, left"
+msgstr "M2, sol"
+
+msgid "Media"
+msgstr "Medya"
+
+msgid "Effect"
+msgstr "Efekt"
+
+msgid "Speed"
+msgstr "Hız"
+
+msgid "Steady"
+msgstr "Sabit"
+
+msgid "Breathing"
+msgstr "Nefes"
+
+msgid "Colour cycle"
+msgstr "Renk döngüsü"
+
+msgid "Rainbow"
+msgstr "Gökkuşağı"
+
+msgid "Strobe"
+msgstr "Flaş"
+
+msgid "Slow"
+msgstr "Yavaş"
+
+msgid "Fast"
+msgstr "Hızlı"

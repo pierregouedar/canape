@@ -687,3 +687,39 @@ msgstr "Ожидание кода Epic…"
 
 msgid "Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard."
 msgstr "Войдите в Epic в браузере, затем скопируйте открывшуюся страницу (или её authorizationCode): Canapé прочитает его из буфера обмена."
+
+msgid "M1, right"
+msgstr "M1, правая"
+
+msgid "M2, left"
+msgstr "M2, левая"
+
+msgid "Media"
+msgstr "Медиа"
+
+msgid "Effect"
+msgstr "Эффект"
+
+msgid "Speed"
+msgstr "Скорость"
+
+msgid "Steady"
+msgstr "Постоянный"
+
+msgid "Breathing"
+msgstr "Дыхание"
+
+msgid "Colour cycle"
+msgstr "Смена цветов"
+
+msgid "Rainbow"
+msgstr "Радуга"
+
+msgid "Strobe"
+msgstr "Стробоскоп"
+
+msgid "Slow"
+msgstr "Медленно"
+
+msgid "Fast"
+msgstr "Быстро"

@@ -687,3 +687,39 @@ msgstr "正在等待 Epic 代码…"
 
 msgid "Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard."
 msgstr "请在浏览器中登录 Epic，然后复制跳转后的页面（或其中的 authorizationCode）：Canapé 会从剪贴板读取。"
+
+msgid "M1, right"
+msgstr "M1（右）"
+
+msgid "M2, left"
+msgstr "M2（左）"
+
+msgid "Media"
+msgstr "媒体"
+
+msgid "Effect"
+msgstr "效果"
+
+msgid "Speed"
+msgstr "速度"
+
+msgid "Steady"
+msgstr "常亮"
+
+msgid "Breathing"
+msgstr "呼吸"
+
+msgid "Colour cycle"
+msgstr "颜色循环"
+
+msgid "Rainbow"
+msgstr "彩虹"
+
+msgid "Strobe"
+msgstr "频闪"
+
+msgid "Slow"
+msgstr "慢"
+
+msgid "Fast"
+msgstr "快"

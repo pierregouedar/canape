@@ -7,7 +7,9 @@
 use std::ffi::c_void;
 use std::time::{Duration, Instant};
 
-use canape_core::{BackButtons, ControllerMode, Fan, FanCurve, PerformanceMode};
+use canape_core::{
+    BackButtons, ControllerMode, Fan, FanCurve, LightingEffect, LightingSpeed, PerformanceMode,
+};
 use windows_sys::Win32::Foundation::{
     CloseHandle, GENERIC_READ, GENERIC_WRITE, HANDLE, INVALID_HANDLE_VALUE,
 };
@@ -328,24 +330,47 @@ impl Device for AllyDevice {
         self.write_controller(|len| vec![pad::mode_report(mode, len)])
     }
 
-    /// UNTESTED on the device. One mapping report for the back button pair.
-    fn set_back_buttons(&mut self, buttons: &BackButtons) -> Result<()> {
-        self.write_controller(|len| vec![pad::back_buttons_report(buttons, len)])
+    /// UNTESTED on the device. The mode, the whole mapping table, then
+    /// turbo off (see [`pad::back_buttons_reports`]).
+    fn set_back_buttons(&mut self, buttons: &BackButtons, mode: ControllerMode) -> Result<()> {
+        if pad::back_buttons_reports(buttons, mode, pad::FEATURE_REPORT_LEN).is_none() {
+            return Err(HwError::Unsupported(crate::BACK_BUTTONS_IN_WASD));
+        }
+        self.write_controller(|len| {
+            pad::back_buttons_reports(buttons, mode, len).unwrap_or_default()
+        })
     }
 
-    /// UNTESTED on the device. The brightness, then the colour of the
-    /// four ring zones: a brightness write may bring the controller's own
-    /// colours back.
-    fn set_lighting(&mut self, level: u8, rgb: [u8; 3]) -> Result<()> {
+    /// UNTESTED on the device. The brightness, the effect (kept by the
+    /// controller, then put in use), then for a steady colour the colour
+    /// of the four ring zones set directly: a brightness write may bring
+    /// the controller's own colours back. Off is a steady black.
+    fn set_lighting(
+        &mut self,
+        level: u8,
+        rgb: [u8; 3],
+        effect: LightingEffect,
+        speed: LightingSpeed,
+    ) -> Result<()> {
         if level > canape_core::settings::LIGHTING_MAX_LEVEL {
             return Err(HwError::OutOfRange(format!("lighting level {level}")));
         }
-        let rgb = if level == 0 { [0; 3] } else { rgb };
+        let (rgb, effect) = if level == 0 {
+            ([0; 3], LightingEffect::Steady)
+        } else {
+            (rgb, effect)
+        };
         self.write_controller(|len| {
-            vec![
+            let mut reports = vec![
                 pad::brightness_report(level, len),
-                pad::ring_color_report(rgb, len),
-            ]
+                pad::effect_report(effect, rgb, speed, len),
+                pad::effect_set_report(len),
+                pad::effect_apply_report(len),
+            ];
+            if effect == LightingEffect::Steady {
+                reports.push(pad::ring_color_report(rgb, len));
+            }
+            reports
         })
     }
 }

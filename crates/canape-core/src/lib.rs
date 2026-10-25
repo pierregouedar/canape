@@ -12,5 +12,5 @@ pub use fan::{Fan, FanCurve, FanCurves, FanPreset};
 pub use protocol::{ProfilePart, Request, Response, Status};
 pub use settings::{
     AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, GyroActivation,
-    GyroAxis, GyroSettings, Lighting, PerformanceMode, Profile,
+    GyroAxis, GyroSettings, Lighting, LightingEffect, LightingSpeed, PerformanceMode, Profile,
 };

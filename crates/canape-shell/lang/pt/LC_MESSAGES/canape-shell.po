@@ -687,3 +687,39 @@ msgstr "A aguardar o código da Epic…"
 
 msgid "Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard."
 msgstr "Inicia sessão na Epic no navegador e copia a página de chegada (ou o seu authorizationCode): o Canapé lê-o da área de transferência."
+
+msgid "M1, right"
+msgstr "M1, direito"
+
+msgid "M2, left"
+msgstr "M2, esquerdo"
+
+msgid "Media"
+msgstr "Multimédia"
+
+msgid "Effect"
+msgstr "Efeito"
+
+msgid "Speed"
+msgstr "Velocidade"
+
+msgid "Steady"
+msgstr "Fixo"
+
+msgid "Breathing"
+msgstr "Respiração"
+
+msgid "Colour cycle"
+msgstr "Ciclo de cores"
+
+msgid "Rainbow"
+msgstr "Arco-íris"
+
+msgid "Strobe"
+msgstr "Estroboscópio"
+
+msgid "Slow"
+msgstr "Lenta"
+
+msgid "Fast"
+msgstr "Rápida"

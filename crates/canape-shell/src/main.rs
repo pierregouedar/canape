@@ -43,7 +43,7 @@ use std::time::Duration;
 use canape_core::settings::GYRO_SENSITIVITY_RANGE;
 use canape_core::{
     AutoTdpSettings, BackButton, BenchPlan, ButtonTarget, ControllerMode, GyroActivation, GyroAxis,
-    GyroSettings, Lighting, PerformanceMode, Request,
+    GyroSettings, Lighting, LightingEffect, LightingSpeed, PerformanceMode, Request,
 };
 
 use slint::{ComponentHandle, Timer, TimerMode};
@@ -380,10 +380,18 @@ fn connect(ui: &AppWindow, link: &Link) {
     });
     app.on_set_lighting({
         let link = link.clone();
-        move |level, color| {
+        move |level, color, effect, speed| {
             let lighting = u8::try_from(level).ok().map(|level| Lighting {
                 level,
                 color: (!color.is_empty()).then(|| color.to_string()),
+                effect: usize::try_from(effect)
+                    .ok()
+                    .and_then(|i| LightingEffect::ALL.get(i).copied())
+                    .unwrap_or_default(),
+                speed: usize::try_from(speed)
+                    .ok()
+                    .and_then(|i| LightingSpeed::ALL.get(i).copied())
+                    .unwrap_or_default(),
             });
             link.send(Request::SetLighting { lighting });
         }

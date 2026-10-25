@@ -1,0 +1,362 @@
+// What a back button can send, as a grid of chips with an icon each:
+// gamepad buttons as the controller draws them, keys as keycaps, mouse
+// and media actions as small drawings. The chips follow the order of
+// ButtonTarget::ALL (canape-core), so a chip's index is the target's.
+
+import { Theme } from "theme.slint";
+import { Icon, SectionTitle } from "kit.slint";
+import { PadGlyph } from "widgets.slint";
+
+// A drawing on a 24-unit grid, in the chip's ink.
+component Drawing inherits Path {
+    in property <color> ink;
+    width: 28px;
+    height: 28px;
+    viewbox-width: 24;
+    viewbox-height: 24;
+    fill: transparent;
+    stroke: root.ink;
+    stroke-width: 1.8px;
+    stroke-line-join: round;
+}
+
+// Filled shapes on the same grid.
+component Shape inherits Path {
+    in property <color> ink;
+    width: 28px;
+    height: 28px;
+    viewbox-width: 24;
+    viewbox-height: 24;
+    fill: root.ink;
+}
+
+// A key: an outline with its label, or a drawing for arrows and the like.
+component Keycap inherits Rectangle {
+    in property <string> label;
+    in property <string> drawing;
+    in property <bool> filled;
+    in property <color> ink;
+    height: 30px;
+    width: root.label != "" ? max(30px, label-text.preferred-width + 16px) : 30px;
+    border-radius: 6px;
+    border-width: 1.5px;
+    border-color: root.ink;
+
+    label-text := Text {
+        visible: root.label != "";
+        text: root.label;
+        color: root.ink;
+        font-size: 12px;
+        font-weight: 600;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    if root.drawing != "" && !root.filled: Drawing {
+        x: (parent.width - self.width) / 2 + 3px;
+        y: (parent.height - self.height) / 2 + 3px;
+        width: 22px;
+        height: 22px;
+        ink: root.ink;
+        stroke-width: 1.6px;
+        commands: root.drawing;
+    }
+    if root.drawing != "" && root.filled: Shape {
+        x: (parent.width - self.width) / 2 + 4px;
+        y: (parent.height - self.height) / 2 + 4px;
+        width: 20px;
+        height: 20px;
+        ink: root.ink;
+        commands: root.drawing;
+    }
+}
+
+// The icon of target `target`; `own-key` names the button's own key, for
+// its default.
+export component TargetIcon inherits Rectangle {
+    in property <int> target;
+    in property <string> own-key;
+    in property <color> ink: Theme.text;
+    property <string> pad-label: ["A", "B", "X", "Y", "LB", "RB", "LT", "RT", "LS", "RS"][root.target - 2];
+    // The D-pad's outline, and the arm of each direction.
+    property <string> cross: "M 9 2 L 15 2 L 15 9 L 22 9 L 22 15 L 15 15 L 15 22 L 9 22 L 9 15 L 2 15 L 2 9 L 9 9 Z";
+    property <[string]> arms: [
+        "M 9 2 L 15 2 L 15 9 L 9 9 Z",
+        "M 9 15 L 15 15 L 15 22 L 9 22 Z",
+        "M 2 9 L 9 9 L 9 15 L 2 15 Z",
+        "M 15 9 L 22 9 L 22 15 L 15 15 Z",
+    ];
+    property <[string]> key-labels: ["Esc", "Enter", "Space", "Tab", "", "", "", "", "", "PgUp", "PgDn", "Shift", "Ctrl", "", "F11", "F12"];
+    property <[string]> key-drawings: [
+        "", "", "", "",
+        "M 9 6 L 20 6 L 20 18 L 9 18 L 3 12 Z M 12 9.5 L 17 14.5 M 17 9.5 L 12 14.5",
+        "M 12 19 L 12 5 M 7 10 L 12 5 L 17 10",
+        "M 12 5 L 12 19 M 7 14 L 12 19 L 17 14",
+        "M 19 12 L 5 12 M 10 7 L 5 12 L 10 17",
+        "M 5 12 L 19 12 M 14 7 L 19 12 L 14 17",
+        "", "", "", "",
+        "M 3 3 L 11 3 L 11 11 L 3 11 Z M 13 3 L 21 3 L 21 11 L 13 11 Z M 3 13 L 11 13 L 11 21 L 3 21 Z M 13 13 L 21 13 L 21 21 L 13 21 Z",
+        "", "",
+    ];
+    // The mouse's outline, and the part each button fills.
+    property <string> mouse: "M 12 3 A 6 6 0 0 1 18 9 L 18 15 A 6 6 0 0 1 6 15 L 6 9 A 6 6 0 0 1 12 3 Z M 6 10 L 18 10 M 12 3 L 12 10";
+    property <[string]> mouse-parts: [
+        "M 12 3 A 6 6 0 0 0 6 9 L 6 10 L 12 10 Z",
+        "M 12 3 A 6 6 0 0 1 18 9 L 18 10 L 12 10 Z",
+        "M 10.8 4.5 L 13.2 4.5 L 13.2 8.8 L 10.8 8.8 Z",
+    ];
+    property <string> small-mouse: "M 9 4 A 5 5 0 0 1 14 9 L 14 15 A 5 5 0 0 1 4 15 L 4 9 A 5 5 0 0 1 9 4 Z";
+    property <string> speaker: "M 3 9 L 7 9 L 12 5 L 12 19 L 7 15 L 3 15 Z";
+    width: 40px;
+    height: 32px;
+
+    // Default: the button's own key; Disabled: nothing.
+    if root.target == 0: Keycap {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        label: root.own-key;
+        ink: root.ink;
+    }
+    if root.target == 1: Drawing {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        ink: root.ink;
+        commands: "M 12 3 A 9 9 0 1 1 11.99 3 M 5.6 5.6 L 18.4 18.4";
+    }
+    // Face buttons and stick clicks round, bumpers and triggers square.
+    if root.target >= 2 && root.target <= 11: PadGlyph {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        text: root.pad-label;
+        round: root.target <= 5 || root.target >= 10;
+        size: 28px;
+        ink: root.ink;
+    }
+    if root.target >= 12 && root.target <= 15: Rectangle {
+        x: (parent.width - 28px) / 2;
+        y: (parent.height - 28px) / 2;
+        width: 28px;
+        height: 28px;
+        Drawing {
+            x: 0;
+            y: 0;
+            ink: root.ink;
+            stroke-width: 1.4px;
+            commands: root.cross;
+        }
+
+        Shape {
+            x: 0;
+            y: 0;
+            ink: root.ink;
+            commands: root.arms[root.target - 12];
+        }
+    }
+    // View, Menu, Xbox.
+    if root.target >= 16 && root.target <= 18: Drawing {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        ink: root.ink;
+        commands: root.target == 16 ? "M 4 9 L 14 9 L 14 19 L 4 19 Z M 9 9 L 9 5 L 20 5 L 20 15 L 14 15"
+            : root.target == 17 ? "M 5 7 L 19 7 M 5 12 L 19 12 M 5 17 L 19 17"
+            : "M 12 3 A 9 9 0 1 1 11.99 3 M 7 6.5 C 10 9 14 15 17 17.5 M 17 6.5 C 14 9 10 15 7 17.5";
+    }
+    if root.target >= 19 && root.target <= 34: Keycap {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        label: root.key-labels[root.target - 19];
+        drawing: root.key-drawings[root.target - 19];
+        filled: root.target == 32;
+        ink: root.ink;
+    }
+    // Mouse buttons: the button pressed is filled.
+    if root.target >= 35 && root.target <= 37: Rectangle {
+        x: (parent.width - 28px) / 2;
+        y: (parent.height - 28px) / 2;
+        width: 28px;
+        height: 28px;
+        Drawing {
+            x: 0;
+            y: 0;
+            ink: root.ink;
+            commands: root.mouse;
+        }
+
+        Shape {
+            x: 0;
+            y: 0;
+            ink: root.ink;
+            commands: root.mouse-parts[root.target - 35];
+        }
+    }
+    // The wheel: a mouse with its wheel, and the way it turns.
+    if root.target == 38 || root.target == 39: Rectangle {
+        x: (parent.width - 28px) / 2;
+        y: (parent.height - 28px) / 2;
+        width: 28px;
+        height: 28px;
+        Drawing {
+            x: 0;
+            y: 0;
+            ink: root.ink;
+            commands: root.small-mouse + (root.target == 38 ? " M 19 19 L 19 6 M 16 9 L 19 5.5 L 22 9" : " M 19 5 L 19 18 M 16 15 L 19 18.5 L 22 15");
+        }
+
+        Shape {
+            x: 0;
+            y: 0;
+            ink: root.ink;
+            commands: "M 8 6.5 L 10 6.5 L 10 10.5 L 8 10.5 Z";
+        }
+    }
+    // Volume up and down, the microphone muted, the touch keyboard.
+    if root.target == 40 || root.target == 41: Drawing {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        ink: root.ink;
+        commands: root.speaker + (root.target == 40 ? " M 15 12 L 21 12 M 18 9 L 18 15" : " M 15 12 L 21 12");
+    }
+    if root.target == 42: Drawing {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        ink: root.ink;
+        commands: "M 12 3 A 3 3 0 0 1 15 6 L 15 11 A 3 3 0 0 1 9 11 L 9 6 A 3 3 0 0 1 12 3 Z M 6 11 A 6 6 0 0 0 18 11 M 12 17 L 12 21 M 4 4 L 20 20";
+    }
+    if root.target == 43: Icon {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        width: 28px;
+        height: 28px;
+        name: "keyboard";
+        stroke: root.ink;
+        stroke-width: 1.8px;
+    }
+}
+
+// One chip of the grid.
+component TargetChip inherits Rectangle {
+    in property <int> target;
+    in property <string> own-key;
+    in property <bool> applied;
+    in property <bool> focused;
+    callback clicked();
+    width: 104px;
+    height: 52px;
+    border-radius: 10px;
+    background: root.applied ? Theme.selected : Theme.surface-high;
+
+    TargetIcon {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        target: root.target;
+        own-key: root.own-key;
+        ink: root.focused || root.applied ? Theme.text : Theme.text.mix(Theme.dim, 0.6);
+    }
+
+    if root.applied: Rectangle {
+        y: parent.height - 3px;
+        height: 3px;
+        background: Theme.accent;
+    }
+    if root.focused: Rectangle {
+        border-radius: 10px;
+        border-width: 2px;
+        border-color: Theme.focus;
+    }
+
+    TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+// The grid, over the page: arrows move (`move`), A applies the focused
+// target (`pick`), B closes (`close`). The page routes the keys here.
+export component TargetPicker inherits Rectangle {
+    in property <string> title;
+    in property <string> own-key;
+    in property <[string]> names;
+    // The target applied now, and the one the focus is on.
+    in property <int> applied;
+    in-out property <int> current;
+    callback pick(int);
+    // Rows of chips: a group's name on its first row, the first target
+    // of the row, and how many.
+    property <[{ group: string, start: int, count: int }]> rows: [
+        { group: "", start: 0, count: 2 },
+        { group: @tr("Gamepad"), start: 2, count: 9 },
+        { group: "", start: 11, count: 8 },
+        { group: @tr("Keyboard"), start: 19, count: 9 },
+        { group: "", start: 28, count: 7 },
+        { group: @tr("Mouse"), start: 35, count: 5 },
+        { group: @tr("Media"), start: 40, count: 4 },
+    ];
+    background: Theme.background;
+
+    function row-of(i: int) -> int {
+        i < 2 ? 0 : i < 11 ? 1 : i < 19 ? 2 : i < 28 ? 3 : i < 35 ? 4 : i < 40 ? 5 : 6
+    }
+    // Arrows: across a row, or to the same column of the next row.
+    public function move(dx: int, dy: int) {
+        let r = root.row-of(root.current);
+        if dx != 0 {
+            let row = root.rows[r];
+            root.current = clamp(root.current + dx, row.start, row.start + row.count - 1);
+        } else {
+            let to = clamp(r + dy, 0, root.rows.length - 1);
+            let col = root.current - root.rows[r].start;
+            root.current = root.rows[to].start + min(col, root.rows[to].count - 1);
+        }
+    }
+
+    VerticalLayout {
+        spacing: 8px;
+        alignment: start;
+
+        SectionTitle {
+            height: 36px;
+            x: 16px;
+            text: root.title;
+        }
+
+        for row in root.rows: HorizontalLayout {
+            spacing: 8px;
+            padding-left: 16px;
+            height: 52px;
+            Text {
+                width: 112px;
+                text: row.group;
+                color: Theme.dim;
+                font-size: 14px;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+
+            for c in row.count: TargetChip {
+                target: row.start + c;
+                own-key: root.own-key;
+                applied: root.applied == row.start + c;
+                focused: root.current == row.start + c;
+                clicked => {
+                    root.current = row.start + c;
+                    root.pick(row.start + c);
+                }
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+        }
+
+        // The focused target's name.
+        Text {
+            x: 16px;
+            height: 36px;
+            text: root.names[root.current];
+            color: Theme.text;
+            font-size: 16px;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+    }
+}
