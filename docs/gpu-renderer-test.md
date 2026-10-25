@@ -80,6 +80,22 @@ Même méthode, version normale installée par `install-dev.ps1` (la sortie redi
 
 La navigation rapide ne coûte plus rien de plus qu'une image sans animation (60 ou 97 FPS, contre 36 ou 45 avant). Le cas lent est le plus lourd : avec un appui toutes les 300 ms, la sélection se pose à chaque pas et le fondu du fond, qui couvre tout l'écran, se joue à chaque fois ; en rafale de 70 ms il ne se déclenche pas. Avec vsync, les images de plus de 8,3 ms tombent à 40 FPS, ce qui peut expliquer que Pierre trouve la version sans vsync plus fluide.
 
+### Après 9335860
+
+Plus de vsync, fondu du fond seulement après une pause, image du fond recadrée. Mêmes cas, plus un cas « pause » : 2 s d'arrêt puis un seul pas, cinq fois.
+
+| Cas | FPS (plein régime) | CPU |
+|---|---|---|
+| Repos | 114 (110–117) | 1,0 % |
+| Gauche/droite rapide | 112 (108–115) | 52 % |
+| Haut/bas rapide | 93 (85–113) | 106 % |
+| Gauche/droite lent (300 ms) | 104 (95–112) | 33 % |
+| Pause puis un pas | 106, au plus bas 97 | 14 % |
+
+Les FPS sont des moyennes par seconde : le fondu ne dure que 240 ms, donc la seconde qui le contient le dilue. Une seconde à 97 FPS contre environ 110 sans fondu revient à environ 55 FPS pendant le fondu, à prendre comme un ordre de grandeur. L'image recadrée rend aussi chaque image moins chère : 114 FPS au repos contre 94 avant. Haut/bas rapide reste le cas le plus lourd.
+
+Ressenti (Pierre) : fluide en parcours rapide comme en parcours lent, fondu compris.
+
 ### Version de test, `CANAPE_RENDERER=software`
 
 | Mesure | Valeur |
