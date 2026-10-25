@@ -406,6 +406,10 @@ On a recommendation, **A** sets the TDP (manual limit at that value, auto TDP of
 
 ## The Xbox Game Bar widget
 
+<img src="images/widget-tabs.png" alt="Canapé widget in Game Bar: Power and Hardware tabs" width="560">
+
+<sub>On the Ally, in game (Among Us); French interface.</sub>
+
 The widget gives you the quick settings without leaving the game. All the logic stays in the service: the widget is just a remote control.
 
 **Install** (once, then at every widget update):

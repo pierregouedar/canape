@@ -406,6 +406,10 @@ Sur une recommandation, **A** règle le TDP (limite manuelle à cette valeur, au
 
 ## Le widget Xbox Game Bar
 
+<img src="images/widget-tabs.png" alt="Widget Canapé dans la Game Bar : onglets Puissance et Matériel" width="560">
+
+<sub>Sur l'Ally, en jeu (Among Us).</sub>
+
 Le widget donne les réglages rapides sans quitter le jeu. Toute la logique reste dans le service : le widget n'est qu'une télécommande.
 
 **Installer** (une fois, puis à chaque mise à jour du widget) :
