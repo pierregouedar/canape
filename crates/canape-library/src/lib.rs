@@ -8,7 +8,9 @@
 //! Every store is read from its own files (or the registry for GOG) with
 //! pure parsers that are tested on Linux; only finding the files and
 //! launching are Windows-specific. Nothing here needs elevation: the shell
-//! scans and launches from the user session, at medium integrity.
+//! scans and launches from the user session, at medium integrity. The one
+//! exception, a game's anti-cheat setup ([`eac`]), runs elevated only once
+//! the user allows it at Windows' prompt.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -19,6 +21,7 @@ pub mod achievements;
 pub mod cache;
 pub mod cover;
 pub mod disk;
+pub mod eac;
 pub mod epic;
 pub mod external;
 pub mod gog;

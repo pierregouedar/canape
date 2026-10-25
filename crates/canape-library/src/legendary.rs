@@ -76,6 +76,16 @@ pub fn install_paths(config: &Path) -> Vec<PathBuf> {
     paths
 }
 
+/// The folder Legendary installed the game `app` in.
+pub fn install_path(config: &Path, app: &str) -> Option<PathBuf> {
+    let json = std::fs::read_to_string(config.join("installed.json")).ok()?;
+    serde_json::from_str::<HashMap<String, Installed>>(&json)
+        .ok()?
+        .into_values()
+        .find(|g| g.app_name == app && !g.install_path.is_empty())
+        .map(|g| PathBuf::from(g.install_path))
+}
+
 /// Games installed with Legendary, from its config folder.
 pub fn scan(config: &Path, exe: &Path) -> Vec<Game> {
     std::fs::read_to_string(config.join("installed.json"))

@@ -27,7 +27,7 @@ use std::time::{Duration, Instant};
 
 use canape_library::cache::{self, Recent};
 use canape_library::install::{self, Event, Install, Tools};
-use canape_library::{Game, Launch, Played, Roots, legendary, online, tools};
+use canape_library::{Game, Launch, Played, Roots, eac, legendary, online, tools};
 use slint::{
     ComponentHandle, Image, Model, ModelRc, Rgb8Pixel, Rgba8Pixel, SharedPixelBuffer, Timer,
     TimerMode, VecModel, Weak,
@@ -196,6 +196,8 @@ struct State {
     backdrop_at: Option<Instant>,
     /// The backdrop's shape for the window size it was drawn for.
     backdrop_mask: Option<(u32, u32, backdrop::Mask)>,
+    /// Games whose anti-cheat setup the user refused this session.
+    eac_refused: HashSet<String>,
 }
 
 thread_local! {
@@ -1001,7 +1003,17 @@ impl State {
 
         let fixture = self.fixture;
         let (id, title) = (game.id.clone(), game.title.clone());
+        // A refused anti-cheat prompt is not shown again before every
+        // launch of the session.
+        let anticheat = !fixture && !self.eac_refused.contains(&game.id);
+        let roots = self.roots.clone();
         thread::spawn(move || {
+            if anticheat && let Some(outcome) = ensure_anticheat(&game, &roots) {
+                let (id, title) = (id.clone(), title.clone());
+                let _ = slint::invoke_from_event_loop(move || {
+                    with_state(|state| state.anticheat_done(&id, &title, outcome));
+                });
+            }
             let result = if fixture {
                 Ok(())
             } else {
@@ -1011,6 +1023,35 @@ impl State {
                 with_state(|state| state.launched(id, title, result));
             });
         });
+    }
+
+    /// A game just installed from Epic or GOG that ships Easy Anti-Cheat:
+    /// its setup runs now (Windows asks first) rather than at its first
+    /// launch.
+    fn anticheat_after_install(&mut self, game: Game) {
+        if self.fixture {
+            return;
+        }
+        let roots = self.roots.clone();
+        thread::spawn(move || {
+            if let Some(outcome) = ensure_anticheat(&game, &roots) {
+                let _ = slint::invoke_from_event_loop(move || {
+                    with_state(|state| state.anticheat_done(&game.id, &game.title, outcome));
+                });
+            }
+        });
+    }
+
+    /// The anti-cheat setup of `id` ended (already logged).
+    fn anticheat_done(&mut self, id: &str, title: &str, outcome: eac::Outcome) {
+        match outcome {
+            eac::Outcome::Installed => {}
+            eac::Outcome::Refused => {
+                self.eac_refused.insert(id.to_owned());
+                self.show_error(Failure::AntiCheatRefused, title, "");
+            }
+            eac::Outcome::Failed(why) => self.show_error(Failure::AntiCheatFailed, title, &why),
+        }
     }
 
     /// What the installs need: Steam's folder, Legendary and gogdl, when
@@ -1638,6 +1679,40 @@ enum Failure {
     Launch = 4,
     /// A store's list of owned games.
     Owned = 5,
+    /// The anti-cheat setup was refused at Windows' elevation prompt.
+    AntiCheatRefused = 6,
+    AntiCheatFailed = 7,
+}
+
+/// Runs `game`'s Easy Anti-Cheat setup, elevated once the user allows it,
+/// when the game ships one and the anti-cheat service is missing; `None`
+/// when nothing was needed. Blocks until the setup ends: run it on a
+/// thread.
+fn ensure_anticheat(game: &Game, roots: &Roots) -> Option<eac::Outcome> {
+    #[cfg(windows)]
+    {
+        let setup = eac::setup_for(game, roots)?;
+        if eac::service_installed() {
+            return None;
+        }
+        crate::log(&format!(
+            "library: {}: installing Easy Anti-Cheat ({} {})",
+            game.id,
+            setup.exe.display(),
+            setup.args()
+        ));
+        let outcome = eac::install(&setup);
+        crate::log(&format!(
+            "library: {}: Easy Anti-Cheat: {outcome:?}",
+            game.id
+        ));
+        Some(outcome)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (game, roots);
+        None
+    }
 }
 
 /// Longest technical detail shown after a message, in characters.
@@ -1737,9 +1812,10 @@ fn publish(cache_path: &Path, games: Vec<Game>) {
             // Leave the games to install for the one just installed, rather
             // than land on another one A would install.
             if let Some(id) = state.just_installed.take()
-                && state.all.iter().any(|g| g.id == id)
+                && let Some(game) = state.all.iter().find(|g| g.id == id).cloned()
             {
                 keep = Some((Kind::Installed, id));
+                state.anticheat_after_install(game);
             }
             state.rebuild(keep);
             if let Some(ui) = state.ui.upgrade() {
@@ -1938,6 +2014,7 @@ pub fn start(ui: &AppWindow) {
         beat,
         detail_timer: Timer::default(),
         awaiting: None,
+        eac_refused: HashSet::new(),
     };
     state.rebuild(None);
     state.scan();
