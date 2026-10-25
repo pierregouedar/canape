@@ -747,3 +747,21 @@ msgstr "Açıldı"
 
 msgid "{} % of players"
 msgstr "Oyuncuların {} %'si"
+
+msgid "Could not download {}"
+msgstr "{} indirilemedi"
+
+msgid "{}: sign-in failed"
+msgstr "{}: oturum açılamadı"
+
+msgid "Could not install {}"
+msgstr "{} yüklenemedi"
+
+msgid "{}: could not list the owned games"
+msgstr "{}: sahip olunan oyunlar listelenemedi"
+
+msgid "Easy Anti-Cheat was not installed (refused): {} may not start"
+msgstr "Easy Anti-Cheat yüklenmedi (reddedildi): {} başlamayabilir"
+
+msgid "Easy Anti-Cheat could not be installed: {} may not start"
+msgstr "Easy Anti-Cheat yüklenemedi: {} başlamayabilir"

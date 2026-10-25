@@ -747,3 +747,21 @@ msgstr "Desbloqueada"
 
 msgid "{} % of players"
 msgstr "{} % dos jogadores"
+
+msgid "Could not download {}"
+msgstr "Não foi possível transferir {}"
+
+msgid "{}: sign-in failed"
+msgstr "{}: falha ao iniciar sessão"
+
+msgid "Could not install {}"
+msgstr "Não foi possível instalar {}"
+
+msgid "{}: could not list the owned games"
+msgstr "{}: não foi possível listar os jogos que possui"
+
+msgid "Easy Anti-Cheat was not installed (refused): {} may not start"
+msgstr "O Easy Anti-Cheat não foi instalado (recusado): {} pode não iniciar"
+
+msgid "Easy Anti-Cheat could not be installed: {} may not start"
+msgstr "Não foi possível instalar o Easy Anti-Cheat: {} pode não iniciar"

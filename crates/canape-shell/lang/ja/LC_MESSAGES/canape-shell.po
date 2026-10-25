@@ -747,3 +747,21 @@ msgstr "解除済み"
 
 msgid "{} % of players"
 msgstr "プレイヤーの {} %"
+
+msgid "Could not download {}"
+msgstr "{} をダウンロードできませんでした"
+
+msgid "{}: sign-in failed"
+msgstr "{}：サインインに失敗しました"
+
+msgid "Could not install {}"
+msgstr "{} をインストールできませんでした"
+
+msgid "{}: could not list the owned games"
+msgstr "{}：所有ゲームを取得できませんでした"
+
+msgid "Easy Anti-Cheat was not installed (refused): {} may not start"
+msgstr "Easy Anti-Cheat はインストールされませんでした（拒否）：{} が起動しない可能性があります"
+
+msgid "Easy Anti-Cheat could not be installed: {} may not start"
+msgstr "Easy Anti-Cheat をインストールできませんでした：{} が起動しない可能性があります"

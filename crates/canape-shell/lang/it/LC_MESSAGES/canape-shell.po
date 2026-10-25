@@ -747,3 +747,21 @@ msgstr "Sbloccato"
 
 msgid "{} % of players"
 msgstr "{} % dei giocatori"
+
+msgid "Could not download {}"
+msgstr "Impossibile scaricare {}"
+
+msgid "{}: sign-in failed"
+msgstr "{}: accesso non riuscito"
+
+msgid "Could not install {}"
+msgstr "Impossibile installare {}"
+
+msgid "{}: could not list the owned games"
+msgstr "{}: impossibile elencare i giochi posseduti"
+
+msgid "Easy Anti-Cheat was not installed (refused): {} may not start"
+msgstr "Easy Anti-Cheat non è stato installato (rifiutato): {} potrebbe non avviarsi"
+
+msgid "Easy Anti-Cheat could not be installed: {} may not start"
+msgstr "Impossibile installare Easy Anti-Cheat: {} potrebbe non avviarsi"

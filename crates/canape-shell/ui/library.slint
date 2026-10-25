@@ -134,8 +134,17 @@ export global Library {
     in property <bool> epic-waiting;
     // The owned lists are being fetched.
     in property <bool> owned-loading;
-    // Last install or sign-in failure, "" when none.
-    in property <string> install-error;
+    // Last install, store, sign-in or launch failure: what failed (0 none,
+    // 1 downloading a helper program, 2 a sign-in, 3 an install, 4 a
+    // launch, 5 a store's owned list, 6 the anti-cheat setup refused, 7 it
+    // failed, 8 anything else), what it concerns (a store, a program or a
+    // game) and a short technical detail ("" when none or too long; the
+    // full one is in shell.log).
+    in property <int> error-kind;
+    in property <string> error-subject;
+    in property <string> error-detail;
+    // That failure as shown, "" when none.
+    out property <string> install-error: root.error-message(root.error-kind, root.error-subject, root.error-detail);
     // Games listed in games.json.
     in property <int> external;
     // The "Add a game" sub-page: games.json and the shortcuts that could
@@ -193,6 +202,21 @@ export global Library {
     // A store's name as shown; "Other" is the games of games.json.
     public pure function store-name(store: string) -> string {
         store == "Other" ? @tr("Other games") : store
+    }
+
+    // See error-kind.
+    pure function error-message(kind: int, subject: string, detail: string) -> string {
+        if kind == 0 {
+            return "";
+        }
+        if kind == 8 {
+            return detail == "" ? subject : subject + ": " + detail;
+        }
+        root.with-detail(kind == 1 ? @tr("Could not download {}", subject) : kind == 2 ? @tr("{}: sign-in failed", subject) : kind == 3 ? @tr("Could not install {}", subject) : kind == 4 ? @tr("Could not launch {}", subject) : kind == 5 ? @tr("{}: could not list the owned games", subject) : kind == 6 ? @tr("Easy Anti-Cheat was not installed (refused): {} may not start", subject) : @tr("Easy Anti-Cheat could not be installed: {} may not start", subject), detail)
+    }
+
+    pure function with-detail(message: string, detail: string) -> string {
+        detail == "" ? message : message + " (" + detail + ")"
     }
 
     public pure function played-text(played: int) -> string {

@@ -1039,7 +1039,7 @@ impl State {
         }
         self.show_progress(&game.id);
         if let Some(ui) = self.ui.upgrade() {
-            ui.global::<Library>().set_install_error("".into());
+            clear_error(&ui);
         }
         self.error_timer.stop();
         let (id, title, fixture, tools) = (
@@ -1092,20 +1092,26 @@ impl State {
                 crate::log(&format!("library: installing {id}: {message}"));
                 self.installing.remove(id);
                 self.show_progress(id);
-                self.show_error(format!("{title}: {message}"));
+                self.show_error(Failure::Install, title, &message);
             }
         }
     }
 
-    /// Shows an install or store error in the header for a while.
-    fn show_error(&mut self, message: String) {
+    /// Shows an install, store or launch error in the header for a while:
+    /// a short translated message about `subject` (a store, a program, a
+    /// game), with `detail` after it when short (see [`short_detail`]).
+    /// The caller logs the full detail.
+    fn show_error(&mut self, failure: Failure, subject: &str, detail: &str) {
         let Some(ui) = self.ui.upgrade() else { return };
-        ui.global::<Library>().set_install_error(message.into());
+        let library = ui.global::<Library>();
+        library.set_error_subject(subject.into());
+        library.set_error_detail(short_detail(detail).as_str().into());
+        library.set_error_kind(failure as i32);
         let ui = ui.as_weak();
         self.error_timer
             .start(TimerMode::SingleShot, ERROR_SHOWN, move || {
                 if let Some(ui) = ui.upgrade() {
-                    ui.global::<Library>().set_install_error("".into());
+                    clear_error(&ui);
                 }
             });
     }
@@ -1147,7 +1153,7 @@ impl State {
                 fetch_owned(&settings, steam.as_deref(), &tools)
             };
             // A failed store keeps the last list rather than emptying it.
-            if owned.error.is_empty()
+            if owned.errors.is_empty()
                 && let Err(err) = cache::save(&owned_path, &owned.games)
             {
                 crate::log(&format!("library: saving owned games: {err}"));
@@ -1207,11 +1213,14 @@ impl State {
                 "Epic sign-in needs Windows ({})",
                 exe.display()
             )));
-            let result = ready.and_then(|_| {
-                canape_library::launch(&Launch::Uri {
-                    uri: legendary::LOGIN_URL.to_owned(),
-                })
-            });
+            let result = ready
+                .map_err(|err| (Failure::Download, "Legendary", err))
+                .and_then(|_| {
+                    canape_library::launch(&Launch::Uri {
+                        uri: legendary::LOGIN_URL.to_owned(),
+                    })
+                    .map_err(|err| (Failure::SignIn, "Epic", err))
+                });
             let _ = slint::invoke_from_event_loop(move || {
                 with_state(|state| {
                     if let Some(ui) = state.ui.upgrade() {
@@ -1219,9 +1228,9 @@ impl State {
                     }
                     match result {
                         Ok(()) => state.epic_waiting(true),
-                        Err(err) => {
+                        Err((failure, subject, err)) => {
                             crate::log(&format!("library: Epic sign-in: {err}"));
-                            state.show_error(format!("Epic: {err}"));
+                            state.show_error(failure, subject, &err.to_string());
                         }
                     }
                 })
@@ -1281,7 +1290,7 @@ impl State {
                     }
                     if let Err(err) = result {
                         crate::log(&format!("library: Epic sign-in: {err}"));
-                        state.show_error(format!("Epic: {err}"));
+                        state.show_error(Failure::SignIn, "Epic", &err.to_string());
                     }
                     state.refresh_owned(true);
                 })
@@ -1327,11 +1336,14 @@ impl State {
                 "GOG sign-in needs Windows ({})",
                 exe.display()
             )));
-            let result = ready.and_then(|_| {
-                canape_library::launch(&Launch::Uri {
-                    uri: canape_library::gogdl::login_url(),
-                })
-            });
+            let result = ready
+                .map_err(|err| (Failure::Download, "gogdl", err))
+                .and_then(|_| {
+                    canape_library::launch(&Launch::Uri {
+                        uri: canape_library::gogdl::login_url(),
+                    })
+                    .map_err(|err| (Failure::SignIn, "GOG", err))
+                });
             let _ = slint::invoke_from_event_loop(move || {
                 with_state(|state| {
                     if let Some(ui) = state.ui.upgrade() {
@@ -1339,9 +1351,9 @@ impl State {
                     }
                     match result {
                         Ok(()) => state.gog_waiting(true),
-                        Err(err) => {
+                        Err((failure, subject, err)) => {
                             crate::log(&format!("library: GOG sign-in: {err}"));
-                            state.show_error(format!("GOG: {err}"));
+                            state.show_error(failure, subject, &err.to_string());
                         }
                     }
                 })
@@ -1403,7 +1415,7 @@ impl State {
                     }
                     if let Err(err) = result {
                         crate::log(&format!("library: GOG sign-in: {err}"));
-                        state.show_error(format!("GOG: {err}"));
+                        state.show_error(Failure::SignIn, "GOG", &err.to_string());
                     }
                     state.refresh_owned(true);
                 })
@@ -1419,8 +1431,9 @@ impl State {
             if let Some(ui) = self.ui.upgrade() {
                 let library = ui.global::<Library>();
                 library.set_launching("".into());
-                library.set_failed(title.into());
+                library.set_failed(title.as_str().into());
             }
+            self.show_error(Failure::Launch, &title, &err.to_string());
         }
         let ui = self.ui.clone();
         self.launch_timer
@@ -1517,7 +1530,7 @@ fn fetch_owned(
             Ok(games) => owned.extend(games),
             Err(err) => {
                 crate::log(&format!("library: Steam owned games: {err}"));
-                errors.push(format!("Steam: {err}"));
+                errors.push(("Steam", err.to_string()));
             }
         }
     }
@@ -1538,14 +1551,14 @@ fn fetch_owned(
                     }
                     Err(err) => {
                         crate::log(&format!("library: Epic owned games: {err}"));
-                        errors.push(format!("Epic: {err}"));
+                        errors.push(("Epic", err.to_string()));
                     }
                 }
             }
             Ok(None) => {}
             Err(err) => {
                 crate::log(&format!("library: Epic account: {err}"));
-                errors.push(format!("Epic: {err}"));
+                errors.push(("Epic", err.to_string()));
             }
         }
     }
@@ -1575,7 +1588,7 @@ fn fetch_owned(
                         }
                         Err(err) => {
                             crate::log(&format!("library: GOG owned games: {err}"));
-                            errors.push(format!("GOG: {err}"));
+                            errors.push(("GOG", err.to_string()));
                         }
                     }
                 }
@@ -1587,7 +1600,7 @@ fn fetch_owned(
             Ok(None) => {}
             Err(err) => {
                 crate::log(&format!("library: GOG account: {err}"));
-                errors.push(format!("GOG: {err}"));
+                errors.push(("GOG", err.to_string()));
             }
         }
     }
@@ -1596,7 +1609,7 @@ fn fetch_owned(
         art,
         account,
         gog_account,
-        error: errors.join(" · "),
+        errors,
     }
 }
 
@@ -1610,8 +1623,61 @@ struct Owned {
     account: Option<String>,
     /// Signed-in GOG account.
     gog_account: Option<String>,
-    /// Why a store could not be listed, "" when all went well.
-    error: String,
+    /// The stores that could not be listed, and why (already logged).
+    errors: Vec<(&'static str, String)>,
+}
+
+/// What failed, for the short translated message of the page
+/// (`Library.error-kind` in library.slint).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Failure {
+    /// A helper program (Legendary, gogdl) could not be downloaded.
+    Download = 1,
+    SignIn = 2,
+    Install = 3,
+    Launch = 4,
+    /// A store's list of owned games.
+    Owned = 5,
+}
+
+/// Longest technical detail shown after a message, in characters.
+const DETAIL_SHOWN: usize = 80;
+
+/// The part of an error worth showing after its translated message: its
+/// first line when short, without anything that looks like a key or a
+/// token; "" otherwise (shell.log has it all).
+fn short_detail(detail: &str) -> String {
+    let line = detail.lines().map(str::trim).find(|l| !l.is_empty());
+    let Some(line) = line else {
+        return String::new();
+    };
+    let secret_like = line
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .any(|word| word.len() >= 24);
+    if secret_like || line.chars().count() > DETAIL_SHOWN {
+        String::new()
+    } else {
+        line.to_owned()
+    }
+}
+
+/// The owned lists that failed, as one message: the stores, and the
+/// detail when only one failed.
+fn owned_failure(errors: &[(&str, String)]) -> Option<(String, String)> {
+    let stores: Vec<&str> = errors.iter().map(|(store, _)| *store).collect();
+    let detail = match errors {
+        [(_, detail)] => detail.clone(),
+        _ => String::new(),
+    };
+    (!stores.is_empty()).then(|| (stores.join(", "), detail))
+}
+
+/// Takes the error off the header.
+fn clear_error(ui: &AppWindow) {
+    let library = ui.global::<Library>();
+    library.set_error_kind(0);
+    library.set_error_subject("".into());
+    library.set_error_detail("".into());
 }
 
 fn post_owned(owned: Owned, covers_only: bool) {
@@ -1622,8 +1688,8 @@ fn post_owned(owned: Owned, covers_only: bool) {
             if !covers_only {
                 state.owned_loading = false;
                 state.owned_at = Some(Instant::now());
-                if !owned.error.is_empty() {
-                    state.show_error(owned.error);
+                if let Some((stores, detail)) = owned_failure(&owned.errors) {
+                    state.show_error(Failure::Owned, &stores, &detail);
                 }
             }
             if let Some(ui) = state.ui.upgrade() {
@@ -1950,4 +2016,40 @@ pub fn start(ui: &AppWindow) {
             });
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn details_are_short_and_secret_free() {
+        assert_eq!(
+            short_detail("no checked Legendary release found\n"),
+            "no checked Legendary release found"
+        );
+        assert_eq!(
+            short_detail("\n  legendary: first\nsecond"),
+            "legendary: first"
+        );
+        assert_eq!(short_detail(&"x ".repeat(60)), "");
+        assert_eq!(
+            short_detail("legendary auth: code 0123456789abcdef0123456789abcdef refused"),
+            ""
+        );
+        assert_eq!(short_detail(""), "");
+    }
+
+    #[test]
+    fn owned_failures_name_the_stores() {
+        assert_eq!(owned_failure(&[]), None);
+        assert_eq!(
+            owned_failure(&[("Epic", "legendary list failed".into())]),
+            Some(("Epic".into(), "legendary list failed".into()))
+        );
+        assert_eq!(
+            owned_failure(&[("Steam", "a".into()), ("GOG", "b".into())]),
+            Some(("Steam, GOG".into(), String::new()))
+        );
+    }
 }

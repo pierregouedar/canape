@@ -747,3 +747,21 @@ msgstr "달성"
 
 msgid "{} % of players"
 msgstr "플레이어의 {} %"
+
+msgid "Could not download {}"
+msgstr "{}을(를) 다운로드할 수 없습니다"
+
+msgid "{}: sign-in failed"
+msgstr "{}: 로그인에 실패했습니다"
+
+msgid "Could not install {}"
+msgstr "{}을(를) 설치할 수 없습니다"
+
+msgid "{}: could not list the owned games"
+msgstr "{}: 보유한 게임 목록을 가져올 수 없습니다"
+
+msgid "Easy Anti-Cheat was not installed (refused): {} may not start"
+msgstr "Easy Anti-Cheat가 설치되지 않았습니다(거부됨): {}이(가) 시작되지 않을 수 있습니다"
+
+msgid "Easy Anti-Cheat could not be installed: {} may not start"
+msgstr "Easy Anti-Cheat를 설치할 수 없습니다: {}이(가) 시작되지 않을 수 있습니다"
