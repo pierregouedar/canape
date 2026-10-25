@@ -1,10 +1,102 @@
-// The two sub-pages: game profiles (from the settings) and the bench (from
-// the performance page). Both are lines the D-pad moves through, like the
-// settings page; B goes back.
+// The sub-pages: game profiles and the games to add (from the settings),
+// the bench (from the performance page). All are lines the D-pad moves
+// through, like the settings page; B goes back.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
+import { Library } from "library.slint";
 import { SectionTitle, SettingLine } from "kit.slint";
+
+// Games to add: the games of games.json and the Start menu and desktop
+// shortcuts that could be games (library.rs, addgames.rs). A adds the
+// focused one, or takes it out of games.json.
+export component AddGamesPage inherits Rectangle {
+    in-out property <int> focus-row: 0;
+    property <bool> active: fs.has-focus;
+    property <length> pitch: 56px;
+    init => {
+        Library.open-add-games();
+    }
+    changed focus-row => {
+        // Keep the focused line in view: the gamepad cannot scroll.
+        let y = root.focus-row * root.pitch;
+        if y + list.content-y < 0 {
+            list.content-y = -y;
+        }
+        if y + root.pitch + list.content-y > list.height {
+            list.content-y = list.height - y - root.pitch;
+        }
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        key-pressed(event) => {
+            if event.text == Key.UpArrow {
+                root.focus-row = max(0, root.focus-row - 1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.focus-row = max(0, min(Library.add-games.length - 1, root.focus-row + 1));
+                return accept;
+            }
+            if (event.text == Key.Return || event.text == " ") && root.focus-row < Library.add-games.length {
+                Library.toggle-add-game(root.focus-row);
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    VerticalLayout {
+        x: 0;
+        width: 784px;
+        height: parent.height;
+        spacing: 2px;
+
+        SectionTitle {
+            height: 36px;
+            x: 16px;
+            text: @tr("Add a game");
+        }
+
+        if Library.add-games-error != "": Text {
+            x: 16px;
+            text: Library.add-games-error;
+            color: Theme.warn;
+            font-size: 13px;
+            wrap: word-wrap;
+        }
+
+        if Library.add-games.length == 0: Text {
+            x: 16px;
+            text: Library.add-games-loading ? @tr("Looking for shortcuts…") : @tr("No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape.");
+            color: Theme.dim;
+            font-size: 14px;
+            wrap: word-wrap;
+        }
+
+        list := Flickable {
+            vertical-stretch: 1;
+            content-height: Library.add-games.length * root.pitch;
+            animate content-y { duration: 160ms; easing: ease-out; }
+            for game[i] in Library.add-games: SettingLine {
+                y: i * root.pitch;
+                width: list.width;
+                label: game.name;
+                value: game.added ? @tr("Added") : game.file;
+                chevrons: false;
+                focused: root.active && root.focus-row == i;
+                clicked => {
+                    root.focus-row = i;
+                    Library.toggle-add-game(i);
+                    fs.focus();
+                }
+            }
+        }
+    }
+}
 
 // Game profiles. Line 0 saves the game in the foreground; the others are
 // the profiles, and X deletes the focused one after a second press.

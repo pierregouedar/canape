@@ -1,6 +1,6 @@
 //! The library's shelves, top to bottom: the games played lately, every
-//! installed game, each store's games (installed or to install), and the
-//! owned games to install. Pure: library.rs
+//! installed game, each store's games (installed or to install, then the
+//! games of games.json), and the owned games to install. Pure: library.rs
 //! turns them into models.
 
 use canape_library::{Game, Sort, Source};
@@ -166,6 +166,33 @@ mod tests {
             [Kind::Installed, Kind::Store(Source::Steam), Kind::ToInstall]
         );
         assert_eq!(ids(&shelves[1]), ["a", "b"]);
+    }
+
+    #[test]
+    fn other_games_come_after_the_stores() {
+        let installed = [
+            game("other:1", Source::Other, Some(3)),
+            game("xbox:1", Source::Xbox, None),
+            game("steam:1", Source::Steam, None),
+        ];
+        let shelves = build(&installed, Vec::new());
+        let kinds: Vec<Kind> = shelves.iter().map(|s| s.kind).collect();
+        assert_eq!(
+            kinds,
+            [
+                Kind::Recent,
+                Kind::Installed,
+                Kind::Store(Source::Steam),
+                Kind::Store(Source::Xbox),
+                Kind::Store(Source::Other),
+                Kind::ToInstall
+            ]
+        );
+        assert_eq!(shelves[4].kind.store(), "Other");
+        // Only games of games.json: the installed shelf says it all.
+        let alone = [game("other:1", Source::Other, None)];
+        let kinds: Vec<Kind> = build(&alone, Vec::new()).iter().map(|s| s.kind).collect();
+        assert_eq!(kinds, [Kind::Installed, Kind::ToInstall]);
     }
 
     #[test]

@@ -1,5 +1,6 @@
 //! The game library: games installed with Steam, the Epic Games Launcher,
-//! GOG Galaxy and the Xbox app, merged into one list for the shell. Games
+//! GOG Galaxy and the Xbox app, plus the games the user listed in
+//! `games.json` ([`external`]), merged into one list for the shell. Games
 //! without art on disk can get a cover downloaded ([`online`]).
 //!
 //! Every store is read from its own files (or the registry for GOG) with
@@ -15,6 +16,7 @@ use serde::{Deserialize, Serialize};
 pub mod cache;
 pub mod cover;
 pub mod epic;
+pub mod external;
 pub mod gog;
 #[cfg(windows)]
 pub mod http;
@@ -23,6 +25,7 @@ mod launch;
 pub mod legendary;
 pub mod online;
 mod sha256;
+pub mod shortcut;
 pub mod steam;
 pub mod tools;
 pub mod vdf;
@@ -41,18 +44,28 @@ pub enum Source {
     Epic,
     Gog,
     Xbox,
+    /// A game no store knows, listed in `games.json` ([`external`]).
+    Other,
 }
 
 impl Source {
-    pub const ALL: [Source; 4] = [Source::Steam, Source::Epic, Source::Gog, Source::Xbox];
+    pub const ALL: [Source; 5] = [
+        Source::Steam,
+        Source::Epic,
+        Source::Gog,
+        Source::Xbox,
+        Source::Other,
+    ];
 
-    /// Store name as shown in the UI (a brand: not translated).
+    /// Store name as shown in the UI (a brand: not translated; the shell
+    /// translates `Other` itself).
     pub fn label(self) -> &'static str {
         match self {
             Source::Steam => "Steam",
             Source::Epic => "Epic",
             Source::Gog => "GOG",
             Source::Xbox => "Xbox",
+            Source::Other => "Other",
         }
     }
 
@@ -64,6 +77,7 @@ impl Source {
             Source::Gog => 1,
             Source::Epic => 2,
             Source::Xbox => 3,
+            Source::Other => 4,
         }
     }
 }
@@ -119,6 +133,8 @@ pub struct Roots {
     pub xbox: Vec<PathBuf>,
     /// Games installed with Legendary: its config folder and executable.
     pub legendary: Option<(PathBuf, PathBuf)>,
+    /// The user's own list of games (`games.json`, see [`external`]).
+    pub external: Option<PathBuf>,
 }
 
 /// Where GOG games are listed.
@@ -143,6 +159,7 @@ impl Roots {
                 gog: GogSource::Registry,
                 xbox: xbox::roots(),
                 legendary: None,
+                external: None,
             }
         }
         #[cfg(not(windows))]
@@ -153,7 +170,8 @@ impl Roots {
 
     /// A fake machine for development and screenshots: `<dir>/steam` (a
     /// Steam folder), `<dir>/epic` (manifests), `<dir>/gog.json` and
-    /// `<dir>/xbox` (an `XboxGames` folder). Missing parts are skipped.
+    /// `<dir>/xbox` (an `XboxGames` folder), `<dir>/games.json` (the user's
+    /// own games). Missing parts are skipped.
     pub fn fixture(dir: &Path) -> Self {
         Roots {
             steam: Some(dir.join("steam")),
@@ -161,6 +179,7 @@ impl Roots {
             gog: GogSource::File(dir.join("gog.json")),
             xbox: vec![dir.join("xbox")],
             legendary: None,
+            external: Some(dir.join("games.json")),
         }
     }
 }
@@ -195,6 +214,9 @@ pub fn scan(roots: &Roots) -> Vec<Game> {
         games.extend(xbox::scan(dir));
     }
     games.extend(legendary);
+    if let Some(path) = &roots.external {
+        games.extend(external::scan(path));
+    }
     games
 }
 
@@ -223,7 +245,7 @@ pub fn is_store_program(exe: &str) -> bool {
 }
 
 /// Folds a title for comparison: `DOOM Eternal™` and `Doom Eternal` match.
-pub(crate) fn title_key(title: &str) -> String {
+pub fn title_key(title: &str) -> String {
     title
         .chars()
         .filter(|c| c.is_alphanumeric())
@@ -262,7 +284,7 @@ pub fn sort(games: &mut [Game], order: Sort) {
 
 /// The list to show: Canapé's own launch times applied (`launched`: id →
 /// unix seconds), one entry per id, one entry per title across stores (the
-/// copy played last, else Steam, GOG, Epic, Xbox in this order), sorted by
+/// copy played last, else Steam, GOG, Epic, Xbox, Other in this order), sorted by
 /// [`Sort::Recent`].
 pub fn merge(games: Vec<Game>, launched: &HashMap<String, u64>) -> Vec<Game> {
     let mut out: Vec<Game> = Vec::with_capacity(games.len());

@@ -465,3 +465,18 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "此游戏的配置"
+
+msgid "Other games"
+msgstr "其他游戏"
+
+msgid "Add a game"
+msgstr "添加游戏"
+
+msgid "Added"
+msgstr "已添加"
+
+msgid "Looking for shortcuts…"
+msgstr "正在查找快捷方式…"
+
+msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
+msgstr "开始菜单和桌面上没有游戏快捷方式。也可以在 %LOCALAPPDATA%\\Canape 的 games.json 中列出游戏。"

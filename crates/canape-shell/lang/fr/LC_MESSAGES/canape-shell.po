@@ -465,3 +465,18 @@ msgstr "{} Go"
 
 msgid "This game's profile"
 msgstr "Profil de ce jeu"
+
+msgid "Other games"
+msgstr "Autres jeux"
+
+msgid "Add a game"
+msgstr "Ajouter un jeu"
+
+msgid "Added"
+msgstr "Ajouté"
+
+msgid "Looking for shortcuts…"
+msgstr "Recherche des raccourcis…"
+
+msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
+msgstr "Aucun raccourci vers un jeu dans le menu Démarrer ou sur le bureau. Les jeux peuvent aussi être listés dans games.json, dans %LOCALAPPDATA%\\Canape."

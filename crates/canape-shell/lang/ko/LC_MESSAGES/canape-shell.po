@@ -465,3 +465,18 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "이 게임의 프로필"
+
+msgid "Other games"
+msgstr "기타 게임"
+
+msgid "Add a game"
+msgstr "게임 추가"
+
+msgid "Added"
+msgstr "추가됨"
+
+msgid "Looking for shortcuts…"
+msgstr "바로 가기 찾는 중…"
+
+msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
+msgstr "시작 메뉴나 바탕 화면에 게임 바로 가기가 없습니다. %LOCALAPPDATA%\\Canape의 games.json에 게임을 직접 적을 수도 있습니다."

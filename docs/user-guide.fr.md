@@ -22,6 +22,7 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
   - [Commandes](#commandes)
   - [Éléments communs](#éléments-communs)
   - [Jeux](#jeux)
+    - [Ajouter d'autres jeux](#ajouter-dautres-jeux)
     - [Installer des jeux possédés](#installer-des-jeux-possédés)
   - [Performance](#performance)
   - [Matériel](#matériel)
@@ -167,10 +168,10 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 
 | Zone | Contenu |
 |---|---|
-| **Jeu sélectionné** | Le logo et le nom de sa boutique (STEAM, EPIC, GOG, XBOX), son titre, quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…) et le bouton **Détails** : A ouvre la fiche du jeu. Derrière, une lueur reprend la couleur de sa jaquette. |
+| **Jeu sélectionné** | Le logo et le nom de sa boutique (STEAM, EPIC, GOG, XBOX, AUTRES JEUX), son titre, quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…) et le bouton **Détails** : A ouvre la fiche du jeu. Derrière, une lueur reprend la couleur de sa jaquette. |
 | **Récents** | Les 10 derniers jeux joués, le plus récent en premier. Absente tant qu'aucun jeu n'a été joué. La jaquette sélectionnée est plus grande, opaque et entourée de blanc ; les autres sont atténuées. Un jeu sans image affiche son titre sur une carte teintée. |
 | **Installés · N** | Tous les jeux installés, par ordre alphabétique. |
-| **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N** | Les jeux de chaque boutique, avec son logo, installés et à installer mélangés par ordre alphabétique. Seulement les boutiques qui ont des jeux (une boutique seule sans rien à installer n'a pas d'étagère : elle répéterait Installés). |
+| **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N**, **Autres jeux · N** | Les jeux de chaque boutique, avec son logo, installés et à installer mélangés par ordre alphabétique, puis les jeux ajoutés à la main (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). Seulement les boutiques qui ont des jeux (une boutique seule sans rien à installer n'a pas d'étagère : elle répéterait Installés). |
 | **À installer · N** | Toujours en dernier : les jeux Steam et Epic que vous possédez sans les avoir installés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Vide, elle explique comment configurer Steam et Epic. |
 
 **Se déplacer** : gauche et droite parcourent l'étagère ; elle ne défile qu'en arrivant au bord, en gardant un jeu visible à côté de la sélection. La couleur du fond suit le jeu sélectionné dès qu'on s'arrête dessus. Haut et bas passent à l'étagère précédente ou suivante : elle glisse en haut, la suivante dépasse en bas, atténuée. Chaque étagère retient le jeu sélectionné quand on la quitte. Sur À installer, le bandeau décrit le jeu à installer et le bouton devient **Installer**. **A** ouvre la fiche du jeu sélectionné.
@@ -187,9 +188,10 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 | **Epic Games** | Les manifestes du lanceur (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, moteurs et installations inachevées sont écartés. S'y ajoutent les jeux installés depuis Canapé avec Legendary (voir [plus bas](#installer-des-jeux-possédés)). | Par Legendary, sans le lanceur. Une fois connecté à Epic dans Canapé, les jeux installés par le lanceur Epic sont confiés à Legendary au scan suivant (`legendary import`, sans retéléchargement) ; d'ici là, ou si la reprise échoue, par le lanceur | Téléchargée (voir plus bas), sinon une carte titre |
 | **GOG** | Le registre (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), où GOG Galaxy et les installateurs hors ligne inscrivent chaque jeu. Les DLC sont écartés. | L'exécutable du jeu directement, sans Galaxy | Téléchargée (voir plus bas), sinon une carte titre |
 | **App Xbox** | Les dossiers `XboxGames` de chaque lecteur (`Content\MicrosoftGame.config`). | Par Windows (`shell:AppsFolder\…`) | Le logo carré du jeu |
+| **Autres jeux** | `%LOCALAPPDATA%\Canape\games.json` (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). | Le programme directement, avec ses arguments | Celle indiquée dans `games.json`, sinon téléchargée par le titre (SteamGridDB), sinon une carte titre |
 
 - La date de dernière partie vient de Steam pour les jeux Steam, et de Canapé pour tout jeu lancé depuis Canapé.
-- Un jeu installé depuis deux boutiques n'apparaît qu'une fois : la copie jouée en dernier, sinon celle de Steam, puis GOG, Epic et Xbox.
+- Un jeu installé depuis deux boutiques n'apparaît qu'une fois : la copie jouée en dernier, sinon celle de Steam, puis GOG, Epic, Xbox et enfin `games.json`.
 - La liste s'affiche tout de suite depuis la dernière recherche ; une nouvelle recherche tourne en arrière-plan à chaque démarrage, et de nouveau quand on revient à la bibliothèque après plus d'une minute ailleurs. Un jeu installé entre-temps apparaît alors.
 - Les jeux de l'app Xbox installés hors d'un dossier `XboxGames` ne sont pas trouvés.
 - Canapé lance les jeux lui-même, sans droits particuliers : comme n'importe quelle app de la session.
@@ -205,6 +207,44 @@ Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutili
 
 > [!NOTE]
 > Pas encore essayé sur l'Ally : le téléchargement passe par WinHTTP (intégré à Windows) et n'a été testé que sous Linux, sur des réponses enregistrées.
+
+#### Ajouter d'autres jeux
+
+<img src="images/fr/add-game.png" alt="Sous-page Ajouter un jeu" width="720">
+
+<sub>Raccourcis inventés (`tools/fake-library.py`).</sub>
+
+> [!NOTE]
+> **Pas encore essayé sur l'Ally** : ni la lecture des raccourcis du menu Démarrer et du bureau, ni le lancement de ces jeux. Seuls l'interface (sous Linux, avec la bibliothèque inventée), la lecture de `games.json` et celle des fichiers `.lnk` (sur des raccourcis générés selon le format publié) ont été testées.
+
+Un jeu qu'aucune boutique ne connaît (un `.exe` autonome, un jeu itch.io, un émulateur…) s'ajoute de deux façons. Ces jeux ont leur étagère **Autres jeux**, avec une icône de manette, et se lancent directement, sans boutique.
+
+**Depuis Canapé, à la manette** : **Réglages → Ajouter un jeu** liste, par nom, les jeux déjà ajoutés (« Ajouté ») et les raccourcis du menu Démarrer (le vôtre et celui de tous les utilisateurs) et des deux bureaux qui pourraient être des jeux, avec le nom du programme. **A** ajoute le jeu, ou le retire s'il était ajouté ; la bibliothèque se met à jour aussitôt. Sont écartés : les raccourcis vers autre chose qu'un `.exe` (documents, pages web), les programmes de Windows, les désinstalleurs, installeurs, outils de mise à jour, manuels et pages de support, les clients des boutiques et les jeux qu'une boutique liste déjà (même titre ou même programme). Ce qui reste peut contenir des applications qui ne sont pas des jeux : rien n'est ajouté sans votre choix.
+
+**À la main**, dans `%LOCALAPPDATA%\Canape\games.json` (le fichier que la sous-page écrit) :
+
+```json
+{ "games": [
+  { "title": "Celeste", "exe": "D:\\Jeux\\Celeste\\Celeste.exe" },
+  { "title": "Metroid Fusion", "exe": "D:\\Emu\\mGBA\\mGBA.exe",
+    "args": "\"D:\\Roms\\Metroid Fusion.gba\"", "dir": "D:\\Emu\\mGBA",
+    "cover": "covers\\fusion.png" },
+  { "title": "Un jeu itch.io", "exe": "itch://caves/123/launch" }
+] }
+```
+
+| Champ | Rôle |
+|---|---|
+| `title` | Le nom affiché (obligatoire). |
+| `exe` | Ce qui est lancé (obligatoire) : un exécutable, un raccourci `.lnk`, un script, ou une adresse (`itch://…`, `steam://…`), ouvert comme un double-clic. |
+| `args` | Les arguments, facultatifs (par exemple la ROM pour un émulateur). |
+| `dir` | Le dossier de travail ; par défaut, celui de l'exécutable. |
+| `cover` | Une jaquette JPEG ou PNG, de préférence en portrait ; un chemin relatif part du dossier de `games.json`. Sans elle, une jaquette est cherchée sur SteamGridDB par le titre si la clé est réglée (voir [Jaquettes téléchargées](#jeux)), sinon une carte titre s'affiche. |
+
+- Dans le JSON, chaque `\` d'un chemin s'écrit `\\` (ou utilisez `/`, que Windows accepte aussi).
+- Un émulateur peut figurer plusieurs fois avec des `args` différents : chaque jeu est distinct. L'historique « Récents » suit le programme et ses arguments : changer le titre ne le perd pas.
+- Un fichier illisible (virgule en trop…) ne fait apparaître aucun de ces jeux ; l'erreur est dans `shell.log` et en jaune sur la sous-page, et Canapé ne réécrit jamais un fichier qu'il n'a pas pu lire.
+- Les modifications à la main apparaissent au retour sur la bibliothèque après une minute, ou au démarrage suivant.
 
 #### Installer des jeux possédés
 
@@ -348,6 +388,7 @@ Des lignes de réglage : haut et bas passent de l'une à l'autre (la colonne de 
 | **Télécharger les jaquettes manquantes** | Voir [Jeux](#jeux). |
 | **Compte Epic Games** | Le compte connecté, ou « Se connecter » : **A** ouvre la connexion Epic, en téléchargeant Legendary d'abord si besoin (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Pas encore essayé sur l'Ally. |
 | **Profils de jeu** | Le nombre de profils ; **A** ouvre la sous-page [Profils de jeu](#profils-de-jeu). |
+| **Ajouter un jeu** | Le nombre de jeux de `games.json` ; **A** ouvre la liste des jeux à ajouter (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). Pas encore essayé sur l'Ally. |
 | **Couleur d'accent** | Huit pastilles prêtes (gauche et droite, A choisit) et trois lignes **Teinte**, **Saturation** et **Luminosité** que gauche et droite déplacent. Toute l'interface suit en direct ; la couleur est enregistrée dans `shell.json` et envoyée au service une fois le réglage terminé, et **le widget de la Game Bar suit la couleur d'accent**. |
 
 En bas à droite : la version de Canapé, l'état de la connexion au service et la présence d'une clé d'API Steam dans `shell.json` (sans vérifier qu'elle est valide).
@@ -498,6 +539,7 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | `%ProgramData%\Canape\state.json` | Dernier état appliqué, réappliqué au démarrage du service : mode, TDP, auto TDP, courbes de ventilateurs, limite de FPS, limite de charge, mode de la manette, profils, dernier banc d'essai. |
 | `%LOCALAPPDATA%\Canape\shell.log` | Journal du shell : démarrages (avec leurs arguments), langue choisie, état d'ADL, erreurs du service. |
 | `%LOCALAPPDATA%\Canape\shell.json` | Préférences du shell : `language`, `accent`, `online_covers`, `steamgriddb_key`, `steam_api_key`, `refresh_hz`, `ally_buttons`. |
+| `%LOCALAPPDATA%\Canape\games.json` | Les jeux ajoutés à la main ou depuis **Réglages → Ajouter un jeu** (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). |
 | `%LOCALAPPDATA%\Canape\covers\` | Jaquettes téléchargées (`<boutique>_<id>.jpg` / `.png`, marqueurs `.miss`). |
 | `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |
 | `%LOCALAPPDATA%\Canape\recent.json` | Quand chaque jeu a été lancé depuis Canapé pour la dernière fois (pour l'ordre « Récents »). |

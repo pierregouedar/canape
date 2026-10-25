@@ -465,3 +465,18 @@ msgstr "{} ГБ"
 
 msgid "This game's profile"
 msgstr "Профиль этой игры"
+
+msgid "Other games"
+msgstr "Другие игры"
+
+msgid "Add a game"
+msgstr "Добавить игру"
+
+msgid "Added"
+msgstr "Добавлена"
+
+msgid "Looking for shortcuts…"
+msgstr "Поиск ярлыков…"
+
+msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
+msgstr "В меню «Пуск» и на рабочем столе нет ярлыков игр. Игры также можно перечислить в games.json в %LOCALAPPDATA%\\Canape."

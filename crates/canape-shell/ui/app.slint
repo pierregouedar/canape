@@ -7,7 +7,7 @@
 import { Theme } from "theme.slint";
 import { App, Notice } from "state.slint";
 import { BatteryIcon, Bolt, Hint, Logo } from "widgets.slint";
-import { BenchPage, ProfilesPage } from "pages.slint";
+import { AddGamesPage, BenchPage, ProfilesPage } from "pages.slint";
 import { SettingsPage } from "settings.slint";
 import { PerformancePage } from "performance.slint";
 import { GameView, Library, LibraryPage } from "library.slint";
@@ -23,7 +23,7 @@ import "fonts/PlusJakartaSans-Bold.ttf";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
-export { Library, GameView, ShelfView, DetailView } from "library.slint";
+export { Library, GameView, ShelfView, DetailView, AddGameView } from "library.slint";
 
 // A section name; the current one is brighter and underlined.
 component Section inherits Rectangle {
@@ -90,9 +90,10 @@ export component AppWindow inherits Window {
     preferred-height: 720px;
 
     // Sections 0 Games, 1 Performance, 2 Hardware, 3 Settings; then the
-    // sub-pages 4 Profiles (from Settings) and 5 Bench (from Performance).
+    // sub-pages 4 Profiles (from Settings), 5 Bench (from Performance) and
+    // 6 Add a game (from Settings).
     in-out property <int> page: 0;
-    property <int> section: root.page == 4 ? 3 : root.page == 5 ? 1 : root.page;
+    property <int> section: root.page == 4 || root.page == 6 ? 3 : root.page == 5 ? 1 : root.page;
     // The selected game on the shelf in front, for the hints.
     property <int> front-games: Library.shelves[Library.shelf].games.length;
     property <GameView> front-game: Library.shelves[Library.shelf].games[Library.selected];
@@ -102,7 +103,7 @@ export component AppWindow inherits Window {
     property <length> enter-y;
 
     function go(page: int) {
-        let to-section = page == 4 ? 3 : page == 5 ? 1 : page;
+        let to-section = page == 4 || page == 6 ? 3 : page == 5 ? 1 : page;
         root.enter-x = to-section > root.section ? 32px : to-section < root.section ? -32px : 0;
         root.enter-y = page >= 4 ? 24px : root.page >= 4 && to-section == root.section ? -24px : 0;
         root.page = page;
@@ -140,7 +141,7 @@ export component AppWindow inherits Window {
                 return accept;
             }
             if event.text == Key.Escape && root.page != 0 {
-                root.go(root.page == 4 ? 3 : root.page == 5 ? 1 : 0);
+                root.go(root.page == 4 || root.page == 6 ? 3 : root.page == 5 ? 1 : 0);
                 return accept;
             }
             return reject;
@@ -321,6 +322,9 @@ export component AppWindow inherits Window {
                         open-profiles => {
                             root.go(4);
                         }
+                        open-add-games => {
+                            root.go(6);
+                        }
                     }
                 }
                 if root.page == 4: Reveal {
@@ -340,6 +344,15 @@ export component AppWindow inherits Window {
                     from-x: root.enter-x;
                     from-y: root.enter-y;
                     BenchPage { }
+                }
+                if root.page == 6: Reveal {
+                    x: 32px;
+                    y: 28px;
+                    width: parent.width - 80px;
+                    height: parent.height - 28px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    AddGamesPage { }
                 }
             }
 
@@ -367,7 +380,7 @@ export component AppWindow inherits Window {
                     glyph: "updown";
                     text: @tr("Setting");
                 }
-                if root.page >= 1 && root.page != 4: Hint {
+                if root.page >= 1 && root.page != 4 && root.page != 6: Hint {
                     glyph: "leftright";
                     text: @tr("Value");
                 }

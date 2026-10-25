@@ -52,6 +52,7 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 | [`fr/bench-results.png`](images/fr/bench-results.png) | Banc d'essai (résultats) | Français |
 | [`fr/bench-running.png`](images/fr/bench-running.png) | Banc d'essai en cours | Français |
 | [`fr/settings.png`](images/fr/settings.png) | Réglages (langue, boutons de l'Ally, jaquettes, compte Epic, couleur d'accent) | Français |
+| [`fr/add-game.png`](images/fr/add-game.png) | Ajouter un jeu (raccourcis inventés) | Français |
 | [`en/library.png`](images/en/library.png) | Library (made-up games) | English |
 | [`en/library-install.png`](images/en/library-install.png) | Library, games to install (simulated install) | English |
 | [`en/performance.png`](images/en/performance.png) | Performance | English |
@@ -60,6 +61,7 @@ Rendues sous Linux avec le simulateur matériel et des valeurs fictives (voir [C
 | [`en/bench-results.png`](images/en/bench-results.png) | Bench (results) | English |
 | [`en/bench-running.png`](images/en/bench-running.png) | Bench running | English |
 | [`en/settings.png`](images/en/settings.png) | Settings (language, Ally buttons, covers, Epic account, accent colour) | English |
+| [`en/add-game.png`](images/en/add-game.png) | Add a game (made-up shortcuts) | English |
 | [`ja/library.png`](images/ja/library.png) | ゲーム | 日本語 |
 | [`ru/performance.png`](images/ru/performance.png) | Производительность | Русский |
 | [`de/settings.png`](images/de/settings.png) | Einstellungen | Deutsch |

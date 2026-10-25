@@ -465,3 +465,18 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "Profil tej gry"
+
+msgid "Other games"
+msgstr "Inne gry"
+
+msgid "Add a game"
+msgstr "Dodaj grę"
+
+msgid "Added"
+msgstr "Dodano"
+
+msgid "Looking for shortcuts…"
+msgstr "Szukanie skrótów…"
+
+msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
+msgstr "Brak skrótów do gier w menu Start ani na pulpicie. Gry można też wpisać do games.json w %LOCALAPPDATA%\\Canape."

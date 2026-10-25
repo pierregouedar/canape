@@ -11,12 +11,16 @@ their covers in `<out>/appdata/Canape/covers-fixture`, where the shell keeps
 downloaded covers: they show what the online covers look like. Seven more
 games are owned but not installed (`<out>/library/owned.json`), for the
 library's "To install" mode; A there runs a pretend one-minute install.
+Two games no store knows are in `<out>/library/games.json` (one with its
+own cover, one without), and `<out>/library/shortcuts` holds shortcuts
+for Settings -> Add a game (one is an uninstaller, which is left out).
 """
 
 import hashlib
 import json
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import time
@@ -41,6 +45,20 @@ GAMES = [
     ("xbox", "Northwind Legends", "#172554", "#e0f2fe", None),
 ]
 
+
+# Games of games.json: (title, executable, cover colours or None).
+EXTERNAL = [
+    ("Lantern Keeper", "D:\\Games\\Lantern Keeper\\Lantern.exe", ("#422006", "#fcd34d")),
+    ("Orbit Golf", "D:\\Itch\\orbit-golf\\OrbitGolf.exe", None),
+]
+
+# Start menu shortcuts: (name, target).
+SHORTCUTS = [
+    ("Tiny Rally", "D:\\Games\\Tiny Rally\\TinyRally.exe"),
+    ("Uninstall Tiny Rally", "D:\\Games\\Tiny Rally\\unins000.exe"),
+    ("Mesa Drift", "D:\\Itch\\mesa-drift\\MesaDrift.exe"),
+    ("Lantern Keeper", "D:\\Games\\Lantern Keeper\\Lantern.exe"),
+]
 
 # Owned but not installed: (store, title, colours, store id).
 OWNED = [
@@ -73,6 +91,28 @@ def cover(path, title, top, bottom, size="600x900", titled=True):
         ],
         check=True,
     )
+
+
+def lnk(target, workdir=""):
+    """A Windows shortcut (.lnk) to `target`: link info with an ANSI and a
+    Unicode path, then the working folder."""
+    flags = 0x01 | 0x02 | 0x80 | (0x10 if workdir else 0)
+    clsid = bytes([0x01, 0x14, 0x02, 0, 0, 0, 0, 0, 0xC0, 0, 0, 0, 0, 0, 0, 0x46])
+    header = struct.pack("<I16sI", 0x4C, clsid, flags).ljust(0x4C, b"\0")
+    id_list = struct.pack("<H", 2) + b"\0\0"
+    volume = struct.pack("<IIII", 0x10, 3, 0, 0x10)
+    ansi = target.encode("ascii", "replace") + b"\0"
+    wide = target.encode("utf-16-le") + b"\0\0"
+    base_at = 0x24 + len(volume)
+    suffix_at = base_at + len(ansi)
+    wide_at = suffix_at + 1
+    wide_suffix_at = wide_at + len(wide)
+    info = struct.pack("<9I", wide_suffix_at + 2, 0x24, 1, 0x24, base_at, 0, suffix_at,
+                       wide_at, wide_suffix_at) + volume + ansi + b"\0" + wide + b"\0\0"
+    strings = b""
+    if workdir:
+        strings = struct.pack("<H", len(workdir)) + workdir.encode("utf-16-le")
+    return header + id_list + info + strings + b"\0\0\0\0"
 
 
 def publisher_id(publisher):
@@ -182,6 +222,23 @@ def main(out):
         cover(os.path.join(covers, game_id.replace(":", "_") + ".jpg"), title, top, bottom)
     with open(os.path.join(library, "owned.json"), "w") as f:
         json.dump({"version": 1, "games": owned}, f, indent=1)
+    # Games no store knows, and shortcuts to add more.
+    external = []
+    os.makedirs(os.path.join(library, "covers"))
+    for title, exe, colours in EXTERNAL:
+        entry = {"title": title, "exe": exe}
+        if colours:
+            name = "".join(c for c in title if c.isalnum()).lower() + ".jpg"
+            cover(os.path.join(library, "covers", name), title, *colours)
+            entry["cover"] = "covers/" + name
+        external.append(entry)
+    with open(os.path.join(library, "games.json"), "w") as f:
+        json.dump({"games": external}, f, indent=2)
+    shortcuts = os.path.join(library, "shortcuts", "Games")
+    os.makedirs(shortcuts)
+    for name, target in SHORTCUTS:
+        with open(os.path.join(shortcuts, name + ".lnk"), "wb") as f:
+            f.write(lnk(target, target.rsplit("\\", 1)[0]))
     with open(os.path.join(out, "appdata", "Canape", "recent-fixture.json"), "w") as f:
         # The first game's executable, as learnt at its launch: its profile
         # shows on the game page.
