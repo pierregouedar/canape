@@ -51,6 +51,9 @@ pub struct ShellSettings {
     pub onboarded: bool,
     /// Step of the tour to come back to after a restart.
     pub onboarding_step: u32,
+    /// Packages removed from the Windows tweaks page, to install again
+    /// from the Store (the uninstall script lists them).
+    pub removed_apps: Vec<String>,
 }
 
 impl Default for ShellSettings {
@@ -68,6 +71,7 @@ impl Default for ShellSettings {
             games_folder: String::new(),
             onboarded: false,
             onboarding_step: 0,
+            removed_apps: Vec::new(),
         }
     }
 }

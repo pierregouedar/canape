@@ -10,6 +10,7 @@ mod bench_run;
 mod conflicts;
 mod handler;
 mod server;
+mod tweaks;
 #[cfg(windows)]
 mod winsvc;
 
@@ -66,7 +67,7 @@ fn console() -> io::Result<()> {
         device.name(),
         protocol::PIPE_NAME
     );
-    server::spawn(device, state_path(), |message| {
+    server::spawn(device, tweaks::system(), state_path(), |message| {
         eprintln!("canape-service: {message}")
     })?;
     loop {
@@ -77,7 +78,7 @@ fn console() -> io::Result<()> {
 fn stdio() -> io::Result<()> {
     let device = canape_hw::detect();
     eprintln!("canape-service: device = {}", device.name());
-    let mut handler = handler::Handler::new(device);
+    let mut handler = handler::Handler::with_system(device, tweaks::system());
 
     let stdout = io::stdout();
     let mut out = stdout.lock();

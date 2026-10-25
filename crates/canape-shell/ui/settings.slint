@@ -6,7 +6,8 @@
 //   shelf 1, library: games folder, missing covers, add a game, game
 //   profiles;
 //   shelf 2, accounts: Steam, Epic Games, GOG, time to beat (IGDB);
-//   shelf 3, system: the welcome tour again.
+//   shelf 3, system: Windows tweaks (a page of its own), the welcome tour
+//   again.
 // In the language drawer the arrows move over the languages and A applies
 // one; in the accent drawer, up and down go from the presets (A applies
 // one) to the hue, saturation and brightness tracks, which left and right
@@ -38,6 +39,7 @@ component AccountChip inherits Rectangle {
 export component SettingsPage inherits Rectangle {
     // Opens the game profiles, and the list of games to add.
     callback open-profiles();
+    callback open-tweaks();
     callback open-add-games();
     in-out property <int> shelf: 0;
     in-out property <int> card: 0;
@@ -91,7 +93,7 @@ export component SettingsPage inherits Rectangle {
     property <HintSet> hints: !root.open ? {
         move-glyph: "dpad",
         move: @tr("Shelves"),
-        a: root.focused-key == "add" || root.focused-key == "profiles" || root.focused-key == "tour" ? @tr("Open") : @tr("Adjust"),
+        a: root.focused-key == "add" || root.focused-key == "profiles" || root.focused-key == "tour" || root.focused-key == "tweaks" ? @tr("Open") : @tr("Adjust"),
         b: @tr("Back"),
     } : root.drawer == "language" ? {
         move-glyph: "dpad",
@@ -128,16 +130,18 @@ export component SettingsPage inherits Rectangle {
     }
 
     pure function key(s: int, c: int) -> string {
-        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : s == 2 ? ["steam", "epic", "gog", "igdb"][c] : ["tour"][c]
+        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : s == 2 ? ["steam", "epic", "gog", "igdb"][c] : ["tweaks", "tour"][c]
     }
     pure function cards(s: int) -> int {
-        s == 0 ? 3 : s == 3 ? 1 : 4
+        s == 0 ? 3 : s == 3 ? 2 : 4
     }
     function activate() {
         if root.focused-key == "add" {
             root.open-add-games();
         } else if root.focused-key == "profiles" {
             root.open-profiles();
+        } else if root.focused-key == "tweaks" {
+            root.open-tweaks();
         } else if root.focused-key == "tour" {
             Onboarding.replay();
         } else {
@@ -500,12 +504,24 @@ export component SettingsPage inherits Rectangle {
             icon: "screen";
             title: @tr("System");
             ShelfCard {
-                label: @tr("Welcome tour");
-                icon: "gamepad";
+                label: @tr("Windows tweaks");
+                icon: "dial";
                 focused: root.active && root.shelf == 3 && root.card == 0;
                 clicked => {
                     root.shelf = 3;
                     root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Welcome tour");
+                icon: "gamepad";
+                focused: root.active && root.shelf == 3 && root.card == 1;
+                clicked => {
+                    root.shelf = 3;
+                    root.card = 1;
                     root.activate();
                     fs.focus();
                 }

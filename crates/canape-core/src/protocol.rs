@@ -11,6 +11,7 @@ use crate::settings::{
     AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, GyroSettings, Lighting,
     PerformanceMode, Profile,
 };
+use crate::tweaks::{TweakId, TweakState};
 
 pub const PIPE_NAME: &str = r"\\.\pipe\canape";
 pub const PROTOCOL_VERSION: u32 = 1;
@@ -111,6 +112,18 @@ pub enum Request {
     SetLighting {
         lighting: Option<Lighting>,
     },
+    /// Answered with [`Response::Tweaks`]: every Windows tweak of the
+    /// catalogue and its state.
+    ListTweaks,
+    /// Applies (`on`) or reverts one tweak of the catalogue. Reverting puts
+    /// back what Canapé replaced, or the Windows default when it did not
+    /// apply the tweak itself.
+    SetTweak {
+        id: TweakId,
+        on: bool,
+    },
+    /// Reverts every tweak Canapé applied (before uninstalling).
+    RevertTweaks,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -140,6 +153,10 @@ pub enum Response {
     FanCurves {
         custom: FanCurves,
         defaults: FanCurves,
+    },
+    /// The catalogue in display order.
+    Tweaks {
+        tweaks: Vec<TweakState>,
     },
 }
 
@@ -263,6 +280,45 @@ mod tests {
         let line = encode(&request).unwrap();
         assert_eq!(line, "{\"type\":\"set_tdp\",\"watts\":15}\n");
         assert_eq!(decode::<Request>(&line).unwrap(), request);
+    }
+
+    #[test]
+    fn tweak_requests_round_trip() {
+        let request = Request::SetTweak {
+            id: TweakId::CopilotOff,
+            on: true,
+        };
+        let line = encode(&request).unwrap();
+        assert_eq!(
+            line,
+            "{\"type\":\"set_tweak\",\"id\":\"copilot_off\",\"on\":true}\n"
+        );
+        assert_eq!(decode::<Request>(&line).unwrap(), request);
+        assert!(decode::<Request>(r#"{"type":"set_tweak","id":"rm_rf","on":true}"#).is_err());
+        assert_eq!(
+            decode::<Request>(r#"{"type":"revert_tweaks"}"#).unwrap(),
+            Request::RevertTweaks
+        );
+        let response = Response::Tweaks {
+            tweaks: vec![TweakState {
+                id: TweakId::DefenderRealtimeOff,
+                applied: false,
+                by_canape: false,
+                unavailable: Some(crate::Unavailable::TamperProtection),
+                reboot_pending: false,
+                paths: Vec::new(),
+            }],
+        };
+        let line = encode(&response).unwrap();
+        assert!(line.contains("\"unavailable\":\"tamper_protection\""));
+        assert_eq!(decode::<Response>(&line).unwrap(), response);
+        // Optional fields may be left out.
+        let Response::Tweaks { tweaks } =
+            decode(r#"{"type":"tweaks","tweaks":[{"id":"game_mode_on","applied":true}]}"#).unwrap()
+        else {
+            panic!("expected tweaks");
+        };
+        assert!(tweaks[0].applied && !tweaks[0].by_canape && tweaks[0].paths.is_empty());
     }
 
     #[test]

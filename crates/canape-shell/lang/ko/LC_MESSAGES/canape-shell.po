@@ -1020,3 +1020,171 @@ msgstr "환영 투어"
 
 msgid "System"
 msgstr "시스템"
+
+msgid "Windows tweaks"
+msgstr "Windows 최적화"
+
+msgid "Apply the recommended settings"
+msgstr "권장 설정 적용"
+
+msgid "Copilot and ads"
+msgstr "Copilot 및 광고"
+
+msgid "Privacy"
+msgstr "개인 정보"
+
+msgid "Security"
+msgstr "보안"
+
+msgid "Preinstalled apps"
+msgstr "기본 설치 앱"
+
+msgid "Copilot"
+msgstr "Copilot"
+
+msgid "Widgets"
+msgstr "위젯"
+
+msgid "Web results in search"
+msgstr "검색의 웹 결과"
+
+msgid "Suggestions and ads"
+msgstr "추천 및 광고"
+
+msgid "Tips on the lock screen"
+msgstr "잠금 화면 팁"
+
+msgid "Tips and welcome screens"
+msgstr "팁 및 시작 화면"
+
+msgid "Diagnostic data"
+msgstr "진단 데이터"
+
+msgid "Store apps in the background"
+msgstr "백그라운드의 Store 앱"
+
+msgid "Game Mode"
+msgstr "게임 모드"
+
+msgid "Hardware-accelerated GPU scheduling"
+msgstr "하드웨어 가속 GPU 예약"
+
+msgid "Optimizations for windowed games"
+msgstr "창 모드 게임 최적화"
+
+msgid "Exclude game folders from Defender scans"
+msgstr "게임 폴더를 Defender 검사에서 제외"
+
+msgid "Defender real-time protection"
+msgstr "Defender 실시간 보호"
+
+msgid "Memory integrity"
+msgstr "메모리 무결성"
+
+msgid "News"
+msgstr "뉴스"
+
+msgid "Weather"
+msgstr "날씨"
+
+msgid "Get Help"
+msgstr "도움 받기"
+
+msgid "Tips"
+msgstr "팁"
+
+msgid "Feedback Hub"
+msgstr "피드백 허브"
+
+msgid "Mail and Calendar"
+msgstr "메일 및 일정"
+
+msgid "People"
+msgstr "피플"
+
+msgid "Maps"
+msgstr "지도"
+
+msgid "Sticky Notes"
+msgstr "스티커 메모"
+
+msgid "Phone Link"
+msgstr "휴대폰과 연결"
+
+msgid "Sound Recorder"
+msgstr "녹음기"
+
+msgid "Calculator"
+msgstr "계산기"
+
+msgid "Photos"
+msgstr "사진"
+
+msgid "Quick Assist"
+msgstr "빠른 지원"
+
+msgid "Movies & TV"
+msgstr "영화 및 TV"
+
+msgid "All applied"
+msgstr "모두 적용됨"
+
+msgid "{} to apply"
+msgstr "적용할 항목 {}개"
+
+msgid "Reinstall"
+msgstr "다시 설치"
+
+msgid "Remove"
+msgstr "제거"
+
+msgid "Unavailable"
+msgstr "사용할 수 없음"
+
+msgid "Minimum"
+msgstr "최소"
+
+msgid "Removed for this account only; each one can be installed again from the Microsoft Store."
+msgstr "이 계정에서만 제거되며, 각 앱은 Microsoft Store에서 다시 설치할 수 있습니다."
+
+msgid "Also excludes the game folders from Defender scans."
+msgstr "게임 폴더도 Defender 검사에서 제외합니다."
+
+msgid "Turn off Tamper Protection in Windows Security first."
+msgstr "먼저 Windows 보안에서 변조 방지를 끄세요."
+
+msgid "Locked by the firmware or by a policy."
+msgstr "펌웨어 또는 정책으로 잠겨 있습니다."
+
+msgid "No game folder found."
+msgstr "게임 폴더를 찾을 수 없습니다."
+
+msgid "Not supported on this system."
+msgstr "이 시스템에서는 지원되지 않습니다."
+
+msgid "Restart Windows to apply."
+msgstr "적용하려면 Windows를 다시 시작하세요."
+
+msgid "Home and Pro editions keep the required level."
+msgstr "Home 및 Pro 버전은 필수 수준으로 유지됩니다."
+
+msgid "Except Xbox, the Game Bar, the Store and Canapé's widget."
+msgstr "Xbox, Game Bar, Store, Canapé 위젯은 제외됩니다."
+
+msgid "Takes effect after a restart."
+msgstr "다시 시작한 후 적용됩니다."
+
+msgid "{} game folders"
+msgstr "게임 폴더 {}개"
+
+msgid "Leaves the device without antivirus protection. Windows may turn it back on."
+msgstr "기기가 바이러스로부터 보호되지 않습니다. Windows가 다시 켤 수 있습니다."
+
+msgid "Less protection against malicious drivers. Restart needed."
+msgstr "악성 드라이버에 대한 보호가 약해집니다. 다시 시작해야 합니다."
+
+msgid "Press A again"
+msgstr "A를 다시 누르세요"
+
+msgid "Can be installed again from the Microsoft Store."
+msgstr "Microsoft Store에서 다시 설치할 수 있습니다."

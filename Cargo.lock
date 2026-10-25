@@ -543,6 +543,7 @@ dependencies = [
  "canape-core",
  "canape-hw",
  "canape-ipc",
+ "canape-library",
  "serde",
  "serde_json",
  "windows-service",

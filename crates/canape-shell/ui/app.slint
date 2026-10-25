@@ -14,6 +14,7 @@ import { GameView, Library, LibraryPage } from "library.slint";
 import { HardwarePage } from "hardware.slint";
 import { PageHints, Reveal } from "kit.slint";
 import { Onboarding, OnboardingFlow } from "onboarding.slint";
+import { TweaksPage } from "tweaks.slint";
 
 // Plus Jakarta Sans, embedded (OFL, see fonts/OFL.txt). Scripts it lacks,
 // such as Cyrillic or CJK, fall back to the system fonts.
@@ -25,6 +26,7 @@ import "fonts/PlusJakartaSans-Bold.ttf";
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
 export { Onboarding } from "onboarding.slint";
+export { Tweaks, TweakRow } from "tweaks.slint";
 export { Library, GameView, ShelfView, DetailView, AddGameView, AchievementView, OptionsView, CategoryView, HiddenGameView } from "library.slint";
 
 // A section name; the current one is brighter and underlined.
@@ -94,7 +96,7 @@ export component AppWindow inherits Window {
     // Sections 0 Games, 1 Performance, 2 Hardware, 3 Settings; then the
     // sub-pages 4 Profiles (from Performance or Settings), 5 Bench (from
     // Performance), 6 Add a game (from Settings), 7 Hidden games (from Add a
-    // game).
+    // game), 8 Windows tweaks (from Settings).
     in-out property <int> page: 0;
     property <int> section: root.section-of(root.page);
     // The selected game on the shelf in front, for the hints.
@@ -120,7 +122,7 @@ export component AppWindow inherits Window {
     // the page (PageHints).
     property <bool> shelf-page: root.page >= 1 && root.page <= 3;
     pure function section-of(page: int) -> int {
-        page == 4 ? root.profiles-from : page == 6 || page == 7 ? 3 : page == 5 ? 1 : page
+        page == 4 ? root.profiles-from : page == 6 || page == 7 || page == 8 ? 3 : page == 5 ? 1 : page
     }
     function go(page: int) {
         if page == 4 && root.page != 4 {
@@ -367,6 +369,9 @@ export component AppWindow inherits Window {
                         open-add-games => {
                             root.go(6);
                         }
+                        open-tweaks => {
+                            root.go(8);
+                        }
                     }
                 }
                 if root.page == 4: Reveal {
@@ -408,6 +413,15 @@ export component AppWindow inherits Window {
                     from-x: root.enter-x;
                     from-y: root.enter-y;
                     HiddenGamesPage { }
+                }
+                if root.page == 8: Reveal {
+                    x: 32px;
+                    y: 28px;
+                    width: parent.width - 80px;
+                    height: parent.height - 28px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    TweaksPage { }
                 }
             }
 

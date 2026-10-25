@@ -1023,3 +1023,171 @@ msgstr "Recorrido de bienvenida"
 
 msgid "System"
 msgstr "Sistema"
+
+msgid "Windows tweaks"
+msgstr "Ajustes de Windows"
+
+msgid "Apply the recommended settings"
+msgstr "Aplicar los ajustes recomendados"
+
+msgid "Copilot and ads"
+msgstr "Copilot y anuncios"
+
+msgid "Privacy"
+msgstr "Privacidad"
+
+msgid "Security"
+msgstr "Seguridad"
+
+msgid "Preinstalled apps"
+msgstr "Aplicaciones preinstaladas"
+
+msgid "Copilot"
+msgstr "Copilot"
+
+msgid "Widgets"
+msgstr "Widgets"
+
+msgid "Web results in search"
+msgstr "Resultados web en la búsqueda"
+
+msgid "Suggestions and ads"
+msgstr "Sugerencias y anuncios"
+
+msgid "Tips on the lock screen"
+msgstr "Consejos en la pantalla de bloqueo"
+
+msgid "Tips and welcome screens"
+msgstr "Consejos y pantallas de bienvenida"
+
+msgid "Diagnostic data"
+msgstr "Datos de diagnóstico"
+
+msgid "Store apps in the background"
+msgstr "Aplicaciones de Store en segundo plano"
+
+msgid "Game Mode"
+msgstr "Modo de juego"
+
+msgid "Hardware-accelerated GPU scheduling"
+msgstr "Programación de GPU acelerada por hardware"
+
+msgid "Optimizations for windowed games"
+msgstr "Optimizaciones para juegos en ventana"
+
+msgid "Exclude game folders from Defender scans"
+msgstr "Excluir las carpetas de juegos de los exámenes de Defender"
+
+msgid "Defender real-time protection"
+msgstr "Protección en tiempo real de Defender"
+
+msgid "Memory integrity"
+msgstr "Integridad de memoria"
+
+msgid "News"
+msgstr "Noticias"
+
+msgid "Weather"
+msgstr "El Tiempo"
+
+msgid "Get Help"
+msgstr "Obtener ayuda"
+
+msgid "Tips"
+msgstr "Consejos"
+
+msgid "Feedback Hub"
+msgstr "Centro de opiniones"
+
+msgid "Mail and Calendar"
+msgstr "Correo y Calendario"
+
+msgid "People"
+msgstr "Contactos"
+
+msgid "Maps"
+msgstr "Mapas"
+
+msgid "Sticky Notes"
+msgstr "Notas rápidas"
+
+msgid "Phone Link"
+msgstr "Vincular móvil"
+
+msgid "Sound Recorder"
+msgstr "Grabadora de sonido"
+
+msgid "Calculator"
+msgstr "Calculadora"
+
+msgid "Photos"
+msgstr "Fotos"
+
+msgid "Quick Assist"
+msgstr "Asistencia rápida"
+
+msgid "Movies & TV"
+msgstr "Películas y TV"
+
+msgid "All applied"
+msgstr "Todo aplicado"
+
+msgid "{} to apply"
+msgstr "{} por aplicar"
+
+msgid "Reinstall"
+msgstr "Reinstalar"
+
+msgid "Remove"
+msgstr "Quitar"
+
+msgid "Unavailable"
+msgstr "No disponible"
+
+msgid "Minimum"
+msgstr "Mínimo"
+
+msgid "Removed for this account only; each one can be installed again from the Microsoft Store."
+msgstr "Se quitan solo para esta cuenta; cada una se puede reinstalar desde Microsoft Store."
+
+msgid "Also excludes the game folders from Defender scans."
+msgstr "También excluye las carpetas de juegos de los exámenes de Defender."
+
+msgid "Turn off Tamper Protection in Windows Security first."
+msgstr "Desactiva primero la protección contra alteraciones en Seguridad de Windows."
+
+msgid "Locked by the firmware or by a policy."
+msgstr "Bloqueado por el firmware o por una directiva."
+
+msgid "No game folder found."
+msgstr "No se encontró ninguna carpeta de juegos."
+
+msgid "Not supported on this system."
+msgstr "No compatible con este sistema."
+
+msgid "Restart Windows to apply."
+msgstr "Reinicia Windows para aplicarlo."
+
+msgid "Home and Pro editions keep the required level."
+msgstr "Las ediciones Home y Pro se quedan en el nivel obligatorio."
+
+msgid "Except Xbox, the Game Bar, the Store and Canapé's widget."
+msgstr "Excepto Xbox, la Game Bar, la Store y el widget de Canapé."
+
+msgid "Takes effect after a restart."
+msgstr "Se aplica tras reiniciar."
+
+msgid "{} game folders"
+msgstr "{} carpetas de juegos"
+
+msgid "Leaves the device without antivirus protection. Windows may turn it back on."
+msgstr "El dispositivo queda sin protección antivirus. Windows puede volver a activarla."
+
+msgid "Less protection against malicious drivers. Restart needed."
+msgstr "Menos protección frente a controladores maliciosos. Hay que reiniciar."
+
+msgid "Press A again"
+msgstr "Pulsa A otra vez"
+
+msgid "Can be installed again from the Microsoft Store."
+msgstr "Se puede reinstalar desde Microsoft Store."

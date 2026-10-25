@@ -1020,3 +1020,171 @@ msgstr "Hoş geldin turu"
 
 msgid "System"
 msgstr "Sistem"
+
+msgid "Windows tweaks"
+msgstr "Windows ince ayarları"
+
+msgid "Apply the recommended settings"
+msgstr "Önerilen ayarları uygula"
+
+msgid "Copilot and ads"
+msgstr "Copilot ve reklamlar"
+
+msgid "Privacy"
+msgstr "Gizlilik"
+
+msgid "Security"
+msgstr "Güvenlik"
+
+msgid "Preinstalled apps"
+msgstr "Önceden yüklü uygulamalar"
+
+msgid "Copilot"
+msgstr "Copilot"
+
+msgid "Widgets"
+msgstr "Pencere öğeleri"
+
+msgid "Web results in search"
+msgstr "Aramada web sonuçları"
+
+msgid "Suggestions and ads"
+msgstr "Öneriler ve reklamlar"
+
+msgid "Tips on the lock screen"
+msgstr "Kilit ekranında ipuçları"
+
+msgid "Tips and welcome screens"
+msgstr "İpuçları ve karşılama ekranları"
+
+msgid "Diagnostic data"
+msgstr "Tanılama verileri"
+
+msgid "Store apps in the background"
+msgstr "Arka planda Store uygulamaları"
+
+msgid "Game Mode"
+msgstr "Oyun Modu"
+
+msgid "Hardware-accelerated GPU scheduling"
+msgstr "Donanım hızlandırmalı GPU zamanlaması"
+
+msgid "Optimizations for windowed games"
+msgstr "Pencereli oyunlar için iyileştirmeler"
+
+msgid "Exclude game folders from Defender scans"
+msgstr "Oyun klasörlerini Defender taramalarının dışında tut"
+
+msgid "Defender real-time protection"
+msgstr "Defender gerçek zamanlı koruma"
+
+msgid "Memory integrity"
+msgstr "Bellek bütünlüğü"
+
+msgid "News"
+msgstr "Haberler"
+
+msgid "Weather"
+msgstr "Hava Durumu"
+
+msgid "Get Help"
+msgstr "Yardım Al"
+
+msgid "Tips"
+msgstr "İpuçları"
+
+msgid "Feedback Hub"
+msgstr "Geri Bildirim Merkezi"
+
+msgid "Mail and Calendar"
+msgstr "Posta ve Takvim"
+
+msgid "People"
+msgstr "Kişiler"
+
+msgid "Maps"
+msgstr "Haritalar"
+
+msgid "Sticky Notes"
+msgstr "Yapışkan Notlar"
+
+msgid "Phone Link"
+msgstr "Telefon Bağlantısı"
+
+msgid "Sound Recorder"
+msgstr "Ses Kaydedicisi"
+
+msgid "Calculator"
+msgstr "Hesap Makinesi"
+
+msgid "Photos"
+msgstr "Fotoğraflar"
+
+msgid "Quick Assist"
+msgstr "Hızlı Yardım"
+
+msgid "Movies & TV"
+msgstr "Filmler ve TV"
+
+msgid "All applied"
+msgstr "Tümü uygulandı"
+
+msgid "{} to apply"
+msgstr "Uygulanacak: {}"
+
+msgid "Reinstall"
+msgstr "Yeniden yükle"
+
+msgid "Remove"
+msgstr "Kaldır"
+
+msgid "Unavailable"
+msgstr "Kullanılamıyor"
+
+msgid "Minimum"
+msgstr "En az"
+
+msgid "Removed for this account only; each one can be installed again from the Microsoft Store."
+msgstr "Yalnızca bu hesap için kaldırılır; her biri Microsoft Store'dan yeniden yüklenebilir."
+
+msgid "Also excludes the game folders from Defender scans."
+msgstr "Oyun klasörlerini de Defender taramalarının dışında tutar."
+
+msgid "Turn off Tamper Protection in Windows Security first."
+msgstr "Önce Windows Güvenliği'nde Kurcalama Koruması'nı kapatın."
+
+msgid "Locked by the firmware or by a policy."
+msgstr "Ürün yazılımı veya bir ilke tarafından kilitli."
+
+msgid "No game folder found."
+msgstr "Oyun klasörü bulunamadı."
+
+msgid "Not supported on this system."
+msgstr "Bu sistemde desteklenmiyor."
+
+msgid "Restart Windows to apply."
+msgstr "Uygulamak için Windows'u yeniden başlatın."
+
+msgid "Home and Pro editions keep the required level."
+msgstr "Home ve Pro sürümleri gerekli düzeyde kalır."
+
+msgid "Except Xbox, the Game Bar, the Store and Canapé's widget."
+msgstr "Xbox, Game Bar, Store ve Canapé pencere öğesi hariç."
+
+msgid "Takes effect after a restart."
+msgstr "Yeniden başlatmadan sonra etkili olur."
+
+msgid "{} game folders"
+msgstr "{} oyun klasörü"
+
+msgid "Leaves the device without antivirus protection. Windows may turn it back on."
+msgstr "Cihaz virüs korumasız kalır. Windows korumayı yeniden açabilir."
+
+msgid "Less protection against malicious drivers. Restart needed."
+msgstr "Kötü amaçlı sürücülere karşı daha az koruma. Yeniden başlatma gerekir."
+
+msgid "Press A again"
+msgstr "Tekrar A'ya basın"
+
+msgid "Can be installed again from the Microsoft Store."
+msgstr "Microsoft Store'dan yeniden yüklenebilir."

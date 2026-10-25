@@ -32,6 +32,7 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
   - [Réglages](#réglages)
   - [Profils de jeu](#profils-de-jeu)
   - [Banc d'essai](#banc-dessai)
+  - [Optimisations Windows](#optimisations-windows)
 - [Le widget Xbox Game Bar](#le-widget-xbox-game-bar)
 - [Langues](#langues)
 - [Dépannage](#dépannage)
@@ -190,7 +191,7 @@ Une installation qui avait déjà un `shell.json` d'une version précédente voi
 | **A** | Sur une carte, ouvrir son tiroir (ou sa page) ; dans un tiroir, appliquer le choix qui a le focus ; dans Jeux, lancer le jeu (ou l'installer) |
 | **X** | Enregistrer pour le jeu au premier plan (Performance, Matériel, Banc d'essai) ; rétablir les boutons d'origine (tiroir Boutons arrière) ; supprimer un profil (Profils de jeu) |
 | **Y** | Passer de M1 à M2 (tiroir Boutons arrière), du minimum au maximum (tiroir Plage de puissance) ; sur la fiche d'un jeu, ses options (renommer, catégories, retirer, désinstaller ; voir [Options d'un jeu](#options-dun-jeu)) |
-| **B** | Fermer un tiroir ; quitter une sous-page (Profils de jeu, Ajouter un jeu, Jeux masqués, Banc d'essai) en retrouvant la carte d'où on l'a ouverte ; sinon revenir à Jeux |
+| **B** | Fermer un tiroir ; quitter une sous-page (Profils de jeu, Ajouter un jeu, Jeux masqués, Optimisations Windows, Banc d'essai) en retrouvant la carte d'où on l'a ouverte ; sinon revenir à Jeux |
 
 La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé depuis Canapé garde toute la manette. Quand Canapé revient au premier plan, un bouton encore enfoncé pour le jeu n'agit pas tant qu'il n'a pas été relâché ; la première fois (au démarrage de l'Ally par exemple), la manette est ignorée pendant 2 s (la fenêtre n'apparaît qu'environ 1,5 s après), pour qu'un appui pendant l'ouverture de session ne lance pas un jeu. Les mêmes règles valent pour les touches du clavier, y compris l'Entrée et l'Échap que des outils comme Steam Input envoient pour A et B. La carte, la ligne ou la tuile sélectionnée est entourée de blanc (une carte sélectionnée se soulève aussi un peu, sa valeur en couleur d'accent) ; la couleur d'accent marque ce qui est choisi (trait sous une tuile, valeur d'une ligne). Au clavier (développement), les mêmes actions passent par les flèches, Entrée, F2 (X), Échap et Page préc. / Page suiv.
 
@@ -606,6 +607,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 | **Comptes → Epic Games** | Le compte connecté, ou « Se connecter » : **A** dans le tiroir ouvre la connexion Epic, en téléchargeant Legendary d'abord si besoin (voir [Installer des jeux possédés](#installer-des-jeux-possédés)) ; pendant l'attente, le tiroir dit quoi copier. Pas encore essayé sur l'Ally. |
 | **Comptes → GOG** | Le compte connecté, ou « Se connecter » : **A** dans le tiroir ouvre la page de connexion GOG dans le navigateur, en téléchargeant gogdl d'abord si besoin, puis attend l'adresse copiée (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Pas encore essayé sur l'Ally. |
 | **Comptes → Durée de jeu** | « IGDB » quand `igdb_client_id` et `igdb_client_secret` sont dans `shell.json`, Désactivé sinon ; le tiroir explique comment les régler. |
+| **Système → Optimisations Windows** | **A** ouvre la sous-page [Optimisations Windows](#optimisations-windows) (Copilot, publicités, applications préinstallées, Defender…). Pas encore essayé sur l'Ally. |
 | **Système → Visite de bienvenue** | **A** relance la [visite du premier lancement](#premier-lancement) depuis le début. Pas encore essayé sur l'Ally. |
 
 | Accent sarcelle | Accent orange |
@@ -659,6 +661,43 @@ Sur une recommandation, **A** règle le TDP (limite manuelle à cette valeur, au
 
 > [!NOTE]
 > Le banc d'essai n'a pas encore été essayé sur l'Ally.
+
+### Optimisations Windows
+
+<img src="images/fr/tweaks.png" alt="Sous-page Optimisations Windows" width="720">
+
+Ouverte depuis **Réglages → Optimisations Windows** ; **B** y revient. Une liste de réglages de Windows 11 utiles sur une console portable, groupés par thème. Haut et bas changent de ligne, **A** active ou rétablit le réglage. La valeur à droite est l'état de la fonction de Windows (« Copilot : Désactivé », « Mode Jeu : Activé ») ; l'écran se met à jour après chaque changement.
+
+> [!WARNING]
+> **Pas encore essayé sur l'Ally.** Tout a été testé avec le simulateur seulement. Les réglages touchent Windows lui-même : essayez-les d'abord un par un.
+
+- **Appliquer les réglages recommandés** : applique d'un coup ceux marqués « oui » dans la colonne *Recommandé* ci-dessous (jamais la protection en temps réel, l'intégrité de la mémoire ni les applis en arrière-plan). Un second **A** confirme, car l'ensemble comprend les exclusions Defender.
+- Les lignes qui baissent la protection de l'appareil, et le retrait d'une application, demandent **un second A** : la valeur devient « Appuyez encore sur A » et la conséquence s'affiche en jaune ; changer de ligne annule.
+- **Tout est réversible** : Canapé note ce que chaque valeur valait avant de la changer (dans `%ProgramData%\Canape\state.json`) et la remet telle quelle quand vous rétablissez le réglage. Un réglage déjà en place avant Canapé s'affiche comme appliqué ; le rétablir remet la valeur par défaut de Windows.
+- Les réglages par utilisateur s'appliquent au compte connecté à l'écran.
+
+| Thème | Ligne | Effet | Recommandé | Redémarrage |
+|---|---|---|---|---|
+| Copilot et publicités | **Copilot** | Stratégie « Désactiver Windows Copilot » (ordinateur et utilisateur) et bouton de la barre des tâches masqué. Sur Windows 11 24H2, l'application Copilot se retire en plus dans *Applications préinstallées*. | oui | non |
+| | **Widgets** | Stratégie « Autoriser les widgets » désactivée (tableau des widgets et son bouton). | oui | non |
+| | **Résultats web dans la recherche** | Plus de résultats Bing ni de « points forts de la recherche » dans la recherche du menu Démarrer. | oui | non |
+| | **Suggestions et publicités** | Plus d'applications suggérées dans Démarrer et Paramètres, plus d'installation silencieuse d'applications mises en avant, plus de recommandations ni de notifications de compte dans Démarrer, plus de publicités du fournisseur de synchronisation dans l'Explorateur, identifiant de publicité désactivé. | oui | non |
+| | **Astuces sur l'écran de verrouillage** | Plus d'anecdotes ni d'astuces sur l'image de l'écran de verrouillage. | oui | non |
+| | **Astuces et écrans d'accueil** | Plus de notifications d'astuces, d'« expérience de bienvenue » après les mises à jour, ni d'écran « Terminer la configuration de l'appareil ». | oui | non |
+| Confidentialité | **Données de diagnostic** | Niveau le plus bas permis par l'édition (les éditions Famille et Professionnel restent au niveau « obligatoire »), pas d'expériences personnalisées, pas de demandes de commentaires. | oui | non |
+| | **Applis du Store en arrière-plan** | Les applications du Store ne tournent plus en arrière-plan, sauf Xbox, la Game Bar, Gaming Services, le Store, Sécurité Windows et le widget Canapé. Peut retarder les notifications d'autres applications du Store. | non | non |
+| Jeux | **Mode Jeu** | Le mode Jeu de Windows activé. | oui | non |
+| | **Planification GPU à accélération matérielle** | Activée (« Redémarrez Windows pour appliquer » tant que ce n'est pas fait). | oui | **oui** |
+| | **Optimisations pour les jeux fenêtrés** | Activées pour les jeux DirectX 10 et 11 en fenêtre ou sans bordure ; les autres réglages graphiques de Windows sont gardés. | oui | non |
+| Sécurité | **Exclure les dossiers de jeux des analyses Defender** | Ajoute aux exclusions de Microsoft Defender les dossiers de jeux trouvés : `steamapps\common` de chaque bibliothèque Steam, les dossiers qui contiennent des jeux Epic ou GOG, et `Games` à la racine des lecteurs (le dossier de Canapé par défaut). Jamais une racine de lecteur, Windows, Program Files ni un dossier de profil. La ligne affiche le nombre de dossiers. Le rétablir retire seulement les exclusions ajoutées par Canapé. | oui | non |
+| | **Protection en temps réel de Defender** | La désactive. **L'appareil n'est plus protégé contre les virus.** Windows refuse tant que la *protection contre les falsifications* est active : la ligne affiche alors « Indisponible » et dit de la couper d'abord dans **Sécurité Windows → Protection contre les virus et menaces → Gérer les paramètres**. Windows peut la réactiver de lui-même. | non | non |
+| | **Intégrité de la mémoire** | Désactive l'intégrité de la mémoire (HVCI) et la sécurité basée sur la virtualisation : un peu plus de performances en jeu, **moins de protection contre les pilotes malveillants**. « Indisponible » si le firmware ou une stratégie la verrouille. | non | **oui** |
+
+<img src="images/fr/tweaks-security.png" alt="Confirmation avant de désactiver l'intégrité de la mémoire" width="720">
+
+**Applications préinstallées** : les applications de Windows sans intérêt sur une console (Copilot, Clipchamp, Actualités, Météo, Bing Search, Obtenir de l'aide, Astuces, Hub de commentaires, Microsoft Solitaire Collection, Microsoft To Do, Teams, Outlook, Courrier et calendrier, Contacts, Cartes, Power Automate, Pense-bêtes, Microsoft 365, Mobile connecté, Family, Assistance rapide, Dev Home, Films et TV, LinkedIn, Spotify, Disney+, Enregistreur audio, Calculatrice, Photos). Seules celles qui sont installées s'affichent. **A** puis **A** retire l'application **pour votre compte seulement** ; « Réinstaller » ouvre sa page dans le Microsoft Store. La Xbox, la Game Bar (où vit le widget Canapé) et ce dont elles dépendent, Gaming Services, le Store, Edge, WebView2 et Sécurité Windows ne sont jamais proposés. Canapé ne les retire pas pour les futurs comptes.
+
+<img src="images/fr/tweaks-apps.png" alt="Retrait d'une application préinstallée" width="720">
 
 ## Le widget Xbox Game Bar
 
@@ -835,7 +874,7 @@ Pour repartir de zéro côté réglages : arrêtez le service, supprimez `%Progr
 
 | Étape | Ce que fait le script |
 |---|---|
-| 1/6 | Tant que le service tourne, remet le matériel au neutre : ventilateurs sur les courbes du firmware (**Automatique**), pas de limite de FPS, manette en mode **Manette de jeu**, et limite de charge à 100 % si Canapé en avait réglé une. Une fois le service parti, plus rien ne les annulerait. Si le service ne tourne pas, il le signale et continue. |
+| 1/6 | Tant que le service tourne, remet le matériel au neutre : ventilateurs sur les courbes du firmware (**Automatique**), pas de limite de FPS, manette en mode **Manette de jeu**, et limite de charge à 100 % si Canapé en avait réglé une. Rétablit aussi les [optimisations Windows](#optimisations-windows) appliquées par Canapé (chaque valeur remise comme avant) et liste les applications retirées, à réinstaller depuis le Microsoft Store si besoin. Une fois le service parti, plus rien ne les annulerait. Si le service ne tourne pas, il le signale et continue. |
 | 2/6 | Ferme le shell, arrête et supprime le service `CanapeService`. |
 | 3/6 | Retire le paquet d'identité du shell (`Canape`) et celui du widget (`Canape.Widget`). |
 | 4/6 | Efface la valeur d'accueil du FSE (`GamingHomeApp`) si elle désigne encore Canapé. |

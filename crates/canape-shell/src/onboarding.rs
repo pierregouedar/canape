@@ -239,7 +239,7 @@ pub fn start(ui: &AppWindow) {
             }
         }
     });
-    tour.on_show_keyboard(show_touch_keyboard);
+    tour.on_show_keyboard(crate::touchkb::show);
     tour.on_apply_tweaks(|| {
         // Not reachable while WINDOWS_TWEAKS is false.
         crate::log("onboarding: no Windows optimisations in this build");
@@ -259,84 +259,6 @@ pub fn start(ui: &AppWindow) {
         ui.global::<App>().invoke_arrow_focus(true);
     }
 }
-
-/// Shows the touch keyboard, which Windows does not bring up by itself for
-/// the shell's text fields. Nothing happens when it is already shown.
-#[cfg(windows)]
-fn show_touch_keyboard() {
-    use windows_sys::Win32::System::Com::{
-        CLSCTX_INPROC_SERVER, CLSCTX_LOCAL_SERVER, COINIT_APARTMENTTHREADED, CoCreateInstance,
-        CoInitializeEx, CoUninitialize,
-    };
-    use windows_sys::Win32::UI::WindowsAndMessaging::{
-        FindWindowW, GWL_STYLE, GetDesktopWindow, GetWindowLongW, IsWindowVisible, WS_DISABLED,
-    };
-    use windows_sys::core::{GUID, HRESULT};
-
-    /// The touch keyboard's host, without starting it.
-    const HOST: GUID = GUID::from_u128(0x4ce576fa_83dc_4f88_951c_9d0782b4e376);
-    /// Its interface: IUnknown's three methods, then Toggle(HWND).
-    const TOGGLE: GUID = GUID::from_u128(0x37c994e7_432b_4834_a2f7_dce1f13b834b);
-    #[repr(C)]
-    struct Vtable {
-        _query: usize,
-        _add_ref: usize,
-        release: unsafe extern "system" fn(*mut std::ffi::c_void) -> u32,
-        toggle: unsafe extern "system" fn(*mut std::ffi::c_void, *mut std::ffi::c_void) -> HRESULT,
-    }
-
-    let class: Vec<u16> = "IPTip_Main_Window\0".encode_utf16().collect();
-    let window = unsafe { FindWindowW(class.as_ptr(), std::ptr::null()) };
-    if !window.is_null()
-        && unsafe { IsWindowVisible(window) } != 0
-        && (unsafe { GetWindowLongW(window, GWL_STYLE) } as u32 & WS_DISABLED) == 0
-    {
-        return;
-    }
-    // Its own thread: COM is initialized there, whatever the UI thread did.
-    std::thread::spawn(|| {
-        let init = unsafe { CoInitializeEx(std::ptr::null(), COINIT_APARTMENTTHREADED as u32) };
-        let mut object: *mut std::ffi::c_void = std::ptr::null_mut();
-        let created = unsafe {
-            CoCreateInstance(
-                &HOST,
-                std::ptr::null_mut(),
-                CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER,
-                &TOGGLE,
-                &mut object,
-            )
-        };
-        if created >= 0 && !object.is_null() {
-            let result = unsafe {
-                let vtable = *(object as *const *const Vtable);
-                let result = ((*vtable).toggle)(object, GetDesktopWindow());
-                ((*vtable).release)(object);
-                result
-            };
-            crate::log(&format!("onboarding: touch keyboard toggled ({result:#x})"));
-        } else {
-            // Not running yet: starting it shows it.
-            let dir = std::env::var_os("CommonProgramFiles")
-                .map(std::path::PathBuf::from)
-                .unwrap_or_else(|| r"C:\Program Files\Common Files".into());
-            let exe = dir.join(r"microsoft shared\ink\TabTip.exe");
-            match std::process::Command::new(&exe).spawn() {
-                Ok(_) => crate::log("onboarding: touch keyboard started"),
-                Err(err) => crate::log(&format!(
-                    "onboarding: touch keyboard ({created:#x}): {}: {err}",
-                    exe.display()
-                )),
-            }
-        }
-        if init >= 0 {
-            unsafe { CoUninitialize() };
-        }
-    });
-}
-
-/// Off Windows the system's own input method applies.
-#[cfg(not(windows))]
-fn show_touch_keyboard() {}
 
 #[cfg(test)]
 mod tests {

@@ -12,6 +12,11 @@
   and no charge limit if one was set through Canape. Once the service is
   gone, nothing would undo them.
 
+  Also asks it to revert the Windows tweaks Canape applied (each value put
+  back as it was), and lists the preinstalled apps removed from the
+  Windows tweaks page: those must be installed again from the Microsoft
+  Store by hand.
+
   Keeps the user data (settings, profiles, library cache, logs, downloaded
   tools) unless -RemoveData is given, and the development certificate unless
   -RemoveCertificate is given. Games installed from Canape stay on disk.
@@ -66,8 +71,20 @@ if ($running -and (Test-Path $ctl)) {
     if ($status -and $null -ne $status.battery_charge_limit -and $status.battery_charge_limit -lt 100) {
         Ctl @{ type = "set_battery_charge_limit"; percent = 100 } | Out-Null
     }
+    # Every Windows tweak Canape applied, back to what it replaced.
+    Ctl @{ type = "revert_tweaks" } | Out-Null
 } else {
-    Write-Warning "The service is not running: fans, frame rate limit, controller mode, back buttons, stick rings and charge limit stay as they are."
+    Write-Warning "The service is not running: fans, frame rate limit, controller mode, back buttons, stick rings, charge limit and Windows tweaks stay as they are."
+}
+
+# Apps removed from the Windows tweaks page (shell.json, per user).
+$shellJson = "$env:LOCALAPPDATA\Canape\shell.json"
+if (Test-Path $shellJson) {
+    $removed = @((Get-Content $shellJson -Raw | ConvertFrom-Json).removed_apps | Where-Object { $_ })
+    if ($removed.Count -gt 0) {
+        Write-Host "Apps removed through Canape (install them again from the Microsoft Store if needed):"
+        foreach ($name in $removed) { Write-Host "  $name" }
+    }
 }
 
 Write-Host "2/6 Removing the service"

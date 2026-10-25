@@ -1023,3 +1023,171 @@ msgstr "Welkomstrondleiding"
 
 msgid "System"
 msgstr "Systeem"
+
+msgid "Windows tweaks"
+msgstr "Windows-optimalisaties"
+
+msgid "Apply the recommended settings"
+msgstr "Aanbevolen instellingen toepassen"
+
+msgid "Copilot and ads"
+msgstr "Copilot en advertenties"
+
+msgid "Privacy"
+msgstr "Privacy"
+
+msgid "Security"
+msgstr "Beveiliging"
+
+msgid "Preinstalled apps"
+msgstr "Vooraf geïnstalleerde apps"
+
+msgid "Copilot"
+msgstr "Copilot"
+
+msgid "Widgets"
+msgstr "Widgets"
+
+msgid "Web results in search"
+msgstr "Webresultaten in zoeken"
+
+msgid "Suggestions and ads"
+msgstr "Suggesties en advertenties"
+
+msgid "Tips on the lock screen"
+msgstr "Tips op het vergrendelingsscherm"
+
+msgid "Tips and welcome screens"
+msgstr "Tips en welkomstschermen"
+
+msgid "Diagnostic data"
+msgstr "Diagnostische gegevens"
+
+msgid "Store apps in the background"
+msgstr "Store-apps op de achtergrond"
+
+msgid "Game Mode"
+msgstr "Gamemodus"
+
+msgid "Hardware-accelerated GPU scheduling"
+msgstr "Hardwareversnelde GPU-planning"
+
+msgid "Optimizations for windowed games"
+msgstr "Optimalisaties voor games in vensters"
+
+msgid "Exclude game folders from Defender scans"
+msgstr "Gamemappen uitsluiten van Defender-scans"
+
+msgid "Defender real-time protection"
+msgstr "Realtimebeveiliging van Defender"
+
+msgid "Memory integrity"
+msgstr "Geheugenintegriteit"
+
+msgid "News"
+msgstr "Nieuws"
+
+msgid "Weather"
+msgstr "Weer"
+
+msgid "Get Help"
+msgstr "Hulp vragen"
+
+msgid "Tips"
+msgstr "Tips"
+
+msgid "Feedback Hub"
+msgstr "Feedback-hub"
+
+msgid "Mail and Calendar"
+msgstr "E-mail en agenda"
+
+msgid "People"
+msgstr "Personen"
+
+msgid "Maps"
+msgstr "Kaarten"
+
+msgid "Sticky Notes"
+msgstr "Kladblokken"
+
+msgid "Phone Link"
+msgstr "Phone Link"
+
+msgid "Sound Recorder"
+msgstr "Geluidsrecorder"
+
+msgid "Calculator"
+msgstr "Rekenmachine"
+
+msgid "Photos"
+msgstr "Foto's"
+
+msgid "Quick Assist"
+msgstr "Snelle hulp"
+
+msgid "Movies & TV"
+msgstr "Films en tv"
+
+msgid "All applied"
+msgstr "Alles toegepast"
+
+msgid "{} to apply"
+msgstr "{} toe te passen"
+
+msgid "Reinstall"
+msgstr "Opnieuw installeren"
+
+msgid "Remove"
+msgstr "Verwijderen"
+
+msgid "Unavailable"
+msgstr "Niet beschikbaar"
+
+msgid "Minimum"
+msgstr "Minimum"
+
+msgid "Removed for this account only; each one can be installed again from the Microsoft Store."
+msgstr "Alleen voor dit account verwijderd; elke app is opnieuw te installeren via de Microsoft Store."
+
+msgid "Also excludes the game folders from Defender scans."
+msgstr "Sluit ook de gamemappen uit van Defender-scans."
+
+msgid "Turn off Tamper Protection in Windows Security first."
+msgstr "Schakel eerst Manipulatiebeveiliging uit in Windows-beveiliging."
+
+msgid "Locked by the firmware or by a policy."
+msgstr "Vergrendeld door de firmware of een beleid."
+
+msgid "No game folder found."
+msgstr "Geen gamemap gevonden."
+
+msgid "Not supported on this system."
+msgstr "Niet ondersteund op dit systeem."
+
+msgid "Restart Windows to apply."
+msgstr "Start Windows opnieuw op om toe te passen."
+
+msgid "Home and Pro editions keep the required level."
+msgstr "Home en Pro blijven op het vereiste niveau."
+
+msgid "Except Xbox, the Game Bar, the Store and Canapé's widget."
+msgstr "Behalve Xbox, de Game Bar, de Store en de widget van Canapé."
+
+msgid "Takes effect after a restart."
+msgstr "Werkt na een herstart."
+
+msgid "{} game folders"
+msgstr "{} gamemappen"
+
+msgid "Leaves the device without antivirus protection. Windows may turn it back on."
+msgstr "Het apparaat is dan niet beschermd tegen virussen. Windows kan het weer inschakelen."
+
+msgid "Less protection against malicious drivers. Restart needed."
+msgstr "Minder bescherming tegen schadelijke stuurprogramma's. Herstart nodig."
+
+msgid "Press A again"
+msgstr "Druk nogmaals op A"
+
+msgid "Can be installed again from the Microsoft Store."
+msgstr "Opnieuw te installeren via de Microsoft Store."

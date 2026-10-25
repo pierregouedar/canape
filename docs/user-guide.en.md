@@ -32,6 +32,7 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
   - [Settings](#settings)
   - [Game profiles](#game-profiles)
   - [Bench](#bench)
+  - [Windows tweaks](#windows-tweaks)
 - [The Xbox Game Bar widget](#the-xbox-game-bar-widget)
 - [Languages](#languages)
 - [Troubleshooting](#troubleshooting)
@@ -190,7 +191,7 @@ An installation that already had a `shell.json` from an earlier version also get
 | **A** | On a card, open its drawer (or its page); in a drawer, apply the focused choice; in Games, launch the game (or install it) |
 | **X** | Save for the game in the foreground (Performance, Hardware, Bench); restore the default buttons (Back buttons drawer); delete a profile (Game profiles) |
 | **Y** | Switch between M1 and M2 (Back buttons drawer), between the minimum and the maximum (Power range drawer); on a game page, the game's options (rename, categories, remove, uninstall; see [Game options](#game-options)) |
-| **B** | Close a drawer; leave a sub-page (Game profiles, Add a game, Hidden games, Bench) back on the card it was opened from; otherwise back to Games |
+| **B** | Close a drawer; leave a sub-page (Game profiles, Add a game, Hidden games, Windows tweaks, Bench) back on the card it was opened from; otherwise back to Games |
 
 The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. When Canapé comes back to the front, a button still held for the game does nothing until it is released; the first time (when the Ally starts, for example), the gamepad is ignored for 2 s (the window only shows about 1.5 s later), so that a press while signing in does not launch a game. The same rules apply to keyboard keys, including the Enter and Escape that tools such as Steam Input send for A and B. The focused card, line or tile has a white outline (a focused card also lifts a little, its value in the accent colour); the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
 
@@ -606,6 +607,7 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 | **Accounts → Epic Games** | The signed-in account, or "Sign in": **A** in the drawer opens the Epic sign-in, downloading Legendary first if needed (see [Installing owned games](#installing-owned-games)); while it waits, the drawer says what to copy. Not tried on the Ally yet. |
 | **Accounts → GOG** | The signed-in account, or "Sign in": **A** in the drawer opens GOG's sign-in page in the browser, downloading gogdl first if needed, then waits for the copied address (see [Installing owned games](#installing-owned-games)). Not tried on the Ally yet. |
 | **Accounts → Time to beat** | "IGDB" when `igdb_client_id` and `igdb_client_secret` are set in `shell.json`, Off otherwise; the drawer says how to set them. |
+| **System → Windows tweaks** | **A** opens the [Windows tweaks](#windows-tweaks) sub-page (Copilot, ads, preinstalled apps, Defender…). Not tried on the Ally yet. |
 | **System → Welcome tour** | **A** shows the [first-launch tour](#first-launch) again from the start. Not tried on the Ally yet. |
 
 | Teal accent | Orange accent |
@@ -659,6 +661,41 @@ On a recommendation, **A** sets the TDP (manual limit at that value, auto TDP of
 
 > [!NOTE]
 > The bench has not been tried on the Ally yet.
+
+### Windows tweaks
+
+<img src="images/en/tweaks.png" alt="Windows tweaks sub-page" width="720">
+
+Opened from **Settings → Windows tweaks**; **B** goes back. A list of Windows 11 settings that help on a handheld, grouped by theme. Up and down change line, **A** applies the tweak or reverts it. The value on the right is the state of the Windows feature ("Copilot: Off", "Game Mode: On"); the page refreshes after every change.
+
+> [!WARNING]
+> **Not yet tried on the Ally.** Everything was tested with the simulator only. These settings change Windows itself: try them one at a time first.
+
+- **Apply the recommended settings** applies at once those marked "yes" in the *Recommended* column below (never real-time protection, memory integrity or background apps). A second **A** confirms, since the set includes the Defender exclusions.
+- Lines that lower the device's protection, and removing an app, ask for **a second A**: the value becomes "Press A again" and the consequence turns yellow; moving to another line cancels.
+- **Everything is reversible**: Canapé records what each value held before changing it (in `%ProgramData%\Canape\state.json`) and puts it back as it was when you revert the tweak. A tweak already in place before Canapé shows as applied; reverting it restores the Windows default.
+- Per-user settings apply to the account signed in on the screen.
+
+| Theme | Line | Effect | Recommended | Restart |
+|---|---|---|---|---|
+| Copilot and ads | **Copilot** | "Turn off Windows Copilot" policy (machine and user) and its taskbar button hidden. On Windows 11 24H2, also remove the Copilot app under *Preinstalled apps*. | yes | no |
+| | **Widgets** | "Allow widgets" policy disabled (the widgets board and its button). | yes | no |
+| | **Web results in search** | No Bing results or search highlights in Start search. | yes | no |
+| | **Suggestions and ads** | No suggested apps in Start and Settings, no silent install of promoted apps, no recommendations or account notifications in Start, no sync provider ads in File Explorer, advertising ID off. | yes | no |
+| | **Tips on the lock screen** | No fun facts or tips over the lock screen picture. | yes | no |
+| | **Tips and welcome screens** | No tips notifications, no "welcome experience" after updates, no "Finish setting up your device" screen. | yes | no |
+| Privacy | **Diagnostic data** | The lowest level the edition allows (Home and Pro stay at "required" data), no tailored experiences, no feedback prompts. | yes | no |
+| | **Store apps in the background** | Store apps no longer run in the background, except Xbox, the Game Bar, Gaming Services, the Store, Windows Security and Canapé's widget. May delay notifications of other Store apps. | no | no |
+| Games | **Game Mode** | Windows Game Mode on. | yes | no |
+| | **Hardware-accelerated GPU scheduling** | On ("Restart Windows to apply" until done). | yes | **yes** |
+| | **Optimizations for windowed games** | On for DirectX 10 and 11 games in a window or borderless; Windows' other graphics settings are kept. | yes | no |
+| Security | **Exclude game folders from Defender scans** | Adds the game folders found to Microsoft Defender's exclusions: each Steam library's `steamapps\common`, the folders holding Epic or GOG games, and `Games` at a drive's root (Canapé's default folder). Never a drive root, Windows, Program Files or a profile folder. The line shows how many folders. Reverting removes only the exclusions Canapé added. | yes | no |
+| | **Defender real-time protection** | Turns it off. **The device is no longer protected against viruses.** Windows refuses while *Tamper Protection* is on: the line then reads "Unavailable" and says to turn it off first in **Windows Security → Virus & threat protection → Manage settings**. Windows may turn it back on by itself. | no | no |
+| | **Memory integrity** | Turns memory integrity (HVCI) and virtualization-based security off: a little more performance in games, **less protection against malicious drivers**. "Unavailable" when the firmware or a policy locks it. | no | **yes** |
+
+**Preinstalled apps**: Windows apps of no use on a handheld (Copilot, Clipchamp, News, Weather, Bing Search, Get Help, Tips, Feedback Hub, Microsoft Solitaire Collection, Microsoft To Do, Teams, Outlook, Mail and Calendar, People, Maps, Power Automate, Sticky Notes, Microsoft 365, Phone Link, Family, Quick Assist, Dev Home, Movies & TV, LinkedIn, Spotify, Disney+, Sound Recorder, Calculator, Photos). Only the installed ones show. **A** then **A** removes the app **for your account only**; "Reinstall" opens its Microsoft Store page. Xbox, the Game Bar (where Canapé's widget lives) and what they depend on, Gaming Services, the Store, Edge, WebView2 and Windows Security are never offered. Canapé does not remove them for future accounts.
+
+<sub>Screenshots of the confirmation and of the apps, in French: [fr/tweaks-security.png](images/fr/tweaks-security.png), [fr/tweaks-apps.png](images/fr/tweaks-apps.png).</sub>
 
 ## The Xbox Game Bar widget
 
@@ -835,7 +872,7 @@ To start over with the settings: stop the service, delete `%ProgramData%\Canape\
 
 | Step | What the script does |
 |---|---|
-| 1/6 | While the service still runs, puts the hardware back to neutral: fans on the firmware's curves (**Automatic**), no frame rate limit, controller in **Gamepad** mode, and the charge limit back to 100 % if Canapé had set one. Once the service is gone, nothing would undo them. If the service is not running, it says so and goes on. |
+| 1/6 | While the service still runs, puts the hardware back to neutral: fans on the firmware's curves (**Automatic**), no frame rate limit, controller in **Gamepad** mode, and the charge limit back to 100 % if Canapé had set one. Also reverts the [Windows tweaks](#windows-tweaks) Canapé applied (each value put back as it was) and lists the apps removed, to install again from the Microsoft Store if needed. Once the service is gone, nothing would undo them. If the service is not running, it says so and goes on. |
 | 2/6 | Closes the shell, stops and removes the `CanapeService` service. |
 | 3/6 | Removes the shell's identity package (`Canape`) and the widget's (`Canape.Widget`). |
 | 4/6 | Clears the FSE home app value (`GamingHomeApp`) if it still names Canapé. |
