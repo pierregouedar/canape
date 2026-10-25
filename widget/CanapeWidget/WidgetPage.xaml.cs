@@ -67,8 +67,8 @@ namespace CanapeWidget
         private double livePower = double.NaN;
         // The pane in front: "power" or "hardware".
         private string tab = "power";
-        // A save just went through: its button says so for a moment.
-        private Button savedButton;
+        // A save just went through: the button says so for a moment.
+        private bool saved;
         private DispatcherTimer savedTimer;
 
         public WidgetPage()
@@ -325,10 +325,6 @@ namespace CanapeWidget
             rangeHigh = double.NaN;
             livePower = double.NaN;
             ShowRange();
-            FooterText.Text = "";
-            Warn(FooterText, false);
-            BatteryText.Text = "";
-            BatteryGlyph.Visibility = Visibility.Collapsed;
         }
 
         private void ShowMessage(string message)
@@ -493,11 +489,12 @@ namespace CanapeWidget
                 TabPillShift.X = to;
                 return;
             }
+            // Eased at both ends: a sharp start reads as a jump on a short way.
             var slide = new DoubleAnimation
             {
                 To = to,
-                Duration = TimeSpan.FromMilliseconds(260),
-                EasingFunction = new ExponentialEase { EasingMode = EasingMode.EaseOut, Exponent = 6 },
+                Duration = TimeSpan.FromMilliseconds(320),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut },
             };
             Storyboard.SetTarget(slide, TabPillShift);
             Storyboard.SetTargetProperty(slide, "X");
@@ -553,26 +550,6 @@ namespace CanapeWidget
                 var textWidth = LiveText.DesiredSize.Width;
                 Canvas.SetLeft(LiveText, Math.Min(Math.Max(at - textWidth / 2, 0), Math.Max(width - textWidth, 0)));
             }
-        }
-
-        /// <summary>
-        /// Segoe MDL2 Assets battery glyphs, by tenths of charge: Battery0-9
-        /// (E850-E859), Battery10 (E83F), BatteryCharging0-8 (E85A-E862),
-        /// BatteryCharging9 (E83E, also used at 100 %).
-        /// </summary>
-        private static string BatteryGlyphFor(int percent, bool charging)
-        {
-            var level = Math.Min(Math.Max((int)Math.Round(percent / 10.0), 0), 10);
-            int code;
-            if (charging)
-            {
-                code = level >= 9 ? 0xE83E : 0xE85A + level;
-            }
-            else
-            {
-                code = level == 10 ? 0xE83F : 0xE850 + level;
-            }
-            return ((char)code).ToString();
         }
 
         /// <summary>A status push: one more sample in the graphs, then the display.</summary>
@@ -714,17 +691,6 @@ namespace CanapeWidget
             ShowHardware(status);
             ShowSaveButtons(game != null);
 
-            // Footer: GPU activity, battery.
-            var gpu = Number(status, "gpu_util");
-            FooterText.Text = gpu.HasValue ? F("FooterGpu", F("FormatPercent", (int)Math.Round(Math.Min(Math.Max(gpu.Value, 0), 1) * 100))) : "";
-            var battery = Integer(status, "battery_percent");
-            BatteryText.Text = battery.HasValue ? F("FormatPercent", battery.Value) : "";
-            BatteryGlyph.Visibility = battery.HasValue ? Visibility.Visible : Visibility.Collapsed;
-            if (battery.HasValue)
-            {
-                BatteryGlyph.Text = BatteryGlyphFor(battery.Value, onBattery == false);
-            }
-
             var conflicts = status.GetNamedArray("conflicts", new JsonArray())
                 .Where(v => v.ValueType == JsonValueType.String)
                 .Select(v => v.GetString())
@@ -764,16 +730,13 @@ namespace CanapeWidget
             ShowModeIcons();
         }
 
-        /// <summary>The save buttons: only with a game in front.</summary>
+        /// <summary>The save button: only with a game in front.</summary>
         private void ShowSaveButtons(bool game)
         {
-            foreach (var button in new[] { SavePowerButton, SaveHardwareButton })
+            SaveButton.IsEnabled = game;
+            if (!saved)
             {
-                button.IsEnabled = game;
-                if (button != savedButton)
-                {
-                    button.Content = S("SaveForGame");
-                }
+                SaveButton.Content = S("SaveForGame");
             }
         }
 
@@ -914,25 +877,24 @@ namespace CanapeWidget
             Send(request);
         }
 
-        /// <summary>Saves this pane's settings into the profile of the game in front.</summary>
+        /// <summary>Saves the tab in front into the profile of the game in front.</summary>
         private async void OnSave(object sender, RoutedEventArgs e)
         {
-            var button = (Button)sender;
             var request = Request("save_foreground_profile");
-            request["part"] = JsonValue.CreateStringValue((string)button.Tag);
+            request["part"] = JsonValue.CreateStringValue(tab);
             if (!await SendAsync(request))
             {
                 return;
             }
-            savedButton = button;
-            button.Content = S("Saved");
+            saved = true;
+            SaveButton.Content = S("Saved");
             if (savedTimer == null)
             {
                 savedTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
                 savedTimer.Tick += (s, args) =>
                 {
                     savedTimer.Stop();
-                    savedButton = null;
+                    saved = false;
                     ShowSaveButtons(Text(lastStatus, "foreground") != null);
                 };
             }

@@ -112,7 +112,7 @@
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="Height" Value="58" />
+                <Setter Property="Height" Value="50" />
                 <Setter Property="Padding" Value="4,0" />
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="CornerRadius" Value="10" />
@@ -166,10 +166,14 @@
     </Page.Resources>
 
     <Grid x:Name="Root" Background="{StaticResource PanelBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <!-- Each row slides in from the left when the widget opens, one
                  after the other, like the title on the shell's games page. -->
-            <Grid x:Name="Rows" Padding="18,16,18,14" RowSpacing="16">
+            <Grid x:Name="Rows" Padding="16,14,16,4" RowSpacing="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -178,7 +182,6 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- Foreground game (or link state), and whether its profile applies. -->
@@ -205,21 +208,21 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Spacing="2">
                         <TextBlock x:Uid="PowerCaption" Style="{StaticResource Caption}" />
-                        <TextBlock Style="{StaticResource Figure}" FontSize="28" Typography.NumeralAlignment="Tabular">
+                        <TextBlock Style="{StaticResource Figure}" FontSize="26" Typography.NumeralAlignment="Tabular">
                             <Run x:Name="PowerValue" Text="—" /><Run x:Name="PowerUnit" FontSize="13" FontFamily="{StaticResource JakartaMedium}" FontWeight="Medium"
                                  Foreground="{StaticResource DimTextBrush}" />
                         </TextBlock>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="2">
                         <TextBlock x:Uid="FpsCaption" Style="{StaticResource Caption}" />
-                        <TextBlock Style="{StaticResource Figure}" FontSize="28" Typography.NumeralAlignment="Tabular">
+                        <TextBlock Style="{StaticResource Figure}" FontSize="26" Typography.NumeralAlignment="Tabular">
                             <Run x:Name="FpsValue" Text="—" /><Run Text=" FPS" FontSize="13" FontFamily="{StaticResource JakartaMedium}" FontWeight="Medium"
                                  Foreground="{StaticResource DimTextBrush}" />
                         </TextBlock>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Spacing="2">
                         <TextBlock x:Name="TempCaption" x:Uid="TempCaption" Style="{StaticResource Caption}" />
-                        <TextBlock Style="{StaticResource Figure}" FontSize="28" Typography.NumeralAlignment="Tabular">
+                        <TextBlock Style="{StaticResource Figure}" FontSize="26" Typography.NumeralAlignment="Tabular">
                             <Run x:Name="TempValue" Text="—" /><Run Text=" °C" FontSize="13" FontFamily="{StaticResource JakartaMedium}" FontWeight="Medium"
                                  Foreground="{StaticResource DimTextBrush}" />
                         </TextBlock>
@@ -227,7 +230,7 @@
                 </Grid>
 
                 <!-- The last minute: power draw, and the limit dashed. -->
-                <Grid Grid.Row="2" Height="52">
+                <Grid Grid.Row="2" Height="40">
                     <Rectangle Height="1" VerticalAlignment="Bottom" Fill="{StaticResource TrackBrush}" />
                     <Canvas x:Name="PowerPlot">
                         <Path x:Name="PowerLimitLine" Stroke="{StaticResource ReferenceBrush}" StrokeThickness="1.5" StrokeDashArray="2,2" />
@@ -270,7 +273,7 @@
 
                 <Grid Grid.Row="5">
                     <!-- Power: modes, the value under them, the power range. -->
-                    <StackPanel x:Name="PowerPane" Spacing="14">
+                    <StackPanel x:Name="PowerPane" Spacing="10">
                         <StackPanel Spacing="8">
                             <TextBlock x:Uid="ModeHeader" Style="{StaticResource SectionHeader}" />
                             <Grid ColumnSpacing="6">
@@ -324,7 +327,7 @@
                         </StackPanel>
 
                         <!-- Auto TDP: the target frame rate. Otherwise the power limit, ±1 W. -->
-                        <Grid Height="44">
+                        <Grid Height="40">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -353,7 +356,7 @@
                                 <TextBlock x:Name="RangeText" Style="{StaticResource Caption}" HorizontalAlignment="Right"
                                            Typography.NumeralAlignment="Tabular" />
                             </Grid>
-                            <Canvas x:Name="RangePlot" Height="40" SizeChanged="OnRangeSize">
+                            <Canvas x:Name="RangePlot" Height="36" SizeChanged="OnRangeSize">
                                 <Rectangle x:Name="RangeTrack" Canvas.Top="10" Height="4" RadiusX="2" RadiusY="2" Fill="{StaticResource TrackBrush}" />
                                 <Rectangle x:Name="RangeFill" Canvas.Top="10" Height="4" RadiusX="2" RadiusY="2" Fill="{StaticResource AccentBrush}" />
                                 <Ellipse x:Name="LowKnob" Canvas.Top="4" Width="16" Height="16" Fill="{StaticResource KnobBrush}" />
@@ -364,13 +367,10 @@
                                            Typography.NumeralAlignment="Tabular" />
                             </Canvas>
                         </StackPanel>
-
-                        <Button x:Name="SavePowerButton" HorizontalAlignment="Stretch" Height="40" CornerRadius="10" Tag="power"
-                                Click="OnSave" IsEnabled="False" FontFamily="{StaticResource JakartaSemiBold}" FontWeight="SemiBold" FontSize="13" />
                     </StackPanel>
 
                     <!-- Hardware: fans, frame rate cap, controller, for the game in front. -->
-                    <StackPanel x:Name="HardwarePane" Spacing="14" Visibility="Collapsed">
+                    <StackPanel x:Name="HardwarePane" Spacing="10" Visibility="Collapsed">
                         <StackPanel Spacing="8">
                             <Grid>
                                 <TextBlock x:Uid="FansHeader" Style="{StaticResource SectionHeader}" />
@@ -415,7 +415,7 @@
                             </Grid>
                         </StackPanel>
 
-                        <Grid Height="44">
+                        <Grid Height="40">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -474,9 +474,6 @@
                             </ToggleButton>
                             </Grid>
                         </StackPanel>
-
-                        <Button x:Name="SaveHardwareButton" HorizontalAlignment="Stretch" Height="40" CornerRadius="10" Tag="hardware"
-                                Click="OnSave" IsEnabled="False" FontFamily="{StaticResource JakartaSemiBold}" FontWeight="SemiBold" FontSize="13" />
                     </StackPanel>
                 </Grid>
 
@@ -484,26 +481,21 @@
                     <TextBlock x:Name="ConflictText" FontSize="12" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" Visibility="Collapsed" />
                     <TextBlock x:Name="MessageText" FontSize="12" Foreground="{StaticResource ErrorBrush}" TextWrapping="Wrap" Visibility="Collapsed" />
                 </StackPanel>
-
-                <!-- GPU activity and battery; the shell, one tap away. -->
-                <Grid Grid.Row="7" ColumnSpacing="6">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="FooterText" Style="{StaticResource Caption}" VerticalAlignment="Center"
-                               Typography.NumeralAlignment="Tabular" />
-                    <TextBlock x:Name="BatteryGlyph" Grid.Column="1" FontFamily="Segoe MDL2 Assets" FontSize="13"
-                               Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" Visibility="Collapsed" />
-                    <TextBlock x:Name="BatteryText" Grid.Column="2" Style="{StaticResource Caption}" VerticalAlignment="Center"
-                               Typography.NumeralAlignment="Tabular" />
-                    <Button x:Name="OpenButton" x:Uid="OpenCanape" Grid.Column="3" HorizontalAlignment="Right" Padding="8,4"
-                            Background="Transparent" FontSize="12" FontFamily="{StaticResource JakartaSemiBold}" FontWeight="SemiBold"
-                            Foreground="{StaticResource SoftTextBrush}" Click="OnOpen" />
-                </Grid>
             </Grid>
         </ScrollViewer>
+
+        <!-- Always in view, under what scrolls: saving the tab in front for
+             the game, and the shell one tap away. -->
+        <Grid Grid.Row="1" Padding="16,6,16,12" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="SaveButton" HorizontalAlignment="Stretch" Height="36" CornerRadius="10" Click="OnSave" IsEnabled="False"
+                    FontFamily="{StaticResource JakartaSemiBold}" FontWeight="SemiBold" FontSize="13" />
+            <Button x:Name="OpenButton" x:Uid="OpenCanape" Grid.Column="1" Height="36" Padding="10,0" CornerRadius="10"
+                    Background="Transparent" FontSize="12" FontFamily="{StaticResource JakartaSemiBold}" FontWeight="SemiBold"
+                    Foreground="{StaticResource SoftTextBrush}" Click="OnOpen" />
+        </Grid>
     </Grid>
 </Page>

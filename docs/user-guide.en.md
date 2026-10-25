@@ -429,9 +429,9 @@ The widget gives you the quick settings without leaving the game. All the logic 
 | Figures | Power draw (one decimal), frames per second and CPU temperature ("Throttled" in amber when the temperature limit holds power down). |
 | Graph | The last minute: power draw in the accent colour, the limit dashed grey. |
 | Bench | Step, wattage and time left during a bench (started from the shell). |
-| **Power** tab | Mode (Silent, Performance, Turbo, Auto; the chosen tile is white, a firmware mode turns auto TDP off). The ‹ value ›: under auto TDP the **target** (30 to 120 FPS), otherwise the **power limit** ±1 W, greyed out in a firmware mode and bounded by the model's range. The power range on the model's scale, with the current draw (read-only). **Save for this game**: the current auto TDP into the foreground game's profile. |
-| **Hardware** tab | Fans: Auto (the firmware's curve), Balanced, Maximum; "Custom curves" when other curves are in place. The frame rate limit ‹ › (None, 30 to 120). The controller: Gamepad, Keyboard, Mouse. **Save for this game**: fans and frame rate limit into the foreground game's profile (the rest of the profile is kept). |
-| Footer | GPU activity, battery, and **Open Canapé**, which brings the shell to the front. |
+| **Power** tab | Mode (Silent, Performance, Turbo, Auto; the chosen tile is white, a firmware mode turns auto TDP off). The ‹ value ›: under auto TDP the **target** (30 to 120 FPS), otherwise the **power limit** ±1 W, greyed out in a firmware mode and bounded by the model's range. The power range on the model's scale, with the current draw (read-only). |
+| **Hardware** tab | Fans: Auto (the firmware's curve), Balanced, Maximum; "Custom curves" when other curves are in place. The frame rate limit ‹ › (None, 30 to 120). The controller: Gamepad, Keyboard, Mouse. |
+| Footer, always in view | **Save for this game**: the tab in front into the foreground game's profile (Power: the current auto TDP; Hardware: fans and frame rate limit; the rest of the profile is kept). **Open Canapé**, which brings the shell to the front. |
 
 The widget has no bench button, no profile list, no power range or screen refresh setting: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell. Default size 400 × 600, resizable.
 
