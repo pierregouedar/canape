@@ -34,7 +34,7 @@ mod shelves;
 use std::rc::Rc;
 use std::time::Duration;
 
-use canape_core::{AutoTdpSettings, BenchPlan, ControllerMode, Fan, PerformanceMode, Request};
+use canape_core::{AutoTdpSettings, BenchPlan, ControllerMode, PerformanceMode, Request};
 
 use slint::{ComponentHandle, Timer, TimerMode};
 
@@ -344,17 +344,10 @@ fn connect(ui: &AppWindow, link: &Link) {
 
     app.on_set_fan_preset({
         let link = link.clone();
-        move |key| match hardware::preset_from_key(&key) {
-            Some(preset) => {
-                // The Ally has no middle fan; the service skips it anyway.
-                for fan in [Fan::Cpu, Fan::Gpu] {
-                    link.send(Request::SetFanCurve {
-                        fan,
-                        curve: preset.curve(),
-                    });
-                }
-            }
-            None => link.send(Request::ResetFanCurves),
+        move |key| {
+            link.send(Request::SetFanPreset {
+                preset: hardware::preset_from_key(&key),
+            })
         }
     });
     app.on_set_fps_limit({

@@ -162,4 +162,72 @@
     <value>Waiting for the game</value>
     <comment>Bench card: started from the shell, it waits for the game to come back to the front</comment>
   </data>
+  <data name="TabPower.Content" xml:space="preserve">
+    <value>Power</value>
+    <comment>Tab: performance mode, auto TDP and power range</comment>
+  </data>
+  <data name="TabHardware.Content" xml:space="preserve">
+    <value>Hardware</value>
+    <comment>Tab: fans, frame rate cap and controller</comment>
+  </data>
+  <data name="TempCaption.Text" xml:space="preserve">
+    <value>CPU</value>
+    <comment>Figure caption: CPU temperature (short)</comment>
+  </data>
+  <data name="FansHeader.Text" xml:space="preserve">
+    <value>Fans</value>
+    <comment>Section header: fans</comment>
+  </data>
+  <data name="FanAuto.Text" xml:space="preserve">
+    <value>Auto</value>
+    <comment>Fan tile: the firmware's own curve (short)</comment>
+  </data>
+  <data name="FanBalanced.Text" xml:space="preserve">
+    <value>Balanced</value>
+    <comment>Fan tile: balanced preset (short)</comment>
+  </data>
+  <data name="FanMax.Text" xml:space="preserve">
+    <value>Maximum</value>
+    <comment>Fan tile: maximum cooling preset (short)</comment>
+  </data>
+  <data name="FansCustom" xml:space="preserve">
+    <value>Custom curves</value>
+    <comment>Next to the fans header when custom curves set elsewhere are in effect</comment>
+  </data>
+  <data name="FpsLimitLabel.Text" xml:space="preserve">
+    <value>Frame rate limit</value>
+    <comment>Row label: frame rate cap of the GPU driver</comment>
+  </data>
+  <data name="FpsLimitNone" xml:space="preserve">
+    <value>None</value>
+    <comment>Value of the frame rate cap when there is none</comment>
+  </data>
+  <data name="ControllerHeader.Text" xml:space="preserve">
+    <value>Controller</value>
+    <comment>Section header: mode of the built-in controller</comment>
+  </data>
+  <data name="ControllerGamepad.Text" xml:space="preserve">
+    <value>Gamepad</value>
+    <comment>Controller tile: gamepad (short)</comment>
+  </data>
+  <data name="ControllerKeyboard.Text" xml:space="preserve">
+    <value>Keyboard</value>
+    <comment>Controller tile: keyboard (short)</comment>
+  </data>
+  <data name="ControllerMouse.Text" xml:space="preserve">
+    <value>Mouse</value>
+    <comment>Controller tile: mouse (short)</comment>
+  </data>
+  <data name="SaveForGame" xml:space="preserve">
+    <value>Save for this game</value>
+    <comment>Button: save these settings in the profile of the game in front</comment>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Saved</value>
+    <comment>Button text for two seconds after a save</comment>
+  </data>
+  <data name="OpenCanape.Content" xml:space="preserve">
+    <value>Open Canapé ›</value>
+    <comment>Footer button: bring the Canapé shell to the front</comment>
+  </data>
 </root>

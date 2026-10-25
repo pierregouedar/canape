@@ -146,6 +146,17 @@ pub enum FanPreset {
 impl FanPreset {
     pub const ALL: [FanPreset; 2] = [Self::Balanced, Self::MaxCooling];
 
+    /// The preset `curves` hold, when every custom curve is that preset's;
+    /// `None` for the firmware's curves (no custom curve) or other curves.
+    pub fn of(curves: &FanCurves) -> Option<FanPreset> {
+        if curves.is_empty() {
+            return None;
+        }
+        Self::ALL
+            .into_iter()
+            .find(|preset| curves.iter().all(|(_, c)| c == preset.curve()))
+    }
+
     /// The same curve serves the CPU and the GPU fan.
     pub fn curve(self) -> FanCurve {
         FanCurve(match self {

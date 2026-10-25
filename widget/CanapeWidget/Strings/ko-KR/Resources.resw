@@ -125,4 +125,55 @@
   <data name="BenchWaiting" xml:space="preserve">
     <value>게임을 기다리는 중</value>
   </data>
+  <data name="TabPower.Content" xml:space="preserve">
+    <value>전력</value>
+  </data>
+  <data name="TabHardware.Content" xml:space="preserve">
+    <value>하드웨어</value>
+  </data>
+  <data name="TempCaption.Text" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="FansHeader.Text" xml:space="preserve">
+    <value>팬</value>
+  </data>
+  <data name="FanAuto.Text" xml:space="preserve">
+    <value>자동</value>
+  </data>
+  <data name="FanBalanced.Text" xml:space="preserve">
+    <value>균형</value>
+  </data>
+  <data name="FanMax.Text" xml:space="preserve">
+    <value>최대</value>
+  </data>
+  <data name="FansCustom" xml:space="preserve">
+    <value>사용자 곡선</value>
+  </data>
+  <data name="FpsLimitLabel.Text" xml:space="preserve">
+    <value>FPS 제한</value>
+  </data>
+  <data name="FpsLimitNone" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="ControllerHeader.Text" xml:space="preserve">
+    <value>컨트롤러</value>
+  </data>
+  <data name="ControllerGamepad.Text" xml:space="preserve">
+    <value>게임패드</value>
+  </data>
+  <data name="ControllerKeyboard.Text" xml:space="preserve">
+    <value>키보드</value>
+  </data>
+  <data name="ControllerMouse.Text" xml:space="preserve">
+    <value>마우스</value>
+  </data>
+  <data name="SaveForGame" xml:space="preserve">
+    <value>이 게임에 저장</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>저장됨</value>
+  </data>
+  <data name="OpenCanape.Content" xml:space="preserve">
+    <value>Canapé 열기 ›</value>
+  </data>
 </root>

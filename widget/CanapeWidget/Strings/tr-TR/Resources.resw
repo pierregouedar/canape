@@ -125,4 +125,55 @@
   <data name="BenchWaiting" xml:space="preserve">
     <value>Oyun bekleniyor</value>
   </data>
+  <data name="TabPower.Content" xml:space="preserve">
+    <value>Güç</value>
+  </data>
+  <data name="TabHardware.Content" xml:space="preserve">
+    <value>Donanım</value>
+  </data>
+  <data name="TempCaption.Text" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="FansHeader.Text" xml:space="preserve">
+    <value>Fanlar</value>
+  </data>
+  <data name="FanAuto.Text" xml:space="preserve">
+    <value>Otomatik</value>
+  </data>
+  <data name="FanBalanced.Text" xml:space="preserve">
+    <value>Dengeli</value>
+  </data>
+  <data name="FanMax.Text" xml:space="preserve">
+    <value>Maksimum</value>
+  </data>
+  <data name="FansCustom" xml:space="preserve">
+    <value>Özel eğriler</value>
+  </data>
+  <data name="FpsLimitLabel.Text" xml:space="preserve">
+    <value>FPS sınırı</value>
+  </data>
+  <data name="FpsLimitNone" xml:space="preserve">
+    <value>Yok</value>
+  </data>
+  <data name="ControllerHeader.Text" xml:space="preserve">
+    <value>Kontrolcü</value>
+  </data>
+  <data name="ControllerGamepad.Text" xml:space="preserve">
+    <value>Oyun kumandası</value>
+  </data>
+  <data name="ControllerKeyboard.Text" xml:space="preserve">
+    <value>Klavye</value>
+  </data>
+  <data name="ControllerMouse.Text" xml:space="preserve">
+    <value>Fare</value>
+  </data>
+  <data name="SaveForGame" xml:space="preserve">
+    <value>Bu oyun için kaydet</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Kaydedildi</value>
+  </data>
+  <data name="OpenCanape.Content" xml:space="preserve">
+    <value>Canapé'yi aç ›</value>
+  </data>
 </root>

@@ -4,7 +4,8 @@ use canape_autotdp::{Config, Controller};
 use canape_core::settings::FPS_LIMIT_RANGE;
 use canape_core::{
     AutoTdpSettings, BenchPlan, BenchProgress, BenchReport, ControllerMode, Fan, FanCurve,
-    FanCurves, PerformanceMode, Profile, Request, Response, Status, protocol,
+    FanCurves, FanPreset, PerformanceMode, Profile, ProfilePart, Request, Response, Status,
+    protocol,
 };
 use canape_hw::{Device, Telemetry};
 use serde::{Deserialize, Serialize};
@@ -243,6 +244,51 @@ impl Handler {
                 response
             }
             Request::GetFanCurves => self.fan_curves_response(),
+            Request::SetFanPreset { preset: None } => self.handle(Request::ResetFanCurves),
+            Request::SetFanPreset {
+                preset: Some(preset),
+            } => {
+                // The Ally has no middle fan.
+                for fan in [Fan::Cpu, Fan::Gpu] {
+                    let response = self.write_fan_curve(fan, preset.curve());
+                    if response != Response::Ok {
+                        return response;
+                    }
+                }
+                self.remember_fan_curves();
+                Response::Ok
+            }
+            Request::SaveForegroundProfile { part } => {
+                let Some(exe) = self.foreground.clone() else {
+                    return Response::Error {
+                        message: "no game in the foreground".into(),
+                    };
+                };
+                // What the profile already has is kept.
+                let existing = self
+                    .profiles
+                    .iter()
+                    .find(|p| p.matches(&exe))
+                    .cloned()
+                    .unwrap_or_else(|| Profile {
+                        exe,
+                        auto_tdp: self.auto_tdp,
+                        ..Default::default()
+                    });
+                let profile = match part {
+                    ProfilePart::Power => Profile {
+                        auto_tdp: self.auto_tdp,
+                        learned_watts: self.tdp_watts.filter(|_| self.auto_tdp.enabled),
+                        ..existing
+                    },
+                    ProfilePart::Hardware => Profile {
+                        fan_curves: Some(self.fan_curves.clone()),
+                        fps_limit: self.fps_limit,
+                        ..existing
+                    },
+                };
+                self.handle(Request::SaveProfile { profile })
+            }
             Request::SetFpsLimit { fps } => {
                 let (low, high) = FPS_LIMIT_RANGE;
                 if fps.is_some_and(|fps| !(low..=high).contains(&fps)) {
@@ -379,6 +425,7 @@ impl Handler {
             cpu_fan_rpm: telemetry.cpu_fan_rpm,
             gpu_fan_rpm: telemetry.gpu_fan_rpm,
             fan_curves: self.fan_curves.clone(),
+            fan_preset: FanPreset::of(&self.fan_curves),
             fps_limit: self.fps_limit,
             controller_mode: self.controller_mode,
         }
@@ -1387,5 +1434,79 @@ mod tests {
         h.handle(Request::ForegroundApp { exe: None });
         assert_eq!(custom(&mut h).cpu, Some(FanPreset::Balanced.curve()));
         assert_eq!(h.status().fps_limit, Some(30));
+    }
+
+    #[test]
+    fn a_fan_preset_sets_both_fans_and_shows_in_the_status() {
+        let mut h = handler();
+        assert_eq!(h.status().fan_preset, None);
+        h.handle(Request::SetFanPreset {
+            preset: Some(FanPreset::MaxCooling),
+        });
+        let curves = custom(&mut h);
+        assert_eq!(curves.cpu, Some(FanPreset::MaxCooling.curve()));
+        assert_eq!(curves.gpu, Some(FanPreset::MaxCooling.curve()));
+        assert_eq!(h.status().fan_preset, Some(FanPreset::MaxCooling));
+        // One fan changed by hand: no preset any more.
+        h.handle(set_curve(Fan::Cpu, FanPreset::Balanced));
+        assert_eq!(h.status().fan_preset, None);
+        h.handle(Request::SetFanPreset { preset: None });
+        assert!(custom(&mut h).is_empty());
+    }
+
+    #[test]
+    fn saving_the_game_in_front_keeps_the_other_part() {
+        let mut h = handler();
+        assert!(matches!(
+            h.handle(Request::SaveForegroundProfile {
+                part: ProfilePart::Hardware
+            }),
+            Response::Error { .. }
+        ));
+        h.handle(Request::SaveProfile {
+            profile: profile("game.exe", 40, Some(9)),
+        });
+        h.handle(Request::ForegroundApp {
+            exe: Some("game.exe".into()),
+        });
+        h.handle(Request::SetFanPreset {
+            preset: Some(FanPreset::Balanced),
+        });
+        h.handle(Request::SetFpsLimit { fps: Some(45) });
+        assert_eq!(
+            h.handle(Request::SaveForegroundProfile {
+                part: ProfilePart::Hardware
+            }),
+            Response::Ok
+        );
+        let game = &h.saved().profiles[0];
+        assert_eq!(game.fps_limit, Some(45));
+        assert_eq!(
+            game.fan_curves.as_ref().and_then(|c| c.cpu),
+            Some(FanPreset::Balanced.curve())
+        );
+        // The power part is untouched.
+        assert_eq!(game.auto_tdp.target_fps, 40);
+        assert_eq!(game.learned_watts, Some(9));
+    }
+
+    #[test]
+    fn saving_a_new_game_takes_the_current_auto_tdp() {
+        let mut h = handler();
+        h.handle(auto_on());
+        h.handle(Request::ForegroundApp {
+            exe: Some("new.exe".into()),
+        });
+        h.handle(Request::SaveForegroundProfile {
+            part: ProfilePart::Power,
+        });
+        let saved = h.saved();
+        let game = saved
+            .profiles
+            .iter()
+            .find(|p| p.matches("new.exe"))
+            .unwrap();
+        assert!(game.auto_tdp.enabled);
+        assert_eq!(game.fan_curves, None);
     }
 }

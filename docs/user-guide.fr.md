@@ -421,23 +421,22 @@ Le widget donne les réglages rapides sans quitter le jeu. Toute la logique rest
 
 **Ouvrir** : Game Bar (Win+G ou bouton Xbox) → menu **Widgets** → **Canapé**. Vous pouvez l'épingler pour le garder au-dessus du jeu.
 
-**Contenu**
+**Contenu** : en haut, ce qui reste visible ; en dessous, deux onglets, **Puissance** et **Matériel**. À l'ouverture et à chaque changement d'onglet, les lignes entrent une à une de gauche à droite, comme le titre sur la page Jeux du shell.
 
 | Zone | Détail |
 |---|---|
-| En-tête | Le jeu au premier plan (sans `.exe`) et « profil du jeu » quand son profil s'applique ; sinon l'état de la connexion (« Connexion… », « Service non connecté »). |
-| Chiffres | La consommation (une décimale) et les images par seconde. |
+| En-tête | Le jeu au premier plan (sans `.exe`) et la pastille « profil du jeu » quand son profil s'applique ; sinon l'état de la connexion (« Connexion… », « Service non connecté »). |
+| Chiffres | La consommation (une décimale), les images par seconde et la température CPU (« Bridé » en ambre quand la limite de température retient la puissance). |
 | Graphe | La dernière minute : la consommation en couleur d'accent, la limite en pointillés gris. |
 | Banc d'essai | Palier, puissance et temps restant pendant un banc d'essai (lancé depuis le shell). |
-| Mode | Quatre tuiles : Silencieux, Performance, Turbo, Auto. La tuile choisie est blanche. Un mode firmware coupe l'auto TDP. |
-| ‹ valeur › | En auto TDP, l'**objectif** (30, 40, 45, 60, 90, 120 FPS) ; sinon la **limite de puissance** ±1 W, grisée en mode firmware (« Fixé par le mode du firmware ») et bornée par la plage du modèle. |
-| Puissance | La plage de l'auto TDP (ou la limite manuelle) sur l'échelle du modèle, avec un trait sur la consommation du moment. Lecture seule : la plage se règle dans le shell. |
-| Pied | Température CPU (« Bridé » en ambre quand la limite de température retient la puissance), activité GPU, batterie. |
+| Onglet **Puissance** | Mode (Silencieux, Performance, Turbo, Auto ; la tuile choisie est blanche, un mode firmware coupe l'auto TDP). La valeur ‹ › : en auto TDP l'**objectif** (30 à 120 FPS), sinon la **limite de puissance** ±1 W, grisée en mode firmware et bornée par la plage du modèle. La plage de puissance sur l'échelle du modèle, avec la consommation du moment (lecture seule). **Enregistrer pour ce jeu** : l'auto TDP actuel dans le profil du jeu au premier plan. |
+| Onglet **Matériel** | Ventilateurs : Auto (la courbe du firmware), Équilibré, Maximum ; « Courbes personnalisées » quand d'autres courbes sont en place. La limite de FPS ‹ › (Aucune, 30 à 120). La manette : Manette, Clavier, Souris. **Enregistrer pour ce jeu** : ventilateurs et limite de FPS dans le profil du jeu au premier plan (le reste du profil est gardé). |
+| Pied | Activité GPU, batterie, et **Ouvrir Canapé**, qui ramène le shell devant. |
 
-Le widget n'a ni bouton de banc d'essai, ni gestion des profils, ni réglage de la plage de puissance, des ventilateurs, de la limite de FPS ou de la manette : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar, et le widget suit la couleur d'accent choisie dans le shell. Taille par défaut 400 × 600, redimensionnable.
+Le widget n'a ni bouton de banc d'essai, ni liste des profils, ni réglage de la plage de puissance ou de la fréquence de l'écran : ces actions restent dans le shell. Son panneau suit le réglage de transparence de la Game Bar, et le widget suit la couleur d'accent choisie dans le shell. Taille par défaut 400 × 600, redimensionnable.
 
 > [!NOTE]
-> La **première version** du widget a été validée sur l'Ally (M3) via Win+G sur le bureau. La **version actuelle** (nouvelle mise en page avec tuiles de mode, objectif et barre de puissance, 13 langues) n'a pas encore été compilée. L'ouverture depuis le bouton Xbox dans le FSE, avec Canapé comme accueil, n'a pas encore été testée.
+> La **première version** du widget a été validée sur l'Ally (M3) via Win+G sur le bureau. La version à deux onglets n'a pas encore été compilée. **Ouvrir Canapé** passe par le protocole `canape://` du paquet d'identité : il faut réinstaller le paquet (`install-dev.ps1`) pour qu'il existe.
 
 ## Langues
 

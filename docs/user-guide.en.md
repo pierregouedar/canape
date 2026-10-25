@@ -421,23 +421,22 @@ The widget gives you the quick settings without leaving the game. All the logic 
 
 **Open**: Game Bar (Win+G or the Xbox button) → **Widgets** menu → **Canapé**. You can pin it to keep it over the game.
 
-**Contents**
+**Contents**: at the top, what always shows; below, two tabs, **Power** and **Hardware**. When the widget opens and at each tab change, the lines slide in from the left one after the other, like the title on the shell's Games page.
 
 | Area | Detail |
 |---|---|
-| Header | The foreground game (without `.exe`) and "game profile" when its profile applies; otherwise the connection state ("Connecting…", "Service not connected"). |
-| Figures | The power draw (one decimal) and the frame rate. |
-| Graph | The last minute: the draw in the accent colour, the limit dashed in grey. |
-| Bench | Step, power and time left while a bench runs (started from the shell). |
-| Mode | Four tiles: Silent, Performance, Turbo, Auto. The chosen tile is white. A firmware mode turns auto TDP off. |
-| ‹ value › | Under auto TDP, the **target** (30, 40, 45, 60, 90, 120 FPS); otherwise the **power limit** ±1 W, greyed out in a firmware mode ("Set by the firmware mode") and kept within the model's range. |
-| Power | The auto TDP range (or the manual limit) on the model's scale, with a mark on the current draw. Read-only: the range is set in the shell. |
-| Footer | CPU temperature ("Throttled" in amber when the temperature limit holds power back), GPU activity, battery. |
+| Header | The foreground game (without `.exe`) and the "game profile" chip when its profile applies; otherwise the connection state ("Connecting…", "Service not connected"). |
+| Figures | Power draw (one decimal), frames per second and CPU temperature ("Throttled" in amber when the temperature limit holds power down). |
+| Graph | The last minute: power draw in the accent colour, the limit dashed grey. |
+| Bench | Step, wattage and time left during a bench (started from the shell). |
+| **Power** tab | Mode (Silent, Performance, Turbo, Auto; the chosen tile is white, a firmware mode turns auto TDP off). The ‹ value ›: under auto TDP the **target** (30 to 120 FPS), otherwise the **power limit** ±1 W, greyed out in a firmware mode and bounded by the model's range. The power range on the model's scale, with the current draw (read-only). **Save for this game**: the current auto TDP into the foreground game's profile. |
+| **Hardware** tab | Fans: Auto (the firmware's curve), Balanced, Maximum; "Custom curves" when other curves are in place. The frame rate limit ‹ › (None, 30 to 120). The controller: Gamepad, Keyboard, Mouse. **Save for this game**: fans and frame rate limit into the foreground game's profile (the rest of the profile is kept). |
+| Footer | GPU activity, battery, and **Open Canapé**, which brings the shell to the front. |
 
-The widget has no bench button, no profile management, and no setting for the power range, the fans, the frame rate limit or the controller: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell. Default size 400 × 600, resizable.
+The widget has no bench button, no profile list, no power range or screen refresh setting: those stay in the shell. Its panel follows Game Bar's transparency setting, and the widget follows the accent colour picked in the shell. Default size 400 × 600, resizable.
 
 > [!NOTE]
-> The **first version** of the widget was validated on the Ally (M3) through Win+G on the desktop. The **current version** (new layout with mode tiles, target and power bar, 13 languages) has not been built yet. Opening it from the Xbox button in the FSE, with Canapé as the home app, has not been tested yet.
+> The **first version** of the widget was validated on the Ally (M3) through Win+G on the desktop. The two-tab version has not been built yet. **Open Canapé** goes through the identity package's `canape://` protocol: the package must be installed again (`install-dev.ps1`) for it to exist.
 
 ## Languages
 

@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::bench::{BenchPlan, BenchProgress, BenchReport};
-use crate::fan::{Fan, FanCurve, FanCurves};
+use crate::fan::{Fan, FanCurve, FanCurves, FanPreset};
 use crate::settings::{AutoTdpSettings, ControllerMode, PerformanceMode, Profile};
 
 pub const PIPE_NAME: &str = r"\\.\pipe\canape";
@@ -70,6 +70,16 @@ pub enum Request {
     ResetFanCurves,
     /// Answered with [`Response::FanCurves`].
     GetFanCurves,
+    /// One of the ready-made curves on the CPU and GPU fans, `None` for the
+    /// firmware's own curves.
+    SetFanPreset {
+        preset: Option<FanPreset>,
+    },
+    /// Saves part of what is in effect into the profile of the game in
+    /// front, created from the current auto TDP if it has none.
+    SaveForegroundProfile {
+        part: ProfilePart,
+    },
     /// Frame rate cap of the GPU driver (AMD), `None` to remove it.
     SetFpsLimit {
         fps: Option<u32>,
@@ -153,11 +163,24 @@ pub struct Status {
     /// Custom fan curves in effect; empty when the firmware's apply.
     #[serde(default)]
     pub fan_curves: FanCurves,
+    /// The preset those curves are, if any.
+    #[serde(default)]
+    pub fan_preset: Option<FanPreset>,
     /// Frame rate cap set through Canape, if any.
     #[serde(default)]
     pub fps_limit: Option<u32>,
     #[serde(default)]
     pub controller_mode: Option<ControllerMode>,
+}
+
+/// What [`Request::SaveForegroundProfile`] saves.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ProfilePart {
+    /// Auto TDP, and the wattage it holds as the learned one.
+    Power,
+    /// Fan curves and frame rate cap.
+    Hardware,
 }
 
 /// True for `#RRGGBB`.

@@ -125,4 +125,55 @@
   <data name="BenchWaiting" xml:space="preserve">
     <value>Warten auf das Spiel</value>
   </data>
+  <data name="TabPower.Content" xml:space="preserve">
+    <value>Leistung</value>
+  </data>
+  <data name="TabHardware.Content" xml:space="preserve">
+    <value>Hardware</value>
+  </data>
+  <data name="TempCaption.Text" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="FansHeader.Text" xml:space="preserve">
+    <value>Lüfter</value>
+  </data>
+  <data name="FanAuto.Text" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="FanBalanced.Text" xml:space="preserve">
+    <value>Ausgewogen</value>
+  </data>
+  <data name="FanMax.Text" xml:space="preserve">
+    <value>Maximum</value>
+  </data>
+  <data name="FansCustom" xml:space="preserve">
+    <value>Eigene Kurven</value>
+  </data>
+  <data name="FpsLimitLabel.Text" xml:space="preserve">
+    <value>FPS-Limit</value>
+  </data>
+  <data name="FpsLimitNone" xml:space="preserve">
+    <value>Keins</value>
+  </data>
+  <data name="ControllerHeader.Text" xml:space="preserve">
+    <value>Controller</value>
+  </data>
+  <data name="ControllerGamepad.Text" xml:space="preserve">
+    <value>Gamepad</value>
+  </data>
+  <data name="ControllerKeyboard.Text" xml:space="preserve">
+    <value>Tastatur</value>
+  </data>
+  <data name="ControllerMouse.Text" xml:space="preserve">
+    <value>Maus</value>
+  </data>
+  <data name="SaveForGame" xml:space="preserve">
+    <value>Für dieses Spiel speichern</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Gespeichert</value>
+  </data>
+  <data name="OpenCanape.Content" xml:space="preserve">
+    <value>Canapé öffnen ›</value>
+  </data>
 </root>

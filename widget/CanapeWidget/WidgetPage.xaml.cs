@@ -2,19 +2,25 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Gaming.XboxGameBar;
 using Windows.ApplicationModel.Resources;
 using Windows.Data.Json;
+using Windows.System;
 using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 namespace CanapeWidget
 {
-    /// <summary>Quick settings in Game Bar, mirroring the shell's Performance page.</summary>
+    /// <summary>
+    /// Quick settings in Game Bar: the shell's Performance page on one tab,
+    /// its Hardware page (fans, frame rate cap, controller) on the other.
+    /// </summary>
     public sealed partial class WidgetPage : Page
     {
         private const string Dash = "\u2014";
@@ -26,6 +32,18 @@ namespace CanapeWidget
 
         // Stops of the auto TDP target, as on the shell's Performance page.
         private static readonly int[] TargetStops = { 30, 40, 45, 60, 90, 120 };
+
+        // Stops of the frame rate cap, as on the shell's Hardware page; 0 is none.
+        private static readonly int[] LimitStops = { 0, 30, 40, 45, 60, 90, 120 };
+
+        // Opens the shell (see the identity package's canape protocol).
+        private static readonly Uri ShellUri = new Uri("canape://home");
+
+        // Rows and lines slide in from the left, one after the other, like
+        // the title on the shell's games page.
+        private const double RevealShift = -14;
+        private static readonly TimeSpan RevealDuration = TimeSpan.FromMilliseconds(460);
+        private static readonly TimeSpan RevealStagger = TimeSpan.FromMilliseconds(70);
 
         // The power bar's scale when the service does not report the model's range.
         private const int DefaultFloorWatts = 5;
@@ -46,6 +64,11 @@ namespace CanapeWidget
         private double rangeLow = double.NaN;
         private double rangeHigh = double.NaN;
         private double livePower = double.NaN;
+        // The pane in front: "power" or "hardware".
+        private string tab = "power";
+        // A save just went through: its button says so for a moment.
+        private Button savedButton;
+        private DispatcherTimer savedTimer;
 
         public WidgetPage()
         {
@@ -55,6 +78,7 @@ namespace CanapeWidget
             link.Disconnected += problem => OnUi(() => ShowDisconnected(problem));
             ApplyAccent(null);
             ShowWaiting();
+            Loaded += (sender, e) => Reveal(Rows.Children);
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -138,6 +162,7 @@ namespace CanapeWidget
 
             SetBrush(Resources, "AccentBrush", accent);
             SetBrush(Resources, "AccentTextBrush", Palette.TextOnPanel(accent));
+            ProfileChipBorder.Background = new SolidColorBrush(Color.FromArgb(0x24, accent.R, accent.G, accent.B));
         }
 
         private static void SetBrush(ResourceDictionary dictionary, string key, Color color)
@@ -270,19 +295,25 @@ namespace CanapeWidget
 
         private void ClearValues()
         {
-            ProfileText.Visibility = Visibility.Collapsed;
+            ProfileChipBorder.Visibility = Visibility.Collapsed;
             PowerValue.Text = Dash;
             PowerUnit.Text = "";
             FpsValue.Text = Dash;
+            TempValue.Text = Dash;
             powerGraph.Clear();
             BenchCard.Visibility = Visibility.Collapsed;
             ConflictText.Visibility = Visibility.Collapsed;
-            foreach (var button in new[] { SilentButton, PerformanceButton, TurboButton, AutoButton })
+            foreach (var button in Tiles())
             {
                 button.IsChecked = false;
                 button.IsEnabled = false;
             }
             ShowModeIcons();
+            FansHint.Text = "";
+            LimitValue.Text = Dash;
+            LimitDown.IsEnabled = false;
+            LimitUp.IsEnabled = false;
+            ShowSaveButtons(false);
             StepLabel.Text = S("PowerLimitLabel");
             StepValue.Text = Dash;
             ShowHint(StepHint, "");
@@ -324,15 +355,154 @@ namespace CanapeWidget
             }
         }
 
+        /// <summary>Every tile of both panes.</summary>
+        private ToggleButton[] Tiles()
+        {
+            return new[]
+            {
+                SilentButton, PerformanceButton, TurboButton, AutoButton,
+                FanAutoButton, FanBalancedButton, FanMaxButton,
+                GamepadButton, KeyboardButton, MouseButton,
+            };
+        }
+
         /// <summary>A chosen tile is white: its icon turns dark like its name.</summary>
         private void ShowModeIcons()
         {
             var ink = new SolidColorBrush(Palette.Ink);
             var soft = (Brush)Resources["SoftTextBrush"];
-            SilentIcon.Stroke = SilentButton.IsChecked == true ? ink : soft;
-            PerformanceIcon.Stroke = PerformanceButton.IsChecked == true ? ink : soft;
-            TurboIcon.Stroke = TurboButton.IsChecked == true ? ink : soft;
-            AutoIcon.Stroke = AutoButton.IsChecked == true ? ink : soft;
+            var icons = new[]
+            {
+                SilentIcon, PerformanceIcon, TurboIcon, AutoIcon,
+                FanAutoIcon, FanBalancedIcon, FanMaxIcon,
+                GamepadIcon, KeyboardIcon, MouseIcon,
+            };
+            var tiles = Tiles();
+            for (var i = 0; i < tiles.Length; i++)
+            {
+                icons[i].Stroke = tiles[i].IsChecked == true ? ink : soft;
+            }
+        }
+
+        // ---- Motion -------------------------------------------------------
+
+        /// <summary>
+        /// Slides each visible element in from the left and fades it in, one
+        /// after the other.
+        /// </summary>
+        private static void Reveal(UIElementCollection elements)
+        {
+            var storyboard = new Storyboard();
+            var ease = new ExponentialEase { EasingMode = EasingMode.EaseOut, Exponent = 6 };
+            var order = 0;
+            foreach (var element in elements)
+            {
+                if (element.Visibility != Visibility.Visible)
+                {
+                    continue;
+                }
+                var shift = element.RenderTransform as TranslateTransform;
+                if (shift == null)
+                {
+                    shift = new TranslateTransform();
+                    element.RenderTransform = shift;
+                }
+                var begin = TimeSpan.FromTicks(RevealStagger.Ticks * order++);
+                var slide = new DoubleAnimation { From = RevealShift, To = 0, Duration = RevealDuration, BeginTime = begin, EasingFunction = ease };
+                Storyboard.SetTarget(slide, shift);
+                Storyboard.SetTargetProperty(slide, "X");
+                var fade = new DoubleAnimation { From = 0, To = 1, Duration = RevealDuration, BeginTime = begin, EasingFunction = ease };
+                Storyboard.SetTarget(fade, element);
+                Storyboard.SetTargetProperty(fade, "Opacity");
+                element.Opacity = 0;
+                storyboard.Children.Add(slide);
+                storyboard.Children.Add(fade);
+            }
+            storyboard.Begin();
+        }
+
+        /// <summary>A value that changed slides a little from the left.</summary>
+        private static void Bump(TextBlock text, string value)
+        {
+            if (text.Text == value)
+            {
+                return;
+            }
+            var changed = text.Text != Dash && value != Dash;
+            text.Text = value;
+            var shift = text.RenderTransform as TranslateTransform;
+            if (!changed || shift == null)
+            {
+                return;
+            }
+            var ease = new ExponentialEase { EasingMode = EasingMode.EaseOut, Exponent = 6 };
+            var duration = TimeSpan.FromMilliseconds(260);
+            var slide = new DoubleAnimation { From = -6, To = 0, Duration = duration, EasingFunction = ease };
+            Storyboard.SetTarget(slide, shift);
+            Storyboard.SetTargetProperty(slide, "X");
+            var fade = new DoubleAnimation { From = 0.2, To = 1, Duration = duration, EasingFunction = ease };
+            Storyboard.SetTarget(fade, text);
+            Storyboard.SetTargetProperty(fade, "Opacity");
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(slide);
+            storyboard.Children.Add(fade);
+            storyboard.Begin();
+        }
+
+        // ---- Tabs ---------------------------------------------------------
+
+        private void OnTab(object sender, RoutedEventArgs e)
+        {
+            ShowTab((string)((FrameworkElement)sender).Tag);
+        }
+
+        private void ShowTab(string name)
+        {
+            var changed = name != tab;
+            tab = name;
+            var hardware = name == "hardware";
+            TabPower.Foreground = (Brush)Resources[hardware ? "DimTextBrush" : "TextBrush"];
+            TabHardware.Foreground = (Brush)Resources[hardware ? "TextBrush" : "DimTextBrush"];
+            PowerPane.Visibility = hardware ? Visibility.Collapsed : Visibility.Visible;
+            HardwarePane.Visibility = hardware ? Visibility.Visible : Visibility.Collapsed;
+            MoveTabPill(true);
+            if (changed)
+            {
+                Reveal((hardware ? HardwarePane : PowerPane).Children);
+            }
+        }
+
+        private void OnTabsSize(object sender, SizeChangedEventArgs e)
+        {
+            MoveTabPill(false);
+        }
+
+        /// <summary>The pill sits under the tab in front; it slides there.</summary>
+        private void MoveTabPill(bool animate)
+        {
+            var width = (Tabs.ActualWidth - Tabs.Padding.Left - Tabs.Padding.Right) / 2;
+            if (width <= 0)
+            {
+                return;
+            }
+            TabPill.Width = width;
+            var to = tab == "hardware" ? width : 0;
+            if (!animate)
+            {
+                TabPillShift.X = to;
+                return;
+            }
+            var slide = new DoubleAnimation
+            {
+                To = to,
+                Duration = TimeSpan.FromMilliseconds(260),
+                EasingFunction = new ExponentialEase { EasingMode = EasingMode.EaseOut, Exponent = 6 },
+            };
+            Storyboard.SetTarget(slide, TabPillShift);
+            Storyboard.SetTargetProperty(slide, "X");
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(slide);
+            storyboard.Begin();
         }
 
         private string Watts(double watts)
@@ -436,7 +606,7 @@ namespace CanapeWidget
             GameText.Text = game != null ? GameName(game) : S("NoGame");
             GameText.Opacity = game != null ? 1 : 0.6;
             var profile = Text(status, "active_profile");
-            ProfileText.Visibility = profile != null ? Visibility.Visible : Visibility.Collapsed;
+            ProfileChipBorder.Visibility = profile != null ? Visibility.Visible : Visibility.Collapsed;
             if (profile != null)
             {
                 ProfileText.Text = game != null && string.Equals(profile, game, StringComparison.OrdinalIgnoreCase)
@@ -452,6 +622,12 @@ namespace CanapeWidget
             PowerUnit.Text = power.HasValue ? " " + S("UnitWatts") : "";
             var fps = Integer(status, "fps");
             FpsValue.Text = fps.HasValue ? fps.Value.ToString(CultureInfo.CurrentCulture) : Dash;
+            var temp = Integer(status, "cpu_temp_c");
+            var throttled = Flag(status, "thermal_limited") == true;
+            TempValue.Text = temp.HasValue ? temp.Value.ToString(CultureInfo.CurrentCulture) : Dash;
+            // Held down by the temperature limit: the caption says so.
+            TempCaption.Text = throttled ? S("CaptionThrottled") : S("TempCaption/Text");
+            Warn(TempCaption, throttled);
 
             // Bench run (driven from the shell).
             var bench = Child(status, "bench");
@@ -489,7 +665,7 @@ namespace CanapeWidget
             {
                 var target = Integer(auto, "target_fps") ?? 0;
                 StepLabel.Text = S("TargetLabel");
-                StepValue.Text = F("FormatFps", target);
+                Bump(StepValue, F("FormatFps", target));
                 ShowHint(StepHint, "");
                 StepDown.IsEnabled = target > TargetStops[0];
                 StepUp.IsEnabled = target < TargetStops[TargetStops.Length - 1];
@@ -497,7 +673,7 @@ namespace CanapeWidget
             else
             {
                 StepLabel.Text = S("PowerLimitLabel");
-                StepValue.Text = tdp.HasValue ? F("FormatWatts", tdp.Value) : Dash;
+                Bump(StepValue, tdp.HasValue ? F("FormatWatts", tdp.Value) : Dash);
                 ShowHint(StepHint, !tdp.HasValue && mode != null && mode != "manual" ? S("TdpHintFirmware") : "");
                 StepDown.IsEnabled = tdp.HasValue && tdp.Value > 1;
                 StepUp.IsEnabled = tdp.HasValue;
@@ -534,18 +710,12 @@ namespace CanapeWidget
             livePower = power.HasValue ? Math.Max(power.Value, 0) : double.NaN;
             ShowRange();
 
-            // Footer: temperature (or the thermal limit), GPU activity, battery.
-            var temp = Integer(status, "cpu_temp_c");
-            var throttled = Flag(status, "thermal_limited") == true;
+            ShowHardware(status);
+            ShowSaveButtons(game != null);
+
+            // Footer: GPU activity, battery.
             var gpu = Number(status, "gpu_util");
-            var parts = new[]
-            {
-                throttled ? S("CaptionThrottled") : null,
-                temp.HasValue ? F("FormatCelsius", temp.Value) : null,
-                gpu.HasValue ? F("FooterGpu", F("FormatPercent", (int)Math.Round(Math.Min(Math.Max(gpu.Value, 0), 1) * 100))) : null,
-            };
-            FooterText.Text = string.Join(" · ", parts.Where(p => p != null));
-            Warn(FooterText, throttled);
+            FooterText.Text = gpu.HasValue ? F("FooterGpu", F("FormatPercent", (int)Math.Round(Math.Min(Math.Max(gpu.Value, 0), 1) * 100))) : "";
             var battery = Integer(status, "battery_percent");
             BatteryText.Text = battery.HasValue ? F("FormatPercent", battery.Value) : "";
             BatteryGlyph.Visibility = battery.HasValue ? Visibility.Visible : Visibility.Collapsed;
@@ -560,6 +730,50 @@ namespace CanapeWidget
                 .ToArray();
             ConflictText.Visibility = conflicts.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
             ConflictText.Text = conflicts.Length > 0 ? F("Conflicts", string.Join(", ", conflicts)) : "";
+        }
+
+        /// <summary>Fans, frame rate cap and controller, as the service has them.</summary>
+        private void ShowHardware(JsonObject status)
+        {
+            // No custom curve: the firmware's own (Auto). Custom curves that
+            // are no preset light no tile.
+            var curves = Child(status, "fan_curves");
+            var firmware = curves == null || new[] { "cpu", "gpu", "mid" }.All(fan =>
+                curves.GetNamedValue(fan, JsonValue.CreateNullValue()).ValueType == JsonValueType.Null);
+            var preset = Text(status, "fan_preset");
+            foreach (var button in new[] { FanAutoButton, FanBalancedButton, FanMaxButton })
+            {
+                var tag = (string)button.Tag;
+                button.IsEnabled = true;
+                button.IsChecked = tag == "" ? firmware : !firmware && preset == tag;
+            }
+            FansHint.Text = !firmware && preset == null ? S("FansCustom") : "";
+
+            var limit = Integer(status, "fps_limit") ?? 0;
+            Bump(LimitValue, limit > 0 ? F("FormatFps", limit) : S("FpsLimitNone"));
+            LimitDown.IsEnabled = limit > 0;
+            LimitUp.IsEnabled = limit < LimitStops[LimitStops.Length - 1];
+
+            var controller = Text(status, "controller_mode");
+            foreach (var button in new[] { GamepadButton, KeyboardButton, MouseButton })
+            {
+                button.IsEnabled = true;
+                button.IsChecked = controller == (string)button.Tag;
+            }
+            ShowModeIcons();
+        }
+
+        /// <summary>The save buttons: only with a game in front.</summary>
+        private void ShowSaveButtons(bool game)
+        {
+            foreach (var button in new[] { SavePowerButton, SaveHardwareButton })
+            {
+                button.IsEnabled = game;
+                if (button != savedButton)
+                {
+                    button.Content = S("SaveForGame");
+                }
+            }
         }
 
         /// <summary>
@@ -579,8 +793,15 @@ namespace CanapeWidget
 
         private async void Send(JsonObject request)
         {
+            await SendAsync(request);
+        }
+
+        /// <summary>True when the service accepted the request.</summary>
+        private async Task<bool> SendAsync(JsonObject request)
+        {
             var problem = await link.SendAsync(request);
             ShowMessage(problem == null ? null : Describe(problem));
+            return problem == null;
         }
 
         private static JsonObject Request(string type)
@@ -660,6 +881,67 @@ namespace CanapeWidget
             var request = Request("set_auto_tdp");
             request["settings"] = settings;
             Send(request);
+        }
+
+        private void OnFan(object sender, RoutedEventArgs e)
+        {
+            RestoreChecks();
+            var tag = (string)((FrameworkElement)sender).Tag;
+            var request = Request("set_fan_preset");
+            request["preset"] = tag == "" ? JsonValue.CreateNullValue() : JsonValue.CreateStringValue(tag);
+            Send(request);
+        }
+
+        /// <summary>‹ or ›: the next stop of the frame rate cap.</summary>
+        private void OnLimitStep(object sender, RoutedEventArgs e)
+        {
+            var delta = int.Parse((string)((FrameworkElement)sender).Tag, CultureInfo.InvariantCulture);
+            var limit = Integer(lastStatus, "fps_limit") ?? 0;
+            var next = delta > 0
+                ? LimitStops.Where(t => t > limit).DefaultIfEmpty(LimitStops[LimitStops.Length - 1]).First()
+                : LimitStops.Where(t => t < limit).DefaultIfEmpty(0).Last();
+            var request = Request("set_fps_limit");
+            request["fps"] = next > 0 ? JsonValue.CreateNumberValue(next) : JsonValue.CreateNullValue();
+            Send(request);
+        }
+
+        private void OnController(object sender, RoutedEventArgs e)
+        {
+            RestoreChecks();
+            var request = Request("set_controller_mode");
+            request["mode"] = JsonValue.CreateStringValue((string)((FrameworkElement)sender).Tag);
+            Send(request);
+        }
+
+        /// <summary>Saves this pane's settings into the profile of the game in front.</summary>
+        private async void OnSave(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            var request = Request("save_foreground_profile");
+            request["part"] = JsonValue.CreateStringValue((string)button.Tag);
+            if (!await SendAsync(request))
+            {
+                return;
+            }
+            savedButton = button;
+            button.Content = S("Saved");
+            if (savedTimer == null)
+            {
+                savedTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+                savedTimer.Tick += (s, args) =>
+                {
+                    savedTimer.Stop();
+                    savedButton = null;
+                    ShowSaveButtons(Text(lastStatus, "foreground") != null);
+                };
+            }
+            savedTimer.Stop();
+            savedTimer.Start();
+        }
+
+        private async void OnOpen(object sender, RoutedEventArgs e)
+        {
+            await Launcher.LaunchUriAsync(ShellUri);
         }
 
         private void OnAuto(object sender, RoutedEventArgs e)

@@ -48,6 +48,11 @@
         <uap3:Extension Category="windows.appExtension">
           <uap3:AppExtension Name="windows.gamingApp" Id="Canape" DisplayName="Canapé" PublicFolder="Public" />
         </uap3:Extension>
+        <!-- canape:// starts the shell, or brings the running one to the
+             front (single instance): the Game Bar widget's "Open Canapé". -->
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="canape" />
+        </uap:Extension>
       </Extensions>
     </Application>
   </Applications>
