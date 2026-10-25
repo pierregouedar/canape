@@ -1,5 +1,6 @@
 // The game library, Canapé's landing page: the selected game large, then
-// shelves of covers: recent, installed, one per store, to install. The
+// shelves of covers: recent, installed, the user's categories, one per
+// store, to install. The
 // shelf in front is full; the next one peeks in below. Left and right move
 // along the shelf (the gamepad sends arrow keys while it has the focus, see
 // nav.rs), up and down change shelf, A plays or installs. The games, their
@@ -9,7 +10,7 @@
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
 import { PadGlyph, StoreLogo } from "widgets.slint";
-import { RevealLine } from "kit.slint";
+import { RevealLine, SectionTitle, SettingLine } from "kit.slint";
 
 export struct GameView {
     id: string,
@@ -31,9 +32,10 @@ export struct GameView {
 }
 
 export struct ShelfView {
-    // 0 recent, 1 installed, 2 a store's, 3 to install.
+    // 0 recent, 1 installed, 2 a store's, 3 to install, 4 a category's.
     kind: int,
-    // The store of a store's shelf (see GameView.source), "" otherwise.
+    // The store of a store's shelf (see GameView.source), the name of a
+    // category's, "" otherwise.
     store: string,
     games: [GameView],
     // Selected game and first game in view while the shelf is not in front.
@@ -79,6 +81,39 @@ export struct AchievementView {
     // Share of the game's players who have it, in tenths of a percent;
     // -1 when unknown.
     rarity-tenths: int,
+}
+
+// The game page's options menu (Y), for the game whose page is open.
+export struct OptionsView {
+    // The lines that apply, top to bottom: 0 rename, 1 back to the
+    // store's title, 2 categories, 3 remove from the library, 4 uninstall.
+    entries: [int],
+    // The store's title, and the user's ("" when not renamed).
+    original: string,
+    custom: string,
+    // The game's categories, " · " between them.
+    categories: string,
+    // A game of games.json: removing it takes it out of the file.
+    listed: bool,
+    // How it is uninstalled: 0 it is not, 1 Steam, 2 Legendary, 3 the Epic
+    // launcher while Legendary is not set up, 4 its gogdl folder deleted,
+    // 5 its own uninstaller (GOG), 6 Windows' settings (Xbox app).
+    uninstall: int,
+    // The folder deleted (4) or uninstalled (5), "" otherwise.
+    folder: string,
+}
+
+// A category in the options menu: the game is in it or not.
+export struct CategoryView {
+    name: string,
+    checked: bool,
+}
+
+// A hidden game, on its sub-page.
+export struct HiddenGameView {
+    title: string,
+    // As GameView.source.
+    source: string,
 }
 
 // A line of the "Add a game" sub-page.
@@ -176,6 +211,42 @@ export global Library {
     in property <image> detail-art;
     callback open-detail(int);
     callback close-detail();
+
+    // The game page's options menu is open, and what it offers.
+    in-out property <bool> options;
+    in property <OptionsView> options-view;
+    // Where the menu is: 0 its lines, 1 the rename field, 2 the
+    // categories, 3 the new category field, 4 the uninstall's
+    // confirmation, 5 the removal's; the line focused.
+    in-out property <int> options-mode;
+    in-out property <int> options-row;
+    // Every category, and whether the game is in it.
+    in property <[CategoryView]> categories;
+    callback open-options();
+    callback close-options();
+    callback rename(string);
+    callback reset-name();
+    callback toggle-category(int);
+    callback new-category(string);
+    // Hides the game, or takes a game of games.json out of the file.
+    callback remove-game();
+    callback uninstall-game();
+    // A text field gained (true) or lost the focus: the touch keyboard
+    // follows.
+    callback text-entry(bool);
+    // Id of the game being uninstalled ("" when none), and how (see
+    // OptionsView.uninstall).
+    in property <string> uninstalling;
+    in property <int> uninstalling-kind;
+    // Why the last change failed: 0 it did not, 1 overrides.json could not
+    // be written, 2 games.json could not be read or written, 3 the game
+    // `uninstall-failed` could not be uninstalled.
+    in property <int> change-error;
+    in property <string> uninstall-failed;
+    out property <string> change-text: root.change-error == 1 ? @tr("Could not save the change") : root.change-error == 2 ? @tr("games.json could not be read or written") : root.change-error == 3 ? @tr("Could not uninstall {}", root.uninstall-failed) : "";
+    // The hidden games, by title; A on one shows it again.
+    in property <[HiddenGameView]> hidden-games;
+    callback show-game(int);
     callback epic-login();
     callback gog-login();
     callback launch(int);
@@ -364,7 +435,7 @@ component ShelfTitle inherits HorizontalLayout {
         }
     }
     label := Text {
-        text: root.shelf.kind == 0 ? @tr("Recent") : root.shelf.kind == 1 ? @tr("Installed · {}", root.shelf.games.length) : root.shelf.kind == 2 ? Library.store-name(root.shelf.store) + " · " + root.shelf.games.length : @tr("To install · {}", root.shelf.games.length);
+        text: root.shelf.kind == 0 ? @tr("Recent") : root.shelf.kind == 1 ? @tr("Installed · {}", root.shelf.games.length) : root.shelf.kind == 2 ? Library.store-name(root.shelf.store) + " · " + root.shelf.games.length : root.shelf.kind == 4 ? root.shelf.store + " · " + root.shelf.games.length : @tr("To install · {}", root.shelf.games.length);
         color: root.front ? Theme.text.mix(Theme.dim, 0.6) : Theme.dim;
         font-size: 14px;
         font-weight: 600;
@@ -639,7 +710,7 @@ component GamePage inherits Rectangle {
                     PrimaryButton {
                         opacity: action.shown;
                         pressed: root.pressed;
-                        label: Library.launching == root.game.id ? @tr("Launching…") : root.game.progress >= 0 ? @tr("Installing…") : root.game.installed ? @tr("Play") : @tr("Install");
+                        label: Library.launching == root.game.id ? @tr("Launching…") : Library.uninstalling == root.game.id ? @tr("Uninstalling…") : root.game.progress >= 0 ? @tr("Installing…") : root.game.installed ? @tr("Play") : @tr("Install");
                         clicked => {
                             root.play();
                         }
@@ -648,8 +719,10 @@ component GamePage inherits Rectangle {
                         alignment: center;
                         Text {
                             opacity: action.shown;
-                            text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.short && root.game.progress < 0 ? @tr("Not enough space: free some up, or pick another games folder in Settings.") : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
-                            color: Library.install-error != "" || Library.failed != "" || (root.short && root.game.progress < 0) ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
+                            // The uninstall running, and where the user confirms it.
+                            property <string> uninstall: Library.uninstalling != root.game.id ? "" : Library.uninstalling-kind == 1 ? @tr("Confirm in Steam's window") : Library.uninstalling-kind == 5 ? @tr("Follow the game's uninstaller") : Library.uninstalling-kind == 6 ? @tr("Uninstall it in Windows' settings") : "";
+                            text: Library.change-text != "" ? Library.change-text : self.uninstall != "" ? self.uninstall : Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.short && root.game.progress < 0 ? @tr("Not enough space: free some up, or pick another games folder in Settings.") : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
+                            color: Library.change-text != "" || Library.install-error != "" || Library.failed != "" || (root.short && root.game.progress < 0) ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
                             font-size: 14px;
                             overflow: elide;
                         }
@@ -905,6 +978,193 @@ component GamePage inherits Rectangle {
     }
 }
 
+// A line of text typed with the touch keyboard (or a keyboard): A or Enter
+// confirms, B or Escape cancels. Takes the focus when shown.
+component TextField inherits Rectangle {
+    in property <string> initial;
+    callback submit(string);
+    callback cancel();
+    height: 54px;
+    border-radius: 10px;
+    background: Theme.surface-high;
+    border-width: 2px;
+    border-color: input.has-focus ? Theme.focus : Theme.stroke;
+
+    scope := FocusScope {
+        // Only the keys the text did not take.
+        key-pressed(event) => {
+            if event.text == Key.Escape {
+                root.cancel();
+                return accept;
+            }
+            reject
+        }
+
+        input := TextInput {
+            x: 16px;
+            width: parent.width - 32px;
+            height: 100%;
+            text: root.initial;
+            single-line: true;
+            color: Theme.text;
+            selection-background-color: Theme.accent.with-alpha(0.5);
+            selection-foreground-color: Theme.text;
+            font-size: 18px;
+            vertical-alignment: center;
+            changed has-focus => {
+                Library.text-entry(self.has-focus);
+            }
+            accepted => {
+                root.submit(self.text);
+            }
+        }
+    }
+
+    init => {
+        input.focus();
+        input.select-all();
+    }
+}
+
+// The game page's options, a panel over its right side: rename the game,
+// put it in categories, take it off the library, uninstall it. The lines
+// are Library.options-view.entries; Library.options-mode is the step.
+component OptionsPanel inherits Rectangle {
+    in property <GameView> game;
+    // The lines have the focus (not a text field).
+    in property <bool> active;
+    callback pick(int);
+    callback submit(string);
+    callback cancel();
+    property <OptionsView> view: Library.options-view;
+    property <int> mode: Library.options-mode;
+    property <int> line: Library.options-row;
+    border-radius: Theme.radius;
+    background: Theme.surface;
+    border-width: 1px;
+    border-color: Theme.stroke;
+    drop-shadow-blur: 40px;
+    drop-shadow-color: #000000aa;
+
+    // Clicks and swipes stay on the panel.
+    TouchArea { }
+
+    VerticalLayout {
+        padding: 20px;
+        spacing: 4px;
+        alignment: start;
+
+        SectionTitle {
+            text: root.mode == 1 ? @tr("Rename") : root.mode == 2 || root.mode == 3 ? @tr("Categories") : root.mode == 4 ? @tr("Uninstall") : root.mode == 5 ? @tr("Remove from the library") : @tr("Options");
+        }
+
+        Text {
+            text: root.game.title;
+            color: Theme.text;
+            font-size: 20px;
+            font-weight: 700;
+            overflow: elide;
+        }
+
+        Rectangle {
+            height: 12px;
+        }
+
+        if root.mode == 0: VerticalLayout {
+            spacing: 2px;
+            for entry[i] in root.view.entries: SettingLine {
+                label: entry == 0 ? @tr("Rename") : entry == 1 ? @tr("Use the store's title") : entry == 2 ? @tr("Categories") : entry == 3 ? @tr("Remove from the library") : @tr("Uninstall");
+                value: entry == 1 ? root.view.original : entry == 2 ? (root.view.categories != "" ? root.view.categories : @tr("None")) : entry == 4 && root.view.uninstall == 3 ? @tr("Sign in to Epic first") : "";
+                enabled: !(entry == 4 && root.view.uninstall == 3);
+                chevrons: false;
+                focused: root.active && root.line == i;
+                clicked => {
+                    root.pick(i);
+                }
+            }
+        }
+
+        // What removing does, while that line is focused.
+        if root.mode == 0 && root.view.entries[root.line] == 3: Text {
+            text: root.view.listed ? @tr("Taken out of games.json.") : @tr("Hidden games come back from Settings › Add a game.");
+            color: Theme.dim;
+            font-size: 14px;
+            wrap: word-wrap;
+        }
+
+        if root.mode == 1 || root.mode == 3: TextField {
+            initial: root.mode == 1 ? root.game.title : "";
+            submit(text) => {
+                root.submit(text);
+            }
+            cancel => {
+                root.cancel();
+            }
+        }
+
+        if root.mode == 1 || root.mode == 3: Text {
+            text: root.mode == 1 && root.view.custom != "" ? @tr("Store's title: {}", root.view.original) : root.mode == 3 ? @tr("The game goes in the new category.") : "";
+            color: Theme.dim;
+            font-size: 14px;
+            wrap: word-wrap;
+        }
+
+        if root.mode == 2: VerticalLayout {
+            spacing: 2px;
+            SettingLine {
+                label: @tr("New category");
+                chevrons: false;
+                focused: root.active && root.line == 0;
+                clicked => {
+                    root.pick(0);
+                }
+            }
+
+            for category[i] in Library.categories: SettingLine {
+                label: category.name;
+                value: category.checked ? "✓" : "";
+                chevrons: false;
+                focused: root.active && root.line == i + 1;
+                clicked => {
+                    root.pick(i + 1);
+                }
+            }
+        }
+
+        if root.mode == 4 || root.mode == 5: VerticalLayout {
+            spacing: 2px;
+            Text {
+                text: root.mode == 5 ? @tr("Taken out of games.json. Add a game can list it again if it has a shortcut.") : root.view.uninstall == 1 ? @tr("Steam asks for its own confirmation, then deletes the game's files.") : root.view.uninstall == 2 ? @tr("Legendary deletes the game's files.") : root.view.uninstall == 4 ? @tr("This folder is deleted: {}", root.view.folder) : root.view.uninstall == 5 ? @tr("The game's own uninstaller opens; Windows may ask for consent.") : @tr("Windows' settings open on the game: uninstall it there.");
+                color: Theme.text.mix(Theme.dim, 0.6);
+                font-size: 15px;
+                wrap: word-wrap;
+            }
+
+            Rectangle {
+                height: 10px;
+            }
+
+            SettingLine {
+                label: root.mode == 5 ? @tr("Remove from the library") : @tr("Uninstall");
+                chevrons: false;
+                focused: root.active && root.line == 0;
+                clicked => {
+                    root.pick(0);
+                }
+            }
+
+            SettingLine {
+                label: @tr("Cancel");
+                chevrons: false;
+                focused: root.active && root.line == 1;
+                clicked => {
+                    root.pick(1);
+                }
+            }
+        }
+    }
+}
+
 export component LibraryPage inherits Rectangle {
     property <ShelfView> front: Library.shelves[Library.shelf];
     property <GameView> current: root.front.games[Library.selected];
@@ -948,7 +1208,7 @@ export component LibraryPage inherits Rectangle {
         if Library.detail {
             // A game that does not fit is not installed: the page says why.
             let short = !root.current.installed && Library.detail-view.free-tenths >= 0 && Library.detail-view.size-tenths > Library.detail-view.free-tenths;
-            if root.current.progress < 0 && !short {
+            if root.current.progress < 0 && !short && Library.uninstalling != root.current.id {
                 Library.launch(Library.selected);
             }
         } else if root.has-games {
@@ -957,6 +1217,71 @@ export component LibraryPage inherits Rectangle {
             Library.epic-login();
         } else if root.signing-up && root.account-pick == 1 && !Library.gog-busy {
             Library.gog-login();
+        }
+    }
+    // Lines of the options menu at its current step.
+    property <int> option-lines: Library.options-mode == 0 ? Library.options-view.entries.length : Library.options-mode == 2 ? Library.categories.length + 1 : 2;
+    function open-options() {
+        Library.options-mode = 0;
+        Library.options-row = 0;
+        Library.open-options();
+    }
+    function close-options() {
+        Library.close-options();
+        fs.focus();
+    }
+    // Back one step: from a step to the menu's line it came from.
+    function options-back() {
+        let mode = Library.options-mode;
+        if mode == 0 {
+            root.close-options();
+            return;
+        }
+        // The menu's lines are 0, 1 when renamed, 2, 3, then 4.
+        let offset = Library.options-view.custom != "" ? 1 : 0;
+        Library.options-row = mode == 1 || mode == 3 ? 0 : mode == 2 ? 1 + offset : mode == 5 ? 2 + offset : 3 + offset;
+        Library.options-mode = mode == 3 ? 2 : 0;
+        fs.focus();
+    }
+    function options-act() {
+        let mode = Library.options-mode;
+        let row = Library.options-row;
+        if mode == 0 {
+            let entry = Library.options-view.entries[row];
+            if entry == 0 {
+                Library.options-mode = 1;
+            } else if entry == 1 {
+                Library.reset-name();
+                Library.options-row = 0;
+            } else if entry == 2 {
+                Library.options-mode = 2;
+                Library.options-row = 0;
+            } else if entry == 3 && Library.options-view.listed {
+                Library.options-mode = 5;
+                Library.options-row = 0;
+            } else if entry == 3 {
+                Library.remove-game();
+                fs.focus();
+            } else if entry == 4 && Library.options-view.uninstall != 3 {
+                Library.options-mode = 4;
+                Library.options-row = 0;
+            }
+        } else if mode == 2 {
+            if row == 0 {
+                Library.options-mode = 3;
+            } else {
+                Library.toggle-category(row - 1);
+            }
+        } else if mode == 4 || mode == 5 {
+            if row == 1 {
+                root.options-back();
+            } else if mode == 4 {
+                Library.uninstall-game();
+                fs.focus();
+            } else {
+                Library.remove-game();
+                fs.focus();
+            }
         }
     }
     function go-shelf(index: int) {
@@ -977,7 +1302,32 @@ export component LibraryPage inherits Rectangle {
             self.focus();
         }
         key-pressed(event) => {
+            // The options menu over the game page: B goes back a step,
+            // Y closes it.
+            if Library.detail && Library.options {
+                if event.text == Key.Escape {
+                    root.options-back();
+                }
+                if event.text == Key.F3 || event.text == "y" {
+                    root.close-options();
+                }
+                if event.text == Key.UpArrow {
+                    Library.options-row = max(0, Library.options-row - 1);
+                }
+                if event.text == Key.DownArrow {
+                    Library.options-row = max(0, min(root.option-lines - 1, Library.options-row + 1));
+                }
+                if event.text == Key.Return || event.text == " " {
+                    root.options-act();
+                }
+                return accept;
+            }
             if Library.detail {
+                // Y: the game's options.
+                if (event.text == Key.F3 || event.text == "y") && root.has-games {
+                    root.open-options();
+                    return accept;
+                }
                 // B goes back to the shelf, on the same game.
                 if event.text == Key.Escape {
                     Library.close-detail();
@@ -1080,6 +1430,40 @@ export component LibraryPage inherits Rectangle {
         }
     }
 
+    if Library.detail && Library.options: OptionsPanel {
+        x: root.width - self.width;
+        y: 0;
+        width: 470px;
+        height: root.height - 74px;
+        game: root.current;
+        active: fs.has-focus;
+        pick(i) => {
+            Library.options-row = i;
+            root.options-act();
+            if Library.options-mode != 1 && Library.options-mode != 3 {
+                fs.focus();
+            }
+        }
+        submit(text) => {
+            Library.text-entry(false);
+            if Library.options-mode == 1 {
+                Library.rename(text);
+                Library.options-mode = 0;
+                Library.options-row = 0;
+                fs.focus();
+            } else {
+                Library.new-category(text);
+                Library.options-mode = 2;
+                Library.options-row = 0;
+                fs.focus();
+            }
+        }
+        cancel => {
+            Library.text-entry(false);
+            root.options-back();
+        }
+    }
+
     // The selected game, or why there is none; a new model at each game,
     // so its title fades in.
     // The selected game, or why there is none; a new model at each game,
@@ -1135,8 +1519,8 @@ export component LibraryPage inherits Rectangle {
         note := RevealLine {
             order: 2;
             Text {
-                text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.signing-up && Library.epic-waiting ? @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.") : root.signing-up && Library.gog-waiting ? @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.") : root.signing-up ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
-                color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
+                text: Library.change-text != "" ? Library.change-text : Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.signing-up && Library.epic-waiting ? @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.") : root.signing-up && Library.gog-waiting ? @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.") : root.signing-up ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
+                color: Library.change-text != "" || Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
                 font-size: 16px;
                 wrap: word-wrap;
                 max-height: 66px;

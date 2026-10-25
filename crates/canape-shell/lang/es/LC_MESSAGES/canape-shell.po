@@ -747,3 +747,90 @@ msgstr "Desbloqueado"
 
 msgid "{} % of players"
 msgstr "{} % de los jugadores"
+
+msgid "Confirm"
+msgstr "Confirmar"
+
+msgid "Options"
+msgstr "Opciones"
+
+msgid "Could not save the change"
+msgstr "No se pudo guardar el cambio"
+
+msgid "games.json could not be read or written"
+msgstr "No se pudo leer o escribir games.json"
+
+msgid "Could not uninstall {}"
+msgstr "No se pudo desinstalar {}"
+
+msgid "Uninstalling…"
+msgstr "Desinstalando…"
+
+msgid "Confirm in Steam's window"
+msgstr "Confirma en la ventana de Steam"
+
+msgid "Follow the game's uninstaller"
+msgstr "Sigue el desinstalador del juego"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "Desinstálalo en la configuración de Windows"
+
+msgid "Rename"
+msgstr "Cambiar nombre"
+
+msgid "Categories"
+msgstr "Categorías"
+
+msgid "Uninstall"
+msgstr "Desinstalar"
+
+msgid "Remove from the library"
+msgstr "Quitar de la biblioteca"
+
+msgid "Use the store's title"
+msgstr "Usar el título de la tienda"
+
+msgid "Sign in to Epic first"
+msgstr "Inicia sesión en Epic primero"
+
+msgid "Taken out of games.json."
+msgstr "Quitado de games.json."
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "Los juegos ocultos vuelven desde Ajustes › Añadir un juego."
+
+msgid "Store's title: {}"
+msgstr "Título de la tienda: {}"
+
+msgid "The game goes in the new category."
+msgstr "El juego entra en la nueva categoría."
+
+msgid "New category"
+msgstr "Nueva categoría"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "Quitado de games.json. Añadir un juego puede volver a mostrarlo si tiene un acceso directo."
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam pide su propia confirmación y luego borra los archivos del juego."
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary borra los archivos del juego."
+
+msgid "This folder is deleted: {}"
+msgstr "Se borra esta carpeta: {}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "Se abre el desinstalador del juego; Windows puede pedir permiso."
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "La configuración de Windows se abre en el juego: desinstálalo allí."
+
+msgid "Hidden games"
+msgstr "Juegos ocultos"
+
+msgid "No hidden games"
+msgstr "No hay juegos ocultos"
+
+msgid "Show again"
+msgstr "Mostrar de nuevo"

@@ -747,3 +747,90 @@ msgstr "解除済み"
 
 msgid "{} % of players"
 msgstr "プレイヤーの {} %"
+
+msgid "Confirm"
+msgstr "確定"
+
+msgid "Options"
+msgstr "オプション"
+
+msgid "Could not save the change"
+msgstr "変更を保存できませんでした"
+
+msgid "games.json could not be read or written"
+msgstr "games.json を読み書きできませんでした"
+
+msgid "Could not uninstall {}"
+msgstr "{} をアンインストールできませんでした"
+
+msgid "Uninstalling…"
+msgstr "アンインストール中…"
+
+msgid "Confirm in Steam's window"
+msgstr "Steam のウィンドウで確認してください"
+
+msgid "Follow the game's uninstaller"
+msgstr "ゲームのアンインストーラーの指示に従ってください"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "Windows の設定でアンインストールしてください"
+
+msgid "Rename"
+msgstr "名前を変更"
+
+msgid "Categories"
+msgstr "カテゴリ"
+
+msgid "Uninstall"
+msgstr "アンインストール"
+
+msgid "Remove from the library"
+msgstr "ライブラリから外す"
+
+msgid "Use the store's title"
+msgstr "ストアのタイトルに戻す"
+
+msgid "Sign in to Epic first"
+msgstr "先に Epic にサインインしてください"
+
+msgid "Taken out of games.json."
+msgstr "games.json から外しました。"
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "非表示のゲームは 設定 › ゲームを追加 から戻せます。"
+
+msgid "Store's title: {}"
+msgstr "ストアのタイトル: {}"
+
+msgid "The game goes in the new category."
+msgstr "ゲームは新しいカテゴリに入ります。"
+
+msgid "New category"
+msgstr "新しいカテゴリ"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "games.json から外しました。ショートカットがあれば「ゲームを追加」に再び表示されます。"
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam が独自に確認を求め、その後ゲームのファイルを削除します。"
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary がゲームのファイルを削除します。"
+
+msgid "This folder is deleted: {}"
+msgstr "このフォルダーを削除します: {}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "ゲームのアンインストーラーが開きます。Windows が許可を求める場合があります。"
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "Windows の設定がこのゲームで開きます。そこでアンインストールしてください。"
+
+msgid "Hidden games"
+msgstr "非表示のゲーム"
+
+msgid "No hidden games"
+msgstr "非表示のゲームはありません"
+
+msgid "Show again"
+msgstr "再表示"

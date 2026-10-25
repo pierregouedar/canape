@@ -7,7 +7,7 @@
 import { Theme } from "theme.slint";
 import { App, Notice } from "state.slint";
 import { BatteryIcon, Bolt, Hint, Logo } from "widgets.slint";
-import { AddGamesPage, BenchPage, GyroPage, ProfilesPage } from "pages.slint";
+import { AddGamesPage, BenchPage, GyroPage, HiddenGamesPage, ProfilesPage } from "pages.slint";
 import { SettingsPage } from "settings.slint";
 import { PerformancePage } from "performance.slint";
 import { GameView, Library, LibraryPage } from "library.slint";
@@ -24,7 +24,7 @@ import "fonts/PlusJakartaSans-Bold.ttf";
 
 export { App, Notice, StatusView, GraphView, ProfileView, BenchRow, RecView, BenchView } from "state.slint";
 export { Theme } from "theme.slint";
-export { Library, GameView, ShelfView, DetailView, AddGameView, AchievementView } from "library.slint";
+export { Library, GameView, ShelfView, DetailView, AddGameView, AchievementView, OptionsView, CategoryView, HiddenGameView } from "library.slint";
 
 // A section name; the current one is brighter and underlined.
 component Section inherits Rectangle {
@@ -93,7 +93,7 @@ export component AppWindow inherits Window {
     // Sections 0 Games, 1 Performance, 2 Hardware, 3 Settings; then the
     // sub-pages 4 Profiles (from Settings), 5 Bench (from Performance),
     // 6 Gyro and 7 Controller (both from Hardware), 8 Add a game (from
-    // Settings).
+    // Settings), 9 Hidden games (from Add a game).
     in-out property <int> page: 0;
     property <int> section: root.section-of(root.page);
     // The selected game on the shelf in front, for the hints.
@@ -110,7 +110,7 @@ export component AppWindow inherits Window {
     property <int> hardware-more-col: 0;
     property <int> settings-row: 0;
     pure function section-of(page: int) -> int {
-        page == 4 || page == 8 ? 3 : page == 5 ? 1 : page == 6 || page == 7 ? 2 : page
+        page == 4 || page == 8 || page == 9 ? 3 : page == 5 ? 1 : page == 6 || page == 7 ? 2 : page
     }
     function go(page: int) {
         let to-section = root.section-of(page);
@@ -151,7 +151,7 @@ export component AppWindow inherits Window {
                 return accept;
             }
             if event.text == Key.Escape && root.page != 0 {
-                root.go(root.page >= 4 ? root.section-of(root.page) : 0);
+                root.go(root.page == 9 ? 8 : root.page >= 4 ? root.section-of(root.page) : 0);
                 return accept;
             }
             return reject;
@@ -391,7 +391,20 @@ export component AppWindow inherits Window {
                     height: parent.height - 28px;
                     from-x: root.enter-x;
                     from-y: root.enter-y;
-                    AddGamesPage { }
+                    AddGamesPage {
+                        open-hidden => {
+                            root.go(9);
+                        }
+                    }
+                }
+                if root.page == 9: Reveal {
+                    x: 32px;
+                    y: 28px;
+                    width: parent.width - 80px;
+                    height: parent.height - 28px;
+                    from-x: root.enter-x;
+                    from-y: root.enter-y;
+                    HiddenGamesPage { }
                 }
             }
 
@@ -419,23 +432,32 @@ export component AppWindow inherits Window {
                     glyph: "updown";
                     text: @tr("Setting");
                 }
-                if root.page >= 1 && root.page != 4 && root.page != 8: Hint {
+                if root.page >= 1 && root.page != 4 && root.page != 8 && root.page != 9: Hint {
                     glyph: "leftright";
                     text: @tr("Value");
                 }
                 // The game page: Down shows what is below the fold, Up
                 // goes back to the top.
-                if root.page == 0 && Library.detail && Library.detail-part == 0 && Library.detail-more: Hint {
+                // The game page's options: up and down, A picks, B back.
+                if root.page == 0 && Library.detail && Library.options && (Library.options-mode != 1 && Library.options-mode != 3): Hint {
+                    glyph: "updown";
+                    text: @tr("Setting");
+                }
+                if root.page == 0 && Library.detail && !Library.options && Library.detail-part == 0 && Library.detail-more: Hint {
                     glyph: "updown";
                     text: @tr("More");
                 }
-                if root.page == 0 && Library.detail && Library.detail-part == 1: Hint {
+                if root.page == 0 && Library.detail && !Library.options && Library.detail-part == 1: Hint {
                     glyph: "updown";
                     text: @tr("Top");
                 }
                 if root.page != 0 || !Library.detail || Library.detail-part == 0: Hint {
                     glyph: "A";
-                    text: root.page != 0 ? @tr("Choose") : !Library.detail ? (root.front-games > 0 ? @tr("Details") : @tr("Choose")) : root.front-game.installed ? @tr("Play") : @tr("Install");
+                    text: root.page != 0 ? @tr("Choose") : !Library.detail ? (root.front-games > 0 ? @tr("Details") : @tr("Choose")) : Library.options ? (Library.options-mode == 1 || Library.options-mode == 3 ? @tr("Confirm") : @tr("Choose")) : root.front-game.installed ? @tr("Play") : @tr("Install");
+                }
+                if root.page == 0 && Library.detail && !Library.options && root.front-games > 0: Hint {
+                    glyph: "Y";
+                    text: @tr("Options");
                 }
 
                 if root.page == 1 || root.page == 2 || root.page == 5 || root.page == 6: Hint {

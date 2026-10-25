@@ -747,3 +747,90 @@ msgstr "已解锁"
 
 msgid "{} % of players"
 msgstr "{} % 的玩家"
+
+msgid "Confirm"
+msgstr "确认"
+
+msgid "Options"
+msgstr "选项"
+
+msgid "Could not save the change"
+msgstr "无法保存更改"
+
+msgid "games.json could not be read or written"
+msgstr "无法读取或写入 games.json"
+
+msgid "Could not uninstall {}"
+msgstr "无法卸载 {}"
+
+msgid "Uninstalling…"
+msgstr "正在卸载…"
+
+msgid "Confirm in Steam's window"
+msgstr "请在 Steam 窗口中确认"
+
+msgid "Follow the game's uninstaller"
+msgstr "请按游戏卸载程序的提示操作"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "请在 Windows 设置中卸载"
+
+msgid "Rename"
+msgstr "重命名"
+
+msgid "Categories"
+msgstr "分类"
+
+msgid "Uninstall"
+msgstr "卸载"
+
+msgid "Remove from the library"
+msgstr "从游戏库移除"
+
+msgid "Use the store's title"
+msgstr "使用商店中的名称"
+
+msgid "Sign in to Epic first"
+msgstr "请先登录 Epic"
+
+msgid "Taken out of games.json."
+msgstr "已从 games.json 移除。"
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "隐藏的游戏可在 设置 › 添加游戏 中恢复。"
+
+msgid "Store's title: {}"
+msgstr "商店中的名称：{}"
+
+msgid "The game goes in the new category."
+msgstr "游戏将加入新分类。"
+
+msgid "New category"
+msgstr "新分类"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "已从 games.json 移除。如果有快捷方式，添加游戏会再次列出它。"
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam 会自行要求确认，然后删除游戏文件。"
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary 会删除游戏文件。"
+
+msgid "This folder is deleted: {}"
+msgstr "将删除此文件夹：{}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "游戏自带的卸载程序将打开；Windows 可能会请求许可。"
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "Windows 设置将打开此游戏的页面：请在那里卸载。"
+
+msgid "Hidden games"
+msgstr "隐藏的游戏"
+
+msgid "No hidden games"
+msgstr "没有隐藏的游戏"
+
+msgid "Show again"
+msgstr "重新显示"

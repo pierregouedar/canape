@@ -747,3 +747,90 @@ msgstr "Açıldı"
 
 msgid "{} % of players"
 msgstr "Oyuncuların {} %'si"
+
+msgid "Confirm"
+msgstr "Onayla"
+
+msgid "Options"
+msgstr "Seçenekler"
+
+msgid "Could not save the change"
+msgstr "Değişiklik kaydedilemedi"
+
+msgid "games.json could not be read or written"
+msgstr "games.json okunamadı veya yazılamadı"
+
+msgid "Could not uninstall {}"
+msgstr "{} kaldırılamadı"
+
+msgid "Uninstalling…"
+msgstr "Kaldırılıyor…"
+
+msgid "Confirm in Steam's window"
+msgstr "Steam penceresinde onaylayın"
+
+msgid "Follow the game's uninstaller"
+msgstr "Oyunun kaldırma programını izleyin"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "Windows ayarlarından kaldırın"
+
+msgid "Rename"
+msgstr "Yeniden adlandır"
+
+msgid "Categories"
+msgstr "Kategoriler"
+
+msgid "Uninstall"
+msgstr "Kaldır"
+
+msgid "Remove from the library"
+msgstr "Kitaplıktan çıkar"
+
+msgid "Use the store's title"
+msgstr "Mağazadaki adı kullan"
+
+msgid "Sign in to Epic first"
+msgstr "Önce Epic'te oturum açın"
+
+msgid "Taken out of games.json."
+msgstr "games.json'dan çıkarıldı."
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "Gizlenen oyunlar Ayarlar › Oyun ekle bölümünden geri gelir."
+
+msgid "Store's title: {}"
+msgstr "Mağazadaki adı: {}"
+
+msgid "The game goes in the new category."
+msgstr "Oyun yeni kategoriye girer."
+
+msgid "New category"
+msgstr "Yeni kategori"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "games.json'dan çıkarıldı. Kısayolu varsa Oyun ekle onu yeniden önerebilir."
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam kendi onayını ister, ardından oyunun dosyalarını siler."
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary oyunun dosyalarını siler."
+
+msgid "This folder is deleted: {}"
+msgstr "Bu klasör silinir: {}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "Oyunun kendi kaldırma programı açılır; Windows izin isteyebilir."
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "Windows ayarları oyunda açılır: oradan kaldırın."
+
+msgid "Hidden games"
+msgstr "Gizlenen oyunlar"
+
+msgid "No hidden games"
+msgstr "Gizlenen oyun yok"
+
+msgid "Show again"
+msgstr "Yeniden göster"

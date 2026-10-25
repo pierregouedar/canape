@@ -747,3 +747,90 @@ msgstr "Freigeschaltet"
 
 msgid "{} % of players"
 msgstr "{} % der Spieler"
+
+msgid "Confirm"
+msgstr "Bestätigen"
+
+msgid "Options"
+msgstr "Optionen"
+
+msgid "Could not save the change"
+msgstr "Änderung konnte nicht gespeichert werden"
+
+msgid "games.json could not be read or written"
+msgstr "games.json konnte nicht gelesen oder geschrieben werden"
+
+msgid "Could not uninstall {}"
+msgstr "{} konnte nicht deinstalliert werden"
+
+msgid "Uninstalling…"
+msgstr "Wird deinstalliert…"
+
+msgid "Confirm in Steam's window"
+msgstr "Im Steam-Fenster bestätigen"
+
+msgid "Follow the game's uninstaller"
+msgstr "Dem Deinstallationsprogramm des Spiels folgen"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "In den Windows-Einstellungen deinstallieren"
+
+msgid "Rename"
+msgstr "Umbenennen"
+
+msgid "Categories"
+msgstr "Kategorien"
+
+msgid "Uninstall"
+msgstr "Deinstallieren"
+
+msgid "Remove from the library"
+msgstr "Aus der Bibliothek entfernen"
+
+msgid "Use the store's title"
+msgstr "Titel des Stores verwenden"
+
+msgid "Sign in to Epic first"
+msgstr "Zuerst bei Epic anmelden"
+
+msgid "Taken out of games.json."
+msgstr "Aus games.json entfernt."
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "Ausgeblendete Spiele findest du unter Einstellungen › Spiel hinzufügen."
+
+msgid "Store's title: {}"
+msgstr "Titel im Store: {}"
+
+msgid "The game goes in the new category."
+msgstr "Das Spiel kommt in die neue Kategorie."
+
+msgid "New category"
+msgstr "Neue Kategorie"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "Aus games.json entfernt. „Spiel hinzufügen“ kann es wieder anbieten, wenn es eine Verknüpfung hat."
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam fragt selbst nach einer Bestätigung und löscht dann die Dateien des Spiels."
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary löscht die Dateien des Spiels."
+
+msgid "This folder is deleted: {}"
+msgstr "Dieser Ordner wird gelöscht: {}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "Das Deinstallationsprogramm des Spiels öffnet sich; Windows fragt eventuell nach Zustimmung."
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "Die Windows-Einstellungen öffnen sich beim Spiel: dort deinstallieren."
+
+msgid "Hidden games"
+msgstr "Ausgeblendete Spiele"
+
+msgid "No hidden games"
+msgstr "Keine ausgeblendeten Spiele"
+
+msgid "Show again"
+msgstr "Wieder anzeigen"

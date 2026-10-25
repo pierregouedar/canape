@@ -747,3 +747,90 @@ msgstr "Получено"
 
 msgid "{} % of players"
 msgstr "{} % игроков"
+
+msgid "Confirm"
+msgstr "Подтвердить"
+
+msgid "Options"
+msgstr "Параметры"
+
+msgid "Could not save the change"
+msgstr "Не удалось сохранить изменение"
+
+msgid "games.json could not be read or written"
+msgstr "Не удалось прочитать или записать games.json"
+
+msgid "Could not uninstall {}"
+msgstr "Не удалось удалить {}"
+
+msgid "Uninstalling…"
+msgstr "Удаление…"
+
+msgid "Confirm in Steam's window"
+msgstr "Подтвердите в окне Steam"
+
+msgid "Follow the game's uninstaller"
+msgstr "Следуйте указаниям деинсталлятора игры"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "Удалите её в параметрах Windows"
+
+msgid "Rename"
+msgstr "Переименовать"
+
+msgid "Categories"
+msgstr "Категории"
+
+msgid "Uninstall"
+msgstr "Удалить"
+
+msgid "Remove from the library"
+msgstr "Убрать из библиотеки"
+
+msgid "Use the store's title"
+msgstr "Вернуть название из магазина"
+
+msgid "Sign in to Epic first"
+msgstr "Сначала войдите в Epic"
+
+msgid "Taken out of games.json."
+msgstr "Убрано из games.json."
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "Скрытые игры можно вернуть в разделе Настройки › Добавить игру."
+
+msgid "Store's title: {}"
+msgstr "Название в магазине: {}"
+
+msgid "The game goes in the new category."
+msgstr "Игра попадёт в новую категорию."
+
+msgid "New category"
+msgstr "Новая категория"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "Убрано из games.json. «Добавить игру» снова предложит её, если есть ярлык."
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam запросит своё подтверждение, затем удалит файлы игры."
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary удалит файлы игры."
+
+msgid "This folder is deleted: {}"
+msgstr "Эта папка будет удалена: {}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "Откроется деинсталлятор игры; Windows может запросить разрешение."
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "Откроются параметры Windows для этой игры: удалите её там."
+
+msgid "Hidden games"
+msgstr "Скрытые игры"
+
+msgid "No hidden games"
+msgstr "Нет скрытых игр"
+
+msgid "Show again"
+msgstr "Показать снова"
