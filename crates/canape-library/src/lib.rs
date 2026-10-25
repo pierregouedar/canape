@@ -1,5 +1,6 @@
 //! The game library: games installed with Steam, the Epic Games Launcher,
-//! GOG Galaxy and the Xbox app, merged into one list for the shell. Games
+//! GOG Galaxy and the Xbox app (and by Canapé itself, through Legendary and
+//! gogdl), merged into one list for the shell. Games
 //! without art on disk can get a cover downloaded ([`online`]).
 //!
 //! Every store is read from its own files (or the registry for GOG) with
@@ -16,6 +17,7 @@ pub mod cache;
 pub mod cover;
 pub mod epic;
 pub mod gog;
+pub mod gogdl;
 #[cfg(windows)]
 pub mod http;
 pub mod install;
@@ -107,6 +109,13 @@ pub struct Game {
     pub playtime: Option<u32>,
 }
 
+/// An owned game to install, and its art link if its store gave one.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Owned {
+    pub game: Game,
+    pub art_url: Option<String>,
+}
+
 /// Where to look for games.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Roots {
@@ -119,6 +128,9 @@ pub struct Roots {
     pub xbox: Vec<PathBuf>,
     /// Games installed with Legendary: its config folder and executable.
     pub legendary: Option<(PathBuf, PathBuf)>,
+    /// Games installed with gogdl: Canapé's record of them
+    /// ([`gogdl::Installed`]).
+    pub gogdl: Option<PathBuf>,
 }
 
 /// Where GOG games are listed.
@@ -143,6 +155,7 @@ impl Roots {
                 gog: GogSource::Registry,
                 xbox: xbox::roots(),
                 legendary: None,
+                gogdl: None,
             }
         }
         #[cfg(not(windows))]
@@ -161,6 +174,7 @@ impl Roots {
             gog: GogSource::File(dir.join("gog.json")),
             xbox: vec![dir.join("xbox")],
             legendary: None,
+            gogdl: None,
         }
     }
 }
@@ -190,6 +204,9 @@ pub fn scan(roots: &Roots) -> Vec<Game> {
         GogSource::None => {}
         GogSource::Registry => games.extend(gog::scan_registry()),
         GogSource::File(path) => games.extend(gog::scan_file(path)),
+    }
+    if let Some(record) = &roots.gogdl {
+        games.extend(gogdl::scan(record));
     }
     for dir in &roots.xbox {
         games.extend(xbox::scan(dir));

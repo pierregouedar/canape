@@ -310,9 +310,6 @@ msgstr "Todos os seus jogos estão instalados"
 msgid "Install your games from here"
 msgstr "Instale seus jogos daqui"
 
-msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé uses Legendary to install without the Epic launcher."
-msgstr "Steam: adicione sua chave da API Web da Steam (steamcommunity.com/dev/apikey) como steam_api_key no shell.json. Epic: faça login uma vez abaixo; o Canapé usa o Legendary para instalar sem o launcher da Epic."
-
 msgid "Opening the Epic sign-in…"
 msgstr "Abrindo o login da Epic…"
 
@@ -465,3 +462,24 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "Perfil deste jogo"
+
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers."
+msgstr "Steam: adicione sua chave da API Web da Steam (steamcommunity.com/dev/apikey) como steam_api_key no shell.json. Epic e GOG: faça login uma vez abaixo; o Canapé instala os jogos deles sem os launchers."
+
+msgid "Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard."
+msgstr "Faça login na GOG no navegador e copie o endereço da página em que cair: o Canapé o lê da área de transferência."
+
+msgid "Opening the GOG sign-in…"
+msgstr "Abrindo o login da GOG…"
+
+msgid "Waiting for the GOG address…"
+msgstr "Aguardando o endereço da GOG…"
+
+msgid "GOG: {} (sign in again)"
+msgstr "GOG: {} (entrar novamente)"
+
+msgid "Sign in to GOG"
+msgstr "Entrar na GOG"
+
+msgid "GOG account"
+msgstr "Conta GOG"

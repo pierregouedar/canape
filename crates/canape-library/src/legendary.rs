@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 
 use crate::install::Install;
-use crate::{Game, Launch, Source};
+use crate::{Game, Launch, Owned, Source};
 
 /// Legendary's config folder for the current user.
 pub fn config_dir() -> Option<PathBuf> {
@@ -90,13 +90,6 @@ struct KeyImage {
     #[serde(rename = "type")]
     kind: String,
     url: String,
-}
-
-/// An owned game and its portrait art, if Epic has one.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Owned {
-    pub game: Game,
-    pub art_url: Option<String>,
 }
 
 /// Games of a `legendary list --json` answer, as entries to install.

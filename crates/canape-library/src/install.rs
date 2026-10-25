@@ -4,6 +4,8 @@
 //!   small install dialog (folder, shortcuts), then downloads in the
 //!   background; the progress is read from the game's manifest.
 //! - **Epic**: `legendary install <app> -y`, progress read from its output.
+//! - **GOG**: `gogdl info` then `gogdl download`, progress read from its
+//!   output; the install is recorded for the scan (see [`crate::gogdl`]).
 //!
 //! [`run`] blocks until the install ends: run it on its own thread.
 
@@ -14,6 +16,7 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
+use crate::gogdl::{self, Credentials};
 use crate::legendary;
 use crate::steam::{self, Download};
 
@@ -23,6 +26,7 @@ use crate::steam::{self, Download};
 pub enum Install {
     Steam { appid: u32 },
     Epic { app: String },
+    Gog { id: String },
 }
 
 /// News from a running install.
@@ -41,6 +45,10 @@ pub struct Tools {
     pub steam: Option<PathBuf>,
     /// `legendary.exe`.
     pub legendary: Option<PathBuf>,
+    /// gogdl's executable and Canapé's GOG folder (tokens, install record).
+    pub gogdl: Option<(PathBuf, PathBuf)>,
+    /// Where Legendary and gogdl install games.
+    pub games_dir: PathBuf,
 }
 
 /// How often a Steam manifest is read.
@@ -59,6 +67,10 @@ pub fn run(install: &Install, tools: &Tools, mut on: impl FnMut(Event)) {
         Install::Epic { app } => match &tools.legendary {
             Some(exe) => run_legendary(exe, app, &mut on),
             None => Err(io::Error::other("Legendary is not available")),
+        },
+        Install::Gog { id } => match &tools.gogdl {
+            Some((exe, dir)) => run_gogdl(exe, dir, id, &tools.games_dir, &mut on),
+            None => Err(io::Error::other("gogdl is not available")),
         },
     };
     on(match result {
@@ -94,6 +106,11 @@ fn run_steam(steam: &Path, appid: u32, on: &mut impl FnMut(Event)) -> io::Result
 
 /// A Legendary command that opens no console window.
 pub fn legendary_command(exe: &Path) -> Command {
+    hidden(exe)
+}
+
+/// A command for a helper program, without a console window or input.
+fn hidden(exe: &Path) -> Command {
     let mut command = Command::new(exe);
     command.stdin(Stdio::null());
     #[cfg(windows)]
@@ -179,7 +196,7 @@ pub fn epic_account(exe: &Path) -> io::Result<Option<String>> {
 }
 
 /// The Epic games the account owns (asks Epic: takes a few seconds).
-pub fn epic_owned(exe: &Path) -> io::Result<Vec<legendary::Owned>> {
+pub fn epic_owned(exe: &Path) -> io::Result<Vec<crate::Owned>> {
     legendary::parse_list(&legendary_json(exe, &["list", "--json"])?)
         .ok_or_else(|| io::Error::other("legendary list: unreadable answer"))
 }
@@ -190,4 +207,147 @@ pub fn epic_owned(exe: &Path) -> io::Result<Vec<legendary::Owned>> {
 pub fn epic_login(exe: &Path) -> io::Result<bool> {
     let status = Command::new(exe).arg("auth").status()?;
     Ok(status.success())
+}
+
+/// The tokens gogdl keeps, in Canapé's GOG folder `dir`.
+pub fn gog_auth_file(dir: &Path) -> PathBuf {
+    dir.join("auth.json")
+}
+
+/// Canapé's record of the games installed with gogdl.
+pub fn gog_record(dir: &Path) -> PathBuf {
+    dir.join("installed.json")
+}
+
+/// A gogdl command whose tokens and manifests live in `dir`.
+fn gogdl_command(exe: &Path, dir: &Path) -> Command {
+    let mut command = hidden(exe);
+    command
+        .env("GOGDL_CONFIG_PATH", dir)
+        .arg("--auth-config-path")
+        .arg(gog_auth_file(dir));
+    command
+}
+
+/// The output of a gogdl command that prints JSON.
+fn gogdl_json(exe: &Path, dir: &Path, args: &[&str]) -> io::Result<Vec<u8>> {
+    let output = gogdl_command(exe, dir).args(args).output()?;
+    if output.status.success() {
+        Ok(output.stdout)
+    } else {
+        Err(io::Error::other(format!(
+            "gogdl {}: {}",
+            args.first().unwrap_or(&""),
+            last_line(&output.stderr)
+        )))
+    }
+}
+
+/// The last non-empty line of a program's output.
+fn last_line(bytes: &[u8]) -> String {
+    String::from_utf8_lossy(bytes)
+        .lines()
+        .rev()
+        .find(|l| !l.trim().is_empty())
+        .unwrap_or("")
+        .trim()
+        .to_owned()
+}
+
+/// Trades the code of GOG's sign-in page for tokens, which gogdl keeps.
+pub fn gog_login(exe: &Path, dir: &Path, code: &str) -> io::Result<()> {
+    std::fs::create_dir_all(dir)?;
+    let out = gogdl_json(exe, dir, &["auth", "--code", code])?;
+    gogdl::parse_credentials(&out)
+        .map(drop)
+        .ok_or_else(|| io::Error::other("GOG refused the sign-in code"))
+}
+
+/// The signed-in account's tokens, refreshed if needed; `None` when nobody
+/// is signed in or the session ended.
+pub fn gog_credentials(exe: &Path, dir: &Path) -> io::Result<Option<Credentials>> {
+    if !gog_auth_file(dir).is_file() {
+        return Ok(None);
+    }
+    Ok(gogdl::parse_credentials(&gogdl_json(exe, dir, &["auth"])?))
+}
+
+/// What installing the GOG game `id` takes (asks GOG: a few seconds).
+pub fn gog_info(exe: &Path, dir: &Path, id: &str) -> io::Result<gogdl::Info> {
+    let out = gogdl_json(
+        exe,
+        dir,
+        &[
+            "info",
+            id,
+            "--platform",
+            "windows",
+            "--lang",
+            gogdl::LANGUAGE,
+            "--skip-dlcs",
+        ],
+    )?;
+    gogdl::parse_info(&out).ok_or_else(|| io::Error::other("gogdl info: unreadable answer"))
+}
+
+fn run_gogdl(
+    exe: &Path,
+    dir: &Path,
+    id: &str,
+    games_dir: &Path,
+    on: &mut impl FnMut(Event),
+) -> io::Result<()> {
+    let info = gog_info(exe, dir, id)?;
+    std::fs::create_dir_all(games_dir)?;
+    let mut child = gogdl_command(exe, dir)
+        .args(["download", id, "--platform", "windows", "--lang"])
+        .arg(gogdl::LANGUAGE)
+        .arg("--skip-dlcs")
+        .arg("--path")
+        .arg(games_dir)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    // stdout only gets a line or two (a refusal for lack of space): read
+    // on its own thread so that neither pipe can fill up and block gogdl.
+    let stdout = child.stdout.take().map(|mut out| {
+        std::thread::spawn(move || {
+            let mut text = String::new();
+            let _ = io::Read::read_to_string(&mut out, &mut text);
+            text
+        })
+    });
+    let mut last = String::new();
+    if let Some(stderr) = child.stderr.take() {
+        for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+            if let Some(share) = gogdl::parse_progress(&line) {
+                on(Event::Progress(share));
+            } else if line.contains("ERROR") || line.contains("Error") {
+                last = line;
+            }
+        }
+    }
+    let out = stdout
+        .and_then(|reader| reader.join().ok())
+        .unwrap_or_default();
+    let status = child.wait()?;
+    if !status.success() {
+        let why = last_line(out.as_bytes());
+        return Err(io::Error::other(format!(
+            "gogdl: {}",
+            if why.is_empty() { last } else { why }
+        )));
+    }
+    let path = games_dir.join(&info.folder);
+    if !path.join(format!("goggame-{id}.info")).is_file() {
+        return Err(io::Error::other("gogdl: the download did not finish"));
+    }
+    gogdl::record_install(
+        &gog_record(dir),
+        gogdl::Installed {
+            id: id.to_owned(),
+            path,
+            size: info.disk_size,
+        },
+    )
 }

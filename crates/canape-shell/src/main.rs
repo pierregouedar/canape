@@ -13,6 +13,7 @@ mod accent;
 mod backdrop;
 #[cfg(windows)]
 mod buttons;
+mod clipboard;
 mod clock;
 #[cfg(any(windows, test))]
 mod foreground;

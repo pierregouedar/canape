@@ -8,7 +8,7 @@
 Every game is made up and every cover is drawn here (ImageMagick `convert`),
 so the pictures can go in the documentation. The Epic and GOG games get
 their covers in `<out>/appdata/Canape/covers-fixture`, where the shell keeps
-downloaded covers: they show what the online covers look like. Seven more
+downloaded covers: they show what the online covers look like. Nine more
 games are owned but not installed (`<out>/library/owned.json`), for the
 library's "To install" mode; A there runs a pretend one-minute install.
 """
@@ -51,6 +51,8 @@ OWNED = [
     ("steam", "Rust Garden", "#3f3f46", "#fca5a5", 910003),
     ("steam", "Northbound", "#1e3a8a", "#e0e7ff", 910004),
     ("epic", "Mosaic Run", "#701a75", "#fbcfe8", "MosaicRun"),
+    ("gog", "Lantern Keep", "#422006", "#fdba74", "1900000001"),
+    ("gog", "Saltmarsh", "#0c4a6e", "#bae6fd", "1900000002"),
 ]
 
 
@@ -176,7 +178,8 @@ def main(out):
     for store, title, top, bottom, store_id in OWNED:
         game_id = f"{store}:{store_id}"
         install = ({"store": "steam", "appid": store_id} if store == "steam"
-                   else {"store": "epic", "app": store_id})
+                   else {"store": "epic", "app": store_id} if store == "epic"
+                   else {"store": "gog", "id": store_id})
         owned.append({"id": game_id, "title": title, "source": store,
                       "launch": {"kind": "install", "install": install}})
         cover(os.path.join(covers, game_id.replace(":", "_") + ".jpg"), title, top, bottom)

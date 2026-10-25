@@ -5,8 +5,8 @@
 //!
 //! The games sit on shelves (shelves.rs): recent, installed, one per
 //! store, and last the games the user owns but has not installed (Steam
-//! through the Web API key in shell.json, Epic through Legendary), which A
-//! installs without opening the store's launcher. Each shelf has its own
+//! through the Web API key in shell.json, Epic through Legendary, GOG
+//! through gogdl), which A installs without opening the store's launcher. Each shelf has its own
 //! model and remembers its selection; a cover is decoded once and shared
 //! by every shelf that shows the game.
 //!
@@ -57,6 +57,10 @@ const BACKDROP_DELAY: Duration = Duration::from_millis(150);
 const ERROR_SHOWN: Duration = Duration::from_secs(10);
 /// The owned lists are asked for again after this.
 const OWNED_REFRESH: Duration = Duration::from_secs(10 * 60);
+/// How long the clipboard is watched for GOG's sign-in address.
+const GOG_WAIT: Duration = Duration::from_secs(10 * 60);
+/// How often the clipboard is read meanwhile.
+const GOG_POLL: Duration = Duration::from_secs(1);
 
 /// The gamepad sends arrow keys (instead of Tab / Shift+Tab) while the
 /// library has the focus: the grid moves in two dimensions.
@@ -151,6 +155,11 @@ struct State {
     /// A game just installed: once the scan lists it, the installed shelf
     /// comes to the front with it selected.
     just_installed: Option<String>,
+    /// GOG's sign-in page is open in the browser: since when, and the
+    /// clipboard's text then (an older address is not taken for the new).
+    gog_wait: Option<(Instant, Option<String>)>,
+    /// Reads the clipboard while `gog_wait` is set.
+    gog_timer: Timer,
     /// Colour of each decoded cover, for the backdrop.
     tints: HashMap<String, [u8; 3]>,
     /// Game whose colour the backdrop shows, and that colour.
@@ -208,6 +217,7 @@ fn roots(tools_dir: &Path) -> (Roots, bool) {
             roots.legendary = canape_library::legendary::config_dir()
                 .filter(|_| exe.is_file())
                 .map(|config| (config, exe));
+            roots.gogdl = Some(install::gog_record(&gog_dir()));
             (roots, false)
         }
     }
@@ -771,12 +781,16 @@ impl State {
         });
     }
 
-    /// What the installs need: Steam's folder and Legendary, when present.
+    /// What the installs need: Steam's folder, Legendary and gogdl, when
+    /// present, and the games folder.
     fn tools(&self) -> Tools {
         let legendary = tools::legendary_path(&self.tools_dir);
+        let gogdl = tools::gogdl_path(&self.tools_dir);
         Tools {
             steam: self.roots.steam.clone(),
             legendary: legendary.is_file().then_some(legendary),
+            gogdl: gogdl.is_file().then(|| (gogdl, gog_dir())),
+            games_dir: games_dir(),
         }
     }
 
@@ -887,7 +901,7 @@ impl State {
                     ..Owned::default()
                 }
             } else {
-                fetch_owned(&settings, steam.as_deref(), tools.legendary.as_deref())
+                fetch_owned(&settings, steam.as_deref(), &tools)
             };
             // A failed store keeps the last list rather than emptying it.
             if owned.error.is_empty()
@@ -911,6 +925,128 @@ impl State {
         let settings = crate::i18n::ShellSettings::load();
         library.set_steam_key(!settings.steam_api_key.trim().is_empty());
         library.set_owned_loading(self.owned_loading);
+    }
+
+    /// A on the GOG sign-in: downloads gogdl if needed and opens GOG's
+    /// sign-in page in the browser, then watches the clipboard for the
+    /// address GOG lands on. Pressed again while waiting, it reads the
+    /// clipboard at once, else opens the page again.
+    fn gog_login(&mut self) {
+        let Some(ui) = self.ui.upgrade() else { return };
+        let library = ui.global::<Library>();
+        if library.get_gog_busy() {
+            return;
+        }
+        if self.gog_wait.is_some() {
+            if !self.gog_check_clipboard() && !self.fixture {
+                open_gog_page();
+            }
+            return;
+        }
+        if self.fixture {
+            // Development: the waiting state, without a browser.
+            self.gog_waiting(true);
+            return;
+        }
+        library.set_gog_busy(true);
+        let dir = self.tools_dir.clone();
+        thread::spawn(move || {
+            let exe = tools::gogdl_path(&dir);
+            #[cfg(windows)]
+            let ready = if exe.is_file() {
+                Ok(exe)
+            } else {
+                canape_library::http::WinHttp::new()
+                    .and_then(|http| tools::fetch_gogdl(&http, &dir))
+            };
+            #[cfg(not(windows))]
+            let ready: std::io::Result<PathBuf> = Err(std::io::Error::other(format!(
+                "GOG sign-in needs Windows ({})",
+                exe.display()
+            )));
+            let result = ready.and_then(|_| {
+                canape_library::launch(&Launch::Uri {
+                    uri: canape_library::gogdl::login_url(),
+                })
+            });
+            let _ = slint::invoke_from_event_loop(move || {
+                with_state(|state| {
+                    if let Some(ui) = state.ui.upgrade() {
+                        ui.global::<Library>().set_gog_busy(false);
+                    }
+                    match result {
+                        Ok(()) => state.gog_waiting(true),
+                        Err(err) => {
+                            crate::log(&format!("library: GOG sign-in: {err}"));
+                            state.show_error(format!("GOG: {err}"));
+                        }
+                    }
+                })
+            });
+        });
+    }
+
+    /// Starts or stops watching the clipboard for GOG's sign-in address.
+    fn gog_waiting(&mut self, on: bool) {
+        if let Some(ui) = self.ui.upgrade() {
+            ui.global::<Library>().set_gog_waiting(on);
+        }
+        if !on {
+            self.gog_wait = None;
+            self.gog_timer.stop();
+            return;
+        }
+        self.gog_wait = Some((Instant::now(), crate::clipboard::text()));
+        self.gog_timer.start(TimerMode::Repeated, GOG_POLL, || {
+            with_state(|state| {
+                if state
+                    .gog_wait
+                    .as_ref()
+                    .is_some_and(|(at, _)| at.elapsed() > GOG_WAIT)
+                {
+                    state.gog_waiting(false);
+                } else {
+                    state.gog_check_clipboard();
+                }
+            })
+        });
+    }
+
+    /// Signs in to GOG if the clipboard holds a new sign-in address.
+    fn gog_check_clipboard(&mut self) -> bool {
+        let Some((_, before)) = &self.gog_wait else {
+            return false;
+        };
+        let Some(text) = crate::clipboard::text().filter(|t| Some(t) != before.as_ref()) else {
+            return false;
+        };
+        let Some(code) = canape_library::gogdl::parse_code(&text) else {
+            return false;
+        };
+        self.gog_waiting(false);
+        let Some((exe, dir)) = self.tools().gogdl else {
+            return false;
+        };
+        crate::log("library: GOG sign-in code found");
+        if let Some(ui) = self.ui.upgrade() {
+            ui.global::<Library>().set_gog_busy(true);
+        }
+        thread::spawn(move || {
+            let result = install::gog_login(&exe, &dir, &code);
+            let _ = slint::invoke_from_event_loop(move || {
+                with_state(|state| {
+                    if let Some(ui) = state.ui.upgrade() {
+                        ui.global::<Library>().set_gog_busy(false);
+                    }
+                    if let Err(err) = result {
+                        crate::log(&format!("library: GOG sign-in: {err}"));
+                        state.show_error(format!("GOG: {err}"));
+                    }
+                    state.refresh_owned(true);
+                })
+            });
+        });
+        true
     }
 
     /// The launch returned: show the outcome, then put the game first.
@@ -988,14 +1124,15 @@ fn adopt_epic_installs(roots: &Roots) -> bool {
 }
 
 /// Owned games from every store set up: Steam through the Web API, Epic
-/// through Legendary. Returns them, the art links Epic gave, and the
-/// signed-in Epic account.
+/// through Legendary, GOG through gogdl's token. Returns them, the art
+/// links Epic and GOG gave, and the signed-in accounts.
 fn fetch_owned(
     settings: &crate::i18n::ShellSettings,
     steam: Option<&Path>,
-    legendary: Option<&Path>,
+    tools: &Tools,
 ) -> Owned {
     let (mut owned, mut art, mut account) = (Vec::new(), HashMap::new(), None);
+    let mut gog_account = None;
     let mut errors = Vec::new();
     let key = settings.steam_api_key.trim();
     #[cfg(windows)]
@@ -1023,7 +1160,7 @@ fn fetch_owned(
     }
     #[cfg(not(windows))]
     let _ = (key, steam);
-    if let Some(exe) = legendary {
+    if let Some(exe) = &tools.legendary {
         match install::epic_account(exe) {
             Ok(Some(name)) => {
                 account = Some(name);
@@ -1049,10 +1186,53 @@ fn fetch_owned(
             }
         }
     }
+    if let Some((exe, dir)) = &tools.gogdl {
+        match install::gog_credentials(exe, dir) {
+            Ok(Some(creds)) => {
+                #[cfg(windows)]
+                {
+                    use canape_library::online::Http;
+                    let result = canape_library::http::WinHttp::new().and_then(|http| {
+                        let name = http
+                            .get(canape_library::gogdl::USER_URL, Some(&creds.access_token))
+                            .ok()
+                            .and_then(|json| canape_library::gogdl::parse_user(&json));
+                        let games = canape_library::gogdl::fetch_owned(&http, &creds.access_token)?;
+                        Ok((name, games))
+                    });
+                    match result {
+                        Ok((name, games)) => {
+                            gog_account = Some(name.unwrap_or_else(|| creds.user_id.clone()));
+                            for item in games {
+                                if let Some(url) = item.art_url {
+                                    art.insert(item.game.id.clone(), url);
+                                }
+                                owned.push(item.game);
+                            }
+                        }
+                        Err(err) => {
+                            crate::log(&format!("library: GOG owned games: {err}"));
+                            errors.push(format!("GOG: {err}"));
+                        }
+                    }
+                }
+                #[cfg(not(windows))]
+                {
+                    gog_account = Some(creds.user_id);
+                }
+            }
+            Ok(None) => {}
+            Err(err) => {
+                crate::log(&format!("library: GOG account: {err}"));
+                errors.push(format!("GOG: {err}"));
+            }
+        }
+    }
     Owned {
         games: owned,
         art,
         account,
+        gog_account,
         error: errors.join(" · "),
     }
 }
@@ -1061,10 +1241,12 @@ fn fetch_owned(
 #[derive(Clone, Default)]
 struct Owned {
     games: Vec<Game>,
-    /// Art links Epic gave, by game id.
+    /// Art links Epic and GOG gave, by game id.
     art: HashMap<String, String>,
     /// Signed-in Epic account.
     account: Option<String>,
+    /// Signed-in GOG account.
+    gog_account: Option<String>,
     /// Why a store could not be listed, "" when all went well.
     error: String,
 }
@@ -1082,8 +1264,9 @@ fn post_owned(owned: Owned, covers_only: bool) {
                 }
             }
             if let Some(ui) = state.ui.upgrade() {
-                ui.global::<Library>()
-                    .set_epic_account(owned.account.unwrap_or_default().into());
+                let library = ui.global::<Library>();
+                library.set_epic_account(owned.account.unwrap_or_default().into());
+                library.set_gog_account(owned.gog_account.unwrap_or_default().into());
             }
             state.show_accounts();
             state.rebuild(None);
@@ -1133,6 +1316,28 @@ fn epic_login() {
                 crate::log(&format!("library: Epic sign-in: {err}"));
                 busy(false, format!("Epic: {err}"));
             }
+        }
+    });
+}
+
+/// Canapé's GOG folder: gogdl's tokens and manifests, the install record.
+fn gog_dir() -> PathBuf {
+    canape_core::log::dir("LOCALAPPDATA").join("gog")
+}
+
+/// Where Legendary and gogdl install games.
+fn games_dir() -> PathBuf {
+    let home = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME"));
+    home.map(PathBuf::from).unwrap_or_default().join("Games")
+}
+
+/// Opens GOG's sign-in page in the browser.
+fn open_gog_page() {
+    thread::spawn(|| {
+        if let Err(err) = canape_library::launch(&Launch::Uri {
+            uri: canape_library::gogdl::login_url(),
+        }) {
+            crate::log(&format!("library: GOG sign-in page: {err}"));
         }
     });
 }
@@ -1306,6 +1511,8 @@ pub fn start(ui: &AppWindow) {
         tools_dir,
         error_timer: Timer::default(),
         just_installed: None,
+        gog_wait: None,
+        gog_timer: Timer::default(),
         tints: HashMap::new(),
         backdrop: None,
         backdrop_b_front: false,
@@ -1372,6 +1579,7 @@ pub fn start(ui: &AppWindow) {
         }
     });
     library.on_epic_login(epic_login);
+    library.on_gog_login(|| with_state(State::gog_login));
     library.on_open_detail(|index| {
         if let Ok(index) = usize::try_from(index) {
             with_state(|state| state.open_detail(index));

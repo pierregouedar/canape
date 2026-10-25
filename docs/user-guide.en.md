@@ -171,7 +171,7 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 | **Recent** | The last 10 games played, the most recent first. Absent until a game has been played. The selected cover is larger, opaque and outlined in white; the others are dimmed. A game without art shows its title on a tinted card. |
 | **Installed · N** | Every installed game, in alphabetical order. |
 | **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N** | Each store's games, with its logo, installed and to install mixed in alphabetical order. Only stores that have games (a lone store with nothing to install gets no shelf: it would repeat Installed). |
-| **To install · N** | Always last: the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)). Empty, it explains how to set up Steam and Epic. |
+| **To install · N** | Always last: the Steam, Epic and GOG games you own but have not installed (see [Installing owned games](#installing-owned-games)). Empty, it explains how to set up Steam, with two buttons to sign in to Epic or GOG (left and right pick, A confirms). |
 
 **Moving around**: left and right move along the shelf; it only scrolls when the selection reaches an edge, keeping one game visible beside it. The backdrop takes the selected game's colour once you stop on it. Up and down go to the previous or next shelf: it slides to the top, the next one peeks in at the bottom, dimmed. Each shelf remembers its selected game when you leave it. On To install, the header describes the game to install and the button becomes **Install**. **A** opens the selected game's page.
 
@@ -185,7 +185,7 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 |---|---|---|---|
 | **Steam** | The library folders (`steamapps\libraryfolders.vdf`) and each game's manifest (`appmanifest_*.acf`). Tools (Steamworks redistributables, Proton, SteamVR) are left out. | Through Steam, started hidden in the tray if it was not running (`steam.exe -silent steam://rungameid/…`): no Steam window. Most Steam games need the client. | Steam's own cache: the art you picked in Steam, else the 600×900 portrait, else the hero or header image (shown whole, on a blurred backdrop) |
 | **Epic Games** | The launcher's manifests (`%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests`). DLC, engines and unfinished installs are left out. Plus the games installed from Canapé with Legendary (see [below](#installing-owned-games)). | Through Legendary, without the launcher. Once signed in to Epic in Canapé, games installed by the Epic launcher are handed to Legendary at the next scan (`legendary import`, no new download); until then, or if that fails, through the launcher | Downloaded (see below), else a title card |
-| **GOG** | The registry (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), where GOG Galaxy and the offline installers register each game. DLC are left out. | The game's executable directly, without Galaxy | Downloaded (see below), else a title card |
+| **GOG** | The registry (`HKLM\SOFTWARE\WOW6432Node\GOG.com\Games`), where GOG Galaxy and the offline installers register each game. DLC are left out. Plus the games installed from Canapé with gogdl (see [below](#installing-owned-games)). | The game's executable directly, without Galaxy | Downloaded (see below), else a title card |
 | **Xbox app** | The `XboxGames` folders of every drive (`Content\MicrosoftGame.config`). | Through Windows (`shell:AppsFolder\…`) | The game's square logo |
 
 - The last played time comes from Steam for Steam games, and from Canapé for every game launched from it.
@@ -213,9 +213,9 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 <sub>Made-up owned games (`tools/fake-library.py`); the install of Mosaic Run is simulated.</sub>
 
 > [!NOTE]
-> **Nothing in this part has been tried on the Ally yet**: not the Steam owned list through the Web API, not installing through Steam, not the Legendary download, not the Epic sign-in, not installing and launching Epic games through Legendary. Only the UI (on Linux, with the fake library and a simulated install) and the reading of Steam's, Epic's and GitHub's answers (against recorded answers) were tested.
+> **Nothing in this part has been tried on the Ally yet**: not the Steam owned list through the Web API, not installing through Steam, not the Legendary or gogdl download, not the Epic and GOG sign-ins, not installing and launching Epic and GOG games. Only the UI (on Linux, with the fake library and a simulated install) and the reading of Steam's, Epic's, GOG's and GitHub's answers were tested (against recorded answers for Steam, Epic and GitHub; for GOG, against answers written from gogdl's source code, as GOG's servers cannot be reached from the cloud session).
 
-The **To install** shelf lists the games you own on Steam or Epic but have not installed on the console (the last shelf: down until you reach it). **A** opens the game's page, then **A** on the page ("Install") installs it without opening Steam's interface or the Epic launcher: a single press on the shelf never starts a download. A game already installed, from any store (same id or same title), does not show in this list.
+The **To install** shelf lists the games you own on Steam, Epic or GOG but have not installed on the console (the last shelf: down until you reach it). **A** opens the game's page, then **A** on the page ("Install") installs it without opening Steam's interface, the Epic launcher or GOG Galaxy: a single press on the shelf never starts a download. A game already installed, from any store (same id or same title), does not show in this list.
 
 **Steam: set up once**
 
@@ -233,7 +233,16 @@ Canapé asks for the list of the account last signed in to Steam on this device 
 
 Epic games that install through another store (Ubisoft, EA) are left out: Legendary cannot install them.
 
-**When the list is refreshed**: when Canapé starts (to count the games of the shelf), when you bring the To install shelf to the front if the last request is more than 10 minutes old, and right after an Epic sign-in. Without a Steam key or an Epic account, no store is asked. A store that cannot be listed (wrong Steam key, Epic session expired) shows its error in the header for 10 seconds and keeps the last list. The last list is kept in `owned.json` and shows at once. Covers are fetched like the [downloaded covers](#games), under the same **Download missing covers** setting; for Epic games, Canapé first tries the portrait art Epic provides.
+**GOG: sign in once**
+
+1. Pick **GOG account** in [Settings](#settings), or **Sign in to GOG** on the empty To install shelf.
+2. The first time, Canapé downloads **gogdl** (heroic-gogdl, an open-source GOG downloader, GPL-3 licence, that stays a separate program) from its official releases on GitHub, into `%LOCALAPPDATA%\Canape\tools`. The version is pinned (1.3.1) and the file checked against its SHA-256 digest: if it does not match, nothing is saved and the error shows.
+3. GOG's sign-in page opens in the browser. Sign in: GOG lands on an almost empty page whose address holds a code (`embed.gog.com/on_login_success?origin=client&code=…`).
+4. **Copy the address of that page** (address bar, then Copy) and come back to Canapé (Armoury button): Canapé watches the clipboard for 10 minutes and signs in as soon as it finds that address there; **A** on the line checks at once, or opens the page again if there is nothing. The line reads "Waiting for the GOG address…" meanwhile, then the account.
+
+The browser is not made for the gamepad: the touch screen and the touch keyboard may be needed. Only GOG games available on Windows are listed (no films). GOG's tokens stay in `%LOCALAPPDATA%\Canape\gog\auth.json`.
+
+**When the list is refreshed**: when Canapé starts (to count the games of the shelf), when you bring the To install shelf to the front if the last request is more than 10 minutes old, and right after an Epic or GOG sign-in. Without a Steam key or an Epic or GOG account, no store is asked. A store that cannot be listed (wrong Steam key, Epic session expired) shows its error in the header for 10 seconds and keeps the last list. The last list is kept in `owned.json` and shows at once. Covers are fetched like the [downloaded covers](#games), under the same **Download missing covers** setting; for Epic games, Canapé first tries the portrait art Epic provides, for GOG games the GOG store's image.
 
 **What A does**
 
@@ -241,12 +250,14 @@ Epic games that install through another store (Ubisoft, EA) are left out: Legend
 |---|---|---|---|
 | **Steam** | Canapé hands the install to Steam, which starts quietly in the notification area if it was not running. Steam only opens its small install window (folder, shortcuts): confirm it (not checked with the gamepad yet). Steam then downloads in the background. | Read every 2 s from the game's manifest. | The game moves to Installed, which comes back to the front with the game selected: A launches it, through Steam like the others. |
 | **Epic** | Legendary installs the game silently, without a window or questions, into its default folder. | Read from Legendary's output. | The game moves to Installed and launches through Legendary: the Epic launcher is never opened. |
+| **GOG** | gogdl downloads the game's Windows version, in English, without DLC, without a window or questions, into `%USERPROFILE%\Games\<game>`. | Read from gogdl's output. | The game moves to Installed and launches directly through its executable: GOG Galaxy is never needed. |
 
 - While installing, the cover shows a progress bar, and the header "Installing… N %" when the game is selected; "Waiting for the store…" until the download starts (Steam's window to confirm, for example). You can keep moving around and install other games.
-- Canapé does not pick the folder nor check the free space: Steam offers them in its window, Legendary uses its default folder.
+- Canapé does not pick the folder nor check the free space: Steam offers them in its window, Legendary uses its default folder, gogdl `%USERPROFILE%\Games`.
 - Steam: if the install window is not confirmed, Canapé gives up after 10 minutes ("Steam did not start the download"); an install cancelled in Steam midway gives "cancelled in Steam".
-- On failure, the header shows "<title>: <message>" in yellow, the message in English (`Steam is not installed`, `Legendary is not available`, `legendary: …` with Legendary's last line). It stays until the next install and is also in `shell.log`.
-- Games installed by Legendary are found in its configuration (`%USERPROFILE%\.config\legendary\installed.json`) as long as `legendary.exe` is in `%LOCALAPPDATA%\Canape\tools`.
+- On failure, the header shows "<title>: <message>" in yellow, the message in English (`Steam is not installed`, `Legendary is not available`, `legendary: …` with Legendary's last line, `gogdl: …`). It stays until the next install and is also in `shell.log`.
+- Games installed by Legendary are found in its configuration (`%USERPROFILE%\.config\legendary\installed.json`) as long as `legendary.exe` is in `%LOCALAPPDATA%\Canape\tools`. Those installed by gogdl are recorded by Canapé in `%LOCALAPPDATA%\Canape\gog\installed.json`; a game whose folder was deleted leaves the list.
+- GOG: a game's redistributables (Visual C++, DirectX…) are downloaded with it but not installed; Windows 11 already has most of them. If a game asks for one when it starts, install it by hand (from Microsoft's site).
 
 ### Performance
 
@@ -347,6 +358,7 @@ Setting lines: up and down move from one to the next (the left column, then the 
 | **Use the Ally's buttons** | The **Armoury** button (right, under the screen) brings Canapé to the front from a game, or goes back to Games when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget lives. Turn it off if Armoury Crate or another tool should handle them (otherwise both react). Not tried on the Ally yet. |
 | **Download missing covers** | See [Games](#games). |
 | **Epic Games account** | The signed-in account, or "Sign in": **A** opens the Epic sign-in, downloading Legendary first if needed (see [Installing owned games](#installing-owned-games)). Not tried on the Ally yet. |
+| **GOG account** | The signed-in account, or "Sign in": **A** opens GOG's sign-in page in the browser, downloading gogdl first if needed, then waits for the copied address (see [Installing owned games](#installing-owned-games)). Not tried on the Ally yet. |
 | **Game profiles** | The number of profiles; **A** opens the [Game profiles](#game-profiles) sub-page. |
 | **Accent colour** | Eight ready-made swatches (left and right, A picks) and three lines **Hue**, **Saturation** and **Brightness** that left and right move. The whole interface follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the Game Bar widget follows the accent colour**. |
 

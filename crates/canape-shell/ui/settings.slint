@@ -2,8 +2,8 @@
 // the left and the accent colour on the right. Up and down change line,
 // left and right change its value, A acts on it:
 //   0 language (A applies the one shown), 1 the Ally's buttons, 2 online
-//   covers, 3 Epic account, 4 game profiles, 5 accent presets, 6 hue,
-//   7 saturation, 8 brightness.
+//   covers, 3 Epic account, 4 GOG account, 5 game profiles, 6 accent
+//   presets, 7 hue, 8 saturation, 9 brightness.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
@@ -69,13 +69,13 @@ export component SettingsPage inherits Rectangle {
             App.toggle-ally-buttons();
         } else if root.focus-row == 2 {
             App.toggle-online-covers();
-        } else if root.focus-row == 5 {
-            root.preset-col = clamp(root.preset-col + d, 0, root.presets.length - 1);
         } else if root.focus-row == 6 {
-            root.hue(d);
+            root.preset-col = clamp(root.preset-col + d, 0, root.presets.length - 1);
         } else if root.focus-row == 7 {
-            root.saturation(d);
+            root.hue(d);
         } else if root.focus-row == 8 {
+            root.saturation(d);
+        } else if root.focus-row == 9 {
             root.brightness(d);
         }
     }
@@ -91,8 +91,12 @@ export component SettingsPage inherits Rectangle {
                 Library.epic-login();
             }
         } else if root.focus-row == 4 {
-            root.open-profiles();
+            if !Library.gog-busy {
+                Library.gog-login();
+            }
         } else if root.focus-row == 5 {
+            root.open-profiles();
+        } else if root.focus-row == 6 {
             App.pick-accent(root.presets[root.preset-col].hex);
         }
     }
@@ -110,7 +114,7 @@ export component SettingsPage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.DownArrow {
-                root.focus-row = min(8, root.focus-row + 1);
+                root.focus-row = min(9, root.focus-row + 1);
                 return accept;
             }
             if event.text == Key.LeftArrow {
@@ -206,12 +210,37 @@ export component SettingsPage inherits Rectangle {
             }
 
             SettingLine {
-                label: @tr("Game profiles");
-                value: App.profiles.length + " ›";
+                label: @tr("GOG account");
+                value: Library.gog-busy ? @tr("Opening the GOG sign-in…") : Library.gog-waiting ? @tr("Waiting for the GOG address…") : Library.gog-account != "" ? Library.gog-account : @tr("Sign in");
                 chevrons: false;
                 focused: root.line-focused(4);
                 clicked => {
                     root.focus-row = 4;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            // While GOG's page is open: what to copy.
+            if Library.gog-waiting: HorizontalLayout {
+                padding-left: 16px;
+                padding-right: 16px;
+                padding-bottom: 6px;
+                Text {
+                    text: @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.");
+                    color: Theme.dim;
+                    font-size: 13px;
+                    wrap: word-wrap;
+                }
+            }
+
+            SettingLine {
+                label: @tr("Game profiles");
+                value: App.profiles.length + " ›";
+                chevrons: false;
+                focused: root.line-focused(5);
+                clicked => {
+                    root.focus-row = 5;
                     root.activate();
                 }
 
@@ -244,7 +273,7 @@ export component SettingsPage inherits Rectangle {
             Row {
                 height: 64px;
                 border-radius: 10px;
-                focused: root.line-focused(5);
+                focused: root.line-focused(6);
                 HorizontalLayout {
                     padding-left: 12px;
                     padding-right: 12px;
@@ -254,9 +283,9 @@ export component SettingsPage inherits Rectangle {
                         Swatch {
                             swatch: preset.color;
                             selected: Theme.accent-hex == preset.hex;
-                            focused: root.line-focused(5) && root.preset-col == i;
+                            focused: root.line-focused(6) && root.preset-col == i;
                             clicked => {
-                                root.focus-row = 5;
+                                root.focus-row = 6;
                                 root.preset-col = i;
                                 App.pick-accent(preset.hex);
                                 fs.focus();
@@ -270,9 +299,9 @@ export component SettingsPage inherits Rectangle {
                 label: @tr("Hue");
                 value: Theme.accent-hue / 360;
                 track: @linear-gradient(90deg, hsv(0, 1, 1) 0%, hsv(60, 1, 1) 16.7%, hsv(120, 1, 1) 33.3%, hsv(180, 1, 1) 50%, hsv(240, 1, 1) 66.7%, hsv(300, 1, 1) 83.3%, hsv(359, 1, 1) 100%);
-                focused: root.line-focused(6);
+                focused: root.line-focused(7);
                 moved(v) => {
-                    root.focus-row = 6;
+                    root.focus-row = 7;
                     App.pick-accent-hsv(min(v, 0.999) * 360, Theme.accent-saturation, Theme.accent-value);
                     fs.focus();
                 }
@@ -282,9 +311,9 @@ export component SettingsPage inherits Rectangle {
                 label: @tr("Saturation");
                 value: Theme.accent-saturation;
                 track: @linear-gradient(90deg, hsv(Theme.accent-hue, 0, Theme.accent-value) 0%, hsv(Theme.accent-hue, 1, Theme.accent-value) 100%);
-                focused: root.line-focused(7);
+                focused: root.line-focused(8);
                 moved(v) => {
-                    root.focus-row = 7;
+                    root.focus-row = 8;
                     App.pick-accent-hsv(Theme.accent-hue, v, Theme.accent-value);
                     fs.focus();
                 }
@@ -294,9 +323,9 @@ export component SettingsPage inherits Rectangle {
                 label: @tr("Brightness");
                 value: max(0, (Theme.accent-value - root.min-value) / (1 - root.min-value));
                 track: @linear-gradient(90deg, hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value) 0%, hsv(Theme.accent-hue, Theme.accent-saturation, 1) 100%);
-                focused: root.line-focused(8);
+                focused: root.line-focused(9);
                 moved(v) => {
-                    root.focus-row = 8;
+                    root.focus-row = 9;
                     App.pick-accent-hsv(Theme.accent-hue, Theme.accent-saturation, root.min-value + v * (1 - root.min-value));
                     fs.focus();
                 }
