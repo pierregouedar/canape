@@ -663,6 +663,11 @@ impl State {
         thread::spawn(move || {
             let started = Instant::now();
             let mut games = canape_library::scan(&roots);
+            // Launcher installs handed to Legendary launch without the
+            // launcher from now on: scan again to pick them up.
+            if !fixture && adopt_epic_installs(&roots) {
+                games = canape_library::scan(&roots);
+            }
             online::attach(&mut games, &covers);
             crate::log(&format!(
                 "library: {} games found in {} ms",
@@ -900,6 +905,41 @@ fn same_view(old: &GameView, new: &GameView) -> bool {
         && old.played == new.played
         && old.installed == new.installed
         && old.progress == new.progress
+}
+
+/// Hands the Epic Games Launcher's installs to Legendary, so they launch
+/// without the launcher; once per game and session, and only with an Epic
+/// account signed in (Legendary asks Epic about the game). True if any was
+/// taken over.
+fn adopt_epic_installs(roots: &Roots) -> bool {
+    static TRIED: Mutex<Vec<String>> = Mutex::new(Vec::new());
+    let (Some(dir), Some((config, exe))) = (&roots.epic, &roots.legendary) else {
+        return false;
+    };
+    let taken: HashSet<String> = canape_library::legendary::scan(config, exe)
+        .into_iter()
+        .map(|g| g.id)
+        .collect();
+    let todo: Vec<(String, PathBuf)> = canape_library::epic::installs(dir)
+        .into_iter()
+        .filter(|(app, _)| !taken.contains(&format!("epic:{app}")))
+        .filter(|(app, _)| !TRIED.lock().unwrap().contains(app))
+        .collect();
+    if todo.is_empty() || !matches!(install::epic_account(exe), Ok(Some(_))) {
+        return false;
+    }
+    let mut adopted = false;
+    for (app, path) in todo {
+        TRIED.lock().unwrap().push(app.clone());
+        match install::epic_import(exe, &app, &path) {
+            Ok(()) => {
+                crate::log(&format!("library: {app} handed to Legendary"));
+                adopted = true;
+            }
+            Err(err) => crate::log(&format!("library: {err}")),
+        }
+    }
+    adopted
 }
 
 /// Owned games from every store set up: Steam through the Web API, Epic

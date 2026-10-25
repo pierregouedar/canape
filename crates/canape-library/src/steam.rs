@@ -184,6 +184,28 @@ pub fn cover(steam: &Path, appid: u32) -> Option<PathBuf> {
     candidates.into_iter().find(|p| p.is_file())
 }
 
+/// How an installed game is launched: through `steam.exe -silent`, so a
+/// Steam that is not running yet starts hidden in the tray instead of
+/// opening its window (most games need the client running); the URI alone
+/// when `steam.exe` is not there.
+pub fn launch(steam: &Path, appid: u32) -> Launch {
+    silent(steam, format!("steam://rungameid/{appid}"))
+}
+
+/// A `steam://` URI handed to `steam.exe -silent` (see [`launch`]).
+pub(crate) fn silent(steam: &Path, uri: String) -> Launch {
+    let exe = steam.join("steam.exe");
+    if exe.is_file() {
+        Launch::Exe {
+            path: exe,
+            args: format!("-silent {uri}"),
+            cwd: steam.to_path_buf(),
+        }
+    } else {
+        Launch::Uri { uri }
+    }
+}
+
 /// Steam's wide art for a game (`library_hero.jpg`), for the game's page.
 pub fn hero(steam: &Path, appid: u32) -> Option<PathBuf> {
     let cache = steam.join("appcache").join("librarycache");
@@ -369,9 +391,7 @@ pub fn scan(steam: &Path) -> Vec<Game> {
                 title: m.name,
                 source: Source::Steam,
                 cover: cover(steam, m.appid),
-                launch: Launch::Uri {
-                    uri: format!("steam://rungameid/{}", m.appid),
-                },
+                launch: launch(steam, m.appid),
                 last_played: m.last_played.max(played.get(&m.appid).copied()),
                 size: m.size,
                 playtime: None,
@@ -385,6 +405,29 @@ pub fn scan(steam: &Path) -> Vec<Game> {
 mod tests {
     use super::*;
     use crate::test_util::fixture;
+
+    #[test]
+    fn launches_through_a_hidden_steam() {
+        let steam = std::env::temp_dir().join(format!("canape-steam-{}", std::process::id()));
+        std::fs::create_dir_all(&steam).unwrap();
+        // No steam.exe: the URI alone.
+        assert_eq!(
+            launch(&steam, 400),
+            Launch::Uri {
+                uri: "steam://rungameid/400".into()
+            }
+        );
+        std::fs::write(steam.join("steam.exe"), b"").unwrap();
+        assert_eq!(
+            launch(&steam, 400),
+            Launch::Exe {
+                path: steam.join("steam.exe"),
+                args: "-silent steam://rungameid/400".into(),
+                cwd: steam.clone(),
+            }
+        );
+        std::fs::remove_dir_all(&steam).unwrap();
+    }
 
     #[test]
     fn landscape_covers_are_told_apart() {

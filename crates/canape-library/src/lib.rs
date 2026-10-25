@@ -172,8 +172,19 @@ pub fn scan(roots: &Roots) -> Vec<Game> {
     if let Some(dir) = &roots.steam {
         games.extend(steam::scan(dir));
     }
+    // A launcher install that Legendary took over launches through
+    // Legendary, without the launcher: its own entry is left out.
+    let legendary = roots
+        .legendary
+        .as_ref()
+        .map(|(config, exe)| legendary::scan(config, exe))
+        .unwrap_or_default();
     if let Some(dir) = &roots.epic {
-        games.extend(epic::scan(dir));
+        games.extend(
+            epic::scan(dir)
+                .into_iter()
+                .filter(|g| legendary.iter().all(|l| l.id != g.id)),
+        );
     }
     match &roots.gog {
         GogSource::None => {}
@@ -183,9 +194,7 @@ pub fn scan(roots: &Roots) -> Vec<Game> {
     for dir in &roots.xbox {
         games.extend(xbox::scan(dir));
     }
-    if let Some((config, exe)) = &roots.legendary {
-        games.extend(legendary::scan(config, exe));
-    }
+    games.extend(legendary);
     games
 }
 
