@@ -268,6 +268,7 @@ const NOT_GAME_FILES: &[&str] = &[
     "wmplayer.exe",
     "appcertui.exe",
     "rtss.exe",
+    "desktopoverlayhost.exe",
 ];
 
 /// Whether the shortcut `name` to `target` could be a game: a program

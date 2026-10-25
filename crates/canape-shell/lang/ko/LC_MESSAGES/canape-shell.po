@@ -681,3 +681,9 @@ msgstr "약 {}시간"
 
 msgid "~{} min"
 msgstr "약 {}분"
+
+msgid "Waiting for the Epic code…"
+msgstr "Epic 코드를 기다리는 중…"
+
+msgid "Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard."
+msgstr "브라우저에서 Epic에 로그인한 뒤 표시된 페이지(또는 authorizationCode)를 복사하세요. Canapé가 클립보드에서 읽습니다."

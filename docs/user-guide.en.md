@@ -293,8 +293,8 @@ Canapé asks for the list of the account last signed in to Steam on this device 
 
 1. Pick **Epic Games account** in [Settings](#settings).
 2. The first time, Canapé downloads **Legendary**, an open-source Epic client (GPL-3 licence) that stays a separate program, from its official releases on GitHub, into `%LOCALAPPDATA%\Canape\tools`. The file is checked against the SHA-256 digest GitHub publishes: without a digest, or if it does not match, nothing is saved and the error shows at the top of the library.
-3. Legendary opens its own Epic sign-in window, with a console next to it (without WebView2, Legendary asks for a code there instead). These windows are not made for the gamepad: the touch screen and the touch keyboard may be needed.
-4. An error (download, sign-in) shows in yellow under the Settings lines and in the Games page header. Once the window is closed, Canapé asks for the list of games again. The button then reads "Epic: <account> (sign in again)".
+3. Canapé opens Epic's sign-in page in the browser. Sign in (touch and the touch keyboard are needed): the page then shows a small JSON text with an `authorizationCode`. Copy the page (select all, copy) or just the code's value: Canapé watches the clipboard for 10 minutes, finds the code and signs Legendary in without a window. A again while waiting reads the clipboard at once, or opens the page again.
+4. An error (download, sign-in) shows in yellow under the Settings lines and in the Games page header. Once signed in, Canapé asks for the list of games again. The button then reads "Epic: <account> (sign in again)".
 
 Epic games that install through another store (Ubisoft, EA) are left out: Legendary cannot install them.
 

@@ -26,7 +26,7 @@ use std::time::{Duration, Instant};
 
 use canape_library::cache::{self, Recent};
 use canape_library::install::{self, Event, Install, Tools};
-use canape_library::{Game, Launch, Played, Roots, online, tools};
+use canape_library::{Game, Launch, Played, Roots, legendary, online, tools};
 use slint::{
     ComponentHandle, Image, Model, ModelRc, Rgb8Pixel, Rgba8Pixel, SharedPixelBuffer, Timer,
     TimerMode, VecModel, Weak,
@@ -168,6 +168,11 @@ struct State {
     gog_wait: Option<(Instant, Option<String>)>,
     /// Reads the clipboard while `gog_wait` is set.
     gog_timer: Timer,
+    /// Since when Canapé waits for Epic's sign-in code, and the clipboard's
+    /// text then (a code already there is not a new one).
+    epic_wait: Option<(Instant, Option<String>)>,
+    /// Reads the clipboard while `epic_wait` is set.
+    epic_timer: Timer,
     /// Bytes each owned game takes once installed, as its store said
     /// (`None`: the store could not tell).
     sizes: HashMap<String, Option<u64>>,
@@ -228,7 +233,7 @@ fn roots(dir: &Path, tools_dir: &Path) -> (Roots, bool) {
             let mut roots = Roots::system();
             roots.external = Some(dir.join("games.json"));
             let exe = tools::legendary_path(tools_dir);
-            roots.legendary = canape_library::legendary::config_dir()
+            roots.legendary = legendary::config_dir()
                 .filter(|_| exe.is_file())
                 .map(|config| (config, exe));
             roots.gogdl = Some(install::gog_record(&gog_dir()));
@@ -1160,6 +1165,126 @@ impl State {
         library.set_owned_loading(self.owned_loading);
     }
 
+    /// A on the Epic sign-in: downloads Legendary if needed and opens
+    /// Epic's sign-in page in the browser, then watches the clipboard for
+    /// the code the page shows. Pressed again while waiting, it reads the
+    /// clipboard at once, else opens the page again.
+    fn epic_login(&mut self) {
+        let Some(ui) = self.ui.upgrade() else { return };
+        let library = ui.global::<Library>();
+        if library.get_epic_busy() {
+            return;
+        }
+        if self.epic_wait.is_some() {
+            if !self.epic_check_clipboard() && !self.fixture {
+                open_page(legendary::LOGIN_URL);
+            }
+            return;
+        }
+        if self.fixture {
+            // Development: the waiting state, without a browser.
+            self.epic_waiting(true);
+            return;
+        }
+        library.set_epic_busy(true);
+        let dir = self.tools_dir.clone();
+        thread::spawn(move || {
+            let exe = tools::legendary_path(&dir);
+            #[cfg(windows)]
+            let ready = if exe.is_file() {
+                Ok(exe)
+            } else {
+                canape_library::http::WinHttp::new()
+                    .and_then(|http| tools::fetch_legendary(&http, &dir))
+            };
+            #[cfg(not(windows))]
+            let ready: std::io::Result<PathBuf> = Err(std::io::Error::other(format!(
+                "Epic sign-in needs Windows ({})",
+                exe.display()
+            )));
+            let result = ready.and_then(|_| {
+                canape_library::launch(&Launch::Uri {
+                    uri: legendary::LOGIN_URL.to_owned(),
+                })
+            });
+            let _ = slint::invoke_from_event_loop(move || {
+                with_state(|state| {
+                    if let Some(ui) = state.ui.upgrade() {
+                        ui.global::<Library>().set_epic_busy(false);
+                    }
+                    match result {
+                        Ok(()) => state.epic_waiting(true),
+                        Err(err) => {
+                            crate::log(&format!("library: Epic sign-in: {err}"));
+                            state.show_error(format!("Epic: {err}"));
+                        }
+                    }
+                })
+            });
+        });
+    }
+
+    /// Starts or stops watching the clipboard for Epic's sign-in code.
+    fn epic_waiting(&mut self, on: bool) {
+        if let Some(ui) = self.ui.upgrade() {
+            ui.global::<Library>().set_epic_waiting(on);
+        }
+        if !on {
+            self.epic_wait = None;
+            self.epic_timer.stop();
+            return;
+        }
+        self.epic_wait = Some((Instant::now(), crate::clipboard::text()));
+        self.epic_timer.start(TimerMode::Repeated, GOG_POLL, || {
+            with_state(|state| {
+                if state
+                    .epic_wait
+                    .as_ref()
+                    .is_some_and(|(at, _)| at.elapsed() > GOG_WAIT)
+                {
+                    state.epic_waiting(false);
+                } else {
+                    state.epic_check_clipboard();
+                }
+            })
+        });
+    }
+
+    /// Signs in to Epic if the clipboard holds a new sign-in code.
+    fn epic_check_clipboard(&mut self) -> bool {
+        let Some((_, before)) = &self.epic_wait else {
+            return false;
+        };
+        let Some(text) = crate::clipboard::text().filter(|t| Some(t) != before.as_ref()) else {
+            return false;
+        };
+        let Some(code) = legendary::parse_auth_code(&text) else {
+            return false;
+        };
+        self.epic_waiting(false);
+        let exe = tools::legendary_path(&self.tools_dir);
+        crate::log("library: Epic sign-in code found");
+        if let Some(ui) = self.ui.upgrade() {
+            ui.global::<Library>().set_epic_busy(true);
+        }
+        thread::spawn(move || {
+            let result = install::epic_login(&exe, &code);
+            let _ = slint::invoke_from_event_loop(move || {
+                with_state(|state| {
+                    if let Some(ui) = state.ui.upgrade() {
+                        ui.global::<Library>().set_epic_busy(false);
+                    }
+                    if let Err(err) = result {
+                        crate::log(&format!("library: Epic sign-in: {err}"));
+                        state.show_error(format!("Epic: {err}"));
+                    }
+                    state.refresh_owned(true);
+                })
+            });
+        });
+        true
+    }
+
     /// A on the GOG sign-in: downloads gogdl if needed and opens GOG's
     /// sign-in page in the browser, then watches the clipboard for the
     /// address GOG lands on. Pressed again while waiting, it reads the
@@ -1172,7 +1297,7 @@ impl State {
         }
         if self.gog_wait.is_some() {
             if !self.gog_check_clipboard() && !self.fixture {
-                open_gog_page();
+                open_page(&canape_library::gogdl::login_url());
             }
             return;
         }
@@ -1507,52 +1632,6 @@ fn post_owned(owned: Owned, covers_only: bool) {
     });
 }
 
-/// Downloads Legendary if needed, then opens its Epic sign-in window and
-/// lists the owned games again.
-fn epic_login() {
-    let dir = canape_core::log::dir("LOCALAPPDATA").join("tools");
-    let busy = |on: bool, error: String| {
-        let _ = slint::invoke_from_event_loop(move || {
-            with_state(|state| {
-                if let Some(ui) = state.ui.upgrade() {
-                    let library = ui.global::<Library>();
-                    library.set_epic_busy(on);
-                }
-                if !error.is_empty() {
-                    state.show_error(error);
-                }
-                if !on {
-                    state.refresh_owned(true);
-                }
-            })
-        });
-    };
-    busy(true, String::new());
-    thread::spawn(move || {
-        let exe = tools::legendary_path(&dir);
-        #[cfg(windows)]
-        let ready = if exe.is_file() {
-            Ok(exe)
-        } else {
-            canape_library::http::WinHttp::new()
-                .and_then(|http| tools::fetch_legendary(&http, &dir))
-        };
-        #[cfg(not(windows))]
-        let ready: std::io::Result<PathBuf> = Err(std::io::Error::other(format!(
-            "Epic sign-in needs Windows ({})",
-            exe.display()
-        )));
-        let result = ready.and_then(|exe| install::epic_login(&exe));
-        match result {
-            Ok(_) => busy(false, String::new()),
-            Err(err) => {
-                crate::log(&format!("library: Epic sign-in: {err}"));
-                busy(false, format!("Epic: {err}"));
-            }
-        }
-    });
-}
-
 /// Canapé's GOG folder: gogdl's tokens and manifests, the install record.
 fn gog_dir() -> PathBuf {
     canape_core::log::dir("LOCALAPPDATA").join("gog")
@@ -1563,13 +1642,12 @@ fn tenths(bytes: u64) -> i32 {
     (bytes as f64 / 1e8).round() as i32
 }
 
-/// Opens GOG's sign-in page in the browser.
-fn open_gog_page() {
-    thread::spawn(|| {
-        if let Err(err) = canape_library::launch(&Launch::Uri {
-            uri: canape_library::gogdl::login_url(),
-        }) {
-            crate::log(&format!("library: GOG sign-in page: {err}"));
+/// Opens a sign-in page in the browser.
+fn open_page(uri: &str) {
+    let uri = uri.to_owned();
+    thread::spawn(move || {
+        if let Err(err) = canape_library::launch(&Launch::Uri { uri }) {
+            crate::log(&format!("library: sign-in page: {err}"));
         }
     });
 }
@@ -1769,6 +1847,8 @@ pub fn start(ui: &AppWindow) {
         error_timer: Timer::default(),
         just_installed: None,
         gog_wait: None,
+        epic_wait: None,
+        epic_timer: Timer::default(),
         gog_timer: Timer::default(),
         sizes: HashMap::new(),
         tints: HashMap::new(),
@@ -1838,7 +1918,7 @@ pub fn start(ui: &AppWindow) {
             with_state(|state| state.focus_shelf(index));
         }
     });
-    library.on_epic_login(epic_login);
+    library.on_epic_login(|| with_state(State::epic_login));
     library.on_gog_login(|| with_state(State::gog_login));
     library.on_games_folder_step(|step| with_state(|state| state.step_games_folder(step)));
     library.on_open_detail(|index| {

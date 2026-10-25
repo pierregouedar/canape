@@ -191,6 +191,29 @@ pub fn parse_account(json: &[u8]) -> Option<String> {
     (!account.is_empty() && !account.starts_with('<')).then(|| account.to_owned())
 }
 
+/// Epic's sign-in page for Legendary's client: once signed in, the page
+/// shows a small JSON answer whose `authorizationCode` signs Legendary in.
+pub const LOGIN_URL: &str = "https://www.epicgames.com/id/login?redirectUrl=https%3A%2F%2Fwww.epicgames.com%2Fid%2Fapi%2Fredirect%3FclientId%3D34a02cf8f4414e29b15921876da36f9a%26responseType%3Dcode";
+
+/// The sign-in code in `text`: the JSON answer Epic's page shows (or any
+/// text holding its `"authorizationCode":"…"`), or the code alone.
+pub fn parse_auth_code(text: &str) -> Option<String> {
+    let text = text.trim();
+    let is_code = |c: &str| c.len() == 32 && c.bytes().all(|b| b.is_ascii_hexdigit());
+    if is_code(text) {
+        return Some(text.to_ascii_lowercase());
+    }
+    let key = "\"authorizationCode\"";
+    let rest = &text[text.find(key)? + key.len()..];
+    let rest = rest
+        .trim_start()
+        .strip_prefix(':')?
+        .trim_start()
+        .strip_prefix('"')?;
+    let code = &rest[..rest.find('"')?];
+    is_code(code).then(|| code.to_ascii_lowercase())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -268,5 +291,20 @@ mod tests {
             Some("Pierre")
         );
         assert_eq!(parse_account(br#"{"account": "<not logged in>"}"#), None);
+    }
+
+    #[test]
+    fn auth_code_from_the_page_or_alone() {
+        let page = r#"{"warning":"Do not share this code","redirectUrl":"https://localhost/launcher/authorized?code=0123456789abcdef0123456789ABCDEF","authorizationCode":"0123456789abcdef0123456789ABCDEF","exchangeCode":null,"sid":null}"#;
+        assert_eq!(
+            parse_auth_code(page).as_deref(),
+            Some("0123456789abcdef0123456789abcdef")
+        );
+        assert_eq!(
+            parse_auth_code(" 0123456789abcdef0123456789abcdef\n").as_deref(),
+            Some("0123456789abcdef0123456789abcdef")
+        );
+        assert_eq!(parse_auth_code(r#"{"authorizationCode":null}"#), None);
+        assert_eq!(parse_auth_code("https://store.epicgames.com/"), None);
     }
 }

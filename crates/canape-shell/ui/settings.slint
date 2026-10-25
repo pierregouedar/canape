@@ -208,13 +208,26 @@ export component SettingsPage inherits Rectangle {
 
             SettingLine {
                 label: @tr("Epic Games account");
-                value: Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? Library.epic-account : @tr("Sign in");
+                value: Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-waiting ? @tr("Waiting for the Epic code…") : Library.epic-account != "" ? Library.epic-account : @tr("Sign in");
                 chevrons: false;
                 focused: root.line-focused(3);
                 clicked => {
                     root.focus-row = 3;
                     root.activate();
                     fs.focus();
+                }
+            }
+
+            // While Epic's page is open: what to copy.
+            if Library.epic-waiting: HorizontalLayout {
+                padding-left: 16px;
+                padding-right: 16px;
+                padding-bottom: 6px;
+                Text {
+                    text: @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.");
+                    color: Theme.dim;
+                    font-size: 13px;
+                    wrap: word-wrap;
                 }
             }
 

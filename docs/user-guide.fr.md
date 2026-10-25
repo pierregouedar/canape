@@ -293,8 +293,8 @@ Canapé demande la liste du compte connecté en dernier à Steam sur cet apparei
 
 1. Choisissez **Compte Epic Games** dans les [Réglages](#réglages).
 2. La première fois, Canapé télécharge **Legendary**, un client Epic libre (licence GPL-3) qui reste un programme séparé, depuis ses publications officielles sur GitHub, dans `%LOCALAPPDATA%\Canape\tools`. Le fichier est vérifié avec l'empreinte SHA-256 que GitHub publie : sans empreinte, ou si elle ne correspond pas, rien n'est enregistré et l'erreur s'affiche en haut de la bibliothèque.
-3. Legendary ouvre sa propre fenêtre de connexion Epic, avec une console à côté (sans WebView2, Legendary y demande un code à la place). Ces fenêtres ne se pilotent pas à la manette : l'écran tactile et le clavier tactile peuvent être nécessaires.
-4. Une erreur (téléchargement, connexion) s'affiche en jaune sous les lignes de Réglages et dans le bandeau de la page Jeux. La fenêtre fermée, Canapé redemande la liste des jeux. Le bouton affiche ensuite « Epic : <compte> (se reconnecter) ».
+3. Canapé ouvre la page de connexion d'Epic dans le navigateur. Connectez-vous (l'écran tactile et le clavier tactile sont nécessaires) : la page affiche ensuite un petit texte JSON avec un `authorizationCode`. Copiez cette page (tout sélectionner, copier) ou seulement la valeur du code : Canapé surveille le presse-papiers pendant 10 minutes, y trouve le code et connecte Legendary sans fenêtre. A de nouveau pendant l'attente relit le presse-papiers tout de suite, ou rouvre la page.
+4. Une erreur (téléchargement, connexion) s'affiche en jaune sous les lignes de Réglages et dans le bandeau de la page Jeux. Une fois connecté, Canapé redemande la liste des jeux. Le bouton affiche ensuite « Epic : <compte> (se reconnecter) ».
 
 Les jeux Epic qui s'installent par une autre boutique (Ubisoft, EA) sont écartés : Legendary ne sait pas les installer.
 

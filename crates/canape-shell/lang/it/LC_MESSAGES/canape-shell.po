@@ -681,3 +681,9 @@ msgstr "~{} h"
 
 msgid "~{} min"
 msgstr "~{} min"
+
+msgid "Waiting for the Epic code…"
+msgstr "In attesa del codice Epic…"
+
+msgid "Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard."
+msgstr "Accedi a Epic nel browser, poi copia la pagina di arrivo (o il suo authorizationCode): Canapé lo legge dagli appunti."

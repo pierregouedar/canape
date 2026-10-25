@@ -107,7 +107,7 @@ pub fn fade_art(pixels: &mut [u8], width: u32, background: [u8; 3]) {
     let height = (pixels.len() / 3 / width).max(1);
     for (y, row) in pixels.chunks_exact_mut(width * 3).enumerate() {
         let v = (y as f32 + 0.5) / height as f32;
-        let down = smoothstep(0.3, 1.0, v).max(0.7 * (1.0 - smoothstep(0.0, 0.18, v)));
+        let down = smoothstep(0.3, 1.0, v).max(0.88 * (1.0 - smoothstep(0.04, 0.24, v)));
         for (x, px) in row.chunks_exact_mut(3).enumerate() {
             let left = 0.75 * (1.0 - smoothstep(0.0, 0.6, (x as f32 + 0.5) / width as f32));
             let k = down.max(left);
@@ -181,8 +181,8 @@ mod tests {
         let at = |x: usize, y: usize| pixels[(y * 100 + x) * 3];
         // Darker under the header, untouched below it on the right,
         // background at the bottom, darker left.
-        assert!(at(99, 0) < 80);
-        assert!(at(99, 12) > 190);
+        assert!(at(99, 0) < 40);
+        assert!(at(99, 14) > 190);
         assert_eq!(at(99, 49), 10);
         assert!(at(0, 0) < 70);
     }

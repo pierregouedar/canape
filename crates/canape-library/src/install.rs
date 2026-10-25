@@ -247,12 +247,24 @@ pub fn epic_owned(exe: &Path) -> io::Result<Vec<crate::Owned>> {
         .ok_or_else(|| io::Error::other("legendary list: unreadable answer"))
 }
 
-/// Opens Legendary's Epic sign-in window and waits for it to close. Its
-/// console stays visible: without WebView2 Legendary falls back to asking
-/// for a code there.
-pub fn epic_login(exe: &Path) -> io::Result<bool> {
-    let status = Command::new(exe).arg("auth").status()?;
-    Ok(status.success())
+/// Signs Legendary in with the `code` Epic's sign-in page shows (see
+/// [`legendary::parse_auth_code`]), without a window.
+pub fn epic_login(exe: &Path, code: &str) -> io::Result<()> {
+    let out = legendary_command(exe)
+        .args(["auth", "--code", code])
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .output()?;
+    if out.status.success() {
+        return Ok(());
+    }
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    let last = stderr
+        .lines()
+        .rev()
+        .find(|l| !l.trim().is_empty())
+        .unwrap_or("");
+    Err(io::Error::other(format!("legendary auth: {}", last.trim())))
 }
 
 /// The tokens gogdl keeps, in Canapé's GOG folder `dir`.
