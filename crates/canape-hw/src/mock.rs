@@ -1,5 +1,6 @@
 use canape_core::{
-    BackButtons, ControllerMode, Fan, FanCurve, FanCurves, FanPreset, PerformanceMode,
+    BackButtons, ControllerMode, Fan, FanCurve, FanCurves, FanPreset, LightingEffect,
+    LightingSpeed, PerformanceMode,
 };
 
 use crate::{BACK_BUTTONS_IN_WASD, Device, HwError, Result, Telemetry};
@@ -24,7 +25,7 @@ pub struct MockDevice {
     pub controller_mode: Option<ControllerMode>,
     pub back_buttons: BackButtons,
     /// Level and colour of the stick rings, once written.
-    pub lighting: Option<(u8, [u8; 3])>,
+    pub lighting: Option<(u8, [u8; 3], LightingEffect, LightingSpeed)>,
 }
 
 impl Default for MockDevice {
@@ -165,11 +166,17 @@ impl Device for MockDevice {
         Ok(())
     }
 
-    fn set_lighting(&mut self, level: u8, rgb: [u8; 3]) -> Result<()> {
+    fn set_lighting(
+        &mut self,
+        level: u8,
+        rgb: [u8; 3],
+        effect: LightingEffect,
+        speed: LightingSpeed,
+    ) -> Result<()> {
         if level > canape_core::settings::LIGHTING_MAX_LEVEL {
             return Err(HwError::OutOfRange(format!("lighting level {level}")));
         }
-        self.lighting = Some((level, rgb));
+        self.lighting = Some((level, rgb, effect, speed));
         Ok(())
     }
 }

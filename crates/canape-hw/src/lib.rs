@@ -4,7 +4,9 @@
 //! the screen ([`display`]) belong to the user session: the shell uses
 //! them directly.
 
-use canape_core::{BackButtons, ControllerMode, Fan, FanCurve, PerformanceMode};
+use canape_core::{
+    BackButtons, ControllerMode, Fan, FanCurve, LightingEffect, LightingSpeed, PerformanceMode,
+};
 
 #[cfg(windows)]
 mod adl;
@@ -101,8 +103,15 @@ pub trait Device: Send {
     }
     /// Light of the stick rings: `level` 0 (off) to
     /// [`canape_core::settings::LIGHTING_MAX_LEVEL`], one colour for every
-    /// ring. Callers check the level.
-    fn set_lighting(&mut self, _level: u8, _rgb: [u8; 3]) -> Result<()> {
+    /// ring, with one of the controller's effects (kept by the controller
+    /// until another is written). Callers check the level.
+    fn set_lighting(
+        &mut self,
+        _level: u8,
+        _rgb: [u8; 3],
+        _effect: LightingEffect,
+        _speed: LightingSpeed,
+    ) -> Result<()> {
         Err(HwError::Unsupported("stick lighting"))
     }
 }

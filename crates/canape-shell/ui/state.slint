@@ -69,6 +69,10 @@ export struct StatusView {
     // controller; colour "#rrggbb", "" when it follows the accent.
     lighting-level: int,
     lighting-color: string,
+    // The effect and its speed: indexes in LightingEffect::ALL and
+    // LightingSpeed::ALL.
+    lighting-effect: int,
+    lighting-speed: int,
 }
 
 export struct ProfileView {
@@ -194,8 +198,9 @@ export global App {
     callback set-back-button(string, int);
     callback reset-back-buttons();
     // Level -1 leaves the rings to the controller; colour "" follows the
-    // accent.
-    callback set-lighting(int, string);
+    // accent; then the effect and speed, indexes in LightingEffect::ALL and
+    // LightingSpeed::ALL.
+    callback set-lighting(int, string, int, int);
     // Saves the current fan curves, frame rate cap and gyro aiming in the
     // profile of the game in the foreground.
     callback save-hardware-profile();

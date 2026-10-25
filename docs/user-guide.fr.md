@@ -462,12 +462,13 @@ Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairag
 
 **Éclairage des sticks**
 
-- **Luminosité** : Par défaut, Désactivé, Faible, Moyenne, Forte, appliquée avec A. **Par défaut** laisse les anneaux à la manette : Canapé cesse de les changer, et l'éclairage propre de la manette devrait revenir au prochain redémarrage.
+- **Luminosité** : Par défaut, Désactivé, Faible, Moyenne, Forte, appliquée avec A. **Par défaut** laisse les anneaux à la manette : Canapé cesse de les changer. La manette garde le dernier effet écrit, même après un redémarrage : Canapé ne peut pas ramener son éclairage d'usine, choisissez plutôt l'effet voulu.
+- **Effet** : Fixe, Respiration, Cycle de couleurs, Arc-en-ciel, Stroboscope, appliqué avec A ; la manette le joue elle-même, même Canapé fermé. **Vitesse** (Lente, Moyenne, Rapide) pour tous les effets sauf Fixe. Cycle de couleurs et Arc-en-ciel passent par toutes les couleurs : les pastilles sont grisées.
 - **Couleur** : la première pastille, un anneau, suit la couleur d'accent choisie dans les Réglages (et change avec elle) ; les autres sont des couleurs fixes, le blanc d'abord. A applique celle qui a le focus ; choisie alors que les anneaux sont éteints ou sur Par défaut, elle les allume en Forte.
-- Une seule couleur pour les deux anneaux, sans effet. Le choix est général, mémorisé et réécrit au démarrage du service.
+- Une seule couleur pour les deux anneaux. Le choix est général, mémorisé et réécrit au démarrage du service.
 
 > [!NOTE]
-> Pas encore essayé sur l'Ally (vérifié auprès de projets open source, comme les boutons arrière). Si les anneaux ont l'air faux, choisissez **Par défaut** et redémarrez l'Ally.
+> Pas encore essayé sur l'Ally (vérifié auprès de projets open source, comme les boutons arrière). Si les anneaux ont l'air faux, choisissez l'effet **Fixe** et une couleur.
 
 ### Réglages
 

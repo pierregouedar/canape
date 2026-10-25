@@ -9,8 +9,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use canape_core::{
-    BenchReport, ButtonTarget, ControllerMode, GyroActivation, GyroAxis, PerformanceMode, Profile,
-    Request, Response, Status, protocol,
+    BenchReport, ButtonTarget, ControllerMode, GyroActivation, GyroAxis, LightingEffect,
+    LightingSpeed, PerformanceMode, Profile, Request, Response, Status, protocol,
 };
 use canape_ipc::Connection;
 use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
@@ -455,6 +455,18 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
             .and_then(|l| l.color.clone())
             .unwrap_or_default()
             .into(),
+        lighting_effect: s.lighting.as_ref().map_or(0, |l| {
+            LightingEffect::ALL
+                .iter()
+                .position(|&e| e == l.effect)
+                .map_or(0, |i| i as i32)
+        }),
+        lighting_speed: s.lighting.as_ref().map_or(1, |l| {
+            LightingSpeed::ALL
+                .iter()
+                .position(|&e| e == l.speed)
+                .map_or(1, |i| i as i32)
+        }),
     }
 }
 
@@ -585,15 +597,27 @@ mod tests {
         let view = status_view(Some(&status));
         assert_eq!((view.m1, view.m2), (0, 2));
         assert_eq!(view.lighting_level, -1);
+        assert_eq!((view.lighting_effect, view.lighting_speed), (0, 1));
         status.lighting = Some(canape_core::Lighting {
             level: 0,
             color: Some("#ffffff".into()),
+            effect: LightingEffect::Rainbow,
+            speed: LightingSpeed::Fast,
         });
         let view = status_view(Some(&status));
         assert_eq!(
             (view.lighting_level, view.lighting_color.as_str()),
             (0, "#ffffff")
         );
+        assert_eq!((view.lighting_effect, view.lighting_speed), (3, 2));
+        // The page names one effect per entry of LightingEffect::ALL.
+        let page = include_str!("../ui/controller.slint");
+        let effects = page
+            .split("effect-names: [")
+            .nth(1)
+            .and_then(|rest| rest.split("];").next())
+            .unwrap();
+        assert_eq!(effects.matches("@tr(").count(), LightingEffect::ALL.len());
         // The page names one target per entry of ButtonTarget::ALL.
         let page = include_str!("../ui/controller.slint");
         let list = page

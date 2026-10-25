@@ -1,7 +1,9 @@
 //! The Ally's built-in controller: HID facts and feature reports. The I/O
 //! lives in `hid.rs`; this module is plain data, tested on any OS.
 
-use canape_core::{BackButton, BackButtons, ButtonTarget, ControllerMode};
+use canape_core::{
+    BackButton, BackButtons, ButtonTarget, ControllerMode, LightingEffect, LightingSpeed,
+};
 
 /// ASUS.
 pub const VENDOR_ID: u16 = 0x0B05;
@@ -293,6 +295,60 @@ pub fn ring_color_report(rgb: [u8; 3], len: usize) -> Vec<u8> {
     pad(report, len)
 }
 
+/// The controller's own lighting effect for the stick rings, all four
+/// zones: `[0x5A, 0xB3, 0x00, effect, r, g, b, speed, 0x00, breathing,
+/// r2, g2, b2]`. Effects: `0x00` steady, `0x01` breathing, `0x02` colour
+/// cycle, `0x03` rainbow, `0x0A` strobe. Speed: `0xE1` slow, `0xEB`
+/// medium, `0xF5` fast, `0x00` when steady. Breathing sets the breathing
+/// byte and fades to black (second colour zero); the rainbow ignores the
+/// colour, sent as zeros. The controller keeps the effect after
+/// [`effect_set_report`] and [`effect_apply_report`].
+pub fn effect_report(
+    effect: LightingEffect,
+    rgb: [u8; 3],
+    speed: LightingSpeed,
+    len: usize,
+) -> Vec<u8> {
+    let mode = match effect {
+        LightingEffect::Steady => 0x00,
+        LightingEffect::Breathing => 0x01,
+        LightingEffect::ColorCycle => 0x02,
+        LightingEffect::Rainbow => 0x03,
+        LightingEffect::Strobe => 0x0A,
+    };
+    let speed = match (effect.moves(), speed) {
+        (false, _) => 0x00,
+        (true, LightingSpeed::Slow) => 0xE1,
+        (true, LightingSpeed::Medium) => 0xEB,
+        (true, LightingSpeed::Fast) => 0xF5,
+    };
+    let rgb = if effect == LightingEffect::Rainbow {
+        [0; 3]
+    } else {
+        rgb
+    };
+    let breathing = u8::from(effect == LightingEffect::Breathing);
+    let mut report = vec![REPORT_ID, EFFECT, 0x00, mode];
+    report.extend_from_slice(&rgb);
+    report.extend_from_slice(&[speed, 0x00, breathing, 0, 0, 0]);
+    pad(report, len)
+}
+
+/// Makes the controller keep the effect just written: `[0x5A, 0xB5]`.
+pub fn effect_set_report(len: usize) -> Vec<u8> {
+    pad(vec![REPORT_ID, EFFECT_SET], len)
+}
+
+/// Puts the effect kept into use: `[0x5A, 0xB4]`.
+pub fn effect_apply_report(len: usize) -> Vec<u8> {
+    pad(vec![REPORT_ID, EFFECT_APPLY], len)
+}
+
+/// Lighting commands: the effect, keeping it, putting it in use.
+const EFFECT: u8 = 0xB3;
+const EFFECT_APPLY: u8 = 0xB4;
+const EFFECT_SET: u8 = 0xB5;
+
 /// A press on one of the Ally's own buttons, read from the input reports
 /// of the same interface (report ID [`REPORT_ID`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -483,6 +539,33 @@ mod tests {
         assert_eq!(&color[..4], &[0x5A, 0xD1, 0x08, 0x0C]);
         assert_eq!(color[4..16], [0xFF, 0x3D, 0x5E].repeat(4)[..]);
         assert!(color[16..].iter().all(|&b| b == 0));
+    }
+
+    #[test]
+    fn effect_reports() {
+        let red = [0xFF, 0x00, 0x00];
+        let breathing = effect_report(LightingEffect::Breathing, red, LightingSpeed::Slow, 64);
+        assert_eq!(breathing.len(), 64);
+        assert_eq!(
+            &breathing[..13],
+            &[
+                0x5A, 0xB3, 0x00, 0x01, 0xFF, 0x00, 0x00, 0xE1, 0x00, 0x01, 0, 0, 0
+            ]
+        );
+        assert!(breathing[13..].iter().all(|&b| b == 0));
+        let steady = effect_report(LightingEffect::Steady, red, LightingSpeed::Fast, 64);
+        assert_eq!(
+            &steady[..10],
+            &[0x5A, 0xB3, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00]
+        );
+        let cycle = effect_report(LightingEffect::ColorCycle, red, LightingSpeed::Medium, 64);
+        assert_eq!(&cycle[3..8], &[0x02, 0xFF, 0x00, 0x00, 0xEB]);
+        let rainbow = effect_report(LightingEffect::Rainbow, red, LightingSpeed::Fast, 64);
+        assert_eq!(&rainbow[3..8], &[0x03, 0x00, 0x00, 0x00, 0xF5]);
+        let strobe = effect_report(LightingEffect::Strobe, red, LightingSpeed::Fast, 64);
+        assert_eq!(&strobe[3..10], &[0x0A, 0xFF, 0x00, 0x00, 0xF5, 0x00, 0x00]);
+        assert_eq!(&effect_set_report(64)[..3], &[0x5A, 0xB5, 0x00]);
+        assert_eq!(&effect_apply_report(64)[..3], &[0x5A, 0xB4, 0x00]);
     }
 
     #[test]

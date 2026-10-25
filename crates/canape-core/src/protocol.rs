@@ -323,7 +323,7 @@ mod tests {
             Request::SetLighting {
                 lighting: Some(Lighting {
                     level: 2,
-                    color: None
+                    ..Lighting::default()
                 })
             }
         );

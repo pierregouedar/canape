@@ -678,3 +678,30 @@ msgstr "M2, sol"
 
 msgid "Media"
 msgstr "Medya"
+
+msgid "Effect"
+msgstr "Efekt"
+
+msgid "Speed"
+msgstr "Hız"
+
+msgid "Steady"
+msgstr "Sabit"
+
+msgid "Breathing"
+msgstr "Nefes"
+
+msgid "Colour cycle"
+msgstr "Renk döngüsü"
+
+msgid "Rainbow"
+msgstr "Gökkuşağı"
+
+msgid "Strobe"
+msgstr "Flaş"
+
+msgid "Slow"
+msgstr "Yavaş"
+
+msgid "Fast"
+msgstr "Hızlı"

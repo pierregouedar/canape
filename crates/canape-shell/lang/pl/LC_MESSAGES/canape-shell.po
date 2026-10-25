@@ -678,3 +678,30 @@ msgstr "M2, lewy"
 
 msgid "Media"
 msgstr "Multimedia"
+
+msgid "Effect"
+msgstr "Efekt"
+
+msgid "Speed"
+msgstr "Szybkość"
+
+msgid "Steady"
+msgstr "Stały"
+
+msgid "Breathing"
+msgstr "Oddychanie"
+
+msgid "Colour cycle"
+msgstr "Cykl kolorów"
+
+msgid "Rainbow"
+msgstr "Tęcza"
+
+msgid "Strobe"
+msgstr "Stroboskop"
+
+msgid "Slow"
+msgstr "Wolna"
+
+msgid "Fast"
+msgstr "Szybka"

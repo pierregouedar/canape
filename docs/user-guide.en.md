@@ -462,12 +462,13 @@ On the page's last row, on the right, **Back buttons and lighting ›** opens a 
 
 **Stick lighting**
 
-- **Brightness**: Default, Off, Low, Medium, High, applied with A. **Default** leaves the rings to the controller: Canapé stops changing them, and the controller's own lighting should come back at the next restart.
+- **Brightness**: Default, Off, Low, Medium, High, applied with A. **Default** leaves the rings to the controller: Canapé stops changing them. The controller keeps the last effect written, even after a restart: Canapé cannot bring back its factory lighting, pick the effect you want instead.
+- **Effect**: Steady, Breathing, Colour cycle, Rainbow, Strobe, applied with A; the controller runs it itself, even when Canapé is closed. **Speed** (Slow, Medium, Fast) for every effect but Steady. Colour cycle and Rainbow go through every colour: the swatches are greyed out.
 - **Colour**: the first swatch, a ring, follows the accent colour picked in Settings (and changes with it); the others are fixed colours, white first. A applies the focused one; picked while the rings are off or on Default, it lights them on High.
-- One colour for both rings, without effects. The choice is global, remembered and written again when the service starts.
+- One colour for both rings. The choice is global, remembered and written again when the service starts.
 
 > [!NOTE]
-> Not tried on the Ally yet (checked against open-source projects, like the back buttons). If the rings look wrong, choose **Default** and restart the Ally.
+> Not tried on the Ally yet (checked against open-source projects, like the back buttons). If the rings look wrong, choose the **Steady** effect and a colour.
 
 ### Settings
 

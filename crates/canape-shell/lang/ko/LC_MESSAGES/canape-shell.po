@@ -678,3 +678,30 @@ msgstr "M2 (왼쪽)"
 
 msgid "Media"
 msgstr "미디어"
+
+msgid "Effect"
+msgstr "효과"
+
+msgid "Speed"
+msgstr "속도"
+
+msgid "Steady"
+msgstr "고정"
+
+msgid "Breathing"
+msgstr "숨쉬기"
+
+msgid "Colour cycle"
+msgstr "색상 순환"
+
+msgid "Rainbow"
+msgstr "무지개"
+
+msgid "Strobe"
+msgstr "스트로브"
+
+msgid "Slow"
+msgstr "느리게"
+
+msgid "Fast"
+msgstr "빠르게"

@@ -321,13 +321,72 @@ pub const DEFAULT_ACCENT: &str = "#ff3d5e";
 pub const LIGHTING_MAX_LEVEL: u8 = 3;
 
 /// Light of the rings around the sticks.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Lighting {
     /// 0 off, 1 to [`LIGHTING_MAX_LEVEL`] brighter.
     pub level: u8,
     /// `#rrggbb`; `None` follows the accent colour.
     #[serde(default)]
     pub color: Option<String>,
+    /// What the rings do with the colour.
+    #[serde(default)]
+    pub effect: LightingEffect,
+    /// How fast the effect goes; unused when steady.
+    #[serde(default)]
+    pub speed: LightingSpeed,
+}
+
+/// An effect of the controller's own for the stick rings.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LightingEffect {
+    /// The colour, steady.
+    #[default]
+    Steady,
+    /// The colour fading in and out.
+    Breathing,
+    /// Every colour in turn, both rings alike.
+    ColorCycle,
+    /// Every colour running around the rings.
+    Rainbow,
+    /// The colour flashing.
+    Strobe,
+}
+
+impl LightingEffect {
+    /// Every effect, in the order the shell offers them.
+    pub const ALL: [LightingEffect; 5] = [
+        Self::Steady,
+        Self::Breathing,
+        Self::ColorCycle,
+        Self::Rainbow,
+        Self::Strobe,
+    ];
+
+    /// Whether the effect shows the chosen colour.
+    pub fn uses_color(self) -> bool {
+        matches!(self, Self::Steady | Self::Breathing | Self::Strobe)
+    }
+
+    /// Whether the effect moves, so has a speed.
+    pub fn moves(self) -> bool {
+        self != Self::Steady
+    }
+}
+
+/// Speed of a lighting effect.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LightingSpeed {
+    Slow,
+    #[default]
+    Medium,
+    Fast,
+}
+
+impl LightingSpeed {
+    /// Every speed, slowest first.
+    pub const ALL: [LightingSpeed; 3] = [Self::Slow, Self::Medium, Self::Fast];
 }
 
 impl Lighting {
@@ -346,8 +405,8 @@ impl Lighting {
             return Err(format!("not a #RRGGBB colour: {color}"));
         }
         Ok(Self {
-            level: self.level,
             color: self.color.as_ref().map(|c| c.to_ascii_lowercase()),
+            ..self.clone()
         })
     }
 }
@@ -434,6 +493,7 @@ mod tests {
         let light = |level, color: Option<&str>| Lighting {
             level,
             color: color.map(str::to_owned),
+            ..Lighting::default()
         };
         assert_eq!(
             light(2, Some("#FF8800")).normalized(),
@@ -442,6 +502,21 @@ mod tests {
         assert_eq!(light(0, None).normalized(), Ok(light(0, None)));
         assert!(light(4, None).normalized().is_err());
         assert!(light(1, Some("orange")).normalized().is_err());
+        // Saved before effects existed: steady, medium speed.
+        let old: Lighting = serde_json::from_str(r##"{"level":2,"color":"#ff0000"}"##).unwrap();
+        assert_eq!(old.effect, LightingEffect::Steady);
+        assert_eq!(old.speed, LightingSpeed::Medium);
+        let breathing = Lighting {
+            effect: LightingEffect::ColorCycle,
+            speed: LightingSpeed::Fast,
+            ..light(3, None)
+        };
+        let json = serde_json::to_string(&breathing).unwrap();
+        assert!(json.contains(r#""effect":"color_cycle""#), "{json}");
+        assert!(json.contains(r#""speed":"fast""#), "{json}");
+        assert_eq!(breathing.normalized(), Ok(breathing.clone()));
+        assert!(!LightingEffect::Rainbow.uses_color());
+        assert!(!LightingEffect::Steady.moves());
     }
 
     #[test]

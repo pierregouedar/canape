@@ -678,3 +678,30 @@ msgstr "M2（左）"
 
 msgid "Media"
 msgstr "媒体"
+
+msgid "Effect"
+msgstr "效果"
+
+msgid "Speed"
+msgstr "速度"
+
+msgid "Steady"
+msgstr "常亮"
+
+msgid "Breathing"
+msgstr "呼吸"
+
+msgid "Colour cycle"
+msgstr "颜色循环"
+
+msgid "Rainbow"
+msgstr "彩虹"
+
+msgid "Strobe"
+msgstr "频闪"
+
+msgid "Slow"
+msgstr "慢"
+
+msgid "Fast"
+msgstr "快"

@@ -235,6 +235,7 @@ impl Handler {
                 // write does not undo the accent.
                 if let Some(lighting) = self.lighting.clone()
                     && lighting.color.is_none()
+                    && lighting.effect.uses_color()
                 {
                     let _ = self.write_lighting(lighting);
                 }
@@ -940,9 +941,9 @@ impl Handler {
                 message: format!("not a #RRGGBB colour: {color}"),
             };
         };
-        let level = lighting.level;
+        let (level, effect, speed) = (lighting.level, lighting.effect, lighting.speed);
         self.apply(
-            |d| d.set_lighting(level, rgb),
+            |d| d.set_lighting(level, rgb, effect, speed),
             |s| s.lighting = Some(lighting),
         )
     }
@@ -977,7 +978,7 @@ impl Handler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use canape_core::FanPreset;
+    use canape_core::{FanPreset, LightingEffect, LightingSpeed};
     use canape_hw::mock::MockDevice;
 
     fn handler_with(fps: Option<f32>, gpu_util: Option<f32>) -> Handler {
@@ -1561,6 +1562,7 @@ mod tests {
         let follow = Lighting {
             level: 2,
             color: None,
+            ..Lighting::default()
         };
         assert_eq!(
             h.handle(Request::SetLighting {
@@ -1573,6 +1575,7 @@ mod tests {
                 lighting: Some(Lighting {
                     level: 9,
                     color: None,
+                    ..Lighting::default()
                 }),
             }),
             Response::Error { .. }
@@ -1594,6 +1597,7 @@ mod tests {
         let red = Lighting {
             level: 3,
             color: Some("#FF0000".into()),
+            ..Lighting::default()
         };
         h.handle(Request::SetLighting {
             lighting: Some(red),
@@ -1613,7 +1617,7 @@ mod tests {
     fn lighting_writes_the_accent_colour() {
         use std::sync::{Arc, Mutex};
 
-        type Writes = Arc<Mutex<Vec<(u8, [u8; 3])>>>;
+        type Writes = Arc<Mutex<Vec<(u8, [u8; 3], LightingEffect)>>>;
         /// The mock, with the lighting writes kept where the test sees them.
         struct Rings(MockDevice, Writes);
         impl Device for Rings {
@@ -1635,8 +1639,14 @@ mod tests {
             fn telemetry(&mut self) -> canape_hw::Result<Telemetry> {
                 self.0.telemetry()
             }
-            fn set_lighting(&mut self, level: u8, rgb: [u8; 3]) -> canape_hw::Result<()> {
-                self.1.lock().unwrap().push((level, rgb));
+            fn set_lighting(
+                &mut self,
+                level: u8,
+                rgb: [u8; 3],
+                effect: LightingEffect,
+                _speed: LightingSpeed,
+            ) -> canape_hw::Result<()> {
+                self.1.lock().unwrap().push((level, rgb, effect));
                 Ok(())
             }
         }
@@ -1646,6 +1656,7 @@ mod tests {
         let follow = Some(Lighting {
             level: 1,
             color: None,
+            ..Lighting::default()
         });
         h.handle(Request::SetLighting {
             lighting: follow.clone(),
@@ -1657,18 +1668,32 @@ mod tests {
             lighting: Some(Lighting {
                 level: 3,
                 color: Some("#00ff7f".into()),
+                ..Lighting::default()
             }),
         });
         // A fixed colour no longer follows the accent.
         h.handle(Request::SetAccent {
             color: "#ffffff".into(),
         });
+        // Nor does an effect that shows no colour of its own.
+        h.handle(Request::SetLighting {
+            lighting: Some(Lighting {
+                level: 2,
+                effect: LightingEffect::Rainbow,
+                ..Lighting::default()
+            }),
+        });
+        h.handle(Request::SetAccent {
+            color: "#000000".into(),
+        });
+        let steady = LightingEffect::Steady;
         assert_eq!(
             *writes.lock().unwrap(),
             [
-                (1, [0xff, 0x3d, 0x5e]),
-                (1, [0x10, 0x20, 0x30]),
-                (3, [0x00, 0xff, 0x7f]),
+                (1, [0xff, 0x3d, 0x5e], steady),
+                (1, [0x10, 0x20, 0x30], steady),
+                (3, [0x00, 0xff, 0x7f], steady),
+                (2, [0xff, 0xff, 0xff], LightingEffect::Rainbow),
             ]
         );
     }

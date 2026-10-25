@@ -2,11 +2,12 @@
 // send on the left, the light of the stick rings on the right. Up and
 // down change line. On M1 and M2, A opens the grid of targets
 // (targets.slint), where A applies one (a single write) and B closes it.
-// On brightness, left and right change the value shown and A applies it;
-// leaving the line drops a choice not applied. A also restores the
-// default buttons and picks a colour. Lines:
+// On brightness, effect and speed, left and right change the value shown
+// and A applies it; leaving the line drops a choice not applied. A also
+// restores the default buttons and picks a colour. Lines:
 //   0 M1, 1 M2, 2 restore the default buttons, 3 ring brightness,
-//   4 ring colour.
+//   4 effect, 5 its speed (effects that move), 6 ring colour (effects
+//   that show it). Up and down skip the lines that do not apply.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
@@ -115,6 +116,24 @@ export component ControllerPage inherits Rectangle {
     changed level-status => {
         root.level-pick = root.level-status;
     }
+    // Effects, in the order of LightingEffect::ALL (canape-core), and
+    // speeds, in the order of LightingSpeed::ALL.
+    property <[string]> effect-names: [@tr("Steady"), @tr("Breathing"), @tr("Colour cycle"), @tr("Rainbow"), @tr("Strobe")];
+    property <[string]> speed-names: [@tr("Slow"), @tr("Medium"), @tr("Fast")];
+    in-out property <int> effect-pick: App.status.lighting-effect;
+    in-out property <int> speed-pick: App.status.lighting-speed;
+    changed effect-status => {
+        root.effect-pick = root.effect-status;
+    }
+    changed speed-status => {
+        root.speed-pick = root.speed-status;
+    }
+    property <int> effect-status: App.status.lighting-effect;
+    property <int> speed-status: App.status.lighting-speed;
+    // What the applied effect uses: a speed (all but steady), the colour
+    // (steady, breathing, strobe).
+    property <bool> effect-moves: root.effect-status != 0;
+    property <bool> effect-colored: root.effect-status == 0 || root.effect-status == 1 || root.effect-status == 4;
     in-out property <int> color-col: 0;
     // The back button whose grid is open: 0 M1, 1 M2, -1 none.
     in-out property <int> picking: -1;
@@ -123,15 +142,35 @@ export component ControllerPage inherits Rectangle {
         if row == 3 {
             root.level-pick = clamp(root.level-pick + d, 0, root.levels.length - 1);
         } else if row == 4 {
+            root.effect-pick = clamp(root.effect-pick + d, 0, root.effect-names.length - 1);
+        } else if row == 5 {
+            root.speed-pick = clamp(root.speed-pick + d, 0, root.speed-names.length - 1);
+        } else if row == 6 {
             root.color-col = clamp(root.color-col + d, 0, root.colors.length - 1);
         }
     }
-    // A colour lights the rings at the level shown, high when they are
-    // off or left to the controller.
-    function pick-color(i: int) {
-        let level = root.level-pick >= 2 ? root.level-pick - 1 : 3;
+    // The level a colour, effect or speed lights the rings at: the one
+    // shown, high when they are off or left to the controller.
+    function lit-level() -> int {
+        root.level-pick >= 2 ? root.level-pick - 1 : 3
+    }
+    function light(color: string, effect: int, speed: int) {
+        let level = root.lit-level();
         root.level-pick = level + 1;
-        App.set-lighting(level, root.colors[i].hex);
+        App.set-lighting(level, color, effect, speed);
+    }
+    function pick-color(i: int) {
+        root.light(root.colors[i].hex, root.effect-status, root.speed-status);
+    }
+    function row-enabled(r: int) -> bool {
+        (r != 5 || root.effect-moves) && (r != 6 || root.effect-colored)
+    }
+    // The next line up (-1) or down (1) that applies.
+    function next-row(d: int) -> int {
+        let one = root.focus-row + d;
+        let two = root.row-enabled(one) ? one : one + d;
+        let three = root.row-enabled(two) ? two : two + d;
+        (three >= 0 && three <= 6) ? three : root.focus-row
     }
     function open-picker(row: int) {
         root.picking = row;
@@ -147,8 +186,12 @@ export component ControllerPage inherits Rectangle {
         } else if root.focus-row == 2 {
             App.reset-back-buttons();
         } else if root.focus-row == 3 && root.level-pick != root.level-status {
-            App.set-lighting(root.level-pick - 1, App.status.lighting-color);
-        } else if root.focus-row == 4 {
+            App.set-lighting(root.level-pick - 1, App.status.lighting-color, root.effect-status, root.speed-status);
+        } else if root.focus-row == 4 && root.effect-pick != root.effect-status {
+            root.light(App.status.lighting-color, root.effect-pick, root.speed-status);
+        } else if root.focus-row == 5 && root.speed-pick != root.speed-status {
+            root.light(App.status.lighting-color, root.effect-status, root.speed-pick);
+        } else if root.focus-row == 6 {
             root.pick-color(root.color-col);
         }
     }
@@ -156,6 +199,8 @@ export component ControllerPage inherits Rectangle {
     function go(r: int) {
         if r != root.focus-row {
             root.level-pick = root.level-status;
+            root.effect-pick = root.effect-status;
+            root.speed-pick = root.speed-status;
         }
         root.focus-row = r;
     }
@@ -195,11 +240,11 @@ export component ControllerPage inherits Rectangle {
                 return reject;
             }
             if event.text == Key.UpArrow {
-                root.go(max(0, root.focus-row - 1));
+                root.go(root.next-row(-1));
                 return accept;
             }
             if event.text == Key.DownArrow {
-                root.go(min(4, root.focus-row + 1));
+                root.go(root.next-row(1));
                 return accept;
             }
             if !App.status.connected {
@@ -309,11 +354,49 @@ export component ControllerPage inherits Rectangle {
                 }
             }
 
+            SettingLine {
+                label: @tr("Effect");
+                value: root.effect-names[root.effect-pick];
+                pending: root.effect-pick != root.effect-status;
+                enabled: App.status.connected;
+                focused: root.line-focused(4);
+                clicked => {
+                    root.tap(4);
+                    fs.focus();
+                }
+                step(d) => {
+                    root.go(4);
+                    root.step(4, d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                label: @tr("Speed");
+                value: root.speed-names[root.speed-pick];
+                pending: root.speed-pick != root.speed-status;
+                enabled: App.status.connected && root.effect-moves;
+                focused: root.line-focused(5);
+                clicked => {
+                    if root.effect-moves {
+                        root.tap(5);
+                    }
+                    fs.focus();
+                }
+                step(d) => {
+                    if root.effect-moves {
+                        root.go(5);
+                        root.step(5, d);
+                    }
+                    fs.focus();
+                }
+            }
+
             Row {
                 height: 64px;
                 border-radius: 10px;
-                focused: root.line-focused(4);
-                enabled: App.status.connected;
+                focused: root.line-focused(6);
+                enabled: App.status.connected && root.effect-colored;
                 HorizontalLayout {
                     padding-left: 12px;
                     padding-right: 12px;
@@ -322,9 +405,9 @@ export component ControllerPage inherits Rectangle {
                         alignment: center;
                         if i == 0: AccentSwatch {
                             selected: App.status.lighting-level > 0 && App.status.lighting-color == "";
-                            focused: root.line-focused(4) && root.color-col == 0;
+                            focused: root.line-focused(6) && root.color-col == 0;
                             clicked => {
-                                root.go(4);
+                                root.go(6);
                                 root.color-col = 0;
                                 root.pick-color(0);
                                 fs.focus();
@@ -333,9 +416,9 @@ export component ControllerPage inherits Rectangle {
                         if i > 0: Swatch {
                             swatch: c.color;
                             selected: App.status.lighting-level > 0 && App.status.lighting-color == c.hex;
-                            focused: root.line-focused(4) && root.color-col == i;
+                            focused: root.line-focused(6) && root.color-col == i;
                             clicked => {
-                                root.go(4);
+                                root.go(6);
                                 root.color-col = i;
                                 root.pick-color(i);
                                 fs.focus();
@@ -349,7 +432,7 @@ export component ControllerPage inherits Rectangle {
             Text {
                 x: 16px;
                 height: 32px;
-                text: root.line-focused(4) && root.color-col == 0 ? @tr("Follows the accent colour") : "";
+                text: root.line-focused(6) && root.color-col == 0 ? @tr("Follows the accent colour") : "";
                 color: Theme.dim;
                 font-size: 13px;
                 vertical-alignment: center;
