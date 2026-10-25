@@ -233,13 +233,56 @@ const NOT_GAMES: &[&str] = &[
     "vcredist",
 ];
 
+/// Folders of programs that are never games: office, browsers, developer
+/// tools, Windows' own apps and shared components.
+const NOT_GAME_FOLDERS: &[&str] = &[
+    "\\microsoft office\\",
+    "\\microsoft\\edge",
+    "\\microsoft\\office",
+    "\\microsoft visual studio",
+    "\\microsoft vs code\\",
+    "\\windows kits\\",
+    "\\windows media player\\",
+    "\\windowsapps\\",
+    "\\common files\\",
+    "\\git\\",
+    "\\nodejs\\",
+    "\\python",
+    "\\java\\",
+];
+
+/// Programs that are never games, by file name.
+const NOT_GAME_FILES: &[&str] = &[
+    "excel.exe",
+    "winword.exe",
+    "powerpnt.exe",
+    "msaccess.exe",
+    "mspub.exe",
+    "onenote.exe",
+    "outlook.exe",
+    "setlang.exe",
+    "msedge.exe",
+    "code.exe",
+    "notepad++.exe",
+    "stikynot.exe",
+    "wmplayer.exe",
+    "appcertui.exe",
+    "rtss.exe",
+];
+
 /// Whether the shortcut `name` to `target` could be a game: a program
-/// (`.exe`), outside `windows_dir`, that is not an uninstaller, a setup or
-/// an update tool, a store's client or Canapé itself.
+/// (`.exe`, or a `.bat` some games start with), outside `windows_dir`, that
+/// is not an uninstaller, a setup or an update tool, an office, browser or
+/// developer tool, a store's client or Canapé itself.
 pub fn could_be_game(name: &str, target: &str, windows_dir: &str) -> bool {
     let lower = target.to_lowercase();
     let file = lower.rsplit(['\\', '/']).next().unwrap_or(&lower);
-    if !file.ends_with(".exe") || crate::is_store_program(file) || file.starts_with("canape") {
+    if !(file.ends_with(".exe") || file.ends_with(".bat"))
+        || crate::is_store_program(file)
+        || file.starts_with("canape")
+        || NOT_GAME_FILES.contains(&file)
+        || NOT_GAME_FOLDERS.iter().any(|folder| lower.contains(folder))
+    {
         return false;
     }
     let windows = windows_dir.trim_end_matches('\\').to_lowercase();
@@ -507,6 +550,26 @@ mod tests {
         ));
         assert!(!could_be_game("Canapé", r"C:\Canape\canape-shell.exe", win));
         assert!(!could_be_game("Game updater", r"D:\Game\Updater.exe", win));
+        assert!(!could_be_game(
+            "Excel",
+            r"C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE",
+            win
+        ));
+        assert!(!could_be_game(
+            "Git Bash",
+            r"C:\Program Files\Git\git-bash.exe",
+            win
+        ));
+        assert!(!could_be_game(
+            "Microsoft Edge",
+            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+            win
+        ));
+        assert!(could_be_game(
+            "Heaven Benchmark 4.0",
+            r"C:\Program Files (x86)\Unigine\Heaven Benchmark 4.0\heaven.bat",
+            win
+        ));
     }
 
     #[test]

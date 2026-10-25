@@ -153,6 +153,9 @@ struct State {
     owned_path: PathBuf,
     /// Installs running: id → share done.
     installing: HashMap<String, f32>,
+    /// Steam installs whose dialog is open: Canapé comes back to the front
+    /// once the download starts, over Steam's window.
+    steam_dialogs: HashSet<String>,
     /// Canapé's helper programs (Legendary).
     tools_dir: PathBuf,
     /// Clears the install or store error after a while.
@@ -1021,6 +1024,9 @@ impl State {
         }
         crate::log(&format!("library: installing {} ({install:?})", game.id));
         self.installing.insert(game.id.clone(), 0.0);
+        if matches!(install, Install::Steam { .. }) {
+            self.steam_dialogs.insert(game.id.clone());
+        }
         self.show_progress(&game.id);
         if let Some(ui) = self.ui.upgrade() {
             ui.global::<Library>().set_install_error("".into());
@@ -1055,10 +1061,15 @@ impl State {
     fn install_event(&mut self, id: &str, title: &str, event: Event) {
         match event {
             Event::Progress(share) => {
+                if self.steam_dialogs.remove(id) {
+                    #[cfg(windows)]
+                    crate::instance::bring_to_front();
+                }
                 self.installing.insert(id.to_owned(), share);
                 self.show_progress(id);
             }
             Event::Done => {
+                self.steam_dialogs.remove(id);
                 crate::log(&format!("library: {id} installed"));
                 self.show_games_folder();
                 self.installing.remove(id);
@@ -1067,6 +1078,7 @@ impl State {
                 self.scan();
             }
             Event::Failed(message) => {
+                self.steam_dialogs.remove(id);
                 crate::log(&format!("library: installing {id}: {message}"));
                 self.installing.remove(id);
                 self.show_progress(id);
@@ -1752,6 +1764,7 @@ pub fn start(ui: &AppWindow) {
         owned_loading: false,
         owned_path,
         installing: HashMap::new(),
+        steam_dialogs: HashSet::new(),
         tools_dir,
         error_timer: Timer::default(),
         just_installed: None,

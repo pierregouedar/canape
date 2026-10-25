@@ -341,17 +341,57 @@ pub fn parse_download(text: &str) -> Option<Download> {
     Some(Download::Progress(share))
 }
 
-/// The state of `appid`'s install, in any library folder.
+/// The state of `appid`'s install, in any library folder. Steam updates
+/// the manifest's byte counts seldom: the files it is writing in
+/// `steamapps/downloading/<appid>` tell more often how far it is.
 pub fn download(steam: &Path, appid: u32) -> Option<Download> {
     let vdf_text = read(&steam.join("steamapps").join("libraryfolders.vdf"));
     library_folders(steam, vdf_text.as_deref())
         .into_iter()
         .find_map(|folder| {
-            let path = folder
-                .join("steamapps")
-                .join(format!("appmanifest_{appid}.acf"));
-            parse_download(&read(&path)?)
+            let steamapps = folder.join("steamapps");
+            let text = read(&steamapps.join(format!("appmanifest_{appid}.acf")))?;
+            match parse_download(&text)? {
+                Download::Progress(share) => {
+                    let total = bytes_to_download(&text);
+                    let written = dir_size(&steamapps.join("downloading").join(appid.to_string()));
+                    Some(Download::Progress(share.max(staged_share(written, total))))
+                }
+                installed => Some(installed),
+            }
         })
+}
+
+/// `BytesToDownload` of a manifest, 0 when missing.
+fn bytes_to_download(text: &str) -> u64 {
+    vdf::parse(text)
+        .get("AppState")
+        .and_then(|app| app.str("BytesToDownload"))
+        .and_then(|v| v.trim().parse().ok())
+        .unwrap_or(0)
+}
+
+/// Share of `total` bytes already `written`, below 1: the files are
+/// complete before Steam has checked and moved them.
+fn staged_share(written: u64, total: u64) -> f32 {
+    if total == 0 {
+        return 0.0;
+    }
+    (written as f32 / total as f32).min(0.99)
+}
+
+/// Bytes of the files under `dir`.
+fn dir_size(dir: &Path) -> u64 {
+    std::fs::read_dir(dir)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|entry| match entry.file_type() {
+            Ok(t) if t.is_dir() => dir_size(&entry.path()),
+            Ok(_) => entry.metadata().map_or(0, |m| m.len()),
+            Err(_) => 0,
+        })
+        .sum()
 }
 
 /// Installed Steam games under the Steam folder `steam`.
@@ -591,5 +631,14 @@ mod tests {
                 .unwrap()
                 .ends_with("1245620_library_600x900.jpg")
         );
+    }
+
+    #[test]
+    fn staged_files_count_until_steam_moves_them() {
+        assert_eq!(staged_share(0, 0), 0.0);
+        assert_eq!(staged_share(50, 200), 0.25);
+        assert_eq!(staged_share(300, 200), 0.99);
+        let manifest = "\"AppState\"\n{\n\t\"BytesToDownload\"\t\t\"1234\"\n}\n";
+        assert_eq!(bytes_to_download(manifest), 1234);
     }
 }

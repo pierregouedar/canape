@@ -14,9 +14,14 @@ use serde::Deserialize;
 use crate::online::Http;
 
 /// Latest Legendary release, from the GitHub API.
-pub const LEGENDARY_RELEASE: &str = "https://api.github.com/repos/derrod/legendary/releases/latest";
-/// Only files from Legendary's own releases are accepted.
-const LEGENDARY_DOWNLOADS: &str = "https://github.com/derrod/legendary/releases/download/";
+pub const LEGENDARY_RELEASE: &str =
+    "https://api.github.com/repos/legendary-gl/legendary/releases/latest";
+/// Only files from Legendary's own releases are accepted: the project's
+/// current home, and its former one, which GitHub redirects to it.
+const LEGENDARY_DOWNLOADS: [&str; 2] = [
+    "https://github.com/legendary-gl/legendary/releases/download/",
+    "https://github.com/derrod/legendary/releases/download/",
+];
 /// Name of the downloaded executable in Canapé's folder.
 const LEGENDARY_ASSET: &str = "legendary.exe";
 /// Names of the Windows executable among a release's files, newest naming
@@ -79,7 +84,10 @@ pub fn parse_release(json: &[u8]) -> Option<Download> {
     })?;
     let sha256 = asset.digest?.strip_prefix("sha256:")?.to_ascii_lowercase();
     let valid = sha256.len() == 64 && sha256.bytes().all(|b| b.is_ascii_hexdigit());
-    (valid && asset.browser_download_url.starts_with(LEGENDARY_DOWNLOADS)).then_some(Download {
+    let from_legendary = LEGENDARY_DOWNLOADS
+        .iter()
+        .any(|prefix| asset.browser_download_url.starts_with(prefix));
+    (valid && from_legendary).then_some(Download {
         version: release.tag_name,
         url: asset.browser_download_url,
         sha256,
@@ -131,6 +139,8 @@ fn fetch_checked(http: &dyn Http, url: &str, sha256: &str, path: &Path) -> io::R
 
 #[cfg(test)]
 mod tests {
+    const OLD: &str = "https://github.com/derrod/legendary/releases/download/";
+    const NEW: &str = "https://github.com/legendary-gl/legendary/releases/download/";
     use super::*;
     use std::cell::RefCell;
     use std::collections::HashMap;
@@ -154,7 +164,7 @@ mod tests {
     fn release(url: &str, digest: &str) -> Vec<u8> {
         format!(
             r#"{{"tag_name":"0.20.37","assets":[
-                {{"name":"legendary","browser_download_url":"{LEGENDARY_DOWNLOADS}0.20.37/legendary","digest":null}},
+                {{"name":"legendary","browser_download_url":"{OLD}0.20.37/legendary","digest":null}},
                 {{"name":"legendary.exe","browser_download_url":"{url}","digest":"{digest}"}}]}}"#
         )
         .into_bytes()
@@ -162,7 +172,7 @@ mod tests {
 
     #[test]
     fn releases_need_a_digest_and_the_official_link() {
-        let url = format!("{LEGENDARY_DOWNLOADS}0.20.37/legendary.exe");
+        let url = format!("{OLD}0.20.37/legendary.exe");
         let digest = format!("sha256:{}", "AB".repeat(32));
         let found = parse_release(&release(&url, &digest)).unwrap();
         assert_eq!(found.sha256, "ab".repeat(32));
@@ -178,9 +188,9 @@ mod tests {
         let digest = format!("sha256:{}", "cd".repeat(32));
         let json = format!(
             r#"{{"tag_name":"0.21.1","assets":[
-                {{"name":"legendary_linux_x64","browser_download_url":"{LEGENDARY_DOWNLOADS}0.21.1/legendary_linux_x64","digest":"{digest}"}},
-                {{"name":"legendary_windows_arm64.exe","browser_download_url":"{LEGENDARY_DOWNLOADS}0.21.1/legendary_windows_arm64.exe","digest":"{digest}"}},
-                {{"name":"legendary_windows_x64.exe","browser_download_url":"{LEGENDARY_DOWNLOADS}0.21.1/legendary_windows_x64.exe","digest":"{digest}"}}]}}"#
+                {{"name":"legendary_linux_x64","browser_download_url":"{NEW}0.21.1/legendary_linux_x64","digest":"{digest}"}},
+                {{"name":"legendary_windows_arm64.exe","browser_download_url":"{NEW}0.21.1/legendary_windows_arm64.exe","digest":"{digest}"}},
+                {{"name":"legendary_windows_x64.exe","browser_download_url":"{NEW}0.21.1/legendary_windows_x64.exe","digest":"{digest}"}}]}}"#
         );
         let found = parse_release(json.as_bytes()).unwrap();
         assert!(found.url.ends_with("/legendary_windows_x64.exe"));
@@ -191,7 +201,7 @@ mod tests {
     fn the_download_is_checked() {
         let dir = std::env::temp_dir().join(format!("canape-tools-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
-        let url = format!("{LEGENDARY_DOWNLOADS}0.20.37/legendary.exe");
+        let url = format!("{OLD}0.20.37/legendary.exe");
         let exe = b"MZ fake executable".to_vec();
         let good = format!("sha256:{}", hex(&crate::sha256::digest(&exe)));
 
