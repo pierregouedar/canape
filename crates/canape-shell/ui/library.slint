@@ -448,7 +448,7 @@ component GamePage inherits Rectangle {
     // The page has a part below the fold: its first lines peek in at the
     // bottom, and the top part sits higher to leave them room.
     property <bool> has-lower: root.beat-known || root.count > 0;
-    property <length> peek: 148px;
+    property <length> peek: 184px;
     property <length> top: root.has-lower ? 20px : 96px;
     // Where the part below the fold starts.
     property <length> fold: root.has-lower ? root.height - root.peek : root.height;
@@ -513,10 +513,11 @@ component GamePage inherits Rectangle {
 
     // Clips the scrolled page under the header; wider than the page, so
     // that the cover's shadow still shows at its left.
+    // Above the hints while the top is in view: what peeks in stops there.
     Rectangle {
         x: -48px;
         width: root.width + 96px;
-        height: root.height;
+        height: root.lower ? root.height : root.height - 96px;
         clip: true;
 
         Rectangle {
@@ -661,7 +662,7 @@ component GamePage inherits Rectangle {
             // same place, only the matching one shows.
             for profile in App.profiles: Rectangle {
                 x: 280px;
-                y: root.top + 360px + 32px;
+                y: root.top + 360px + 20px;
                 width: min(420px, root.width - self.x);
                 height: 88px;
                 border-radius: 12px;

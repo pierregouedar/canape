@@ -67,10 +67,14 @@ impl Recent {
     const KEEP: usize = 200;
 
     pub fn load(path: &Path) -> Self {
-        std::fs::read_to_string(path)
+        let mut recent: Self = std::fs::read_to_string(path)
             .ok()
             .and_then(|text| serde_json::from_str(&text).ok())
-            .unwrap_or_default()
+            .unwrap_or_default();
+        // Programs learnt by mistake before they were known not to be games
+        // (a console or an anti-cheat starter in front first).
+        recent.exes.retain(|_, exe| !crate::is_store_program(exe));
+        recent
     }
 
     pub fn save(&self, path: &Path) -> io::Result<()> {
@@ -150,5 +154,19 @@ mod tests {
         let path = temp("recent.json");
         recent.save(&path).unwrap();
         assert_eq!(Recent::load(&path), recent);
+    }
+
+    #[test]
+    fn programs_that_are_not_games_are_forgotten() {
+        let path = std::env::temp_dir().join(format!("canape-recent-{}.json", std::process::id()));
+        std::fs::write(
+            &path,
+            r#"{"launched":{"epic:a":1,"epic:b":2},"exes":{"epic:a":"WindowsTerminal.exe","epic:b":"Game.exe"}}"#,
+        )
+        .unwrap();
+        let recent = Recent::load(&path);
+        let _ = std::fs::remove_file(&path);
+        assert_eq!(recent.exes.len(), 1);
+        assert_eq!(recent.exes["epic:b"], "Game.exe");
     }
 }
