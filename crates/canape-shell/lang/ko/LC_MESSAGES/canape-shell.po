@@ -48,9 +48,6 @@ msgstr "자동 TDP"
 msgid "Thermal limit reached"
 msgstr "온도 제한 도달"
 
-msgid "Frame rate"
-msgstr "프레임 속도"
-
 msgid "CPU temperature"
 msgstr "CPU 온도"
 
@@ -156,11 +153,8 @@ msgstr "자동"
 msgid "Language"
 msgstr "언어"
 
-
 msgid "Service connected"
 msgstr "서비스 연결됨"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -192,9 +186,6 @@ msgstr "강조 색상"
 
 msgid "Offline"
 msgstr "오프라인"
-
-msgid "Power draw"
-msgstr "소비 전력"
 
 msgid "Hue"
 msgstr "색상"
@@ -263,7 +254,6 @@ msgstr "다른 클라이언트가 설정한 사용자 곡선입니다."
 
 msgid "Frame rate limit"
 msgstr "프레임 제한"
-
 
 msgid "Controller"
 msgstr "컨트롤러"
@@ -343,9 +333,6 @@ msgstr "목표 {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1분"
-
 msgid "Canapé {}"
 msgstr "Canapé {}"
 
@@ -372,9 +359,6 @@ msgstr "전체 설정"
 
 msgid "Installing…"
 msgstr "설치 중…"
-
-msgid "Limit"
-msgstr "제한"
 
 msgid "No Steam API key"
 msgstr "Steam API 키 없음"
@@ -747,3 +731,27 @@ msgstr "달성"
 
 msgid "{} % of players"
 msgstr "플레이어의 {} %"
+
+msgid "Open"
+msgstr "열기"
+
+msgid "Adjust"
+msgstr "조정"
+
+msgid "Apply"
+msgstr "적용"
+
+msgid "Close"
+msgstr "닫기"
+
+msgid "Minimum / maximum"
+msgstr "최소 / 최대"
+
+msgid "game profile"
+msgstr "게임 프로필"
+
+msgid "limit {} · {} learned"
+msgstr "제한 {} · 학습값 {}"
+
+msgid "Measures and screen"
+msgstr "측정 및 화면"

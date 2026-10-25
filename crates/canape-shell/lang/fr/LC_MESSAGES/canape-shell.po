@@ -48,9 +48,6 @@ msgstr "Auto TDP"
 msgid "Thermal limit reached"
 msgstr "Limite thermique atteinte"
 
-msgid "Frame rate"
-msgstr "Images par seconde"
-
 msgid "CPU temperature"
 msgstr "Température CPU"
 
@@ -156,11 +153,8 @@ msgstr "Automatique"
 msgid "Language"
 msgstr "Langue"
 
-
 msgid "Service connected"
 msgstr "Service connecté"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -192,9 +186,6 @@ msgstr "Couleur d'accent"
 
 msgid "Offline"
 msgstr "Hors ligne"
-
-msgid "Power draw"
-msgstr "Consommation"
 
 msgid "Hue"
 msgstr "Teinte"
@@ -263,7 +254,6 @@ msgstr "Courbes personnalisées définies par un autre client."
 
 msgid "Frame rate limit"
 msgstr "Limite de FPS"
-
 
 msgid "Controller"
 msgstr "Manette"
@@ -343,9 +333,6 @@ msgstr "objectif {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 min"
-
 msgid "Canapé {}"
 msgstr "Canapé {}"
 
@@ -372,9 +359,6 @@ msgstr "Réglages généraux"
 
 msgid "Installing…"
 msgstr "Installation…"
-
-msgid "Limit"
-msgstr "Limite"
 
 msgid "No Steam API key"
 msgstr "Pas de clé API Steam"
@@ -747,3 +731,27 @@ msgstr "Débloqué"
 
 msgid "{} % of players"
 msgstr "{} % des joueurs"
+
+msgid "Open"
+msgstr "Ouvrir"
+
+msgid "Adjust"
+msgstr "Régler"
+
+msgid "Apply"
+msgstr "Appliquer"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Minimum / maximum"
+msgstr "Minimum / maximum"
+
+msgid "game profile"
+msgstr "profil du jeu"
+
+msgid "limit {} · {} learned"
+msgstr "limite {} · {} appris"
+
+msgid "Measures and screen"
+msgstr "Mesures et écran"

@@ -48,9 +48,6 @@ msgstr "自動 TDP"
 msgid "Thermal limit reached"
 msgstr "温度制限に到達"
 
-msgid "Frame rate"
-msgstr "フレームレート"
-
 msgid "CPU temperature"
 msgstr "CPU 温度"
 
@@ -156,11 +153,8 @@ msgstr "自動"
 msgid "Language"
 msgstr "言語"
 
-
 msgid "Service connected"
 msgstr "サービス接続済み"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -192,9 +186,6 @@ msgstr "アクセントカラー"
 
 msgid "Offline"
 msgstr "オフライン"
-
-msgid "Power draw"
-msgstr "消費電力"
 
 msgid "Hue"
 msgstr "色相"
@@ -263,7 +254,6 @@ msgstr "別のクライアントが設定したカスタムカーブです。"
 
 msgid "Frame rate limit"
 msgstr "フレームレート制限"
-
 
 msgid "Controller"
 msgstr "コントローラー"
@@ -343,9 +333,6 @@ msgstr "目標 {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 分"
-
 msgid "Canapé {}"
 msgstr "Canapé {}"
 
@@ -372,9 +359,6 @@ msgstr "全体設定"
 
 msgid "Installing…"
 msgstr "インストール中…"
-
-msgid "Limit"
-msgstr "上限"
 
 msgid "No Steam API key"
 msgstr "Steam API キーなし"
@@ -747,3 +731,27 @@ msgstr "解除済み"
 
 msgid "{} % of players"
 msgstr "プレイヤーの {} %"
+
+msgid "Open"
+msgstr "開く"
+
+msgid "Adjust"
+msgstr "調整"
+
+msgid "Apply"
+msgstr "適用"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Minimum / maximum"
+msgstr "最小 / 最大"
+
+msgid "game profile"
+msgstr "ゲームプロファイル"
+
+msgid "limit {} · {} learned"
+msgstr "上限 {} · 学習値 {}"
+
+msgid "Measures and screen"
+msgstr "計測と画面"

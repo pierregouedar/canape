@@ -48,9 +48,6 @@ msgstr "Авто TDP"
 msgid "Thermal limit reached"
 msgstr "Достигнут предел температуры"
 
-msgid "Frame rate"
-msgstr "Частота кадров"
-
 msgid "CPU temperature"
 msgstr "Температура CPU"
 
@@ -156,11 +153,8 @@ msgstr "Авто"
 msgid "Language"
 msgstr "Язык"
 
-
 msgid "Service connected"
 msgstr "Служба подключена"
-
-
 
 msgid "{} W"
 msgstr "{} Вт"
@@ -192,9 +186,6 @@ msgstr "Цвет акцента"
 
 msgid "Offline"
 msgstr "Не в сети"
-
-msgid "Power draw"
-msgstr "Потребление"
 
 msgid "Hue"
 msgstr "Оттенок"
@@ -263,7 +254,6 @@ msgstr "Свои кривые, заданные другим клиентом."
 
 msgid "Frame rate limit"
 msgstr "Ограничение FPS"
-
 
 msgid "Controller"
 msgstr "Контроллер"
@@ -343,9 +333,6 @@ msgstr "цель {}"
 msgid "W"
 msgstr "Вт"
 
-msgid "1 min"
-msgstr "1 мин"
-
 msgid "Canapé {}"
 msgstr "Canapé {}"
 
@@ -372,9 +359,6 @@ msgstr "Общие настройки"
 
 msgid "Installing…"
 msgstr "Установка…"
-
-msgid "Limit"
-msgstr "Предел"
 
 msgid "No Steam API key"
 msgstr "Нет ключа Steam API"
@@ -747,3 +731,27 @@ msgstr "Получено"
 
 msgid "{} % of players"
 msgstr "{} % игроков"
+
+msgid "Open"
+msgstr "Открыть"
+
+msgid "Adjust"
+msgstr "Настроить"
+
+msgid "Apply"
+msgstr "Применить"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Minimum / maximum"
+msgstr "Минимум / максимум"
+
+msgid "game profile"
+msgstr "профиль игры"
+
+msgid "limit {} · {} learned"
+msgstr "предел {} · изучено {}"
+
+msgid "Measures and screen"
+msgstr "Замеры и экран"

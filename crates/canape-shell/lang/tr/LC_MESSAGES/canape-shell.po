@@ -48,9 +48,6 @@ msgstr "Otomatik TDP"
 msgid "Thermal limit reached"
 msgstr "Sıcaklık sınırına ulaşıldı"
 
-msgid "Frame rate"
-msgstr "Kare hızı"
-
 msgid "CPU temperature"
 msgstr "CPU sıcaklığı"
 
@@ -156,11 +153,8 @@ msgstr "Otomatik"
 msgid "Language"
 msgstr "Dil"
 
-
 msgid "Service connected"
 msgstr "Hizmet bağlı"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -192,9 +186,6 @@ msgstr "Vurgu rengi"
 
 msgid "Offline"
 msgstr "Çevrimdışı"
-
-msgid "Power draw"
-msgstr "Güç tüketimi"
 
 msgid "Hue"
 msgstr "Ton"
@@ -263,7 +254,6 @@ msgstr "Başka bir istemcinin ayarladığı özel eğriler."
 
 msgid "Frame rate limit"
 msgstr "FPS sınırı"
-
 
 msgid "Controller"
 msgstr "Kumanda"
@@ -343,9 +333,6 @@ msgstr "hedef {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 dk"
-
 msgid "Canapé {}"
 msgstr "Canapé {}"
 
@@ -372,9 +359,6 @@ msgstr "Genel ayarlar"
 
 msgid "Installing…"
 msgstr "Yükleniyor…"
-
-msgid "Limit"
-msgstr "Sınır"
 
 msgid "No Steam API key"
 msgstr "Steam API anahtarı yok"
@@ -747,3 +731,27 @@ msgstr "Açıldı"
 
 msgid "{} % of players"
 msgstr "Oyuncuların {} %'si"
+
+msgid "Open"
+msgstr "Aç"
+
+msgid "Adjust"
+msgstr "Ayarla"
+
+msgid "Apply"
+msgstr "Uygula"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "Minimum / maximum"
+msgstr "En az / en çok"
+
+msgid "game profile"
+msgstr "oyun profili"
+
+msgid "limit {} · {} learned"
+msgstr "sınır {} · {} öğrenildi"
+
+msgid "Measures and screen"
+msgstr "Ölçümler ve ekran"

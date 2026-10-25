@@ -28,6 +28,8 @@ export struct StatusView {
     thermal-limited: bool,
     // Executable names, "" when none.
     foreground: string,
+    // The foreground program's name without ".exe", "" when none.
+    game: string,
     active-profile: string,
     // Other programs driving the hardware, comma separated.
     conflicts: string,

@@ -535,9 +535,10 @@ export component PadGlyph inherits Rectangle {
         vertical-alignment: center;
     }
 }
-// The D-pad, with the two arrows of the axis it moves along.
+// The D-pad, with the two arrows of the axis it moves along, or all four.
 export component DpadGlyph inherits Rectangle {
     in property <bool> horizontal;
+    in property <bool> both;
     width: 22px;
     height: 22px;
     Path {
@@ -558,23 +559,25 @@ export component DpadGlyph inherits Rectangle {
         viewbox-width: 24;
         viewbox-height: 24;
         fill: Theme.text;
-        commands: root.horizontal ? "M 5.5 12 L 7.5 10.4 L 7.5 13.6 Z M 18.5 12 L 16.5 10.4 L 16.5 13.6 Z" : "M 12 5.5 L 13.6 7.5 L 10.4 7.5 Z M 12 18.5 L 13.6 16.5 L 10.4 16.5 Z";
+        commands: root.both ? "M 5.5 12 L 7.5 10.4 L 7.5 13.6 Z M 18.5 12 L 16.5 10.4 L 16.5 13.6 Z M 12 5.5 L 13.6 7.5 L 10.4 7.5 Z M 12 18.5 L 13.6 16.5 L 10.4 16.5 Z" : root.horizontal ? "M 5.5 12 L 7.5 10.4 L 7.5 13.6 Z M 18.5 12 L 16.5 10.4 L 16.5 13.6 Z" : "M 12 5.5 L 13.6 7.5 L 10.4 7.5 Z M 12 18.5 L 13.6 16.5 L 10.4 16.5 Z";
     }
 }
 
 // A gamepad hint: the button, then what it does. `glyph` is a button name,
-// "LB RB" for both bumpers, or "updown" / "leftright" for the D-pad.
+// "LB RB" for both bumpers, or "updown" / "leftright" / "dpad" (every
+// direction) for the D-pad.
 export component Hint inherits HorizontalLayout {
     in property <string> glyph;
     in property <string> text;
     property <bool> bumpers: root.glyph == "LB RB";
-    property <bool> dpad: root.glyph == "updown" || root.glyph == "leftright";
+    property <bool> dpad: root.glyph == "updown" || root.glyph == "leftright" || root.glyph == "dpad";
     horizontal-stretch: 0;
     spacing: 8px;
     if root.dpad: VerticalLayout {
         alignment: center;
         DpadGlyph {
             horizontal: root.glyph == "leftright";
+            both: root.glyph == "dpad";
         }
     }
     if root.bumpers: HorizontalLayout {

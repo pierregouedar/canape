@@ -48,9 +48,6 @@ msgstr "自动 TDP"
 msgid "Thermal limit reached"
 msgstr "已达温度上限"
 
-msgid "Frame rate"
-msgstr "帧率"
-
 msgid "CPU temperature"
 msgstr "CPU 温度"
 
@@ -156,11 +153,8 @@ msgstr "自动"
 msgid "Language"
 msgstr "语言"
 
-
 msgid "Service connected"
 msgstr "服务已连接"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -192,9 +186,6 @@ msgstr "强调色"
 
 msgid "Offline"
 msgstr "离线"
-
-msgid "Power draw"
-msgstr "功耗"
 
 msgid "Hue"
 msgstr "色相"
@@ -263,7 +254,6 @@ msgstr "由其他客户端设置的自定义曲线。"
 
 msgid "Frame rate limit"
 msgstr "帧率限制"
-
 
 msgid "Controller"
 msgstr "控制器"
@@ -343,9 +333,6 @@ msgstr "目标 {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 分钟"
-
 msgid "Canapé {}"
 msgstr "Canapé {}"
 
@@ -372,9 +359,6 @@ msgstr "全局设置"
 
 msgid "Installing…"
 msgstr "正在安装…"
-
-msgid "Limit"
-msgstr "上限"
 
 msgid "No Steam API key"
 msgstr "没有 Steam API 密钥"
@@ -747,3 +731,27 @@ msgstr "已解锁"
 
 msgid "{} % of players"
 msgstr "{} % 的玩家"
+
+msgid "Open"
+msgstr "打开"
+
+msgid "Adjust"
+msgstr "调整"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Minimum / maximum"
+msgstr "最小 / 最大"
+
+msgid "game profile"
+msgstr "游戏配置"
+
+msgid "limit {} · {} learned"
+msgstr "上限 {} · 已学习 {}"
+
+msgid "Measures and screen"
+msgstr "测量与屏幕"

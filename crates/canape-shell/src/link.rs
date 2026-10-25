@@ -413,6 +413,12 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
         temp_limit: s.auto_tdp.max_temp_c.map_or(0, |t| t as i32),
         thermal_limited: s.thermal_limited,
         foreground: s.foreground.clone().unwrap_or_default().into(),
+        game: s
+            .foreground
+            .as_deref()
+            .map(game_name)
+            .unwrap_or_default()
+            .into(),
         active_profile: s.active_profile.clone().unwrap_or_default().into(),
         conflicts: s.conflicts.join(", ").into(),
         bench_running: bench.is_some(),
@@ -467,6 +473,18 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
                 .position(|&e| e == l.speed)
                 .map_or(1, |i| i as i32)
         }),
+    }
+}
+
+/// The name shown for a program: its file name without the folder and the
+/// `.exe`.
+fn game_name(exe: &str) -> &str {
+    let file = exe.rsplit(['\\', '/']).next().unwrap_or(exe);
+    match file.len().checked_sub(4) {
+        Some(at) if file.is_char_boundary(at) && file[at..].eq_ignore_ascii_case(".exe") => {
+            &file[..at]
+        }
+        _ => file,
     }
 }
 
@@ -583,6 +601,9 @@ mod tests {
         assert!(view.power_known && view.on_battery);
         assert_eq!((view.battery_cap, view.temp_limit), (15, 0));
         assert_eq!(view.foreground, "game.exe");
+        assert_eq!(view.game, "game");
+        assert_eq!(super::game_name(r"C:\Games\Ashen Tide.EXE"), "Ashen Tide");
+        assert_eq!(super::game_name("ashen"), "ashen");
         assert!(view.bench_running);
         assert_eq!((view.bench_step, view.bench_steps), (2, 7));
         assert_eq!(view.gyro_activation, "off");

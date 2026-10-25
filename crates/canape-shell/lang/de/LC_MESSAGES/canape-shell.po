@@ -48,9 +48,6 @@ msgstr "Auto-TDP"
 msgid "Thermal limit reached"
 msgstr "Temperaturgrenze erreicht"
 
-msgid "Frame rate"
-msgstr "Bildrate"
-
 msgid "CPU temperature"
 msgstr "CPU-Temperatur"
 
@@ -156,11 +153,8 @@ msgstr "Automatisch"
 msgid "Language"
 msgstr "Sprache"
 
-
 msgid "Service connected"
 msgstr "Dienst verbunden"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -192,9 +186,6 @@ msgstr "Akzentfarbe"
 
 msgid "Offline"
 msgstr "Offline"
-
-msgid "Power draw"
-msgstr "Verbrauch"
 
 msgid "Hue"
 msgstr "Farbton"
@@ -263,7 +254,6 @@ msgstr "Eigene Kurven, von einem anderen Client gesetzt."
 
 msgid "Frame rate limit"
 msgstr "Bildratenlimit"
-
 
 msgid "Controller"
 msgstr "Controller"
@@ -343,9 +333,6 @@ msgstr "Ziel {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 Min."
-
 msgid "Canapé {}"
 msgstr "Canapé {}"
 
@@ -372,9 +359,6 @@ msgstr "Allgemeine Einstellungen"
 
 msgid "Installing…"
 msgstr "Installation…"
-
-msgid "Limit"
-msgstr "Limit"
 
 msgid "No Steam API key"
 msgstr "Kein Steam-API-Schlüssel"
@@ -747,3 +731,27 @@ msgstr "Freigeschaltet"
 
 msgid "{} % of players"
 msgstr "{} % der Spieler"
+
+msgid "Open"
+msgstr "Öffnen"
+
+msgid "Adjust"
+msgstr "Einstellen"
+
+msgid "Apply"
+msgstr "Anwenden"
+
+msgid "Close"
+msgstr "Schließen"
+
+msgid "Minimum / maximum"
+msgstr "Minimum / Maximum"
+
+msgid "game profile"
+msgstr "Spielprofil"
+
+msgid "limit {} · {} learned"
+msgstr "Limit {} · {} gelernt"
+
+msgid "Measures and screen"
+msgstr "Messungen und Bildschirm"

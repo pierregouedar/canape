@@ -48,9 +48,6 @@ msgstr "Auto-TDP"
 msgid "Thermal limit reached"
 msgstr "Temperatuurlimiet bereikt"
 
-msgid "Frame rate"
-msgstr "Framerate"
-
 msgid "CPU temperature"
 msgstr "CPU-temperatuur"
 
@@ -156,11 +153,8 @@ msgstr "Automatisch"
 msgid "Language"
 msgstr "Taal"
 
-
 msgid "Service connected"
 msgstr "Service verbonden"
-
-
 
 msgid "{} W"
 msgstr "{} W"
@@ -192,9 +186,6 @@ msgstr "Accentkleur"
 
 msgid "Offline"
 msgstr "Offline"
-
-msgid "Power draw"
-msgstr "Verbruik"
 
 msgid "Hue"
 msgstr "Tint"
@@ -263,7 +254,6 @@ msgstr "Aangepaste curves, ingesteld door een andere client."
 
 msgid "Frame rate limit"
 msgstr "FPS-limiet"
-
 
 msgid "Controller"
 msgstr "Controller"
@@ -343,9 +333,6 @@ msgstr "doel {}"
 msgid "W"
 msgstr "W"
 
-msgid "1 min"
-msgstr "1 min"
-
 msgid "Canapé {}"
 msgstr "Canapé {}"
 
@@ -372,9 +359,6 @@ msgstr "Algemene instellingen"
 
 msgid "Installing…"
 msgstr "Installeren…"
-
-msgid "Limit"
-msgstr "Limiet"
 
 msgid "No Steam API key"
 msgstr "Geen Steam-API-sleutel"
@@ -747,3 +731,27 @@ msgstr "Ontgrendeld"
 
 msgid "{} % of players"
 msgstr "{} % van de spelers"
+
+msgid "Open"
+msgstr "Openen"
+
+msgid "Adjust"
+msgstr "Aanpassen"
+
+msgid "Apply"
+msgstr "Toepassen"
+
+msgid "Close"
+msgstr "Sluiten"
+
+msgid "Minimum / maximum"
+msgstr "Minimum / maximum"
+
+msgid "game profile"
+msgstr "spelprofiel"
+
+msgid "limit {} · {} learned"
+msgstr "limiet {} · {} geleerd"
+
+msgid "Measures and screen"
+msgstr "Metingen en scherm"
