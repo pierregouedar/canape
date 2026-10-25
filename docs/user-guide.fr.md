@@ -451,7 +451,8 @@ Dans la dernière rangée de la page, à droite, **Boutons arrière et éclairag
 | Volume + / −, couper le micro, clavier tactile | Cette action |
 
 - C'est la manette elle-même qui traduit : cela marche dans tous les jeux et programmes, quel que soit ce qui lit la manette.
-- Le choix est général (pas par jeu), mémorisé, et réécrit au démarrage du service et après chaque changement de mode de la manette.
+- Le choix est général (pas par jeu), mémorisé, et réécrit au démarrage du service et après chaque changement de mode de la manette. Canapé écrit chaque fois toute la table des boutons de la manette, avec les associations d'usine pour tous les autres boutons : une réassociation faite ailleurs (Armoury Crate, un autre outil) pour les autres boutons est défaite, le turbo aussi.
+- Il faut le mode manette ou souris : en mode clavier (WASD) le choix est refusé, et les boutons enregistrés reviennent avec un autre mode. Choisir un bouton alors que Canapé n'a pas réglé le mode met la manette en mode manette.
 - Avec le bouton gauche sous l'écran maintenu, M1 et M2 gardent leurs propres touches.
 - **Rétablir les boutons d'origine** rend à M1 et M2 leurs propres touches.
 - Steam Input, ou un jeu qui connaissait déjà M1 et M2 par leurs propres touches, voit le nouveau bouton à la place.

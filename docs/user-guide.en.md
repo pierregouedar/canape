@@ -451,7 +451,8 @@ On the page's last row, on the right, **Back buttons and lighting ›** opens a 
 | Volume up / down, mute the microphone, touch keyboard | That action |
 
 - The controller itself does the translation: it works in every game and program, whatever reads the gamepad.
-- The choice is global (not per game), remembered, and written again when the service starts and after every change of controller mode.
+- The choice is global (not per game), remembered, and written again when the service starts and after every change of controller mode. Canapé writes the controller's whole button table each time, with the factory bindings for every other button: a remap made elsewhere (Armoury Crate, another tool) for the other buttons is undone, and so is turbo.
+- It needs the gamepad or mouse mode: in keyboard (WASD) mode the choice is refused, and the saved buttons come back with another mode. Choosing a button while Canapé has not set the mode puts the controller in gamepad mode.
 - With the left button under the screen held, M1 and M2 keep their own keys.
 - **Restore the default buttons** gives M1 and M2 their own keys back.
 - Steam Input, or a game that already knows M1 and M2 by their own keys, sees the new button instead.

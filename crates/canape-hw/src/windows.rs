@@ -328,9 +328,15 @@ impl Device for AllyDevice {
         self.write_controller(|len| vec![pad::mode_report(mode, len)])
     }
 
-    /// UNTESTED on the device. One mapping report for the back button pair.
-    fn set_back_buttons(&mut self, buttons: &BackButtons) -> Result<()> {
-        self.write_controller(|len| vec![pad::back_buttons_report(buttons, len)])
+    /// UNTESTED on the device. The mode, the whole mapping table, then
+    /// turbo off (see [`pad::back_buttons_reports`]).
+    fn set_back_buttons(&mut self, buttons: &BackButtons, mode: ControllerMode) -> Result<()> {
+        if pad::back_buttons_reports(buttons, mode, pad::FEATURE_REPORT_LEN).is_none() {
+            return Err(HwError::Unsupported(crate::BACK_BUTTONS_IN_WASD));
+        }
+        self.write_controller(|len| {
+            pad::back_buttons_reports(buttons, mode, len).unwrap_or_default()
+        })
     }
 
     /// UNTESTED on the device. The brightness, then the colour of the

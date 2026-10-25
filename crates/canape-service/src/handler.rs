@@ -7,7 +7,7 @@ use canape_core::{
     FanCurve, FanCurves, FanPreset, GyroSettings, Lighting, PerformanceMode, Profile, ProfilePart,
     Request, Response, Status, protocol,
 };
-use canape_hw::{Device, Telemetry};
+use canape_hw::{Device, HwError, Telemetry};
 use serde::{Deserialize, Serialize};
 
 use crate::bench_run::{BenchRun, Reading, Step};
@@ -329,9 +329,16 @@ impl Handler {
                 if response != Response::Ok || self.back_buttons.is_default() {
                     return response;
                 }
-                // A mode change may bring the mode's own bindings back.
+                // A mode change brings the mode's own bindings back. WASD mode
+                // keeps them: the saved buttons return with another mode.
                 let buttons = self.back_buttons;
-                self.apply(|d| d.set_back_buttons(&buttons), |_| {})
+                self.apply(
+                    |d| match d.set_back_buttons(&buttons, mode) {
+                        Err(HwError::Unsupported(_)) => Ok(()),
+                        result => result,
+                    },
+                    |_| {},
+                )
             }
             Request::SetBackButton { button, target } => {
                 let mut buttons = self.back_buttons;
@@ -940,9 +947,12 @@ impl Handler {
         )
     }
 
+    /// The bindings go with the mode Canapé set, gamepad when it set none
+    /// (the controller's own after a restart).
     fn write_back_buttons(&mut self, buttons: BackButtons) -> Response {
+        let mode = self.controller_mode.unwrap_or(ControllerMode::Gamepad);
         self.apply(
-            |d| d.set_back_buttons(&buttons),
+            |d| d.set_back_buttons(&buttons, mode),
             |s| s.back_buttons = buttons,
         )
     }
@@ -1516,6 +1526,29 @@ mod tests {
         );
         assert_eq!(restored.status().back_buttons, buttons);
 
+        // WASD mode keeps its own bindings: the mode change goes through,
+        // a new binding does not, and the saved ones stay for later.
+        assert_eq!(
+            h.handle(Request::SetControllerMode {
+                mode: ControllerMode::Wasd,
+            }),
+            Response::Ok
+        );
+        assert!(matches!(
+            h.handle(Request::SetBackButton {
+                button: BackButton::M1,
+                target: ButtonTarget::PadB,
+            }),
+            Response::Error { .. }
+        ));
+        assert_eq!(h.status().back_buttons, buttons);
+
+        assert_eq!(
+            h.handle(Request::SetControllerMode {
+                mode: ControllerMode::Gamepad,
+            }),
+            Response::Ok
+        );
         assert_eq!(h.handle(Request::ResetBackButtons), Response::Ok);
         assert!(h.status().back_buttons.is_default());
         assert!(h.saved().back_buttons.is_default());

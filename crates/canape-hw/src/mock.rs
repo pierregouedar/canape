@@ -2,7 +2,7 @@ use canape_core::{
     BackButtons, ControllerMode, Fan, FanCurve, FanCurves, FanPreset, PerformanceMode,
 };
 
-use crate::{Device, HwError, Result, Telemetry};
+use crate::{BACK_BUTTONS_IN_WASD, Device, HwError, Result, Telemetry};
 
 /// Fan speed at 100 % duty, for the simulated RPM.
 const MAX_RPM: u32 = 6000;
@@ -156,7 +156,11 @@ impl Device for MockDevice {
         Ok(())
     }
 
-    fn set_back_buttons(&mut self, buttons: &BackButtons) -> Result<()> {
+    fn set_back_buttons(&mut self, buttons: &BackButtons, mode: ControllerMode) -> Result<()> {
+        if mode == ControllerMode::Wasd {
+            return Err(HwError::Unsupported(BACK_BUTTONS_IN_WASD));
+        }
+        self.controller_mode = Some(mode);
         self.back_buttons = *buttons;
         Ok(())
     }
