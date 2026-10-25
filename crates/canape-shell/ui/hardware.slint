@@ -3,11 +3,12 @@
 // picks a tile; X saves the fans and the frame rate cap for the game in
 // the foreground:
 //   0 fan presets, 1 frame rate cap, 2 controller mode, 3 battery charge
-//   limit, 4 refresh rate.
+//   limit, 4 refresh rate (when the screen reports its rates), then gyro
+//   aiming, which A opens.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
-import { ChoiceTile, Figure, IconTile, LegendKey, Row, Ruler, SectionTitle } from "kit.slint";
+import { ChoiceTile, Figure, IconTile, LegendKey, Row, Ruler, SectionTitle, SettingLine } from "kit.slint";
 
 // The CPU fan's custom curve: duty (0 to 100 %) against temperature
 // (20 to 110 °C), from hardware.rs.
@@ -63,6 +64,7 @@ component Curve inherits Rectangle {
 }
 
 export component HardwarePage inherits Rectangle {
+    callback open-gyro();
     in-out property <int> focus-row: 0;
     in-out property <int> fan-col: root.fan-index >= 0 ? root.fan-index : 0;
     in-out property <int> controller-col: root.controller-index >= 0 ? root.controller-index : 0;
@@ -78,7 +80,8 @@ export component HardwarePage inherits Rectangle {
     property <[int]> charge-stops: [60, 80, 100];
     property <int> charge-index: App.status.charge-limit == 60 ? 0 : App.status.charge-limit == 80 ? 1 : App.status.charge-limit == 100 ? 2 : -1;
     property <int> refresh-index: root.index-of-refresh(App.refresh-hz);
-    property <int> rows: App.refresh-rates.length > 0 ? 5 : 4;
+    property <int> gyro-row: App.refresh-rates.length > 0 ? 5 : 4;
+    property <int> rows: root.gyro-row + 1;
 
     pure function index-of-refresh(hz: int) -> int {
         // Past the end, an array reads as 0.
@@ -93,7 +96,7 @@ export component HardwarePage inherits Rectangle {
             root.controller-col = clamp(root.controller-col + d, 0, 2);
         } else if root.focus-row == 3 {
             root.charge-col = clamp(root.charge-col + d, 0, 2);
-        } else {
+        } else if root.focus-row != root.gyro-row {
             root.refresh-col = clamp(root.refresh-col + d, 0, App.refresh-rates.length - 1);
         }
     }
@@ -102,6 +105,8 @@ export component HardwarePage inherits Rectangle {
             App.set-fan-preset(root.fan-presets[root.fan-col]);
         } else if root.focus-row == 2 {
             App.set-controller(root.controllers[root.controller-col]);
+        } else if root.focus-row == root.gyro-row {
+            root.open-gyro();
         } else if root.focus-row == 3 {
             App.set-charge-limit(root.charge-stops[root.charge-col]);
         } else if root.focus-row == 4 {
@@ -122,7 +127,8 @@ export component HardwarePage inherits Rectangle {
                 root.focus-row = min(root.rows - 1, root.focus-row + 1);
                 return accept;
             }
-            if !App.status.connected && root.focus-row != 4 {
+            // Only the screen works without the service.
+            if !App.status.connected && (root.focus-row != 4 || root.gyro-row == 4) {
                 return reject;
             }
             if event.text == Key.LeftArrow {
@@ -227,41 +233,39 @@ export component HardwarePage inherits Rectangle {
                 }
             }
 
+            // Compact rows: a label and tiles on one line.
             Row {
                 focused: root.active && root.focus-row == 2;
                 enabled: App.status.connected;
-                VerticalLayout {
+                HorizontalLayout {
                     padding-left: 16px;
                     padding-right: 16px;
-                    padding-top: 14px;
-                    padding-bottom: 14px;
+                    padding-top: 8px;
+                    padding-bottom: 8px;
                     spacing: 12px;
                     SectionTitle {
+                        width: 150px;
                         text: @tr("Controller");
+                        vertical-alignment: center;
                     }
 
-                    HorizontalLayout {
-                        spacing: 12px;
-                        for icon[i] in ["gamepad", "keyboard", "mouse"]: IconTile {
-                            horizontal-stretch: 1;
-                            preferred-width: 10px;
-                            height: 76px;
-                            icon: icon;
-                            label: i == 0 ? @tr("Gamepad") : i == 1 ? @tr("Keyboard") : @tr("Mouse");
-                            selected: root.controller-index == i;
-                            focused: root.active && root.focus-row == 2 && root.controller-col == i;
-                            clicked => {
-                                root.focus-row = 2;
-                                root.controller-col = i;
-                                root.activate();
-                                fs.focus();
-                            }
+                    for i in 3: ChoiceTile {
+                        horizontal-stretch: 1;
+                        preferred-width: 10px;
+                        height: 44px;
+                        label: i == 0 ? @tr("Gamepad") : i == 1 ? @tr("Keyboard") : @tr("Mouse");
+                        selected: root.controller-index == i;
+                        focused: root.active && root.focus-row == 2 && root.controller-col == i;
+                        clicked => {
+                            root.focus-row = 2;
+                            root.controller-col = i;
+                            root.activate();
+                            fs.focus();
                         }
                     }
                 }
             }
 
-            // Compact rows: a label and tiles on one line.
             Row {
                 focused: root.active && root.focus-row == 3;
                 enabled: App.status.connected;
@@ -322,6 +326,18 @@ export component HardwarePage inherits Rectangle {
                             fs.focus();
                         }
                     }
+                }
+            }
+
+            SettingLine {
+                label: @tr("Gyro aiming");
+                value: App.gyro-name(App.status.gyro-activation) + " ›";
+                chevrons: false;
+                enabled: App.status.connected;
+                focused: root.active && root.focus-row == root.gyro-row;
+                clicked => {
+                    root.focus-row = root.gyro-row;
+                    root.activate();
                 }
             }
 

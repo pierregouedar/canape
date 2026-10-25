@@ -76,6 +76,10 @@ pub struct Profile {
     /// modes belong to the user's session. `None` keeps the shell's choice.
     #[serde(default)]
     pub refresh_hz: Option<u32>,
+    /// Gyro aiming for this game; `None` keeps the global settings. Like
+    /// the refresh rate, applied by the shell.
+    #[serde(default)]
+    pub gyro: Option<GyroSettings>,
 }
 
 impl Profile {
@@ -99,6 +103,58 @@ pub enum ControllerMode {
     /// Desktop: the right stick moves the mouse.
     Mouse,
 }
+
+/// When gyro aiming moves the mouse. It only ever acts while a game is in
+/// front, never on the shell.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GyroActivation {
+    #[default]
+    Off,
+    /// While a back paddle is held.
+    Hold,
+    /// A back paddle press turns it on, the next one off.
+    Toggle,
+    /// All the time.
+    Always,
+}
+
+/// Which rotation moves the mouse sideways.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GyroAxis {
+    /// Turning the device left or right, as when looking around.
+    #[default]
+    Yaw,
+    /// Tilting it like a steering wheel.
+    Roll,
+}
+
+/// Gyro aiming: device rotation turned into mouse movement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GyroSettings {
+    pub activation: GyroActivation,
+    /// Mouse counts per degree of rotation, within [`GYRO_SENSITIVITY_RANGE`].
+    pub sensitivity: u32,
+    pub horizontal: GyroAxis,
+    /// Tilting the top away moves the mouse down instead of up.
+    pub invert_y: bool,
+}
+
+impl Default for GyroSettings {
+    fn default() -> Self {
+        Self {
+            activation: GyroActivation::Off,
+            sensitivity: 10,
+            horizontal: GyroAxis::Yaw,
+            invert_y: false,
+        }
+    }
+}
+
+/// Sensitivities accepted by `set_gyro`, in mouse counts per degree.
+pub const GYRO_SENSITIVITY_RANGE: (u32, u32) = (1, 50);
 
 #[cfg(test)]
 mod tests {
@@ -140,6 +196,24 @@ mod tests {
         let profile: Profile = serde_json::from_str(json).unwrap();
         assert_eq!(profile.fan_curves, None);
         assert_eq!(profile.fps_limit, None);
+        assert_eq!(profile.gyro, None);
+    }
+
+    #[test]
+    fn gyro_settings_in_json() {
+        let settings = GyroSettings {
+            activation: GyroActivation::Hold,
+            ..GyroSettings::default()
+        };
+        let json = serde_json::to_string(&settings).unwrap();
+        assert_eq!(
+            json,
+            r#"{"activation":"hold","sensitivity":10,"horizontal":"yaw","invert_y":false}"#
+        );
+        // Missing fields take their defaults.
+        let partial: GyroSettings = serde_json::from_str(r#"{"activation":"always"}"#).unwrap();
+        assert_eq!(partial.activation, GyroActivation::Always);
+        assert_eq!(partial.sensitivity, 10);
     }
 
     #[test]

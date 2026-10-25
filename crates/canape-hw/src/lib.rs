@@ -1,6 +1,8 @@
 //! Hardware abstraction. The service only talks to [`Device`]; the Ally
 //! backend lives in `windows` (on top of [`atk`]) and a [`mock::MockDevice`]
-//! serves development and tests on any OS.
+//! serves development and tests on any OS. The gyroscope ([`motion`]) and
+//! the screen ([`display`]) belong to the user session: the shell uses
+//! them directly.
 
 use canape_core::{ControllerMode, Fan, FanCurve, PerformanceMode};
 
@@ -9,8 +11,11 @@ mod adl;
 pub mod atk;
 pub mod display;
 #[cfg(windows)]
+mod gyro;
+#[cfg(windows)]
 mod hid;
 pub mod mock;
+pub mod motion;
 pub mod pad;
 #[cfg(windows)]
 pub mod windows;

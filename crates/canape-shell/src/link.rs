@@ -9,7 +9,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use canape_core::{
-    BenchReport, ControllerMode, PerformanceMode, Profile, Request, Response, Status, protocol,
+    BenchReport, ControllerMode, GyroActivation, GyroAxis, PerformanceMode, Profile, Request,
+    Response, Status, protocol,
 };
 use canape_ipc::Connection;
 use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
@@ -86,6 +87,9 @@ impl Link {
                     crate::log(&format!("service link: {err}"));
                 }
                 show_status(&ui_status, &state, None);
+                // No settings without the service: gyro aiming stops.
+                #[cfg(windows)]
+                crate::gyro::follow(canape_core::GyroSettings::default(), false);
                 thread::sleep(RETRY);
             }
         });
@@ -259,6 +263,8 @@ fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> 
                 profiles.iter().find(|p| p.matches(exe))?.refresh_hz
             });
             crate::screen::follow(status.foreground.as_deref(), profile_hz);
+            #[cfg(windows)]
+            crate::gyro::follow(status.gyro, status.foreground.is_some());
             if first || pushes % SCREEN_REFRESH_PUSHES == 0 {
                 show_screen(ui);
             }
@@ -430,6 +436,16 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
         }
         .into(),
         charge_limit: s.battery_charge_limit.map_or(0, i32::from),
+        gyro_activation: match s.gyro.activation {
+            GyroActivation::Off => "off",
+            GyroActivation::Hold => "hold",
+            GyroActivation::Toggle => "toggle",
+            GyroActivation::Always => "always",
+        }
+        .into(),
+        gyro_sensitivity: s.gyro.sensitivity as i32,
+        gyro_roll: s.gyro.horizontal == GyroAxis::Roll,
+        gyro_invert: s.gyro.invert_y,
     }
 }
 
@@ -539,6 +555,9 @@ mod tests {
         assert_eq!(view.foreground, "game.exe");
         assert!(view.bench_running);
         assert_eq!((view.bench_step, view.bench_steps), (2, 7));
+        assert_eq!(view.gyro_activation, "off");
+        assert_eq!(view.gyro_sensitivity, 10);
+        assert!(!view.gyro_roll && !view.gyro_invert);
     }
 
     #[test]

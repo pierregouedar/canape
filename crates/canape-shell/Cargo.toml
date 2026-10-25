@@ -8,6 +8,7 @@ license.workspace = true
 
 [dependencies]
 canape-core.workspace = true
+canape-hw.workspace = true
 canape-ipc.workspace = true
 canape-library = { path = "../canape-library" }
 serde.workspace = true
@@ -15,7 +16,6 @@ serde_json.workspace = true
 slint = { version = "1.18", default-features = false, features = ["std", "compat-1-2", "backend-winit", "renderer-software", "software-renderer-path", "software-renderer-systemfonts", "unstable-winit-030"] }
 
 [target.'cfg(windows)'.dependencies]
-canape-hw.workspace = true
 windows-sys = { workspace = true, features = [
     "Win32_Foundation",
     "Win32_Globalization",

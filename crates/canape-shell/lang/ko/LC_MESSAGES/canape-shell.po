@@ -468,3 +468,36 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "이 게임의 프로필"
+
+msgid "Gyro aiming"
+msgstr "자이로 조준"
+
+msgid "While a back paddle is held"
+msgstr "후면 패들을 누르고 있는 동안"
+
+msgid "A back paddle turns it on and off"
+msgstr "후면 패들로 켜고 끄기"
+
+msgid "Always"
+msgstr "항상"
+
+msgid "Active"
+msgstr "활성화"
+
+msgid "Sensitivity"
+msgstr "감도"
+
+msgid "Left and right"
+msgstr "좌우"
+
+msgid "Tilt like a wheel"
+msgstr "핸들처럼 기울이기"
+
+msgid "Turn the console"
+msgstr "기기 돌리기"
+
+msgid "Invert up and down"
+msgstr "상하 반전"
+
+msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
+msgstr "게임이 앞에 있을 때 마우스를 움직입니다. 게임패드만 읽는 게임에서는 무시됩니다."

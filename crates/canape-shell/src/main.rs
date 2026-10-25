@@ -19,6 +19,8 @@ mod foreground;
 #[cfg(windows)]
 mod gamepad;
 mod grid;
+#[cfg(any(windows, test))]
+mod gyro;
 mod hardware;
 mod history;
 mod i18n;
@@ -35,7 +37,11 @@ mod shelves;
 use std::rc::Rc;
 use std::time::Duration;
 
-use canape_core::{AutoTdpSettings, BenchPlan, ControllerMode, PerformanceMode, Request};
+use canape_core::settings::GYRO_SENSITIVITY_RANGE;
+use canape_core::{
+    AutoTdpSettings, BenchPlan, ControllerMode, GyroActivation, GyroAxis, GyroSettings,
+    PerformanceMode, Request,
+};
 
 use slint::{ComponentHandle, Timer, TimerMode};
 
@@ -135,6 +141,7 @@ fn main() -> Result<(), slint::PlatformError> {
     {
         gamepad::spawn(ui.as_weak());
         buttons::spawn(ui.as_weak());
+        gyro::spawn();
         foreground::spawn(link.clone());
         std::thread::spawn(|| match canape_hw::FrameMetrics::arm() {
             Ok(metrics) => log(&metrics.describe()),
@@ -157,6 +164,13 @@ fn update_auto(link: &Link, change: impl FnOnce(&mut AutoTdpSettings)) {
     let mut settings = link.status().auto_tdp;
     change(&mut settings);
     link.send(Request::SetAutoTdp { settings });
+}
+
+/// Changes the gyro aiming settings from the last known ones.
+fn update_gyro(link: &Link, change: impl FnOnce(&mut GyroSettings)) {
+    let mut settings = link.status().gyro;
+    change(&mut settings);
+    link.send(Request::SetGyro { settings });
 }
 
 fn step(value: u32, delta: i32, lo: u32, hi: u32) -> u32 {
@@ -325,6 +339,7 @@ fn connect(ui: &AppWindow, link: &Link) {
                 fan_curves: link.profile(&exe).and_then(|p| p.fan_curves),
                 fps_limit: link.profile(&exe).and_then(|p| p.fps_limit),
                 refresh_hz: link.profile(&exe).and_then(|p| p.refresh_hz),
+                gyro: link.profile(&exe).and_then(|p| p.gyro),
                 ..report::profile_for(&report, rec, &exe, status.auto_tdp)
             };
             link.send(Request::SaveProfile { profile });
@@ -384,10 +399,47 @@ fn connect(ui: &AppWindow, link: &Link) {
                     fan_curves: Some(status.fan_curves.clone()),
                     fps_limit: status.fps_limit,
                     refresh_hz: Some(screen::state().0).filter(|&hz| hz > 0),
+                    gyro: Some(status.gyro),
                     ..existing
                 },
             });
         }
+    });
+    app.on_set_gyro_activation({
+        let link = link.clone();
+        move |activation| {
+            let activation = match activation.as_str() {
+                "hold" => GyroActivation::Hold,
+                "toggle" => GyroActivation::Toggle,
+                "always" => GyroActivation::Always,
+                _ => GyroActivation::Off,
+            };
+            update_gyro(&link, |g| g.activation = activation);
+        }
+    });
+    app.on_change_gyro_sensitivity({
+        let link = link.clone();
+        move |delta| {
+            let (lo, hi) = GYRO_SENSITIVITY_RANGE;
+            update_gyro(&link, |g| {
+                g.sensitivity = step(g.sensitivity, delta, lo, hi)
+            });
+        }
+    });
+    app.on_toggle_gyro_roll({
+        let link = link.clone();
+        move || {
+            update_gyro(&link, |g| {
+                g.horizontal = match g.horizontal {
+                    GyroAxis::Yaw => GyroAxis::Roll,
+                    GyroAxis::Roll => GyroAxis::Yaw,
+                }
+            })
+        }
+    });
+    app.on_toggle_gyro_invert({
+        let link = link.clone();
+        move || update_gyro(&link, |g| g.invert_y = !g.invert_y)
     });
 
     app.on_toggle_online_covers({

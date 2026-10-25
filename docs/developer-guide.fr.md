@@ -103,7 +103,7 @@ flowchart BT
     shell --> core
     shell --> ipc
     shell --> library
-    shell -.->|"Windows seulement"| hw
+    shell --> hw
     ctl --> core
     ctl --> ipc
 ```
@@ -112,14 +112,14 @@ flowchart BT
 |---|---|---|---|
 | `canape-core` | bibliothèque | Protocole (`Request`, `Response`, `Status`), réglages (`AutoTdpSettings`, `PerformanceMode`, `Profile`, `ControllerMode`), courbes de ventilateurs (validation, préréglages), banc d'essai (`BenchPlan`, `BenchReport` et ses recommandations), journal minimal | `protocol.rs`, `settings.rs`, `fan.rs`, `bench.rs`, `log.rs` |
 | `canape-autotdp` | bibliothèque | Contrôleur d'auto TDP : machine à états pure, nourrie d'un `Sample` par seconde, sans dépendance au système | `lib.rs` |
-| `canape-hw` | bibliothèque | Trait `Device` ; backend Ally (Windows) au-dessus d'ATKACPI, d'ADL et de l'interface HID de la manette ; `MockDevice` pour le reste | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs` |
+| `canape-hw` | bibliothèque | Trait `Device` ; backend Ally (Windows) au-dessus d'ATKACPI, d'ADL et de l'interface HID de la manette ; `MockDevice` pour le reste. Pour la session de l'utilisateur : l'écran (`display`) et le gyroscope (`motion` : trait `Gyro`, `MockGyro`, `motion::open()`) | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs`, `display.rs`, `motion.rs`, `gyro.rs` |
 | `canape-ipc` | bibliothèque | Une `Connection` qui envoie et reçoit des lignes JSON ; named pipe sous Windows, socket Unix ailleurs ; ACL du pipe | `lib.rs`, `windows.rs`, `unix.rs`, `acl.rs` |
 | `canape-service` | binaire | Service Windows : état, auto TDP, profils, banc d'essai, détection des conflits, serveur IPC, persistance | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
 | `canape-library` | bibliothèque | Jeux installés : recherche Steam, Epic, GOG et Xbox, fusion et tri, décodage des jaquettes, jaquettes téléchargées, lancement, fichiers de cache. Jeux possédés et leur installation (Steam, Epic par Legendary). Analyseurs purs testés sous Linux ; les parties Windows (registre, lecteurs, `ShellExecuteW`, WinHTTP) derrière `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `legendary.rs`, `install.rs`, `tools.rs`, `online.rs`, `http.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
-| `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : quatre sections (Jeux, Performance, Matériel, Réglages) et deux sous-pages (Profils de jeu depuis Réglages, Banc d'essai depuis Performance), barre d'état (W, FPS, batterie, heure), graphes de puissance en direct, préréglages et courbe des ventilateurs, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `library.rs`, `shelves.rs` (composition des étagères, pure et testée : Récents, Installés, une par boutique (installés et à installer mélangés), À installer ; chaque étagère a son modèle et sa sélection, une jaquette décodée sert à toutes les étagères qui montrent le jeu), `backdrop.rs` (lueur de la couleur du jeu derrière la bibliothèque, et `fade_art` qui fond la grande image d'un jeu dans le fond), fiche du jeu (`GamePage` dans `library.slint` ; le profil s'affiche par l'exécutable que `learn_exe` retient dans `recent.json` (`Recent::exes`) quand un programme plein écran passe devant dans les 2 min suivant un lancement, `canape_library::is_store_program` écartant clients et lanceurs ; `open_detail` / `close_detail` : taille et temps de jeu tout de suite, grande jaquette et image large Steam décodées sur un thread puis libérées 400 ms après la fermeture), `grid.rs`, `clock.rs`, `hardware.rs`, `ui/*.slint` : `app.slint` (cadre, sections, aides), `kit.slint` (rangées, tuiles, réglettes, lignes de réglage partagées ; `Reveal` fait apparaître en fondu et glissé ce que crée un `if` ou un `for`, qui n'animent rien d'eux-mêmes : pages selon le sens de LB/RB ; `RevealLine` fait entrer une ligne de gauche à droite avec un délai selon son rang, pour les lignes du titre du jeu ; le fond de la bibliothèque, dessiné opaque à la taille de la fenêtre par `backdrop.rs` pour n'être que copié, passe d'une couleur à l'autre sur deux calques, `backdrop-a` et `backdrop-b` ; les jaquettes sont décodées à la taille d'une jaquette non sélectionnée, seule la sélectionnée est agrandie ; le rendu logiciel ne redessine que ce qui change, alors les animations touchent le moins de surface possible : une étagère ne défile qu'au bord, la jaquette sélectionnée grandit sur place sans pousser les autres, et le fond ne change qu'une fois la sélection posée, `BACKDROP_DELAY` ; il ne passe en fondu qu'après une pause, `BACKDROP_FADE_AFTER`, et change d'un coup pendant qu'on parcourt ; son image commence là où la lueur arrive, `Mask::x`), `fonts/` (Plus Jakarta Sans embarquée, licence OFL, chiffres tabulaires par défaut, espace élargie ; le cyrillique et le CJK retombent sur les polices système ; le widget lie les mêmes fichiers), une page par fichier (`library.slint`, `performance.slint`, `hardware.slint`, `settings.slint`, sous-pages dans `pages.slint`). Toutes les pages se parcourent aux flèches : chacune tient le focus dans un seul `FocusScope` et déplace elle-même sa rangée et sa colonne ; `App.arrow-focus` dit à la manette d'envoyer des flèches plutôt que Tab (`library::arrow_navigation`). X et Y arrivent en F2 et F3, `i18n.rs`, `report.rs`, `nav.rs` (`Navigator::quiet` : manette ignorée 2 s (`keys::FIRST_QUIET`) au premier passage au premier plan, boutons tenus ignorés jusqu'au relâchement), `keys.rs` (`KeyGate`, filtre des événements clavier de winit (`on_winit_window_event`) avec les mêmes règles : une touche qui se répète sans avoir été vue descendre était tenue avant le focus ; journalise chaque Entrée et Échap avec sa source, `keys: pad` ou `keys: keyboard`), `foreground.rs`, `history.rs`, `accent.rs` |
+| `canape-shell` | binaire | App d'accueil Slint (rendu logiciel) : quatre sections (Jeux, Performance, Matériel, Réglages) et trois sous-pages (Profils de jeu depuis Réglages, Banc d'essai depuis Performance, Visée au gyroscope depuis Matériel), barre d'état (W, FPS, batterie, heure), graphes de puissance en direct, préréglages et courbe des ventilateurs, sélecteur de couleur d'accent, manette XInput, suivi du premier plan, 13 langues | `main.rs`, `link.rs`, `library.rs`, `shelves.rs` (composition des étagères, pure et testée : Récents, Installés, une par boutique (installés et à installer mélangés), À installer ; chaque étagère a son modèle et sa sélection, une jaquette décodée sert à toutes les étagères qui montrent le jeu), `backdrop.rs` (lueur de la couleur du jeu derrière la bibliothèque, et `fade_art` qui fond la grande image d'un jeu dans le fond), fiche du jeu (`GamePage` dans `library.slint` ; le profil s'affiche par l'exécutable que `learn_exe` retient dans `recent.json` (`Recent::exes`) quand un programme plein écran passe devant dans les 2 min suivant un lancement, `canape_library::is_store_program` écartant clients et lanceurs ; `open_detail` / `close_detail` : taille et temps de jeu tout de suite, grande jaquette et image large Steam décodées sur un thread puis libérées 400 ms après la fermeture), `grid.rs`, `clock.rs`, `hardware.rs`, `ui/*.slint` : `app.slint` (cadre, sections, aides), `kit.slint` (rangées, tuiles, réglettes, lignes de réglage partagées ; `Reveal` fait apparaître en fondu et glissé ce que crée un `if` ou un `for`, qui n'animent rien d'eux-mêmes : pages selon le sens de LB/RB ; `RevealLine` fait entrer une ligne de gauche à droite avec un délai selon son rang, pour les lignes du titre du jeu ; le fond de la bibliothèque, dessiné opaque à la taille de la fenêtre par `backdrop.rs` pour n'être que copié, passe d'une couleur à l'autre sur deux calques, `backdrop-a` et `backdrop-b` ; les jaquettes sont décodées à la taille d'une jaquette non sélectionnée, seule la sélectionnée est agrandie ; le rendu logiciel ne redessine que ce qui change, alors les animations touchent le moins de surface possible : une étagère ne défile qu'au bord, la jaquette sélectionnée grandit sur place sans pousser les autres, et le fond ne change qu'une fois la sélection posée, `BACKDROP_DELAY` ; il ne passe en fondu qu'après une pause, `BACKDROP_FADE_AFTER`, et change d'un coup pendant qu'on parcourt ; son image commence là où la lueur arrive, `Mask::x`), `fonts/` (Plus Jakarta Sans embarquée, licence OFL, chiffres tabulaires par défaut, espace élargie ; le cyrillique et le CJK retombent sur les polices système ; le widget lie les mêmes fichiers), une page par fichier (`library.slint`, `performance.slint`, `hardware.slint`, `settings.slint`, sous-pages dans `pages.slint`). Toutes les pages se parcourent aux flèches : chacune tient le focus dans un seul `FocusScope` et déplace elle-même sa rangée et sa colonne ; `App.arrow-focus` dit à la manette d'envoyer des flèches plutôt que Tab (`library::arrow_navigation`). X et Y arrivent en F2 et F3, `i18n.rs`, `report.rs`, `nav.rs` (`Navigator::quiet` : manette ignorée 2 s (`keys::FIRST_QUIET`) au premier passage au premier plan, boutons tenus ignorés jusqu'au relâchement), `keys.rs` (`KeyGate`, filtre des événements clavier de winit (`on_winit_window_event`) avec les mêmes règles : une touche qui se répète sans avoir été vue descendre était tenue avant le focus ; journalise chaque Entrée et Échap avec sa source, `keys: pad` ou `keys: keyboard`), `foreground.rs`, `history.rs`, `accent.rs`, `gyro.rs` (visée au gyroscope, voir [La page Matériel](#la-page-matériel)) |
 | `canape-ctl` | binaire | Envoie une requête JSON, ou `watch` pour suivre le statut ; `--pretty` indente le JSON | `main.rs` |
 
-Le shell dépend de `canape-hw` sous Windows uniquement pour `arm_frame_metrics()` (démarrer le comptage des images du pilote AMD depuis la session utilisateur) ; il n'écrit jamais dans le firmware.
+Le shell utilise `canape-hw` pour ce qui appartient à la session de l'utilisateur : `arm_frame_metrics()` (démarrer le comptage des images du pilote AMD), l'écran, les boutons de l'Ally et le gyroscope. Il n'écrit jamais dans le firmware.
 
 ### La bibliothèque de jeux
 
@@ -182,14 +182,17 @@ La page 3 (`ui/hardware.slint`) ne fait qu'envoyer des requêtes : le service va
 |---|---|---|
 | Tuiles des ventilateurs | `set-fan-preset(key)` | `""` (Automatique) : `reset_fan_curves` ; `silent`, `balanced`, `max-cooling` : un `set_fan_curve` par ventilateur, CPU puis GPU, avec `FanPreset::curve()` (`canape-core/src/fan.rs`) |
 | Pastilles de la limite de FPS | `set-fps-limit(fps)` | `set_fps_limit`, `0` → `null` (Aucune) ; pastilles 30, 40, 45, 60, 90, 120 |
-| Garder ces réglages pour ce jeu | `save-hardware-profile()` | `save_profile` pour `status.foreground` : le profil existant (ou un nouveau avec `status.auto_tdp`) avec `fan_curves: Some(status.fan_curves)` (un ensemble vide veut dire « les courbes du firmware » pour ce jeu), `fps_limit: status.fps_limit` et `refresh_hz` (la fréquence actuelle de l'écran) |
+| Garder ces réglages pour ce jeu | `save-hardware-profile()` | `save_profile` pour `status.foreground` : le profil existant (ou un nouveau avec `status.auto_tdp`) avec `fan_curves: Some(status.fan_curves)` (un ensemble vide veut dire « les courbes du firmware » pour ce jeu), `fps_limit: status.fps_limit`, `refresh_hz` (la fréquence actuelle de l'écran) et `gyro: Some(status.gyro)` ; aussi **X** sur la page gyroscope |
 | Puces de l'écran | `set-refresh(hz)` | aucune : le shell change l'écran lui-même (`screen.rs`, `canape_hw::display::Screen`) et enregistre `refresh_hz` dans `shell.json` |
 | Tuiles de la manette | `set-controller(mode)` | `set_controller_mode` |
 | Puces de la limite de charge | `set-charge-limit(percent)` | `set_battery_charge_limit` ; puces 60, 80, 100 |
+| Ligne Visée au gyroscope | `open-gyro()` | aucune : ouvre la page 6, la sous-page Visée au gyroscope (`GyroPage` dans `pages.slint`) |
+| Lignes de la page gyroscope | `set-gyro-activation(nom)`, `change-gyro-sensitivity(pas)`, `toggle-gyro-roll()`, `toggle-gyro-invert()` | `set_gyro` avec `status.gyro` modifié (`update_gyro`) |
 
 - `hardware.rs` : `preset_name()` traduit `status.fan_curves` en tuile sélectionnée : `""` si vide (courbes du firmware), la clé d'un préréglage si chaque courbe personnalisée lui est égale, `custom` sinon. `curve_paths()` transforme la courbe du CPU en commandes `Path` de la ligne et de l'aire du cadre (viewbox 90 × 100 : une unité par °C de 20 à 110 °C, une par pour cent), prolongée à plat avant le premier point et après le dernier. Les deux sont couvertes par des tests unitaires.
 - `link.rs` (`status_view`) : `cpu_fan_rpm` / `gpu_fan_rpm` (−1 si inconnus), le nom du préréglage, les chemins de la courbe du CPU (vides sans courbe CPU personnalisée), `fps_limit` (0 pour aucune), `controller_mode` (`""` tant que Canapé ne l'a pas réglé, donc aucune tuile sélectionnée) et `battery_charge_limit` (0 tant que Canapé ne l'a pas réglée, de même). `tdp_floor()` / `tdp_ceiling()` lisent `tdp_min_watts` / `tdp_max_watts` (repli sur `MIN_WATTS` 5 et `MAX_WATTS` 35 dans `main.rs`) et bornent tous les réglages de puissance du shell.
-- La page Profils et le bouton **Profil du jeu** du banc d'essai conservent les `fan_curves`, `fps_limit` et `refresh_hz` d'un profil existant.
+- La page Profils et le bouton **Profil du jeu** du banc d'essai conservent les `fan_curves`, `fps_limit`, `refresh_hz` et `gyro` d'un profil existant.
+- **Visée au gyroscope** (`gyro.rs`, étude dans [`gyro-study.md`](gyro-study.md)) : le service ne fait que stocker les réglages (`GyroSettings`, globaux dans `state.json` et par profil) et pousse ceux en vigueur dans `status.gyro` ; le shell fait le reste, car `SendInput` n'atteint que le bureau de sa propre session. `link.rs` passe chaque statut à `gyro::follow(réglages, foreground.is_some())`, et des réglages `Off` quand le service est perdu ; `buttons.rs` passe les palettes à `gyro::paddle(enfoncée)`, quoi que dise `ally_buttons`. Un thread attend sur une variable de condition que la visée soit voulue (`Trigger::active` : palette tenue, basculée, ou toujours, et un jeu devant), ouvre le capteur une fois (`canape_hw::motion::open()`, journalisé en `gyro: …`), demande un intervalle de 10 ms, puis toutes les 10 ms lit la vitesse angulaire, la convertit en comptes de souris (`Aim::step`) et les envoie par `SendInput(MOUSEEVENTF_MOVE)`. Tant que le shell est devant, rien ne bouge et il revérifie toutes les 250 ms. Retour à l'intervalle par défaut du capteur quand la visée s'arrête. `Aim` : zone morte de 0,75 °/s retranchée de chaque axe, 50 ms au plus par lecture, fractions gardées d'une lecture à l'autre ; tourner à gauche (positif autour de Y, ou de Z avec `roll`) va à gauche, pencher le haut vers l'arrière (positif autour de X) monte. `Aim` et `Trigger` sont testés.
 - **Fréquence de l'écran** (`screen.rs`) : les modes d'affichage appartiennent à la session de l'utilisateur, c'est donc le shell, pas le service, qui les change. `canape_hw::display::Screen::internal()` retient le chemin actif dont la technologie de sortie est interne ou DisplayPort intégré (`QueryDisplayConfig`, puis le nom GDI de la source), `rates()` liste les fréquences à la résolution et à la profondeur actuelles (`EnumDisplaySettingsExW`), `set_refresh()` appelle `ChangeDisplaySettingsExW` avec `CDS_UPDATEREGISTRY`. Le service ne fait que stocker `Profile::refresh_hz` ; à chaque statut, le shell cherche la fréquence du profil actif et `screen::follow` ne change l'écran qu'au changement de profil (`Follow::step`, testé) : entrer dans un profil mémorise la fréquence remplacée, en sortir revient à la fréquence choisie sur la page (`refresh_hz` de `shell.json`, 0 = aucune) ou à celle mémorisée. La page relit la fréquence actuelle tous les 5 statuts. Hors Windows, `CANAPE_MOCK_SCREEN=60,120` simule un écran pour les captures.
 - **Boutons de l'Ally** (`buttons.rs`, Windows) : un thread lance `canape_hw::listen_buttons`, qui ouvre la même interface HID que le mode de la manette (VID `0x0B05`, PID `0x1ABE`/`0x1B4C`, rapport de fonctionnalité `0x5A`), envoie le rapport de réveil, puis lit les rapports d'entrée : code 166 Command Center, 56 ou 147 Armoury, 165 / 0 palettes arrière enfoncées / relâchées, 236 ignoré (`pad::parse_input`, testé). Armoury → `instance::bring_to_front()` (un appui Alt synthétique, puis `SetForegroundWindow`), ou la section Jeux si Canapé est déjà devant ; Command Center → Win+G (`SendInput`). Les codes inconnus sont journalisés. Après une erreur, le thread réessaie toutes les 5 s, toutes les 60 s quand aucune interface n'existe. `ally_buttons: false` dans `shell.json` désactive les actions.
 
@@ -289,6 +292,7 @@ sequenceDiagram
 | `save_foreground_profile` | `part: "power" \| "hardware"` | `ok` / `error` | Enregistre dans le profil du jeu au premier plan (créé avec l'auto TDP actuel s'il n'existe pas) l'auto TDP et la puissance tenue (`power`), ou les courbes et la limite de FPS (`hardware`) ; le reste du profil est gardé. Erreur sans jeu au premier plan. Utilisé par le widget. |
 | `set_fps_limit` | `fps: u32 \| null` (30 à 120) | `ok` / `error` | Plafond de FPS du pilote AMD (secteur et batterie, tous les jeux) ; `null` le retire. Enregistré ; pendant un profil qui a son propre plafond, modifie le profil. **Non testé depuis la session 0 du service.** |
 | `set_controller_mode` | `mode` : `gamepad` \| `wasd` \| `mouse` | `ok` / `error` | Mode de la manette intégrée (HID). Enregistré et réappliqué au démarrage. Global, pas par profil. **Non testé sur l'appareil.** |
+| `set_gyro` | `settings: GyroSettings` | `ok` / `error` | Visée au gyroscope. Seulement stockée : le shell l'applique. Enregistrée ; pendant un profil qui a ses propres réglages de gyroscope, modifie le profil. |
 
 Exemples :
 
@@ -308,6 +312,7 @@ Exemples :
 {"type":"set_fps_limit","fps":40}
 {"type":"set_fps_limit","fps":null}
 {"type":"set_controller_mode","mode":"mouse"}
+{"type":"set_gyro","settings":{"activation":"hold","sensitivity":10,"horizontal":"yaw","invert_y":false}}
 ```
 
 ### Réponses
@@ -348,7 +353,8 @@ Exemples :
   "gpu_fan_rpm": 3100,
   "fan_curves": {"cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": null, "mid": null},
   "fps_limit": 40,
-  "controller_mode": "gamepad"
+  "controller_mode": "gamepad",
+  "gyro": {"activation": "hold", "sensitivity": 10, "horizontal": "yaw", "invert_y": false}
 }
 ```
 
@@ -374,6 +380,7 @@ Exemples :
 | `fps_limit` | `u32 \| null` | Plafond de FPS posé par Canapé (`null` : aucun posé par Canapé ; le logiciel AMD peut en avoir un). |
 | `controller_mode` | `string \| null` | `gamepad`, `wasd`, `mouse`, ou `null` si Canapé ne l'a pas réglé. |
 | `battery_charge_limit` | `u8 \| null` | Limite de charge en pour cent, ou `null` si Canapé ne l'a pas réglée (le firmware ne la donne pas). Facultatif en entrée. |
+| `gyro` | `GyroSettings` | Visée au gyroscope en vigueur : globale, ou celle du profil actif. Valeurs par défaut si absent. |
 
 ### Types imbriqués
 
@@ -388,7 +395,7 @@ Exemples :
 | `battery_max_watts` | `u32 \| null` | `null` | facultatif en entrée |
 | `max_temp_c` | `u32 \| null` | `null` | facultatif en entrée |
 
-**`Profile`** : `exe` (string, comparé sans la casse), `auto_tdp` (`AutoTdpSettings`), `learned_watts` (`u32 | null`, facultatif), `fan_curves` (`FanCurves | null`, facultatif : `null` garde les courbes globales), `fps_limit` (`u32 | null`, facultatif : `null` garde le plafond global ; un profil ne peut pas imposer « aucun plafond » quand un plafond global existe).
+**`Profile`** : `exe` (string, comparé sans la casse), `auto_tdp` (`AutoTdpSettings`), `learned_watts` (`u32 | null`, facultatif), `fan_curves` (`FanCurves | null`, facultatif : `null` garde les courbes globales), `fps_limit` (`u32 | null`, facultatif : `null` garde le plafond global ; un profil ne peut pas imposer « aucun plafond » quand un plafond global existe), `refresh_hz` (`u32 | null`, facultatif, appliqué par le shell), `gyro` (`GyroSettings | null`, facultatif : `null` garde les réglages globaux).
 
 ```json
 {"exe":"eldenring.exe","auto_tdp":{"enabled":true,"target_fps":40,"min_watts":7,"max_watts":20},"learned_watts":14,"fan_curves":{"cpu":[[30,35],[40,45],[50,55],[60,65],[70,80],[75,90],[80,100],[85,100]]},"fps_limit":40}
@@ -410,6 +417,8 @@ Exemples :
 | `max_cooling` | `[[30,35],[40,45],[50,55],[60,65],[70,80],[75,90],[80,100],[85,100]]` |
 
 **`ControllerMode`** : `gamepad` (XInput), `wasd` (clavier), `mouse` (bureau).
+
+**`GyroSettings`** : `activation` (`off`, `hold` : tant qu'une palette arrière est tenue, `toggle` : un appui sur une palette active et coupe, `always` ; `off` par défaut), `sensitivity` (comptes de souris par degré, 1 à 50, 10 par défaut), `horizontal` (`yaw` : tourner autour de l'axe vertical de l'écran, ou `roll` : incliner comme un volant ; `yaw` par défaut), `invert_y` (`false` par défaut). Tous les champs facultatifs en entrée.
 
 **`BenchPlan`** : `from_watts` (25), `to_watts` (7), `step_watts` (3), `settle_secs` (5), `measure_secs` (15).
 
@@ -445,6 +454,7 @@ Exemples :
 | `not a #RRGGBB colour: …` | `set_accent` avec autre chose que `#` et six chiffres hexadécimaux |
 | `fan curve: …` | `set_fan_curve` qui enfreint une [règle](#types-imbriqués) (ordre, plage, rapport décroissant, plancher de sécurité) |
 | `frame rate limit not in 30..=120 FPS` | `set_fps_limit` hors plage |
+| `gyro sensitivity not in 1..=50` | `set_gyro` hors plage |
 | `not supported on this device: …` | Pas de ventilateur central, pas de pilote AMD, pas d'interface HID de la manette, ou fonction absente du simulateur |
 | `GPU driver refused: ADL2_FPS_Settings_Set(…) on adapter … returned …` | Le pilote AMD a refusé le plafond (code dans le message) |
 | `fan curves reset, but the TDP was not applied again: …` | `reset_fan_curves` en mode manuel, échec de la réécriture du TDP |
@@ -518,7 +528,8 @@ Hors Windows, les journaux et l'état vont dans `<tmp>/Canape/` (`service.log`, 
 | `CANAPE_MOCK_FPS` | service (simulateur) | FPS simulés, par exemple `60`. Sans elle, `fps` vaut `null` et l'auto TDP ne bouge pas. Sert aussi sous Windows quand le simulateur est utilisé. |
 | `CANAPE_SOCKET` | service, shell, `canape-ctl` (hors Windows) | Chemin du socket Unix. |
 | `CANAPE_WINDOWED` | shell | Présente (n'importe quelle valeur) : fenêtre au lieu du plein écran. |
-| `CANAPE_PAGE` | shell | Page ouverte au démarrage : 0 Jeux, 1 Performance, 2 Matériel, 3 Réglages, 4 Profils de jeu, 5 Banc d'essai. |
+| `CANAPE_PAGE` | shell | Page ouverte au démarrage : 0 Jeux, 1 Performance, 2 Matériel, 3 Réglages, 4 Profils de jeu, 5 Banc d'essai, 6 Visée au gyroscope. |
+| `CANAPE_MOCK_GYRO` | shell (`canape_hw::motion::open`) | `x,y,z` en degrés par seconde : un gyroscope simulé qui tourne à cette vitesse, à la place du capteur Windows. |
 | `CANAPE_LIBRARY_FIXTURE` | shell (builds de debug) | Une fausse bibliothèque à la place des boutiques installées : voir [La bibliothèque de jeux](#la-bibliothèque-de-jeux). |
 | `LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG` | shell (hors Windows) | Langue en mode Automatique, dans cet ordre de priorité. |
 | `TMPDIR` | tous (hors Windows) | Dossier temporaire, donc emplacement de `Canape/`. |
@@ -737,6 +748,17 @@ D'où la solution : au démarrage, le shell appelle `canape_hw::FrameMetrics::ar
 | Mode | `[0x5A, 0xD1, 0x01, 0x01, mode]`, `1` manette, `2` WASD, `3` souris, puis `HidD_SetFeature`. |
 
 
+### Gyroscope
+
+| Sujet | Fait |
+|---|---|
+| Capteur | IMU Bosch BMI323 dans le bloc de l'écran, reliée au processeur, pas au microcontrôleur de la manette : les rapports HID de la manette ne portent aucune donnée de mouvement. |
+| Windows | Pilote Bosch, exposé à la pile capteurs de Windows. Lu par `Windows.Devices.Sensors.Gyrometer` (`gyro.rs`) : `RoGetActivationFactory` sur `IGyrometerStatics` (`83B6E7C9-E49D-4B39-86E6-CD554BE4C5C1`), `GetDefault` (case 6), puis `IGyrometer` : `GetCurrentReading` (6), `MinimumReportInterval` (7), `put_ReportInterval` (8) ; `IGyrometerReading` : `AngularVelocityX/Y/Z` (7, 8, 9), `f64` en degrés par seconde. Vtables écrites à la main (pas de crate de projection), `combase.dll` importée en `raw-dylib`, le thread rejoint d'abord le MTA. |
+| Repère | Celui des capteurs Windows pour l'orientation native (paysage) : X vers la droite le long de l'écran, Y vers le haut de l'écran, Z sortant de l'écran. **À vérifier sur l'appareil**, avec les signes. |
+| Fréquence | Environ 100 Hz d'après des relevés d'utilisateurs ; l'intervalle minimal est journalisé (`gyro: Windows gyrometer, minimum report interval … ms`). |
+
+**Non testé sur l'appareil.** L'étude et les voies écartées (stick droit par une manette virtuelle, commande du firmware de la manette) sont dans [`gyro-study.md`](gyro-study.md).
+
 ### ACL du pipe
 
 Le SID AppContainer du widget est dérivé par Windows (`DeriveAppContainerSidFromAppContainerName`) de son nom de famille de paquet, que Canapé calcule à partir de `widget/CanapeWidget/Package.appxmanifest` : `Canape.Widget` + `_` + le hachage de l'éditeur `CN=Canape Dev` (SHA-256 de l'éditeur en UTF-16LE, 8 premiers octets, 13 caractères en base32 de Crockford), soit `Canape.Widget_84zrj1c9kn010`, le nom observé sur l'Ally (un test unitaire le vérifie). Si la dérivation échoue, le service revient à `AC` et journalise pourquoi. Changer l'éditeur du widget change le SID : mettre à jour `WIDGET_PUBLISHER` dans `crates/canape-ipc/src/acl.rs`.
@@ -746,6 +768,7 @@ Le SID AppContainer du widget est dérivé par Windows (`DeriveAppContainerSidFr
 | Fonction | Interface prévue |
 |---|---|
 | Réassignation des boutons | HID ASUS (rapport `0x5A`, commandes `0xD1 0x02`) |
+| Gyroscope sur le stick droit | Un pilote de manette virtuelle, ou une commande de la manette documentée nulle part : voir [`gyro-study.md`](gyro-study.md) |
 
 La fréquence de l'écran et les boutons Armoury / Command Center sont faits : voir [La page Matériel](#la-page-matériel).
 

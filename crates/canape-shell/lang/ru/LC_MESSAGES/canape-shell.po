@@ -468,3 +468,36 @@ msgstr "{} ГБ"
 
 msgid "This game's profile"
 msgstr "Профиль этой игры"
+
+msgid "Gyro aiming"
+msgstr "Прицеливание гироскопом"
+
+msgid "While a back paddle is held"
+msgstr "Пока зажата задняя кнопка"
+
+msgid "A back paddle turns it on and off"
+msgstr "Задняя кнопка включает и выключает"
+
+msgid "Always"
+msgstr "Всегда"
+
+msgid "Active"
+msgstr "Включение"
+
+msgid "Sensitivity"
+msgstr "Чувствительность"
+
+msgid "Left and right"
+msgstr "Влево и вправо"
+
+msgid "Tilt like a wheel"
+msgstr "Наклон как руль"
+
+msgid "Turn the console"
+msgstr "Поворот консоли"
+
+msgid "Invert up and down"
+msgstr "Инвертировать вверх и вниз"
+
+msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
+msgstr "Двигает мышь, пока игра на переднем плане. Игры, которые читают только геймпад, это игнорируют."

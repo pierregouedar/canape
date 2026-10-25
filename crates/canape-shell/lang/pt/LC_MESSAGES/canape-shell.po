@@ -468,3 +468,36 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "Perfil deste jogo"
+
+msgid "Gyro aiming"
+msgstr "Mira por giroscópio"
+
+msgid "While a back paddle is held"
+msgstr "Enquanto uma alavanca traseira estiver pressionada"
+
+msgid "A back paddle turns it on and off"
+msgstr "Uma alavanca traseira liga e desliga"
+
+msgid "Always"
+msgstr "Sempre"
+
+msgid "Active"
+msgstr "Ativa"
+
+msgid "Sensitivity"
+msgstr "Sensibilidade"
+
+msgid "Left and right"
+msgstr "Esquerda e direita"
+
+msgid "Tilt like a wheel"
+msgstr "Inclinar como um volante"
+
+msgid "Turn the console"
+msgstr "Girar o console"
+
+msgid "Invert up and down"
+msgstr "Inverter cima e baixo"
+
+msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
+msgstr "Move o mouse enquanto um jogo está em primeiro plano. Jogos que só leem o controle a ignoram."

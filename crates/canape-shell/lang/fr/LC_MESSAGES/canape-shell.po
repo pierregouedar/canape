@@ -468,3 +468,36 @@ msgstr "{} Go"
 
 msgid "This game's profile"
 msgstr "Profil de ce jeu"
+
+msgid "Gyro aiming"
+msgstr "Visée au gyroscope"
+
+msgid "While a back paddle is held"
+msgstr "Tant qu'une palette arrière est tenue"
+
+msgid "A back paddle turns it on and off"
+msgstr "Une palette arrière l'active et le coupe"
+
+msgid "Always"
+msgstr "Toujours"
+
+msgid "Active"
+msgstr "Actif"
+
+msgid "Sensitivity"
+msgstr "Sensibilité"
+
+msgid "Left and right"
+msgstr "Gauche et droite"
+
+msgid "Tilt like a wheel"
+msgstr "Incliner comme un volant"
+
+msgid "Turn the console"
+msgstr "Tourner la console"
+
+msgid "Invert up and down"
+msgstr "Inverser haut et bas"
+
+msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
+msgstr "Déplace la souris pendant qu'un jeu est au premier plan. Les jeux qui ne lisent que la manette l'ignorent."

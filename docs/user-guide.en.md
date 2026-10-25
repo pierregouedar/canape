@@ -25,6 +25,7 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
     - [Installing owned games](#installing-owned-games)
   - [Performance](#performance)
   - [Hardware](#hardware)
+    - [Gyro aiming](#gyro-aiming)
   - [Settings](#settings)
   - [Game profiles](#game-profiles)
   - [Bench](#bench)
@@ -277,7 +278,7 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
 > [!NOTE]
 
-Five rows, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, **X** saves the fans, the frame rate limit and the screen refresh rate for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
+Six rows, used like the Performance page: up and down change row, left and right move along the tiles (A picks) or change the frame rate limit at once, the last row opens [Gyro aiming](#gyro-aiming), **X** saves the fans, the frame rate limit, the screen refresh rate and gyro aiming for the game in the foreground (see [This game](#this-game)). On the right: the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve. "—" when the firmware gives no reading.
 
 **Fans**
 
@@ -341,6 +342,25 @@ One tile per refresh rate the built-in screen offers at its current resolution (
 
 > [!NOTE]
 > Not tried on the Ally yet (`ChangeDisplaySettingsEx` on the internal display, from the shell).
+
+#### Gyro aiming
+
+Opened from the **Gyro aiming** row of the Hardware page; **B** goes back. While a game is in front, turning the Ally moves the **mouse**, as with a mouse in your other hand: handy for fine aiming in shooters. It never acts on Canapé itself.
+
+> [!WARNING]
+> **Not tried on the Ally yet**: written and tested on Linux with a simulated sensor only. The left / right and up / down directions in particular still have to be checked on the device; use **Invert up and down** if the vertical axis feels wrong.
+
+| Line | Values |
+|---|---|
+| Active | **Off**; **While a back paddle is held** (aim while holding either paddle, let go to stop); **A back paddle turns it on and off**; **Always** (while a game is in front). |
+| Sensitivity | 1 to 50 (mouse movement per degree turned, 10 by default); the game's own mouse sensitivity multiplies it. |
+| Left and right | **Turn the console** (around its vertical axis, as when looking around) or **Tilt like a wheel** (comfortable when lying down). |
+| Invert up and down | Tilting the top of the screen away moves the view up; **On** moves it down. |
+
+- **Games**: the movement is a mouse movement. It works in games that take the mouse alongside the gamepad, or the mouse alone. Games that only read the gamepad ignore it, and some swap their button prompts between keyboard and gamepad each time the mouse moves. A game run as administrator ignores it too.
+- **Per game**: **X** keeps these settings in the profile of the game in the foreground, with the fans and the frame rate limit. A profile without its own gyro settings follows the global ones. While a game with its own settings is in front, a change goes into its profile.
+- The paddles go to gyro aiming even when **Use the Ally's buttons** is off. In **While held** mode, holding a paddle in a game that also uses it does both.
+- **Cost**: nothing while the gyro is off or the paddles are released; while aiming, the shell reads the sensor every 10 ms.
 
 ### Settings
 
@@ -541,6 +561,7 @@ Examples (written in readable form here; escape the quotes in PowerShell 5.1):
 | `{"type":"reset_fan_curves"}` | Fans back to the firmware's curves (Automatic) |
 | `{"type":"set_fps_limit","fps":null}` | Removes the frame rate limit (or `"fps":40` for a limit, 30 to 120) |
 | `{"type":"set_controller_mode","mode":"gamepad"}` | Controller back to gamepad mode (`wasd`, `mouse`) |
+| `{"type":"set_gyro","settings":{"activation":"off"}}` | Gyro aiming off (`hold`, `toggle`, `always`; other fields: `sensitivity`, `horizontal` `yaw` or `roll`, `invert_y`) |
 | `{"type":"list_profiles"}` | Saved profiles |
 | `{"type":"get_bench_report"}` | Last bench |
 | `{"type":"cancel_bench"}` | Cancels the running bench |
