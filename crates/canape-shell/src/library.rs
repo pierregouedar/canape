@@ -628,6 +628,15 @@ impl State {
         }
         crate::log(&format!("library: {id} runs as {exe}"));
         self.recent.learn(&id, exe);
+        // The page may already be open: its profile shows from now on.
+        if self.detail.as_deref() == Some(id.as_str()) {
+            if let Some(ui) = self.ui.upgrade() {
+                let library = ui.global::<Library>();
+                let mut view = library.get_detail_view();
+                view.exe = exe.into();
+                library.set_detail_view(view);
+            }
+        }
         if let Err(err) = self.recent.save(&self.recent_path) {
             crate::log(&format!("library: saving recent launches: {err}"));
         }

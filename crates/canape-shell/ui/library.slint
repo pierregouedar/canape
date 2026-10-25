@@ -444,7 +444,7 @@ component GamePage inherits Rectangle {
             }
 
             Text {
-                text: (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "");
+                text: (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "") + (profile.fps-limit > 0 ? " · " + @tr("limit {}", App.fps-value(profile.fps-limit)) : "");
                 color: Theme.text;
                 font-size: 16px;
                 font-weight: 600;
@@ -666,7 +666,7 @@ export component LibraryPage inherits Rectangle {
             PrimaryButton {
                 opacity: button.shown;
                 pressed: root.pressed;
-                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : root.current.installed ? @tr("Play") : @tr("Install");
+                label: !root.has-games ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games")) : Library.launching == root.current.id ? @tr("Launching…") : root.current.progress >= 0 ? @tr("Installing…") : @tr("Details");
                 clicked => {
                     root.act();
                     fs.focus();

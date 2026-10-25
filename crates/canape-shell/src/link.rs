@@ -451,6 +451,7 @@ fn profile_view(profile: &Profile) -> ProfileView {
         min_watts: a.min_watts as i32,
         max_watts: a.max_watts as i32,
         learned_watts: profile.learned_watts.map_or(-1, |w| w as i32),
+        fps_limit: profile.fps_limit.map_or(0, |f| f as i32),
     }
 }
 
