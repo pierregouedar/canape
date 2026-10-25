@@ -747,3 +747,6 @@ msgstr "Odblokowane"
 
 msgid "{} % of players"
 msgstr "{} % graczy"
+
+msgid "Downloading…"
+msgstr "Pobieranie…"

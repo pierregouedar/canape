@@ -747,3 +747,6 @@ msgstr "解除済み"
 
 msgid "{} % of players"
 msgstr "プレイヤーの {} %"
+
+msgid "Downloading…"
+msgstr "ダウンロード中…"

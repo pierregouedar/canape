@@ -747,3 +747,6 @@ msgstr "已解锁"
 
 msgid "{} % of players"
 msgstr "{} % 的玩家"
+
+msgid "Downloading…"
+msgstr "正在下载…"

@@ -319,6 +319,10 @@ pub enum Download {
     Installed,
     /// Share downloaded, 0 to 1 (0 while Steam prepares).
     Progress(f32),
+    /// Steam is downloading, but its manifest does not tell how far: it
+    /// only updates the counts at the end of a download it started from a
+    /// manifest it did not write itself.
+    Downloading,
 }
 
 /// The state of an install from the text of its manifest.
@@ -357,8 +361,13 @@ pub fn download(steam: &Path, appid: u32) -> Option<Download> {
             match parse_download(&text)? {
                 Download::Progress(share) => {
                     let total = bytes_to_download(&text);
-                    let written = dir_size(&steamapps.join("downloading").join(appid.to_string()));
-                    Some(Download::Progress(share.max(staged_share(written, total))))
+                    let staging = steamapps.join("downloading").join(appid.to_string());
+                    let share = share.max(staged_share(dir_size(&staging), total));
+                    if share == 0.0 && staging.is_dir() {
+                        Some(Download::Downloading)
+                    } else {
+                        Some(Download::Progress(share))
+                    }
                 }
                 installed => Some(installed),
             }

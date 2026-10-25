@@ -101,6 +101,46 @@ impl Drop for Process {
     }
 }
 
+/// The full path of the process `pid`'s executable, if it can be read.
+fn image_path(process: &Process) -> Option<String> {
+    use windows_sys::Win32::System::Threading::{PROCESS_NAME_WIN32, QueryFullProcessImageNameW};
+    let mut buf = [0u16; 1024];
+    let mut len = buf.len() as u32;
+    let ok = unsafe {
+        QueryFullProcessImageNameW(process.0, PROCESS_NAME_WIN32, buf.as_mut_ptr(), &mut len)
+    };
+    (ok != 0).then(|| String::from_utf16_lossy(&buf[..len as usize]))
+}
+
+/// True when a running program's executable path contains `fragment`
+/// (compared without case), e.g. a game under `\steamapps\common\`.
+pub fn any_process_under(fragment: &str) -> bool {
+    use windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE;
+    use windows_sys::Win32::System::Diagnostics::ToolHelp::{
+        CreateToolhelp32Snapshot, PROCESSENTRY32W, Process32FirstW, Process32NextW,
+        TH32CS_SNAPPROCESS,
+    };
+    let fragment = fragment.to_lowercase();
+    let snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
+    if snapshot == INVALID_HANDLE_VALUE {
+        return false;
+    }
+    let mut entry = PROCESSENTRY32W {
+        dwSize: size_of::<PROCESSENTRY32W>() as u32,
+        ..unsafe { std::mem::zeroed() }
+    };
+    let mut found = false;
+    let mut ok = unsafe { Process32FirstW(snapshot, &mut entry) } != 0;
+    while ok && !found {
+        found = Process::open(entry.th32ProcessID)
+            .and_then(|p| image_path(&p))
+            .is_some_and(|path| path.to_lowercase().contains(&fragment));
+        ok = unsafe { Process32NextW(snapshot, &mut entry) } != 0;
+    }
+    unsafe { windows_sys::Win32::Foundation::CloseHandle(snapshot) };
+    found
+}
+
 /// True when the process `pid` runs and its executable is named `exe`.
 pub fn process_named(pid: u32, exe: &str) -> bool {
     use windows_sys::Win32::System::Threading::{PROCESS_NAME_WIN32, QueryFullProcessImageNameW};

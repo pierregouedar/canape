@@ -747,3 +747,6 @@ msgstr "Freigeschaltet"
 
 msgid "{} % of players"
 msgstr "{} % der Spieler"
+
+msgid "Downloading…"
+msgstr "Wird heruntergeladen…"

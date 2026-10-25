@@ -747,3 +747,6 @@ msgstr "Ontgrendeld"
 
 msgid "{} % of players"
 msgstr "{} % van de spelers"
+
+msgid "Downloading…"
+msgstr "Downloaden…"

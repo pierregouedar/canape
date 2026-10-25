@@ -747,3 +747,6 @@ msgstr "Sbloccato"
 
 msgid "{} % of players"
 msgstr "{} % dei giocatori"
+
+msgid "Downloading…"
+msgstr "Download in corso…"

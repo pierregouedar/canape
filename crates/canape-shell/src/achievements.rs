@@ -282,7 +282,18 @@ fn download(job: &Job, http: &mut Option<canape_library::http::WinHttp>) -> io::
     let Some(client) = http.as_ref() else {
         return Err(io::Error::other("no HTTP session"));
     };
-    let bytes = client.get_limited(&job.url, None, achievements::ICON_MAX_BYTES)?;
+    let mut last = io::Error::other("no address");
+    let mut found = None;
+    for url in achievements::icon_urls(&job.url) {
+        match client.get_limited(&url, None, achievements::ICON_MAX_BYTES) {
+            Ok(bytes) => {
+                found = Some(bytes);
+                break;
+            }
+            Err(err) => last = err,
+        }
+    }
+    let bytes = found.ok_or(last)?;
     if let Some(dir) = job.path.parent() {
         std::fs::create_dir_all(dir)?;
     }

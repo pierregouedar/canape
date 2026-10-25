@@ -292,6 +292,27 @@ pub fn merge(
     list
 }
 
+/// Where an icon can be downloaded: its own address, then the same file
+/// on Steam's other image hosts (the oldest one no longer serves every
+/// game).
+pub fn icon_urls(url: &str) -> Vec<String> {
+    const HOSTS: [&str; 3] = [
+        "steamcdn-a.akamaihd.net",
+        "cdn.cloudflare.steamstatic.com",
+        "cdn.akamai.steamstatic.com",
+    ];
+    let mut urls = vec![url.to_owned()];
+    if let Some(host) = HOSTS.iter().find(|h| url.contains(*h)) {
+        urls.extend(
+            HOSTS
+                .iter()
+                .filter(|h| *h != host)
+                .map(|h| url.replacen(host, h, 1)),
+        );
+    }
+    urls
+}
+
 /// The HTTP status of an error from [`Http`] ("HTTP 403"), if it is one.
 pub fn http_status(err: &io::Error) -> Option<u32> {
     err.to_string().strip_prefix("HTTP ")?.trim().parse().ok()
@@ -611,5 +632,15 @@ mod tests {
         assert!(!back.fresh("steam:900001", "french", 1001));
         assert!(!back.fresh("steam:1", "english", 1001));
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn icons_have_other_hosts() {
+        let url = "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/1/a.jpg";
+        let urls = icon_urls(url);
+        assert_eq!(urls.len(), 3);
+        assert_eq!(urls[0], url);
+        assert!(urls[1].starts_with("https://cdn.cloudflare.steamstatic.com/"));
+        assert_eq!(icon_urls("https://example.com/a.jpg").len(), 1);
     }
 }

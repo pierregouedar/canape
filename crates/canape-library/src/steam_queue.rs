@@ -192,6 +192,11 @@ pub fn client() -> Client {
     if pid == 0 || !crate::win::process_named(pid, "steam.exe") {
         return Client::NotRunning;
     }
+    // Some games leave `RunningAppID` at 0: a program running from a
+    // Steam library folder counts as a game too.
+    if crate::win::any_process_under(r"\steamapps\common\") {
+        return Client::Playing;
+    }
     match crate::win::reg_dword(HKEY_CURRENT_USER, r"Software\Valve\Steam", "RunningAppID") {
         Some(0) => Client::Idle { pid },
         // A game, or a key that cannot be read: do not restart.

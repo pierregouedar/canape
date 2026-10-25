@@ -747,3 +747,6 @@ msgstr "Açıldı"
 
 msgid "{} % of players"
 msgstr "Oyuncuların {} %'si"
+
+msgid "Downloading…"
+msgstr "İndiriliyor…"

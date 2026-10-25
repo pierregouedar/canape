@@ -747,3 +747,6 @@ msgstr "Получено"
 
 msgid "{} % of players"
 msgstr "{} % игроков"
+
+msgid "Downloading…"
+msgstr "Загрузка…"

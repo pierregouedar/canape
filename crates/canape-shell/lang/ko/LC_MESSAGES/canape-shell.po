@@ -747,3 +747,6 @@ msgstr "달성"
 
 msgid "{} % of players"
 msgstr "플레이어의 {} %"
+
+msgid "Downloading…"
+msgstr "다운로드 중…"

@@ -49,9 +49,12 @@ pub enum Install {
 }
 
 /// News from a running install.
+/// [`Event::Progress`] of a download whose share is not known.
+pub const UNKNOWN_SHARE: f32 = 2.0;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Event {
-    /// Share done, 0 to 1.
+    /// Share done, 0 to 1, or [`UNKNOWN_SHARE`].
     Progress(f32),
     Done,
     Failed(String),
@@ -236,6 +239,10 @@ fn watch_steam(
             Some(Download::Progress(share)) => {
                 seen = true;
                 on(Event::Progress(share));
+            }
+            Some(Download::Downloading) => {
+                seen = true;
+                on(Event::Progress(UNKNOWN_SHARE));
             }
             None if seen => return Err(io::Error::other("cancelled in Steam")),
             None if start.is_some_and(|limit| started.elapsed() > limit) => {

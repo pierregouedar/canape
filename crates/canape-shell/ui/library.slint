@@ -278,9 +278,11 @@ component Cover inherits Rectangle {
             height: 6px;
             border-radius: 3px;
             background: #000000a0;
+            clip: true;
+            // A share, or a segment going across while it is not known.
             Rectangle {
-                x: 0;
-                width: parent.width * root.game.progress;
+                x: root.game.progress > 1 ? parent.width * (Math.mod(animation-tick() / 1ms, 1600) / 1600 * 1.4 - 0.4) : 0;
+                width: root.game.progress > 1 ? parent.width * 0.4 : parent.width * root.game.progress;
                 border-radius: 3px;
                 background: Theme.accent;
             }
@@ -648,7 +650,7 @@ component GamePage inherits Rectangle {
                         alignment: center;
                         Text {
                             opacity: action.shown;
-                            text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.short && root.game.progress < 0 ? @tr("Not enough space: free some up, or pick another games folder in Settings.") : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
+                            text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.short && root.game.progress < 0 ? @tr("Not enough space: free some up, or pick another games folder in Settings.") : root.game.progress == 0 ? @tr("Waiting for the store…") : root.game.progress > 1 ? @tr("Downloading…") : root.game.progress > 0 ? @tr("Installing… {} %", Math.round(root.game.progress * 100)) : "";
                             color: Library.install-error != "" || Library.failed != "" || (root.short && root.game.progress < 0) ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
                             font-size: 14px;
                             overflow: elide;
@@ -699,9 +701,11 @@ component GamePage inherits Rectangle {
                 height: 4px;
                 border-radius: 2px;
                 background: Theme.surface-focus;
+                clip: true;
+                // A share, or a segment going across while it is not known.
                 Rectangle {
-                    x: 0;
-                    width: parent.width * root.game.progress;
+                    x: root.game.progress > 1 ? parent.width * (Math.mod(animation-tick() / 1ms, 1600) / 1600 * 1.4 - 0.4) : 0;
+                    width: root.game.progress > 1 ? parent.width * 0.4 : parent.width * root.game.progress;
                     border-radius: 2px;
                     background: Theme.accent;
                     animate width { duration: 400ms; }
@@ -1135,7 +1139,7 @@ export component LibraryPage inherits Rectangle {
         note := RevealLine {
             order: 2;
             Text {
-                text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.signing-up && Library.epic-waiting ? @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.") : root.signing-up && Library.gog-waiting ? @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.") : root.signing-up ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
+                text: Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.signing-up && Library.epic-waiting ? @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.") : root.signing-up && Library.gog-waiting ? @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.") : root.signing-up ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 1 ? @tr("Downloading…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
                 color: Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
                 font-size: 16px;
                 wrap: word-wrap;
