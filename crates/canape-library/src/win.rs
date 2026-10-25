@@ -4,8 +4,8 @@ use std::collections::HashMap;
 
 use windows_sys::Win32::Foundation::ERROR_SUCCESS;
 use windows_sys::Win32::System::Registry::{
-    HKEY, KEY_READ, REG_EXPAND_SZ, REG_SZ, RRF_RT_REG_SZ, RegCloseKey, RegEnumKeyExW,
-    RegEnumValueW, RegGetValueW, RegOpenKeyExW,
+    HKEY, KEY_READ, REG_EXPAND_SZ, REG_SZ, RRF_RT_REG_DWORD, RRF_RT_REG_SZ, RegCloseKey,
+    RegEnumKeyExW, RegEnumValueW, RegGetValueW, RegOpenKeyExW,
 };
 
 fn wide(s: &str) -> Vec<u16> {
@@ -48,6 +48,88 @@ pub fn reg_string(root: HKEY, path: &str, name: &str) -> Option<String> {
         )
     };
     (status == ERROR_SUCCESS).then(|| from_wide(&buf))
+}
+
+/// A `REG_DWORD` value.
+pub fn reg_dword(root: HKEY, path: &str, name: &str) -> Option<u32> {
+    let (path, name) = (wide(path), wide(name));
+    let mut value = 0u32;
+    let mut len = 4u32;
+    let status = unsafe {
+        RegGetValueW(
+            root,
+            path.as_ptr(),
+            name.as_ptr(),
+            RRF_RT_REG_DWORD,
+            std::ptr::null_mut(),
+            (&mut value as *mut u32).cast(),
+            &mut len,
+        )
+    };
+    (status == ERROR_SUCCESS).then_some(value)
+}
+
+/// An open process handle, closed on drop.
+struct Process(windows_sys::Win32::Foundation::HANDLE);
+
+impl Process {
+    fn open(pid: u32) -> Option<Process> {
+        use windows_sys::Win32::System::Threading::{
+            OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE,
+        };
+        let handle = unsafe {
+            OpenProcess(
+                PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_SYNCHRONIZE,
+                0,
+                pid,
+            )
+        };
+        (!handle.is_null()).then_some(Process(handle))
+    }
+
+    /// Waits up to `ms` milliseconds; true once the process has ended.
+    fn wait(&self, ms: u32) -> bool {
+        use windows_sys::Win32::Foundation::WAIT_OBJECT_0;
+        use windows_sys::Win32::System::Threading::WaitForSingleObject;
+        unsafe { WaitForSingleObject(self.0, ms) == WAIT_OBJECT_0 }
+    }
+}
+
+impl Drop for Process {
+    fn drop(&mut self) {
+        unsafe { windows_sys::Win32::Foundation::CloseHandle(self.0) };
+    }
+}
+
+/// True when the process `pid` runs and its executable is named `exe`.
+pub fn process_named(pid: u32, exe: &str) -> bool {
+    use windows_sys::Win32::System::Threading::{PROCESS_NAME_WIN32, QueryFullProcessImageNameW};
+    let Some(process) = Process::open(pid) else {
+        return false;
+    };
+    if process.wait(0) {
+        return false;
+    }
+    let mut buf = [0u16; 1024];
+    let mut len = buf.len() as u32;
+    let ok = unsafe {
+        QueryFullProcessImageNameW(process.0, PROCESS_NAME_WIN32, buf.as_mut_ptr(), &mut len)
+    };
+    let path = String::from_utf16_lossy(&buf[..len as usize]);
+    ok != 0
+        && path
+            .rsplit(['\\', '/'])
+            .next()
+            .is_some_and(|name| name.eq_ignore_ascii_case(exe))
+}
+
+/// Waits up to `timeout` for the process `pid` to end; true when it has
+/// (or is already gone).
+pub fn wait_process(pid: u32, timeout: std::time::Duration) -> bool {
+    match Process::open(pid) {
+        Some(process) => process.wait(u32::try_from(timeout.as_millis()).unwrap_or(u32::MAX)),
+        None => true,
+    }
 }
 
 struct Key(HKEY);

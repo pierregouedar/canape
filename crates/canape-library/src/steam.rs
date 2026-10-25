@@ -295,11 +295,14 @@ pub fn parse_owned(json: &[u8]) -> Option<Vec<Game>> {
             .filter(|g| !g.name.is_empty() && !is_tool(g.appid, &g.name))
             .map(|g| Game {
                 id: format!("steam:{}", g.appid),
-                title: g.name,
+                title: g.name.clone(),
                 source: Source::Steam,
                 cover: None,
                 launch: Launch::Install {
-                    install: crate::install::Install::Steam { appid: g.appid },
+                    install: crate::install::Install::Steam {
+                        appid: g.appid,
+                        name: g.name,
+                    },
                 },
                 last_played: Some(g.rtime_last_played).filter(|&t| t > 0),
                 size: None,
@@ -506,7 +509,10 @@ mod tests {
         assert_eq!(
             games[1].launch,
             Launch::Install {
-                install: crate::install::Install::Steam { appid: 620 }
+                install: crate::install::Install::Steam {
+                    appid: 620,
+                    name: "Portal 2".into()
+                }
             }
         );
         assert!(parse_owned(br#"{"response":{}}"#).unwrap().is_empty());

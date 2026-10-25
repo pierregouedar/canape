@@ -1,15 +1,19 @@
 //! Installing an owned game without opening its store's launcher.
 //!
-//! - **Steam**: `steam.exe -silent steam://install/<appid>`. Steam shows its
-//!   small install dialog (folder, shortcuts), then downloads in the
-//!   background; the progress is read from the game's manifest.
+//! - **Steam**: the user's own client downloads, with no Steam window: a
+//!   manifest that queues the download is written into a library folder and
+//!   Steam is started (or restarted, never during a game) to read it (see
+//!   [`crate::steam_queue`]). When that cannot be done or Steam does not
+//!   start in time, `steam.exe -silent steam://install/<appid>` instead:
+//!   Steam's small install dialog (folder, shortcuts), then a background
+//!   download. Either way the progress is read from the game's manifest.
 //! - **Epic**: `legendary info` then `legendary install <app> -y` into the
 //!   games folder, progress read from its output.
 //! - **GOG**: `gogdl info` then `gogdl download`, progress read from its
 //!   output; the install is recorded for the scan (see [`crate::gogdl`]).
 //!
 //! Epic and GOG installs check first that the game fits in the games
-//! folder ([`size_needed`], [`crate::disk`]); Steam asks in its own dialog.
+//! folder ([`size_needed`], [`crate::disk`]); Steam checks on its own.
 //!
 //! [`run`] blocks until the install ends: run it on its own thread.
 
@@ -22,15 +26,26 @@ use serde::{Deserialize, Serialize};
 
 use crate::gogdl::{self, Credentials};
 use crate::steam::{self, Download};
-use crate::{disk, legendary};
+use crate::steam_queue::{self, Client, Queued};
+use crate::{Launch, disk, legendary};
 
 /// What installing an owned game takes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "store", rename_all = "snake_case")]
 pub enum Install {
-    Steam { appid: u32 },
-    Epic { app: String },
-    Gog { id: String },
+    Steam {
+        appid: u32,
+        /// The store's name for it, for Steam's manifest when Steam's cache
+        /// does not have the game.
+        #[serde(default, skip_serializing_if = "String::is_empty")]
+        name: String,
+    },
+    Epic {
+        app: String,
+    },
+    Gog {
+        id: String,
+    },
 }
 
 /// News from a running install.
@@ -40,6 +55,8 @@ pub enum Event {
     Progress(f32),
     Done,
     Failed(String),
+    /// Something worth a line in the log (how the install goes about it).
+    Note(String),
 }
 
 /// What the installs need.
@@ -56,19 +73,30 @@ pub struct Tools {
     /// Interface language (`fr`, `zh_CN`…): GOG games download in it when
     /// they have it.
     pub language: String,
+    /// A game is being played: Steam must not be restarted.
+    pub game_running: bool,
 }
 
 /// How often a Steam manifest is read.
 const STEAM_POLL: Duration = Duration::from_secs(2);
-/// Steam has this long to create the manifest (the user confirms the
-/// dialog first); after that the install counts as cancelled.
+/// With Steam's dialog, Steam has this long to create the manifest (the
+/// user confirms the dialog first); after that the install counts as
+/// cancelled.
 const STEAM_START: Duration = Duration::from_secs(10 * 60);
+/// A running Steam has this long to notice a queued download by itself
+/// before it is restarted.
+const STEAM_NOTICE: Duration = Duration::from_secs(10);
+/// Steam has this long to quit when asked to.
+const STEAM_QUIT: Duration = Duration::from_secs(30);
+/// Steam has this long, from its start, to take a queued download over;
+/// after that its dialog is opened instead.
+const STEAM_TAKE: Duration = Duration::from_secs(90);
 
 /// Installs `install`, calling `on` with its progress and outcome.
 pub fn run(install: &Install, tools: &Tools, mut on: impl FnMut(Event)) {
     let result = match install {
-        Install::Steam { appid } => match &tools.steam {
-            Some(steam) => run_steam(steam, *appid, &mut on),
+        Install::Steam { appid, name } => match &tools.steam {
+            Some(steam) => run_steam(steam, *appid, name, tools.game_running, &mut on),
             None => Err(io::Error::other("Steam is not installed")),
         },
         Install::Epic { app } => match &tools.legendary {
@@ -86,14 +114,121 @@ pub fn run(install: &Install, tools: &Tools, mut on: impl FnMut(Event)) {
     });
 }
 
-fn run_steam(steam: &Path, appid: u32, on: &mut impl FnMut(Event)) -> io::Result<()> {
+fn run_steam(
+    steam: &Path,
+    appid: u32,
+    name: &str,
+    game_running: bool,
+    on: &mut impl FnMut(Event),
+) -> io::Result<()> {
+    match queue_steam(steam, appid, name, game_running, on) {
+        Ok(()) => return watch_steam(steam, appid, None, on),
+        Err(why) => on(Event::Note(format!(
+            "Steam download not queued ({why}): opening Steam's install dialog"
+        ))),
+    }
     // Through steam.exe: if Steam is not running yet it starts in the
     // tray (-silent) instead of opening its window; if it is, the URI goes
     // to the running client.
     crate::launch(&steam::silent(steam, format!("steam://install/{appid}")))?;
+    watch_steam(steam, appid, Some(STEAM_START), on)
+}
 
+/// Queues the download in Steam with no window, and waits for Steam to
+/// take it over. On failure the manifest written is removed (if Steam did
+/// not touch it) and the caller opens Steam's dialog.
+fn queue_steam(
+    steam: &Path,
+    appid: u32,
+    name: &str,
+    game_running: bool,
+    on: &mut impl FnMut(Event),
+) -> io::Result<()> {
+    if !steam.join("steam.exe").is_file() {
+        return Err(io::Error::other("no steam.exe"));
+    }
+    if game_running {
+        return Err(io::Error::other("a game is running"));
+    }
+    let pid = match steam_queue::client() {
+        Client::Playing => return Err(io::Error::other("a Steam game is running")),
+        Client::Unknown => return Err(io::Error::other("Steam's state is unknown")),
+        Client::Idle { pid } => Some(pid),
+        Client::NotRunning => None,
+    };
+    let queued = steam_queue::write(steam, appid, name)?;
+    on(Event::Note(format!("queued in {}", queued.path.display())));
+    let result = start_queued(steam, &queued, pid, on);
+    if result.is_err() {
+        queued.withdraw();
+    }
+    result
+}
+
+/// Has Steam read the manifest `queued`: a running Steam (`pid`) gets a
+/// moment to notice it, then is restarted; a Steam not running is started.
+fn start_queued(
+    steam: &Path,
+    queued: &Queued,
+    pid: Option<u32>,
+    on: &mut impl FnMut(Event),
+) -> io::Result<()> {
+    let run = |args: &str| {
+        crate::launch(&Launch::Exe {
+            path: steam.join("steam.exe"),
+            args: args.to_owned(),
+            cwd: steam.to_path_buf(),
+        })
+    };
+    if let Some(pid) = pid {
+        if wait_taken(queued, STEAM_NOTICE) {
+            on(Event::Note("the running Steam took the download".into()));
+            return Ok(());
+        }
+        // Checked again: a game may have started meanwhile.
+        if !matches!(steam_queue::client(), Client::Idle { .. }) {
+            return Err(io::Error::other("Steam is busy with a game"));
+        }
+        on(Event::Note("restarting Steam to read the manifest".into()));
+        run("-shutdown")?;
+        if !steam_queue::wait_exit(pid, STEAM_QUIT) {
+            return Err(io::Error::other("Steam did not quit"));
+        }
+    }
+    run("-silent")?;
+    if wait_taken(queued, STEAM_TAKE) {
+        on(Event::Note("Steam took the download".into()));
+        Ok(())
+    } else {
+        Err(io::Error::other(format!(
+            "Steam did not take the download within {} s",
+            STEAM_TAKE.as_secs()
+        )))
+    }
+}
+
+/// Waits up to `timeout` for Steam to take `queued` over.
+fn wait_taken(queued: &Queued, timeout: Duration) -> bool {
     let started = Instant::now();
-    let mut seen = false;
+    while started.elapsed() < timeout {
+        if queued.taken() {
+            return true;
+        }
+        std::thread::sleep(STEAM_POLL);
+    }
+    queued.taken()
+}
+
+/// Reports the download's progress from its manifest until it ends.
+/// `start`: how long Steam has to create the manifest (`None`: it exists).
+fn watch_steam(
+    steam: &Path,
+    appid: u32,
+    start: Option<Duration>,
+    on: &mut impl FnMut(Event),
+) -> io::Result<()> {
+    let started = Instant::now();
+    let mut seen = start.is_none();
     loop {
         std::thread::sleep(STEAM_POLL);
         match steam::download(steam, appid) {
@@ -103,7 +238,7 @@ fn run_steam(steam: &Path, appid: u32, on: &mut impl FnMut(Event)) -> io::Result
                 on(Event::Progress(share));
             }
             None if seen => return Err(io::Error::other("cancelled in Steam")),
-            None if started.elapsed() > STEAM_START => {
+            None if start.is_some_and(|limit| started.elapsed() > limit) => {
                 return Err(io::Error::other("Steam did not start the download"));
             }
             None => {}
@@ -131,7 +266,7 @@ fn hidden(exe: &Path) -> Command {
 
 /// Bytes the game takes once installed, when its store tells before
 /// installing (Epic and GOG; asks the store: a few seconds). `None` for
-/// Steam, whose own dialog shows the size and the free space.
+/// Steam, which checks the free space itself.
 pub fn size_needed(install: &Install, tools: &Tools) -> io::Result<Option<u64>> {
     match install {
         Install::Steam { .. } => Ok(None),
