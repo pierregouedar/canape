@@ -209,6 +209,62 @@ pub fn client() -> Client {
     Client::Unknown
 }
 
+/// Programs that own Steam's windows.
+const STEAM_PROGRAMS: [&str; 2] = ["steam.exe", "steamwebhelper.exe"];
+
+/// True when a window titled `title`, owned by `exe`, is Steam's install
+/// dialog for `name`: a Steam window (not the main one) that names the game.
+pub fn is_dialog(exe: &str, title: &str, name: &str) -> bool {
+    let name = name.trim().to_lowercase();
+    STEAM_PROGRAMS.iter().any(|p| exe.eq_ignore_ascii_case(p))
+        && !title.eq_ignore_ascii_case("steam")
+        && !name.is_empty()
+        && title.to_lowercase().contains(&name)
+}
+
+/// True when Steam's install dialog for `name` is on screen.
+#[cfg(windows)]
+pub fn dialog_open(name: &str) -> bool {
+    crate::win::windows()
+        .iter()
+        .any(|w| is_dialog(&w.exe, &w.title, name))
+}
+
+#[cfg(not(windows))]
+pub fn dialog_open(_name: &str) -> bool {
+    false
+}
+
+/// Brings Steam's install dialog for `name` to the front, else Steam's
+/// other windows (the dialog may not carry the game's name). Returns the
+/// titles of Steam's windows, for the log. The caller's process needs
+/// recent input of its own for Windows to hand over the foreground.
+#[cfg(windows)]
+pub fn raise_dialog(name: &str) -> Vec<String> {
+    let steam: Vec<_> = crate::win::windows()
+        .into_iter()
+        .filter(|w| STEAM_PROGRAMS.iter().any(|p| w.exe.eq_ignore_ascii_case(p)))
+        .collect();
+    let best = steam
+        .iter()
+        .find(|w| is_dialog(&w.exe, &w.title, name))
+        .or_else(|| {
+            steam
+                .iter()
+                .find(|w| !w.title.eq_ignore_ascii_case("steam"))
+        })
+        .or_else(|| steam.first());
+    if let Some(window) = best {
+        crate::win::raise(window);
+    }
+    steam.into_iter().map(|w| w.title).collect()
+}
+
+#[cfg(not(windows))]
+pub fn raise_dialog(_name: &str) -> Vec<String> {
+    Vec::new()
+}
+
 /// Waits up to `timeout` for the process `pid` to end; true when it has.
 #[cfg(windows)]
 pub fn wait_exit(pid: u32, timeout: std::time::Duration) -> bool {
@@ -223,6 +279,20 @@ pub fn wait_exit(_pid: u32, _timeout: std::time::Duration) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn install_dialog_names_the_game() {
+        assert!(is_dialog(
+            "steamwebhelper.exe",
+            "Install - Besiege",
+            "Besiege"
+        ));
+        assert!(is_dialog("Steam.exe", "BESIEGE", "Besiege"));
+        assert!(!is_dialog("steamwebhelper.exe", "Steam", "Steam"));
+        assert!(!is_dialog("steamwebhelper.exe", "Friends List", "Besiege"));
+        assert!(!is_dialog("explorer.exe", "Besiege", "Besiege"));
+        assert!(!is_dialog("steamwebhelper.exe", "Install", " "));
+    }
 
     #[test]
     fn manifest_reads_back_as_a_queued_download() {

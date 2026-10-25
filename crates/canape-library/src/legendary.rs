@@ -116,6 +116,23 @@ struct Metadata {
     /// Set on DLC and add-ons: the game they belong to.
     #[serde(default, rename = "mainGameItem")]
     main_game_item: Option<serde_json::Value>,
+    /// Store categories, such as `games` or `addons`.
+    #[serde(default)]
+    categories: Vec<Category>,
+}
+
+#[derive(Deserialize)]
+struct Category {
+    #[serde(default)]
+    path: String,
+}
+
+impl Metadata {
+    /// An add-on or extra content listed as its own product, not a game.
+    fn is_extra(&self) -> bool {
+        let has = |p: &str| self.categories.iter().any(|c| c.path == p);
+        !has("games") && (has("addons") || has("digitalextras"))
+    }
 }
 
 #[derive(Deserialize)]
@@ -224,13 +241,28 @@ pub fn catalog_ids(config: &Path, app: &str) -> Vec<String> {
 /// director's cut, for example), which are not games of their own.
 pub fn parse_list(json: &[u8]) -> Option<Vec<Owned>> {
     let listed: Vec<Listed> = serde_json::from_slice(json).ok()?;
+    // "<Game> Content" next to "<Game>": the game's extra content, sold as
+    // a product of its own.
+    let titles: std::collections::HashSet<String> =
+        listed.iter().map(|g| g.app_title.to_lowercase()).collect();
+    let content_of_another = |title: &str| {
+        title
+            .to_lowercase()
+            .strip_suffix(" content")
+            .is_some_and(|base| titles.contains(base))
+    };
+    let listed: Vec<Listed> = listed
+        .into_iter()
+        .filter(|g| !content_of_another(&g.app_title))
+        .collect();
     Some(
         listed
             .into_iter()
             .filter(|g| !g.app_title.is_empty())
             .filter(|g| {
                 g.metadata.as_ref().is_none_or(|m| {
-                    m.main_game_item.as_ref().is_none_or(|v| v.is_null())
+                    !m.is_extra()
+                        && m.main_game_item.as_ref().is_none_or(|v| v.is_null())
                         && !m.custom_attributes.contains_key("ThirdPartyManagedApp")
                         && !m
                             .custom_attributes
@@ -462,5 +494,17 @@ mod tests {
         );
         assert_eq!(parse_auth_code(r#"{"authorizationCode":null}"#), None);
         assert_eq!(parse_auth_code("https://store.epicgames.com/"), None);
+    }
+
+    #[test]
+    fn extra_content_is_not_a_game() {
+        let json = br#"[
+            {"app_name": "Boga", "app_title": "Death Stranding", "metadata": {"categories": [{"path": "games"}]}},
+            {"app_name": "5bf6", "app_title": "Death Stranding Content", "metadata": {}},
+            {"app_name": "Pack", "app_title": "Soundtrack", "metadata": {"categories": [{"path": "addons"}]}}
+        ]"#;
+        let owned = parse_list(json).unwrap();
+        let titles: Vec<&str> = owned.iter().map(|o| o.game.title.as_str()).collect();
+        assert_eq!(titles, ["Death Stranding"]);
     }
 }

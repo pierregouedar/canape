@@ -284,3 +284,58 @@ pub fn utc_offset() -> i64 {
     }
     -bias * 60
 }
+
+/// A visible top-level window: its handle, its title and the file name of
+/// the program that owns it.
+pub struct Window {
+    handle: windows_sys::Win32::Foundation::HWND,
+    pub title: String,
+    pub exe: String,
+}
+
+/// The visible top-level windows that have a title.
+pub fn windows() -> Vec<Window> {
+    use windows_sys::Win32::Foundation::{HWND, LPARAM};
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        EnumWindows, GetWindowTextW, GetWindowThreadProcessId, IsWindowVisible,
+    };
+
+    unsafe extern "system" fn collect(handle: HWND, data: LPARAM) -> i32 {
+        let found = unsafe { &mut *(data as *mut Vec<(HWND, String)>) };
+        if unsafe { IsWindowVisible(handle) } != 0 {
+            let mut buf = [0u16; 512];
+            let len = unsafe { GetWindowTextW(handle, buf.as_mut_ptr(), buf.len() as i32) };
+            if len > 0 {
+                found.push((handle, String::from_utf16_lossy(&buf[..len as usize])));
+            }
+        }
+        1
+    }
+
+    let mut found: Vec<(HWND, String)> = Vec::new();
+    unsafe { EnumWindows(Some(collect), &mut found as *mut _ as LPARAM) };
+    found
+        .into_iter()
+        .map(|(handle, title)| {
+            let mut pid = 0;
+            unsafe { GetWindowThreadProcessId(handle, &mut pid) };
+            let exe = Process::open(pid)
+                .and_then(|p| image_path(&p))
+                .and_then(|path| path.rsplit(['\\', '/']).next().map(str::to_owned))
+                .unwrap_or_default();
+            Window { handle, title, exe }
+        })
+        .collect()
+}
+
+/// Restores `window` and gives it the foreground. The caller's process
+/// needs recent input of its own for Windows to allow it.
+pub fn raise(window: &Window) {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        SW_RESTORE, SetForegroundWindow, ShowWindow,
+    };
+    unsafe {
+        ShowWindow(window.handle, SW_RESTORE);
+        SetForegroundWindow(window.handle);
+    }
+}

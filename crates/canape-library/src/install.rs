@@ -94,6 +94,9 @@ const STEAM_QUIT: Duration = Duration::from_secs(30);
 /// Steam has this long, from its start, to take a queued download over;
 /// after that its dialog is opened instead.
 const STEAM_TAKE: Duration = Duration::from_secs(90);
+/// Polls with Steam's install dialog gone and no manifest before the
+/// install counts as cancelled.
+const DIALOG_GRACE: u32 = 3;
 
 /// Installs `install`, calling `on` with its progress and outcome.
 pub fn run(install: &Install, tools: &Tools, mut on: impl FnMut(Event)) {
@@ -134,7 +137,7 @@ fn run_steam(
     // tray (-silent) instead of opening its window; if it is, the URI goes
     // to the running client.
     crate::launch(&steam::silent(steam, format!("steam://install/{appid}")))?;
-    watch_steam(steam, appid, Some(STEAM_START), on)
+    watch_steam(steam, appid, Some((STEAM_START, name)), on)
 }
 
 /// Queues the download in Steam with no window, and waits for Steam to
@@ -223,15 +226,19 @@ fn wait_taken(queued: &Queued, timeout: Duration) -> bool {
 }
 
 /// Reports the download's progress from its manifest until it ends.
-/// `start`: how long Steam has to create the manifest (`None`: it exists).
+/// `dialog`: Steam's install dialog was opened for the game named there,
+/// and Steam has this long to create the manifest (`None`: it exists).
+/// The dialog closing with no manifest counts as cancelled.
 fn watch_steam(
     steam: &Path,
     appid: u32,
-    start: Option<Duration>,
+    dialog: Option<(Duration, &str)>,
     on: &mut impl FnMut(Event),
 ) -> io::Result<()> {
     let started = Instant::now();
-    let mut seen = start.is_none();
+    let mut seen = dialog.is_none();
+    let mut dialog_seen = false;
+    let mut closed_polls = 0;
     loop {
         std::thread::sleep(STEAM_POLL);
         match steam::download(steam, appid) {
@@ -245,10 +252,28 @@ fn watch_steam(
                 on(Event::Progress(UNKNOWN_SHARE));
             }
             None if seen => return Err(io::Error::other("cancelled in Steam")),
-            None if start.is_some_and(|limit| started.elapsed() > limit) => {
-                return Err(io::Error::other("Steam did not start the download"));
+            None => {
+                let Some((limit, name)) = dialog else {
+                    continue;
+                };
+                if started.elapsed() > limit {
+                    return Err(io::Error::other("Steam did not start the download"));
+                }
+                if steam_queue::dialog_open(name) {
+                    if !dialog_seen {
+                        on(Event::Note("Steam's install dialog is open".into()));
+                    }
+                    dialog_seen = true;
+                    closed_polls = 0;
+                } else if dialog_seen {
+                    // Steam writes the manifest a moment after the dialog
+                    // is confirmed.
+                    closed_polls += 1;
+                    if closed_polls >= DIALOG_GRACE {
+                        return Err(io::Error::other("cancelled in Steam's dialog"));
+                    }
+                }
             }
-            None => {}
         }
     }
 }

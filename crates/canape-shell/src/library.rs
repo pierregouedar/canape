@@ -1107,6 +1107,11 @@ impl State {
     /// Starts installing `game` on its own thread.
     fn install(&mut self, game: &Game, mut install: Install) {
         if self.installing.contains_key(&game.id) {
+            // A Steam install waiting on Steam: its dialog may sit behind
+            // Canapé.
+            if self.steam_dialogs.contains(&game.id) {
+                raise_steam_dialog(&game.title);
+            }
             return;
         }
         // Owned lists cached before Steam installs carried a name.
@@ -2195,6 +2200,18 @@ pub fn start(ui: &AppWindow) {
         }
     });
 }
+
+/// Brings Steam's install dialog for the game `title` to the front.
+#[cfg(windows)]
+fn raise_steam_dialog(title: &str) {
+    // Windows hands the foreground over only after input of our own.
+    crate::buttons::tap_alt();
+    let windows = canape_library::steam_queue::raise_dialog(title);
+    crate::log(&format!("library: Steam's windows: {windows:?}"));
+}
+
+#[cfg(not(windows))]
+fn raise_steam_dialog(_title: &str) {}
 
 #[cfg(test)]
 mod tests {

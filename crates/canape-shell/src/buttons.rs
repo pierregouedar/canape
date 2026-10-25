@@ -23,11 +23,17 @@ const ABSENT_RETRY: Duration = Duration::from_secs(60);
 
 pub fn spawn(ui: Weak<AppWindow>) {
     thread::spawn(move || {
+        // The same failure is logged once, not at every retry.
+        let mut last = String::new();
         loop {
             let result = canape_hw::listen_buttons(|button| pressed(&ui, button));
             let absent = matches!(result, Err(canape_hw::HwError::Unsupported(_)));
             if let Err(err) = result {
-                crate::log(&format!("buttons: {err}"));
+                let err = err.to_string();
+                if err != last {
+                    crate::log(&format!("buttons: {err}"));
+                    last = err;
+                }
             }
             thread::sleep(if absent { ABSENT_RETRY } else { RETRY });
         }
