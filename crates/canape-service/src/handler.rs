@@ -1,11 +1,11 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use canape_autotdp::{Config, Controller};
-use canape_core::settings::FPS_LIMIT_RANGE;
+use canape_core::settings::{FPS_LIMIT_RANGE, GYRO_SENSITIVITY_RANGE};
 use canape_core::{
     AutoTdpSettings, BenchPlan, BenchProgress, BenchReport, ControllerMode, Fan, FanCurve,
-    FanCurves, FanPreset, PerformanceMode, Profile, ProfilePart, Request, Response, Status,
-    protocol,
+    FanCurves, FanPreset, GyroSettings, PerformanceMode, Profile, ProfilePart, Request, Response,
+    Status, protocol,
 };
 use canape_hw::{Device, Telemetry};
 use serde::{Deserialize, Serialize};
@@ -39,6 +39,8 @@ pub struct Saved {
     /// Global frame rate cap (a profile may override it).
     pub fps_limit: Option<u32>,
     pub controller_mode: Option<ControllerMode>,
+    /// Global gyro aiming (a profile may override it).
+    pub gyro: GyroSettings,
 }
 
 /// Service state and request dispatch, independent of the transport.
@@ -71,6 +73,8 @@ pub struct Handler {
     /// Frame rate cap in effect: the global one, or the active profile's.
     fps_limit: Option<u32>,
     controller_mode: Option<ControllerMode>,
+    /// Gyro aiming in effect: the global settings, or the active profile's.
+    gyro: GyroSettings,
     /// Something worth saving changed outside a request (learned watts, bench).
     dirty: bool,
 }
@@ -99,6 +103,7 @@ impl Handler {
             fan_curves: FanCurves::default(),
             fps_limit: None,
             controller_mode: None,
+            gyro: GyroSettings::default(),
             dirty: false,
         }
     }
@@ -284,6 +289,7 @@ impl Handler {
                     ProfilePart::Hardware => Profile {
                         fan_curves: Some(self.fan_curves.clone()),
                         fps_limit: self.fps_limit,
+                        gyro: Some(self.gyro),
                         ..existing
                     },
                 };
@@ -306,6 +312,17 @@ impl Handler {
                 |d| d.set_controller_mode(mode),
                 |s| s.controller_mode = Some(mode),
             ),
+            Request::SetGyro { settings } => {
+                let (low, high) = GYRO_SENSITIVITY_RANGE;
+                if !(low..=high).contains(&settings.sensitivity) {
+                    return Response::Error {
+                        message: format!("gyro sensitivity not in {low}..={high}"),
+                    };
+                }
+                self.gyro = settings;
+                self.remember_gyro();
+                Response::Ok
+            }
         }
     }
 
@@ -428,6 +445,7 @@ impl Handler {
             fan_preset: FanPreset::of(&self.fan_curves),
             fps_limit: self.fps_limit,
             controller_mode: self.controller_mode,
+            gyro: self.gyro,
         }
     }
 
@@ -457,6 +475,7 @@ impl Handler {
             fan_curves: self.fan_curves.clone(),
             fps_limit: self.fps_limit,
             controller_mode: None,
+            gyro: self.gyro,
         };
         let global = self
             .before_bench
@@ -479,6 +498,7 @@ impl Handler {
         self.profiles = saved.profiles.clone();
         self.last_bench = saved.last_bench.clone();
         self.accent = saved.accent.clone();
+        self.gyro = saved.gyro;
         let mut errors = self.apply_power_state(saved);
         errors.extend(self.apply_fans_and_fps(&saved.fan_curves, saved.fps_limit));
         let mut requests = Vec::new();
@@ -613,6 +633,7 @@ impl Handler {
                     .fan_curves
                     .unwrap_or_else(|| global.fan_curves.clone());
                 let fps_limit = profile.fps_limit.or(global.fps_limit);
+                self.gyro = profile.gyro.unwrap_or(global.gyro);
                 self.apply_fans_and_fps(&curves, fps_limit);
             }
             Some(_) => {}
@@ -622,6 +643,7 @@ impl Handler {
                     if self.bench.is_none() {
                         self.apply_power_state(&global);
                     }
+                    self.gyro = global.gyro;
                     self.apply_fans_and_fps(&global.fan_curves, global.fps_limit);
                 }
             }
@@ -808,6 +830,20 @@ impl Handler {
         }
         for saved in self.global_snapshots() {
             saved.fps_limit = fps_limit;
+        }
+    }
+
+    /// Same rule as [`Self::remember_fan_curves`].
+    fn remember_gyro(&mut self) {
+        let gyro = self.gyro;
+        if let Some(profile) = self.active_profile_mut()
+            && profile.gyro.is_some()
+        {
+            profile.gyro = Some(gyro);
+            return;
+        }
+        for saved in self.global_snapshots() {
+            saved.gyro = gyro;
         }
     }
 
@@ -1434,6 +1470,73 @@ mod tests {
         h.handle(Request::ForegroundApp { exe: None });
         assert_eq!(custom(&mut h).cpu, Some(FanPreset::Balanced.curve()));
         assert_eq!(h.status().fps_limit, Some(30));
+    }
+
+    #[test]
+    fn gyro_settings_are_checked_saved_and_follow_profiles() {
+        use canape_core::{GyroActivation, GyroAxis};
+        let mut h = handler();
+        let hold = GyroSettings {
+            activation: GyroActivation::Hold,
+            sensitivity: 12,
+            ..GyroSettings::default()
+        };
+        for sensitivity in [0, 51] {
+            assert!(matches!(
+                h.handle(Request::SetGyro {
+                    settings: GyroSettings {
+                        sensitivity,
+                        ..hold
+                    }
+                }),
+                Response::Error { .. }
+            ));
+        }
+        assert_eq!(h.handle(Request::SetGyro { settings: hold }), Response::Ok);
+        assert_eq!(h.status().gyro, hold);
+        assert_eq!(h.saved().gyro, hold);
+
+        let roll = GyroSettings {
+            activation: GyroActivation::Always,
+            horizontal: GyroAxis::Roll,
+            ..hold
+        };
+        h.handle(Request::SaveProfile {
+            profile: Profile {
+                gyro: Some(roll),
+                ..profile("game.exe", 60, None)
+            },
+        });
+        h.handle(Request::SaveProfile {
+            profile: profile("other.exe", 60, None),
+        });
+        h.handle(Request::ForegroundApp {
+            exe: Some("game.exe".into()),
+        });
+        assert_eq!(h.status().gyro, roll);
+        // A change during the game belongs to its profile.
+        let toggle = GyroSettings {
+            activation: GyroActivation::Toggle,
+            ..roll
+        };
+        h.handle(Request::SetGyro { settings: toggle });
+        assert_eq!(h.saved().gyro, hold);
+        assert_eq!(h.saved().profiles[0].gyro, Some(toggle));
+
+        // A profile without its own gyro follows the global one.
+        h.handle(Request::ForegroundApp {
+            exe: Some("other.exe".into()),
+        });
+        assert_eq!(h.status().gyro, hold);
+        h.handle(Request::ForegroundApp { exe: None });
+        assert_eq!(h.status().gyro, hold);
+
+        let json = serde_json::to_string(&h.saved()).unwrap();
+        let mut restored = handler();
+        restored.restore(&serde_json::from_str(&json).unwrap());
+        assert_eq!(restored.status().gyro, hold);
+        let old: Saved = serde_json::from_str(r#"{"mode":"turbo"}"#).unwrap();
+        assert_eq!(old.gyro, GyroSettings::default());
     }
 
     #[test]

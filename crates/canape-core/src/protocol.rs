@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::bench::{BenchPlan, BenchProgress, BenchReport};
 use crate::fan::{Fan, FanCurve, FanCurves, FanPreset};
-use crate::settings::{AutoTdpSettings, ControllerMode, PerformanceMode, Profile};
+use crate::settings::{AutoTdpSettings, ControllerMode, GyroSettings, PerformanceMode, Profile};
 
 pub const PIPE_NAME: &str = r"\\.\pipe\canape";
 pub const PROTOCOL_VERSION: u32 = 1;
@@ -87,6 +87,12 @@ pub enum Request {
     /// Mode of the built-in controller.
     SetControllerMode {
         mode: ControllerMode,
+    },
+    /// Gyro aiming settings. The service stores them (globally, or in the
+    /// active profile when it has its own) and pushes them in the status;
+    /// the shell reads the sensor and moves the mouse.
+    SetGyro {
+        settings: GyroSettings,
     },
 }
 
@@ -171,6 +177,9 @@ pub struct Status {
     pub fps_limit: Option<u32>,
     #[serde(default)]
     pub controller_mode: Option<ControllerMode>,
+    /// Gyro aiming in effect: the global settings, or the active profile's.
+    #[serde(default)]
+    pub gyro: GyroSettings,
 }
 
 /// What [`Request::SaveForegroundProfile`] saves.
@@ -179,7 +188,7 @@ pub struct Status {
 pub enum ProfilePart {
     /// Auto TDP, and the wattage it holds as the learned one.
     Power,
-    /// Fan curves and frame rate cap.
+    /// Fan curves, frame rate cap and gyro aiming.
     Hardware,
 }
 
@@ -247,6 +256,20 @@ mod tests {
             }
         );
         assert_eq!(
+            decode::<Request>(
+                r#"{"type":"set_gyro","settings":{"activation":"toggle","sensitivity":20,"horizontal":"roll","invert_y":true}}"#
+            )
+            .unwrap(),
+            Request::SetGyro {
+                settings: GyroSettings {
+                    activation: crate::GyroActivation::Toggle,
+                    sensitivity: 20,
+                    horizontal: crate::GyroAxis::Roll,
+                    invert_y: true,
+                }
+            }
+        );
+        assert_eq!(
             encode(&Request::ResetFanCurves).unwrap(),
             "{\"type\":\"reset_fan_curves\"}\n"
         );
@@ -261,6 +284,7 @@ mod tests {
         assert_eq!(status.tdp_min_watts, None);
         assert!(status.fan_curves.is_empty());
         assert_eq!(status.controller_mode, None);
+        assert_eq!(status.gyro, GyroSettings::default());
     }
 
     #[test]

@@ -465,3 +465,36 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "Profiel van dit spel"
+
+msgid "Gyro aiming"
+msgstr "Richten met gyroscoop"
+
+msgid "While a back paddle is held"
+msgstr "Zolang een achterste peddel ingedrukt is"
+
+msgid "A back paddle turns it on and off"
+msgstr "Een achterste peddel zet het aan en uit"
+
+msgid "Always"
+msgstr "Altijd"
+
+msgid "Active"
+msgstr "Actief"
+
+msgid "Sensitivity"
+msgstr "Gevoeligheid"
+
+msgid "Left and right"
+msgstr "Links en rechts"
+
+msgid "Tilt like a wheel"
+msgstr "Kantelen als een stuur"
+
+msgid "Turn the console"
+msgstr "De console draaien"
+
+msgid "Invert up and down"
+msgstr "Boven en onder omkeren"
+
+msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
+msgstr "Beweegt de muis terwijl een game op de voorgrond staat. Games die alleen de controller lezen, negeren het."

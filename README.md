@@ -33,6 +33,7 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 | ⚡ **Modes et TDP** | Modes firmware ASUS (Silencieux, Performance, Turbo) ou limite manuelle en watts (sPPT, SPL, fPPT écrits ensemble). |
 | 🤖 **Auto TDP** | Tient l'objectif FPS (30 à 120) avec le moins de watts possible : FPS et charge GPU lus dans le pilote AMD, plafond sur batterie, limite de température, anti-oscillation. |
 | 🌀 **Ventilateurs, limite de FPS, manette** | Préréglages de ventilateurs (Automatique, Silencieux, Équilibré, Maximum) avec un plancher de sécurité à chaud, limite de FPS du pilote AMD, mode de la manette (manette de jeu, clavier, souris). |
+| 🎯 **Visée au gyroscope** | Tourner l'Ally déplace la souris pendant qu'un jeu est devant : en tenant une palette arrière, en bascule ou tout le temps, avec sensibilité, axe et inversion, par jeu si on veut. Sans pilote. Pas encore essayée sur l'Ally ([étude](docs/gyro-study.md)). |
 | 🎯 **Profils par jeu** | Le profil du jeu au premier plan s'applique tout seul, puis rend la main aux réglages généraux. Canapé retient les watts où l'auto TDP se stabilise ; un profil peut aussi garder ses ventilateurs et sa limite de FPS. |
 | 📊 **Banc d'essai** | Balaye plusieurs limites de puissance sur le jeu en cours et propose trois recommandations : meilleur compromis, puissance pour l'objectif, le plus efficace. |
 | 🪟 **Widget Xbox Game Bar** | Réglages rapides en jeu : mode, ±1 W, auto TDP et objectif, FPS, température, batterie, progression du banc d'essai. |
@@ -128,6 +129,7 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 | ⚡ **Modes and TDP** | ASUS firmware modes (Silent, Performance, Turbo) or a manual limit in watts (sPPT, SPL and fPPT written together). |
 | 🤖 **Auto TDP** | Holds the FPS target (30 to 120) with the fewest watts: frame rate and GPU load read from the AMD driver, battery ceiling, temperature limit, anti-oscillation. |
 | 🌀 **Fans, frame rate limit, controller** | Fan presets (Automatic, Silent, Balanced, Maximum) with a safety floor when hot, AMD driver frame rate limit, controller mode (gamepad, keyboard, mouse). |
+| 🎯 **Gyro aiming** | Turning the Ally moves the mouse while a game is in front: while holding a back paddle, toggled or all the time, with sensitivity, axis and inversion, per game if you like. No driver. Not tried on the Ally yet ([study](docs/gyro-study.md), French). |
 | 🎯 **Per-game profiles** | The profile of the game in front applies by itself, then hands back to the global settings. Canapé remembers the wattage auto TDP settles on; a profile can also keep its fans and frame rate limit. |
 | 📊 **Bench** | Sweeps several power limits on the running game and gives three recommendations: sweet spot, power for the target, most efficient. |
 | 🪟 **Xbox Game Bar widget** | Quick in-game settings: mode, ±1 W, auto TDP and target, FPS, temperature, battery, bench progress. |

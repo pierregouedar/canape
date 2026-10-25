@@ -72,6 +72,7 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 | Limite de FPS | AMD ADL (`ADL2_FPS_Settings_Set`), depuis le service | M6 : code écrit, à valider sur l'Ally (session 0 non essayée) |
 | Mode de la manette | HID ASUS (VID `0x0B05`, rapport `0x5A`, commande `0xD1 0x01`) | M6 : code écrit, à valider sur l'Ally |
 | Fréquence de l'écran | `QueryDisplayConfig` (chemin interne ou eDP) puis `ChangeDisplaySettingsEx`, depuis le shell (session de l'utilisateur), par jeu via les profils | M6 : code écrit (page Matériel), à valider sur l'Ally |
+| Gyroscope (visée) | Capteurs Windows (`Windows.Devices.Sensors.Gyrometer`), lus par le shell, qui déplace la souris par `SendInput` pendant qu'un jeu est devant (voir `gyro-study.md`) | Code écrit, à valider sur l'Ally |
 | Boutons spéciaux | HID ASUS (VID `0x0B05`, rapports d'entrée `0x5A` : 166 Command Center, 56/147 Armoury, 165/0 palettes arrière), lus par le shell | M6 : code écrit (Armoury → Canapé, Command Center → Game Bar), à valider sur l'Ally |
 
 

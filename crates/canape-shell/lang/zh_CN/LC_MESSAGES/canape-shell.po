@@ -465,3 +465,36 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "此游戏的配置"
+
+msgid "Gyro aiming"
+msgstr "陀螺仪瞄准"
+
+msgid "While a back paddle is held"
+msgstr "按住背键时"
+
+msgid "A back paddle turns it on and off"
+msgstr "按背键开启或关闭"
+
+msgid "Always"
+msgstr "始终"
+
+msgid "Active"
+msgstr "启用"
+
+msgid "Sensitivity"
+msgstr "灵敏度"
+
+msgid "Left and right"
+msgstr "左右"
+
+msgid "Tilt like a wheel"
+msgstr "像方向盘一样倾斜"
+
+msgid "Turn the console"
+msgstr "转动主机"
+
+msgid "Invert up and down"
+msgstr "反转上下"
+
+msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
+msgstr "游戏在前台时移动鼠标。只读取手柄的游戏会忽略它。"

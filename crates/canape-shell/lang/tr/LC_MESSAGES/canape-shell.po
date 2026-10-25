@@ -465,3 +465,36 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "Bu oyunun profili"
+
+msgid "Gyro aiming"
+msgstr "Jiroskopla nişan alma"
+
+msgid "While a back paddle is held"
+msgstr "Arka kollardan biri basılı tutulurken"
+
+msgid "A back paddle turns it on and off"
+msgstr "Arka kollardan biri açar ve kapatır"
+
+msgid "Always"
+msgstr "Her zaman"
+
+msgid "Active"
+msgstr "Etkin"
+
+msgid "Sensitivity"
+msgstr "Hassasiyet"
+
+msgid "Left and right"
+msgstr "Sol ve sağ"
+
+msgid "Tilt like a wheel"
+msgstr "Direksiyon gibi eğ"
+
+msgid "Turn the console"
+msgstr "Konsolu döndür"
+
+msgid "Invert up and down"
+msgstr "Yukarı ve aşağıyı ters çevir"
+
+msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
+msgstr "Bir oyun öndeyken fareyi hareket ettirir. Yalnızca oyun kumandasını okuyan oyunlar bunu yok sayar."

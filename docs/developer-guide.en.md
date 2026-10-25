@@ -103,7 +103,7 @@ flowchart BT
     shell --> core
     shell --> ipc
     shell --> library
-    shell -.->|"Windows only"| hw
+    shell --> hw
     ctl --> core
     ctl --> ipc
 ```
@@ -112,14 +112,14 @@ flowchart BT
 |---|---|---|---|
 | `canape-core` | library | Protocol (`Request`, `Response`, `Status`), settings (`AutoTdpSettings`, `PerformanceMode`, `Profile`, `ControllerMode`), fan curves (validation, presets), bench (`BenchPlan`, `BenchReport` and its recommendations), minimal log | `protocol.rs`, `settings.rs`, `fan.rs`, `bench.rs`, `log.rs` |
 | `canape-autotdp` | library | Auto TDP controller: a pure state machine fed one `Sample` per second, with no system dependency | `lib.rs` |
-| `canape-hw` | library | `Device` trait; Ally backend (Windows) on top of ATKACPI, ADL and the controller's HID interface; `MockDevice` for everything else | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs` |
+| `canape-hw` | library | `Device` trait; Ally backend (Windows) on top of ATKACPI, ADL and the controller's HID interface; `MockDevice` for everything else. For the user session: the screen (`display`) and the gyroscope (`motion`: `Gyro` trait, `MockGyro`, `motion::open()`) | `lib.rs`, `atk.rs`, `pad.rs`, `windows.rs`, `adl.rs`, `hid.rs`, `mock.rs`, `display.rs`, `motion.rs`, `gyro.rs` |
 | `canape-ipc` | library | A `Connection` that sends and receives JSON lines; named pipe on Windows, Unix socket elsewhere; the pipe's ACL | `lib.rs`, `windows.rs`, `unix.rs`, `acl.rs` |
 | `canape-service` | binary | Windows service: state, auto TDP, profiles, bench, conflict detection, IPC server, persistence | `handler.rs`, `server.rs`, `bench_run.rs`, `conflicts.rs`, `winsvc.rs` |
 | `canape-library` | library | Installed games: Steam, Epic, GOG and Xbox scanning, merging and sorting, cover decoding, downloaded covers, launching, the cache files. Owned games and installing them (Steam, Epic through Legendary). Pure parsers tested on Linux; the Windows parts (registry, drives, `ShellExecuteW`, WinHTTP) behind `cfg(windows)` | `lib.rs`, `steam.rs`, `vdf.rs`, `epic.rs`, `gog.rs`, `xbox.rs`, `legendary.rs`, `install.rs`, `tools.rs`, `online.rs`, `http.rs`, `cover.rs`, `cache.rs`, `launch.rs`, `win.rs` |
-| `canape-shell` | binary | Slint home app (software rendering): four sections (Games, Performance, Hardware, Settings) and two sub-pages (Game profiles from Settings, Bench from Performance), status strip (W, FPS, battery, time), live power graph, fan presets and curve, accent colour picker, XInput gamepad, foreground tracking, 13 languages | `main.rs`, `link.rs`, `library.rs`, `shelves.rs` (shelf composition, pure and tested: Recent, Installed, one per store (installed and to install mixed), To install; each shelf has its own model and selection, a decoded cover serves every shelf showing the game), `backdrop.rs` (glow in the game's colour behind the library, and `fade_art`, which fades a game's wide art into the background), game page (`GamePage` in `library.slint`; the profile shows through the executable `learn_exe` keeps in `recent.json` (`Recent::exes`) when a full-screen program comes to the front within 2 min of a launch, `canape_library::is_store_program` leaving clients and launchers out; `open_detail` / `close_detail`: size and time played at once, large cover and Steam's wide art decoded on a thread, then released 400 ms after closing), `grid.rs`, `clock.rs`, `hardware.rs`, `ui/*.slint`: `app.slint` (frame, sections, hints), `kit.slint` (shared rows, tiles, rulers, setting lines; `Reveal` fades and slides in what an `if` or a `for` creates, since those animate nothing on their own: pages from the LB/RB side; `RevealLine` slides one line in from the left, delayed by its rank, for the lines of the game title; the library backdrop, drawn opaque at the window size by `backdrop.rs` so it is only copied, crossfades on two layers, `backdrop-a` and `backdrop-b`; covers are decoded at the size of a cover not selected, only the selected one is scaled; the software renderer only redraws what changes, so animations touch as little area as they can: a shelf only scrolls at its edge, the selected cover grows on its own spot without pushing the others, and the backdrop only changes once the selection rests, `BACKDROP_DELAY`; it only crossfades after a pause, `BACKDROP_FADE_AFTER`, and switches at once while browsing; its image starts where the glow reaches, `Mask::x`), `fonts/` (embedded Plus Jakarta Sans, OFL licence, tabular digits by default, a wider space; Cyrillic and CJK fall back to the system fonts; the widget links the same files), one page per file (`library.slint`, `performance.slint`, `hardware.slint`, `settings.slint`, sub-pages in `pages.slint`). Every page moves with the arrow keys: each holds the focus in one `FocusScope` and moves its own row and column; `App.arrow-focus` tells the gamepad to send arrows rather than Tab (`library::arrow_navigation`). X and Y arrive as F2 and F3, `i18n.rs`, `report.rs`, `nav.rs` (`Navigator::quiet`: gamepad ignored for 2 s (`keys::FIRST_QUIET`) the first time the shell is in front, held buttons ignored until released), `keys.rs` (`KeyGate`, filters winit's keyboard events (`on_winit_window_event`) with the same rules: a key repeating without having been seen going down was held before the focus; logs every Enter and Escape with its source, `keys: pad` or `keys: keyboard`), `foreground.rs`, `history.rs`, `accent.rs` |
+| `canape-shell` | binary | Slint home app (software rendering): four sections (Games, Performance, Hardware, Settings) and three sub-pages (Game profiles from Settings, Bench from Performance, Gyro aiming from Hardware), status strip (W, FPS, battery, time), live power graph, fan presets and curve, accent colour picker, XInput gamepad, foreground tracking, 13 languages | `main.rs`, `link.rs`, `library.rs`, `shelves.rs` (shelf composition, pure and tested: Recent, Installed, one per store (installed and to install mixed), To install; each shelf has its own model and selection, a decoded cover serves every shelf showing the game), `backdrop.rs` (glow in the game's colour behind the library, and `fade_art`, which fades a game's wide art into the background), game page (`GamePage` in `library.slint`; the profile shows through the executable `learn_exe` keeps in `recent.json` (`Recent::exes`) when a full-screen program comes to the front within 2 min of a launch, `canape_library::is_store_program` leaving clients and launchers out; `open_detail` / `close_detail`: size and time played at once, large cover and Steam's wide art decoded on a thread, then released 400 ms after closing), `grid.rs`, `clock.rs`, `hardware.rs`, `ui/*.slint`: `app.slint` (frame, sections, hints), `kit.slint` (shared rows, tiles, rulers, setting lines; `Reveal` fades and slides in what an `if` or a `for` creates, since those animate nothing on their own: pages from the LB/RB side; `RevealLine` slides one line in from the left, delayed by its rank, for the lines of the game title; the library backdrop, drawn opaque at the window size by `backdrop.rs` so it is only copied, crossfades on two layers, `backdrop-a` and `backdrop-b`; covers are decoded at the size of a cover not selected, only the selected one is scaled; the software renderer only redraws what changes, so animations touch as little area as they can: a shelf only scrolls at its edge, the selected cover grows on its own spot without pushing the others, and the backdrop only changes once the selection rests, `BACKDROP_DELAY`; it only crossfades after a pause, `BACKDROP_FADE_AFTER`, and switches at once while browsing; its image starts where the glow reaches, `Mask::x`), `fonts/` (embedded Plus Jakarta Sans, OFL licence, tabular digits by default, a wider space; Cyrillic and CJK fall back to the system fonts; the widget links the same files), one page per file (`library.slint`, `performance.slint`, `hardware.slint`, `settings.slint`, sub-pages in `pages.slint`). Every page moves with the arrow keys: each holds the focus in one `FocusScope` and moves its own row and column; `App.arrow-focus` tells the gamepad to send arrows rather than Tab (`library::arrow_navigation`). X and Y arrive as F2 and F3, `i18n.rs`, `report.rs`, `nav.rs` (`Navigator::quiet`: gamepad ignored for 2 s (`keys::FIRST_QUIET`) the first time the shell is in front, held buttons ignored until released), `keys.rs` (`KeyGate`, filters winit's keyboard events (`on_winit_window_event`) with the same rules: a key repeating without having been seen going down was held before the focus; logs every Enter and Escape with its source, `keys: pad` or `keys: keyboard`), `foreground.rs`, `history.rs`, `accent.rs`, `gyro.rs` (gyro aiming, see [The Hardware page](#the-hardware-page)) |
 | `canape-ctl` | binary | Sends one JSON request, or `watch` to follow the status; `--pretty` indents the JSON | `main.rs` |
 
-The shell depends on `canape-hw` on Windows only for `arm_frame_metrics()` (starting the AMD driver's frame counting from the user session); it never writes to the firmware.
+The shell uses `canape-hw` for what belongs to the user session: `arm_frame_metrics()` (starting the AMD driver's frame counting), the screen, the Ally's buttons and the gyroscope. It never writes to the firmware.
 
 ### The game library
 
@@ -182,13 +182,16 @@ Page 3 (`ui/hardware.slint`) only sends requests: the service validates and writ
 |---|---|---|
 | Fan tiles | `set-fan-preset(key)` | `""` (Automatic): `reset_fan_curves`; `silent`, `balanced`, `max-cooling`: one `set_fan_curve` per fan, CPU then GPU, with `FanPreset::curve()` (`canape-core/src/fan.rs`) |
 | Frame rate limit chips | `set-fps-limit(fps)` | `set_fps_limit`, `0` → `null` (None); chips 30, 40, 45, 60, 90, 120 |
-| Keep these settings for this game | `save-hardware-profile()` | `save_profile` for `status.foreground`: the existing profile (or a new one with `status.auto_tdp`) with `fan_curves: Some(status.fan_curves)` (an empty set means "the firmware's curves" for that game), `fps_limit: status.fps_limit` and `refresh_hz` (the screen's current rate) |
+| Keep these settings for this game | `save-hardware-profile()` | `save_profile` for `status.foreground`: the existing profile (or a new one with `status.auto_tdp`) with `fan_curves: Some(status.fan_curves)` (an empty set means "the firmware's curves" for that game), `fps_limit: status.fps_limit`, `refresh_hz` (the screen's current rate) and `gyro: Some(status.gyro)`; also **X** on the Gyro page |
 | Screen chips | `set-refresh(hz)` | none: the shell switches the screen itself (`screen.rs`, `canape_hw::display::Screen`) and saves `refresh_hz` in `shell.json` |
 | Controller tiles | `set-controller(mode)` | `set_controller_mode` |
+| Gyro aiming line | `open-gyro()` | none: opens page 6, the Gyro aiming sub-page (`GyroPage` in `pages.slint`) |
+| Gyro page lines | `set-gyro-activation(name)`, `change-gyro-sensitivity(delta)`, `toggle-gyro-roll()`, `toggle-gyro-invert()` | `set_gyro` with `status.gyro` changed (`update_gyro`) |
 
 - `hardware.rs`: `preset_name()` maps `status.fan_curves` to the selected tile: `""` when empty (firmware curves), a preset key when every custom curve equals that preset, `custom` otherwise. `curve_paths()` turns the CPU curve into the line and area `Path` commands of the panel (viewbox 90 × 100: one unit per °C from 20 to 110 °C, one per percent), held flat before the first and after the last point. Both are unit-tested.
 - `link.rs` (`status_view`): `cpu_fan_rpm` / `gpu_fan_rpm` (−1 when unknown), the preset name, the CPU curve paths (empty without a custom CPU curve), `fps_limit` (0 for none) and `controller_mode` (`""` when Canapé has not set it, so no tile is selected). `tdp_floor()` / `tdp_ceiling()` read `tdp_min_watts` / `tdp_max_watts` (fallback `MIN_WATTS` 5 and `MAX_WATTS` 35 in `main.rs`) and bound every wattage stepper of the shell.
-- The Profiles page and the bench's **Save for the game** keep the `fan_curves`, `fps_limit` and `refresh_hz` of an existing profile.
+- The Profiles page and the bench's **Save for the game** keep the `fan_curves`, `fps_limit`, `refresh_hz` and `gyro` of an existing profile.
+- **Gyro aiming** (`gyro.rs`, study in [`gyro-study.md`](gyro-study.md), French): the service only stores the settings (`GyroSettings`, global in `state.json` and per profile) and pushes the ones in effect in `status.gyro`; the shell does the rest, since `SendInput` only reaches the desktop of its own session. `link.rs` hands every push to `gyro::follow(settings, foreground.is_some())`, and the settings `Off` when the service is lost; `buttons.rs` hands the paddles to `gyro::paddle(down)`, whatever `ally_buttons` says. A thread waits on a condition variable until aiming is wanted (`Trigger::active`: paddle held, toggled, or always, and a game in front), opens the sensor once (`canape_hw::motion::open()`, logged as `gyro: …`), asks for a 10 ms report interval, then every 10 ms reads the angular velocity, turns it into mouse counts (`Aim::step`) and sends them with `SendInput(MOUSEEVENTF_MOVE)`. While the shell is in front it moves nothing and checks every 250 ms. Back to the sensor's default interval when aiming stops. `Aim`: 0.75 °/s dead zone subtracted from each axis, at most 50 ms per reading, fractions kept between readings; turning left (positive around Y, or around Z with `roll`) moves left, tilting the top away (positive around X) moves up. `Aim` and `Trigger` are unit-tested.
 - **Screen refresh rate** (`screen.rs`): display modes belong to the user's session, so the shell, not the service, switches them. `canape_hw::display::Screen::internal()` picks the active path whose output technology is internal or embedded DisplayPort (`QueryDisplayConfig`, then the source's GDI name), `rates()` lists the rates at the current resolution and depth (`EnumDisplaySettingsExW`), `set_refresh()` calls `ChangeDisplaySettingsExW` with `CDS_UPDATEREGISTRY`. `Profile::refresh_hz` is only stored by the service; at each status push the shell looks up the active profile's rate and `screen::follow` switches on a change of profile only (`Follow::step`, unit-tested): entering a profile remembers the rate it replaces, leaving it goes back to the rate picked on the page (`shell.json` `refresh_hz`, 0 = none) or to that remembered rate. The page re-reads the current rate every 5 pushes. Off Windows, `CANAPE_MOCK_SCREEN=60,120` fakes a screen for screenshots.
 - **Ally buttons** (`buttons.rs`, Windows): a thread runs `canape_hw::listen_buttons`, which opens the same HID interface as the controller mode (VID `0x0B05`, PID `0x1ABE`/`0x1B4C`, feature report `0x5A`), sends the wake-up report, then reads input reports: code 166 Command Center, 56 or 147 Armoury, 165 / 0 back paddles down / up, 236 ignored (`pad::parse_input`, unit-tested). Armoury → `instance::bring_to_front()` (a synthetic Alt tap, then `SetForegroundWindow`) or the Games section when already in front; Command Center → Win+G (`SendInput`). Unknown codes are logged. After an error the thread retries every 5 s, every 60 s when no interface exists. `shell.json` `ally_buttons: false` turns the actions off.
 
@@ -288,6 +291,7 @@ sequenceDiagram
 | `save_foreground_profile` | `part: "power" \| "hardware"` | `ok` / `error` | Saves into the foreground game's profile (created with the current auto TDP if there is none) the auto TDP and the wattage held (`power`), or the curves and frame rate limit (`hardware`); the rest of the profile is kept. Error without a game in the foreground. Used by the widget. |
 | `set_fps_limit` | `fps: u32 \| null` (30 to 120) | `ok` / `error` | AMD driver frame rate cap (AC and battery, every game); `null` removes it. Saved; during a profile that has its own cap, changes the profile. **Untested from the service's session 0.** |
 | `set_controller_mode` | `mode`: `gamepad` \| `wasd` \| `mouse` | `ok` / `error` | Mode of the built-in controller (HID). Saved and re-applied at startup. Global, not per profile. **Untested on the device.** |
+| `set_gyro` | `settings: GyroSettings` | `ok` / `error` | Gyro aiming. Stored only: the shell applies it. Saved; during a profile that has its own gyro settings, changes the profile. |
 
 Examples:
 
@@ -307,6 +311,7 @@ Examples:
 {"type":"set_fps_limit","fps":40}
 {"type":"set_fps_limit","fps":null}
 {"type":"set_controller_mode","mode":"mouse"}
+{"type":"set_gyro","settings":{"activation":"hold","sensitivity":10,"horizontal":"yaw","invert_y":false}}
 ```
 
 ### Responses
@@ -347,7 +352,8 @@ Examples:
   "gpu_fan_rpm": 3100,
   "fan_curves": {"cpu": [[40,10],[50,18],[58,26],[65,34],[72,42],[78,50],[85,62],[92,75]], "gpu": null, "mid": null},
   "fps_limit": 40,
-  "controller_mode": "gamepad"
+  "controller_mode": "gamepad",
+  "gyro": {"activation": "hold", "sensitivity": 10, "horizontal": "yaw", "invert_y": false}
 }
 ```
 
@@ -372,6 +378,7 @@ Examples:
 | `fan_curves` | `FanCurves` | Custom curves in effect (global or the active profile's); a `null` fan follows the mode's curve. |
 | `fps_limit` | `u32 \| null` | Frame rate cap set through Canapé (`null`: none set by Canapé; the AMD software may still have one). |
 | `controller_mode` | `string \| null` | `gamepad`, `wasd`, `mouse`, or `null` if Canapé has not set it. |
+| `gyro` | `GyroSettings` | Gyro aiming in effect: global, or the active profile's. Defaults when missing. |
 
 ### Nested types
 
@@ -386,7 +393,7 @@ Examples:
 | `battery_max_watts` | `u32 \| null` | `null` | optional on input |
 | `max_temp_c` | `u32 \| null` | `null` | optional on input |
 
-**`Profile`**: `exe` (string, compared case-insensitively), `auto_tdp` (`AutoTdpSettings`), `learned_watts` (`u32 | null`, optional), `fan_curves` (`FanCurves | null`, optional: `null` keeps the global curves), `fps_limit` (`u32 | null`, optional: `null` keeps the global cap; a profile cannot force "no cap" while a global one is set).
+**`Profile`**: `exe` (string, compared case-insensitively), `auto_tdp` (`AutoTdpSettings`), `learned_watts` (`u32 | null`, optional), `fan_curves` (`FanCurves | null`, optional: `null` keeps the global curves), `fps_limit` (`u32 | null`, optional: `null` keeps the global cap; a profile cannot force "no cap" while a global one is set), `refresh_hz` (`u32 | null`, optional, applied by the shell), `gyro` (`GyroSettings | null`, optional: `null` keeps the global settings).
 
 ```json
 {"exe":"eldenring.exe","auto_tdp":{"enabled":true,"target_fps":40,"min_watts":7,"max_watts":20},"learned_watts":14,"fan_curves":{"cpu":[[30,35],[40,45],[50,55],[60,65],[70,80],[75,90],[80,100],[85,100]]},"fps_limit":40}
@@ -408,6 +415,8 @@ Examples:
 | `max_cooling` | `[[30,35],[40,45],[50,55],[60,65],[70,80],[75,90],[80,100],[85,100]]` |
 
 **`ControllerMode`**: `gamepad` (XInput), `wasd` (keyboard), `mouse` (desktop).
+
+**`GyroSettings`**: `activation` (`off`, `hold`: while a back paddle is held, `toggle`: a paddle press turns it on and off, `always`; default `off`), `sensitivity` (mouse counts per degree, 1 to 50, default 10), `horizontal` (`yaw`: turning around the screen's vertical axis, or `roll`: tilting like a wheel; default `yaw`), `invert_y` (default `false`). Every field optional on input.
 
 **`BenchPlan`**: `from_watts` (25), `to_watts` (7), `step_watts` (3), `settle_secs` (5), `measure_secs` (15).
 
@@ -443,6 +452,7 @@ Examples:
 | `not a #RRGGBB colour: …` | `set_accent` with anything other than `#` and six hex digits |
 | `fan curve: …` | `set_fan_curve` breaking a [rule](#nested-types) (order, range, decreasing duty, safety floor) |
 | `frame rate limit not in 30..=120 FPS` | `set_fps_limit` out of range |
+| `gyro sensitivity not in 1..=50` | `set_gyro` out of range |
 | `not supported on this device: …` | No mid fan, no AMD driver, no controller HID interface, or the simulator lacks the feature |
 | `GPU driver refused: ADL2_FPS_Settings_Set(…) on adapter … returned …` | The AMD driver refused the cap (code in the message) |
 | `fan curves reset, but the TDP was not applied again: …` | `reset_fan_curves` in manual mode, TDP write failed |
@@ -516,7 +526,8 @@ Off Windows, logs and state go to `<tmp>/Canape/` (`service.log`, `state.json`, 
 | `CANAPE_MOCK_FPS` | service (simulator) | Simulated frame rate, for example `60`. Without it, `fps` is `null` and auto TDP does not move. Also applies on Windows when the simulator is in use. |
 | `CANAPE_SOCKET` | service, shell, `canape-ctl` (off Windows) | Unix socket path. |
 | `CANAPE_WINDOWED` | shell | Present (any value): a window instead of full screen. |
-| `CANAPE_PAGE` | shell | Page shown at startup: 0 Games, 1 Performance, 2 Hardware, 3 Settings, 4 Game profiles, 5 Bench. |
+| `CANAPE_PAGE` | shell | Page shown at startup: 0 Games, 1 Performance, 2 Hardware, 3 Settings, 4 Game profiles, 5 Bench, 6 Gyro aiming. |
+| `CANAPE_MOCK_GYRO` | shell (`canape_hw::motion::open`) | `x,y,z` in degrees per second: a simulated gyroscope turning at that rate, instead of the Windows sensor. |
 | `CANAPE_LIBRARY_FIXTURE` | shell (debug builds) | A fake library instead of the installed stores: see [The game library](#the-game-library). |
 | `LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG` | shell (off Windows) | Language in Automatic mode, in this order of priority. |
 | `TMPDIR` | all (off Windows) | Temporary folder, hence where `Canape/` lives. |
@@ -734,6 +745,17 @@ Hence the fix: at startup the shell calls `canape_hw::FrameMetrics::arm()` (a `F
 | Mode | `[0x5A, 0xD1, 0x01, 0x01, mode]`, `1` gamepad, `2` WASD, `3` mouse, then `HidD_SetFeature`. |
 
 
+### Gyroscope
+
+| Topic | Fact |
+|---|---|
+| Sensor | Bosch BMI323 IMU in the screen block, wired to the APU, not to the controller's microcontroller: the controller's HID reports carry no motion data. |
+| Windows | Bosch driver, exposed to the Windows sensor stack. Read through `Windows.Devices.Sensors.Gyrometer` (`gyro.rs`): `RoGetActivationFactory` on `IGyrometerStatics` (`83B6E7C9-E49D-4B39-86E6-CD554BE4C5C1`), `GetDefault` (slot 6), then `IGyrometer`: `GetCurrentReading` (6), `MinimumReportInterval` (7), `put_ReportInterval` (8); `IGyrometerReading`: `AngularVelocityX/Y/Z` (7, 8, 9), `f64` degrees per second. Vtables written by hand (no projection crate), `combase.dll` imported with `raw-dylib`, the thread joins the MTA first. |
+| Frame | Windows' sensor frame for the native (landscape) orientation: X right along the screen, Y up the screen, Z out of the screen. **To check on the device**, with the signs. |
+| Rate | About 100 Hz according to user reports; the minimum interval is logged (`gyro: Windows gyrometer, minimum report interval … ms`). |
+
+**Untested on the device.** The study and the options left aside (right stick through a virtual gamepad, a controller firmware command) are in [`gyro-study.md`](gyro-study.md) (French).
+
 ### Pipe ACL
 
 The widget's AppContainer SID is derived by Windows (`DeriveAppContainerSidFromAppContainerName`) from its package family name, which Canapé computes from `widget/CanapeWidget/Package.appxmanifest`: `Canape.Widget` + `_` + the publisher hash of `CN=Canape Dev` (SHA-256 of the UTF-16LE publisher, first 8 bytes, 13 Crockford base32 characters), that is `Canape.Widget_84zrj1c9kn010`, the name seen on the Ally (a unit test checks it). If the derivation fails, the service falls back to `AC` and logs why. Changing the widget's publisher changes the SID: update `WIDGET_PUBLISHER` in `crates/canape-ipc/src/acl.rs`.
@@ -743,6 +765,7 @@ The widget's AppContainer SID is derived by Windows (`DeriveAppContainerSidFromA
 | Feature | Planned interface |
 |---|---|
 | Button remapping (bindings) | ASUS HID (report `0x5A`, `0xD1 0x02` commands) |
+| Gyro on the right stick | A virtual gamepad driver, or a controller command not documented anywhere: see [`gyro-study.md`](gyro-study.md) |
 
 The refresh rate and the Armoury / Command Center buttons are done: see [The Hardware page](#the-hardware-page).
 

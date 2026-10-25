@@ -52,6 +52,13 @@ export struct StatusView {
     fps-limit: int,
     // "gamepad", "wasd", "mouse" or "" when unknown.
     controller: string,
+    // Gyro aiming: "off", "hold", "toggle" or "always".
+    gyro-activation: string,
+    // Mouse counts per degree.
+    gyro-sensitivity: int,
+    // Sideways from tilting like a wheel rather than turning.
+    gyro-roll: bool,
+    gyro-invert: bool,
 }
 
 export struct ProfileView {
@@ -171,9 +178,15 @@ export global App {
     // 0 removes the cap.
     callback set-fps-limit(int);
     callback set-controller(string);
-    // Saves the current fan curves and frame rate cap in the profile of the
-    // game in the foreground.
+    // Saves the current fan curves, frame rate cap and gyro aiming in the
+    // profile of the game in the foreground.
     callback save-hardware-profile();
+    // Gyro aiming: the activation ("off", "hold", "toggle", "always"), a
+    // sensitivity step, the sideways axis and the vertical inversion.
+    callback set-gyro-activation(string);
+    callback change-gyro-sensitivity(int);
+    callback toggle-gyro-roll();
+    callback toggle-gyro-invert();
     callback toggle-online-covers();
     callback set-refresh(int);
     // Next refresh rate the screen offers, wrapping around.
@@ -206,6 +219,18 @@ export global App {
     }
     public pure function duration(seconds: int) -> string {
         Math.floor(seconds / 60) + ":" + (Math.mod(seconds, 60) < 10 ? "0" : "") + Math.mod(seconds, 60)
+    }
+    public pure function gyro-name(activation: string) -> string {
+        if activation == "hold" {
+            return @tr("While a back paddle is held");
+        }
+        if activation == "toggle" {
+            return @tr("A back paddle turns it on and off");
+        }
+        if activation == "always" {
+            return @tr("Always");
+        }
+        @tr("Off")
     }
     public pure function mode-name(mode: string) -> string {
         if mode == "silent" {

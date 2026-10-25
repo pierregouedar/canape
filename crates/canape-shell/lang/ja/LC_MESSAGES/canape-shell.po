@@ -465,3 +465,36 @@ msgstr "{} GB"
 
 msgid "This game's profile"
 msgstr "このゲームのプロファイル"
+
+msgid "Gyro aiming"
+msgstr "ジャイロエイム"
+
+msgid "While a back paddle is held"
+msgstr "背面パドルを押している間"
+
+msgid "A back paddle turns it on and off"
+msgstr "背面パドルでオン・オフ"
+
+msgid "Always"
+msgstr "常に"
+
+msgid "Active"
+msgstr "有効"
+
+msgid "Sensitivity"
+msgstr "感度"
+
+msgid "Left and right"
+msgstr "左右"
+
+msgid "Tilt like a wheel"
+msgstr "ハンドルのように傾ける"
+
+msgid "Turn the console"
+msgstr "本体を回す"
+
+msgid "Invert up and down"
+msgstr "上下を反転"
+
+msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
+msgstr "ゲームが前面にある間、マウスを動かします。ゲームパッドだけを読むゲームでは効きません。"

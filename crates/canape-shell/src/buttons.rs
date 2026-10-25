@@ -2,7 +2,7 @@
 //! button (right) brings Canapé to the front, or back to the library when
 //! it already is; the Command Center button (left) opens the Xbox Game
 //! Bar, where the Canapé widget lives. Off in the settings page when
-//! another tool should get them.
+//! another tool should get them. The back paddles go to gyro aiming.
 
 use std::thread;
 use std::time::Duration;
@@ -35,6 +35,12 @@ pub fn spawn(ui: Weak<AppWindow>) {
 }
 
 fn pressed(ui: &Weak<AppWindow>, button: Button) {
+    // The paddles drive gyro aiming, which has its own off setting.
+    match button {
+        Button::PaddleDown => return crate::gyro::paddle(true),
+        Button::PaddleUp => return crate::gyro::paddle(false),
+        _ => {}
+    }
     if !crate::i18n::ShellSettings::load().ally_buttons {
         return;
     }

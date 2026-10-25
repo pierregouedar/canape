@@ -1,6 +1,6 @@
-// The two sub-pages: game profiles (from the settings) and the bench (from
-// the performance page). Both are lines the D-pad moves through, like the
-// settings page; B goes back.
+// The sub-pages: game profiles (from the settings), the bench (from the
+// performance page) and gyro aiming (from the hardware page). All are
+// lines the D-pad moves through, like the settings page; B goes back.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
@@ -357,6 +357,175 @@ export component BenchPage inherits Rectangle {
             Rectangle {
                 vertical-stretch: 1;
             }
+        }
+    }
+}
+
+// Gyro aiming: the device's rotation moves the mouse while a game is in
+// front. Left and right change the focused line; X keeps the settings for
+// the game in the foreground.
+export component GyroPage inherits Rectangle {
+    in-out property <int> focus-row: 0;
+    property <bool> active: fs.has-focus;
+    property <[string]> activations: ["off", "hold", "toggle", "always"];
+    property <int> activation-index: App.status.gyro-activation == "hold" ? 1 : App.status.gyro-activation == "toggle" ? 2 : App.status.gyro-activation == "always" ? 3 : 0;
+
+    function side(d: int) {
+        if !App.status.connected {
+            return;
+        }
+        if root.focus-row == 0 {
+            App.set-gyro-activation(root.activations[clamp(root.activation-index + d, 0, 3)]);
+        } else if root.focus-row == 1 {
+            App.change-gyro-sensitivity(d);
+        } else if root.focus-row == 2 {
+            App.toggle-gyro-roll();
+        } else {
+            App.toggle-gyro-invert();
+        }
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        key-pressed(event) => {
+            if event.text == Key.UpArrow {
+                root.focus-row = max(0, root.focus-row - 1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                root.focus-row = min(3, root.focus-row + 1);
+                return accept;
+            }
+            if event.text == Key.LeftArrow {
+                root.side(-1);
+                return accept;
+            }
+            if event.text == Key.RightArrow {
+                root.side(1);
+                return accept;
+            }
+            // A flips the two on / off lines.
+            if (event.text == Key.Return || event.text == " ") && root.focus-row >= 2 {
+                root.side(1);
+                return accept;
+            }
+            if (event.text == Key.F2 || event.text == "x") && App.status.connected && App.status.foreground != "" {
+                App.save-hardware-profile();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    VerticalLayout {
+        x: 0;
+        width: 784px;
+        height: parent.height;
+        spacing: 2px;
+
+        HorizontalLayout {
+            height: 36px;
+            padding-left: 16px;
+            padding-right: 16px;
+            SectionTitle {
+                text: @tr("Gyro aiming");
+                vertical-alignment: center;
+            }
+
+            Text {
+                horizontal-stretch: 1;
+                text: App.status.active-profile != "" ? @tr("{} · game profile", App.status.foreground) : "";
+                color: Theme.dim;
+                font-size: 13px;
+                horizontal-alignment: right;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+        }
+
+        SettingLine {
+            label: @tr("Active");
+            value: App.gyro-name(App.status.gyro-activation);
+            enabled: App.status.connected;
+            focused: root.active && root.focus-row == 0;
+            clicked => {
+                root.focus-row = 0;
+                fs.focus();
+            }
+            step(d) => {
+                root.focus-row = 0;
+                root.side(d);
+                fs.focus();
+            }
+        }
+
+        SettingLine {
+            label: @tr("Sensitivity");
+            value: App.status.gyro-sensitivity;
+            enabled: App.status.connected;
+            focused: root.active && root.focus-row == 1;
+            clicked => {
+                root.focus-row = 1;
+                fs.focus();
+            }
+            step(d) => {
+                root.focus-row = 1;
+                root.side(d);
+                fs.focus();
+            }
+        }
+
+        SettingLine {
+            label: @tr("Left and right");
+            value: App.status.gyro-roll ? @tr("Tilt like a wheel") : @tr("Turn the console");
+            enabled: App.status.connected;
+            focused: root.active && root.focus-row == 2;
+            clicked => {
+                root.focus-row = 2;
+                root.side(1);
+                fs.focus();
+            }
+            step(d) => {
+                root.focus-row = 2;
+                root.side(d);
+                fs.focus();
+            }
+        }
+
+        SettingLine {
+            label: @tr("Invert up and down");
+            value: App.status.gyro-invert ? @tr("On") : @tr("Off");
+            enabled: App.status.connected;
+            focused: root.active && root.focus-row == 3;
+            clicked => {
+                root.focus-row = 3;
+                root.side(1);
+                fs.focus();
+            }
+            step(d) => {
+                root.focus-row = 3;
+                root.side(d);
+                fs.focus();
+            }
+        }
+
+        Rectangle {
+            height: 12px;
+        }
+
+        Text {
+            x: 16px;
+            width: parent.width - 32px;
+            text: App.status.connected ? @tr("Moves the mouse while a game is in front. Games that only read the gamepad ignore it.") : @tr("Service not connected");
+            color: Theme.dim;
+            font-size: 14px;
+            wrap: word-wrap;
+        }
+
+        Rectangle {
+            vertical-stretch: 1;
         }
     }
 }
