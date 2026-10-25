@@ -54,18 +54,21 @@ OWNED = [
 ]
 
 
-def cover(path, title, top, bottom, size="600x900"):
-    """A gradient, two soft discs and the title."""
+def cover(path, title, top, bottom, size="600x900", titled=True):
+    """A gradient, two soft discs and, unless `titled` is false, the title."""
     width, height = (int(v) for v in size.split("x"))
     words = title.upper().split()
+    text = [
+        "-font", "DejaVu-Sans-Bold", "-fill", "white",
+        "-pointsize", str(int(width / 9)), "-gravity", "south",
+        "-annotate", f"+0+{int(height * 0.12)}", "\n".join(words),
+    ] if titled else []
     subprocess.run(
         [
             "convert", "-size", size, f"gradient:{top}-{bottom}",
             "-fill", "#ffffff22", "-draw", f"circle {width * 0.7},{height * 0.3} {width * 1.05},{height * 0.3}",
             "-fill", "#00000033", "-draw", f"circle {width * 0.2},{height * 0.75} {width * 0.55},{height * 0.75}",
-            "-font", "DejaVu-Sans-Bold", "-fill", "white",
-            "-pointsize", str(int(width / 9)), "-gravity", "south",
-            "-annotate", f"+0+{int(height * 0.12)}", "\n".join(words),
+            *text,
             "-quality", "88", path,
         ],
         check=True,
@@ -112,13 +115,17 @@ def main(out):
             appid = 900001 + n
             apps[str(appid)] = "1000"
             manifest = {"AppState": {"appid": appid, "name": title, "StateFlags": 4,
-                                     "installdir": title, "LastPlayed": last or 0}}
+                                     "installdir": title, "LastPlayed": last or 0,
+                                     "SizeOnDisk": str((4 + 7 * n % 50) * 1_000_000_000)}}
             with open(os.path.join(steam, "steamapps", f"appmanifest_{appid}.acf"), "w") as f:
                 f.write(vdf(manifest))
             if last:
                 played[str(appid)] = {"LastPlayed": last}
             cover(os.path.join(steam, "appcache/librarycache", f"{appid}_library_600x900.jpg"),
                   title, top, bottom)
+            # The wide art behind the game page.
+            cover(os.path.join(steam, "appcache/librarycache", f"{appid}_library_hero.jpg"),
+                  title, bottom, top, "1920x620", titled=False)
         elif store == "epic":
             item = {
                 "DisplayName": title, "AppName": slug, "MainGameAppName": slug,
@@ -176,7 +183,9 @@ def main(out):
     with open(os.path.join(library, "owned.json"), "w") as f:
         json.dump({"version": 1, "games": owned}, f, indent=1)
     with open(os.path.join(out, "appdata", "Canape", "recent-fixture.json"), "w") as f:
-        json.dump({"launched": launched}, f, indent=1)
+        # The first game's executable, as learnt at its launch: its profile
+        # shows on the game page.
+        json.dump({"launched": launched, "exes": {"steam:900001": "ashentide.exe"}}, f, indent=1)
     print(f"LOCALAPPDATA={out}/appdata CANAPE_LIBRARY_FIXTURE={library}")
 
 

@@ -167,13 +167,15 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 
 | Area | Contents |
 |---|---|
-| **Selected game** | Its store's logo and name (STEAM, EPIC, GOG, XBOX), its title, when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…) and the **Play** button ("Launching…" after A). Behind it, a glow takes the colour of its cover. |
+| **Selected game** | Its store's logo and name (STEAM, EPIC, GOG, XBOX), its title, when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…) and the **Details** button: A opens the game page. Behind it, a glow takes the colour of its cover. |
 | **Recent** | The last 10 games played, the most recent first. Absent until a game has been played. The selected cover is larger, opaque and outlined in white; the others are dimmed. A game without art shows its title on a tinted card. |
 | **Installed · N** | Every installed game, in alphabetical order. |
 | **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N** | Each store's games, with its logo, installed and to install mixed in alphabetical order. Only stores that have games (a lone store with nothing to install gets no shelf: it would repeat Installed). |
 | **To install · N** | Always last: the Steam and Epic games you own but have not installed (see [Installing owned games](#installing-owned-games)). Empty, it explains how to set up Steam and Epic. |
 
 **Moving around**: left and right move along the shelf; it only scrolls when the selection reaches an edge, keeping one game visible beside it. The backdrop takes the selected game's colour once you stop on it. Up and down go to the previous or next shelf: it slides to the top, the next one peeks in at the bottom, dimmed. Each shelf remembers its selected game when you leave it. On To install, the header describes the game to install and the button becomes **Install**. **A** opens the selected game's page.
+
+<img src="images/en/game-page.png" alt="A game page, with its profile" width="720">
 
 **Game page**: the cover large, the store, the title, when it was last played, the time played (Steam, with the API key) and the space it takes on disk (Steam, Epic); behind, the game's wide art that Steam keeps on disk, when there is some. **A** launches the game ("Launching…", the cover comes forward a little) or, if it is not installed, installs it, with the progress under the button. **B** goes back to the shelf, on the same game. Once launched, the game moves first on Recent. Under the button, **This game's profile** sums up its profile (target, power range, learned power, frame rate limit): Canapé learns which program the game is the first time it is launched from Canapé (the first full-screen program to come to the front within 2 minutes, Steam, launchers and their windows aside), and shows it once a profile exists for it.
 
@@ -206,7 +208,7 @@ Covers are saved in `%LOCALAPPDATA%\Canape\covers` and reused; a game with no ar
 
 #### Installing owned games
 
-<img src="images/en/library-install.png" alt="To install shelf, an install running" width="720">
+<img src="images/en/library-install.png" alt="Page of a game to install, install running" width="720">
 
 <sub>Made-up owned games (`tools/fake-library.py`); the install of Mosaic Run is simulated.</sub>
 

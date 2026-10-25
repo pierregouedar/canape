@@ -167,13 +167,15 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 
 | Zone | Contenu |
 |---|---|
-| **Jeu sélectionné** | Le logo et le nom de sa boutique (STEAM, EPIC, GOG, XBOX), son titre, quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…) et le bouton **Jouer** (« Lancement… » après A). Derrière, une lueur reprend la couleur de sa jaquette. |
+| **Jeu sélectionné** | Le logo et le nom de sa boutique (STEAM, EPIC, GOG, XBOX), son titre, quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…) et le bouton **Détails** : A ouvre la fiche du jeu. Derrière, une lueur reprend la couleur de sa jaquette. |
 | **Récents** | Les 10 derniers jeux joués, le plus récent en premier. Absente tant qu'aucun jeu n'a été joué. La jaquette sélectionnée est plus grande, opaque et entourée de blanc ; les autres sont atténuées. Un jeu sans image affiche son titre sur une carte teintée. |
 | **Installés · N** | Tous les jeux installés, par ordre alphabétique. |
 | **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N** | Les jeux de chaque boutique, avec son logo, installés et à installer mélangés par ordre alphabétique. Seulement les boutiques qui ont des jeux (une boutique seule sans rien à installer n'a pas d'étagère : elle répéterait Installés). |
 | **À installer · N** | Toujours en dernier : les jeux Steam et Epic que vous possédez sans les avoir installés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Vide, elle explique comment configurer Steam et Epic. |
 
 **Se déplacer** : gauche et droite parcourent l'étagère ; elle ne défile qu'en arrivant au bord, en gardant un jeu visible à côté de la sélection. La couleur du fond suit le jeu sélectionné dès qu'on s'arrête dessus. Haut et bas passent à l'étagère précédente ou suivante : elle glisse en haut, la suivante dépasse en bas, atténuée. Chaque étagère retient le jeu sélectionné quand on la quitte. Sur À installer, le bandeau décrit le jeu à installer et le bouton devient **Installer**. **A** ouvre la fiche du jeu sélectionné.
+
+<img src="images/fr/game-page.png" alt="Fiche d'un jeu, avec son profil" width="720">
 
 **Fiche du jeu** : la jaquette en grand, la boutique, le titre, quand il a été joué, le temps de jeu (Steam, avec la clé API) et la place qu'il prend sur le disque (Steam, Epic) ; derrière, la grande image du jeu que Steam garde sur le disque, s'il y en a une. **A** lance le jeu (« Lancement… », la jaquette avance un peu) ou, s'il n'est pas installé, l'installe, avec la progression sous le bouton. **B** revient à l'étagère, sur le même jeu. Une fois lancé, le jeu passe en tête de Récents. Sous le bouton, **Profil de ce jeu** résume son profil (objectif, plage de puissance, puissance apprise, limite de FPS) : Canapé apprend quel programme est le jeu la première fois qu'il est lancé depuis Canapé (le premier programme plein écran qui passe devant dans les 2 minutes, hors Steam, lanceurs et leurs fenêtres), et l'affiche dès qu'un profil existe pour lui.
 
@@ -206,7 +208,7 @@ Les jaquettes sont enregistrées dans `%LOCALAPPDATA%\Canape\covers` et réutili
 
 #### Installer des jeux possédés
 
-<img src="images/fr/library-install.png" alt="Étagère À installer, une installation en cours" width="720">
+<img src="images/fr/library-install.png" alt="Fiche d'un jeu à installer, installation en cours" width="720">
 
 <sub>Des jeux possédés inventés (`tools/fake-library.py`) ; l'installation de Mosaic Run est simulée.</sub>
 

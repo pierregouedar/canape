@@ -540,7 +540,7 @@ DISPLAY=:99 import -window root docs/images/fr/performance.png   # ImageMagick
 - Préparez l'état avec `canape-ctl` (profils, premier plan, accent, banc d'essai) avant de lancer le shell. Un banc d'essai court (`settle_secs` 1, `measure_secs` 2) remplit la page de résultats en 20 s environ.
 - Les graphes gardent la dernière minute **dans le shell** : laissez-le tourner au moins 60 s pendant que le TDP change (le simulateur consomme 90 % de la limite, avec un GPU fixe à 70 %), sinon les courbes sont plates ou courtes.
 - Le shell n'est à instance unique que sous Windows : sous Linux, un écran Xvfb par shell permet de capturer plusieurs pages à la fois.
-- Fichiers : `docs/images/<langue>/<page>.png` (`performance`, `hardware`, `profiles`, `bench-results`, `bench-running`, `settings`, `library` et `library-install` avec `tools/fake-library.py`), `docs/images/accent-<couleur>.png` pour les variantes d'accent. Optimisez avec `pngquant` puis `optipng`.
+- Fichiers : `docs/images/<langue>/<page>.png` (`performance`, `hardware`, `profiles`, `bench-results`, `bench-running`, `settings`, `library`, `game-page` et `library-install` avec `tools/fake-library.py`, qui écrit aussi l'exécutable appris d'Ashen Tide pour que sa fiche montre un profil), `docs/images/accent-<couleur>.png` pour les variantes d'accent. Optimisez avec `pngquant` puis `optipng`.
 - Un `shell.json` ou un `state.json` resté dans `<tmp>/Canape/` change ce qui s'affiche : utilisez un `TMPDIR` dédié pour des captures reproductibles.
 
 ## Compiler et tester sous Windows

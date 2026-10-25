@@ -540,7 +540,7 @@ DISPLAY=:99 import -window root docs/images/fr/performance.png   # ImageMagick
 - Set up the state with `canape-ctl` (profiles, foreground, accent, bench) before starting the shell. A short bench (`settle_secs` 1, `measure_secs` 2) fills the results page in about 20 s.
 - The graphs keep the last minute **in the shell**: leave it running at least 60 s while the TDP changes (the simulator draws 90 % of the limit, with a steady 70 % GPU), otherwise the curves are flat or short.
 - The shell is single-instance on Windows only: on Linux, run one Xvfb display per shell to take several pages at once.
-- Files: `docs/images/<language>/<page>.png` (`performance`, `hardware`, `profiles`, `bench-results`, `bench-running`, `settings`, `library` and `library-install` with `tools/fake-library.py`), `docs/images/accent-<colour>.png` for the accent variants. Optimise with `pngquant` then `optipng`.
+- Files: `docs/images/<language>/<page>.png` (`performance`, `hardware`, `profiles`, `bench-results`, `bench-running`, `settings`, `library`, `game-page` and `library-install` with `tools/fake-library.py`, which also writes Ashen Tide's learnt executable so its page shows a profile), `docs/images/accent-<colour>.png` for the accent variants. Optimise with `pngquant` then `optipng`.
 - A `shell.json` or `state.json` left in `<tmp>/Canape/` changes what shows: use a dedicated `TMPDIR` for reproducible screenshots.
 
 ## Building and testing on Windows
