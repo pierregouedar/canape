@@ -12,8 +12,10 @@ use slint::winit_030::winit::keyboard::{Key, NamedKey};
 use slint::winit_030::{EventResult, WinitWindowAccessor};
 
 /// Keys ignored when the shell first gets the focus, e.g. at boot while
-/// buttons are being pressed to get through the sign-in.
-pub const FIRST_QUIET: Duration = Duration::from_secs(1);
+/// buttons are being pressed to get through the sign-in. On the Ally the
+/// window shows about 1.5 s after it first gets the focus: a press made as
+/// it appears must still be ignored.
+pub const FIRST_QUIET: Duration = Duration::from_secs(2);
 
 /// Which key presses reach the window.
 pub struct KeyGate<K> {
