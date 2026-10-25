@@ -104,6 +104,11 @@ struct Listed {
 
 #[derive(Deserialize)]
 struct Metadata {
+    /// The catalog item id.
+    #[serde(default)]
+    id: String,
+    #[serde(default)]
+    namespace: String,
     #[serde(default, rename = "keyImages")]
     key_images: Vec<KeyImage>,
     #[serde(default, rename = "customAttributes")]
@@ -158,28 +163,55 @@ struct MetadataFile {
     metadata: Option<Metadata>,
 }
 
+fn parse_metadata(json: &[u8]) -> Option<Metadata> {
+    serde_json::from_slice::<MetadataFile>(json).ok()?.metadata
+}
+
 /// The art of a game's metadata file, as Legendary keeps it for every
 /// owned game (`metadata/<app>.json` in its config folder).
 pub fn parse_metadata_art(json: &[u8]) -> Art {
-    serde_json::from_slice::<MetadataFile>(json)
-        .ok()
-        .and_then(|f| f.metadata)
+    parse_metadata(json)
         .map(|m| art_of(&m.key_images))
         .unwrap_or_default()
 }
 
-/// Epic's art for the game `app`, from Legendary's metadata.
-pub fn metadata_art(config: &Path, app: &str) -> Art {
+/// The catalog ids of a game's metadata file: its catalog item id, then
+/// its namespace (those present).
+pub fn parse_catalog_ids(json: &[u8]) -> Vec<String> {
+    parse_metadata(json)
+        .map(|m| {
+            [m.id, m.namespace]
+                .into_iter()
+                .filter(|id| !id.is_empty())
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// The metadata file of the game `app`, as Legendary wrote it.
+fn read_metadata(config: &Path, app: &str) -> Option<Vec<u8>> {
     // App names are Epic's ids; anything else is not a file name of ours.
     if app.is_empty()
         || !app
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || b"-_.".contains(&b))
     {
-        return Art::default();
+        return None;
     }
-    std::fs::read(config.join("metadata").join(format!("{app}.json")))
+    std::fs::read(config.join("metadata").join(format!("{app}.json"))).ok()
+}
+
+/// Epic's art for the game `app`, from Legendary's metadata.
+pub fn metadata_art(config: &Path, app: &str) -> Art {
+    read_metadata(config, app)
         .map(|json| parse_metadata_art(&json))
+        .unwrap_or_default()
+}
+
+/// The catalog ids of the game `app`, from Legendary's metadata.
+pub fn catalog_ids(config: &Path, app: &str) -> Vec<String> {
+    read_metadata(config, app)
+        .map(|json| parse_catalog_ids(&json))
         .unwrap_or_default()
 }
 
@@ -360,6 +392,7 @@ mod tests {
             art.tall.as_deref(),
             Some("https://cdn1.epicgames.com/thumb.jpg?w=600&h=900&resize=1")
         );
+        assert_eq!(parse_catalog_ids(json), Vec::<String>::new());
         assert_eq!(parse_metadata_art(b"{}"), Art::default());
         assert_eq!(parse_metadata_art(b"no"), Art::default());
 
@@ -371,6 +404,12 @@ mod tests {
         )
         .unwrap();
         assert!(metadata_art(&dir, "Anemone").wide.is_some());
+        std::fs::write(
+            dir.join("metadata/Kiwi.json"),
+            br#"{"metadata": {"id": "item", "namespace": "ns"}}"#,
+        )
+        .unwrap();
+        assert_eq!(catalog_ids(&dir, "Kiwi"), ["item", "ns"]);
         assert_eq!(metadata_art(&dir, "../Anemone"), Art::default());
         assert_eq!(metadata_art(&dir, "Missing"), Art::default());
         let _ = std::fs::remove_dir_all(&dir);

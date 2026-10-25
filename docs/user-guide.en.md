@@ -230,7 +230,7 @@ Below the game page (**down** from the button), a full-width **Time to beat** ba
 
 5. Restart Canapé (or wait ten minutes) and open a game's page: the time shows a second or two later if IGDB knows it.
 
-- Steam games are found by their Steam id, others by their exact title (the game itself rather than a DLC, a bundle or an edition). "Main story" is IGDB players' usual time, else the fastest one.
+- Games are found by their store's id when IGDB links it (Steam, GOG, and Epic through the ids Legendary keeps), else by their title: the same title first, else the same one with or without a subtitle or an edition ("Fall Guys" finds "Fall Guys: Ultimate Knockout", "Death Stranding Director's Cut" finds "Death Stranding"), the game itself rather than a DLC or a bundle. `shell.log` says when a game is not found or has no times on IGDB (not yet tried on the Ally). "Main story" is IGDB players' usual time, else the fastest one.
 - The id and the secret only go to Twitch (`id.twitch.tv`), which gives a token valid about two months; only the id and that token go to IGDB (`api.igdb.com`). Neither the secret nor the token is written to the logs.
 - Each game is asked for once, when its page opens, then kept 30 days in `%LOCALAPPDATA%\Canape\igdb.json` (7 days for a game IGDB does not know). At most 6 lookups a minute; after an error (network, refused key), none for 10 minutes, and one line in `shell.log`.
 - IGDB has fewer games and fewer submissions than some other sites: many games have no time.

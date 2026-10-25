@@ -1,8 +1,12 @@
 //! Time to beat from IGDB: how long players took to finish a game, with
 //! the user's own Twitch application (client id and secret).
 //!
-//! A game is found once: a Steam game by its app id (`external_games`),
-//! any other by its title (`games`, exact title only, main games first).
+//! A game is found once: by its store's id when IGDB links it
+//! (`external_games`: Steam's app id, GOG's product id, Epic's ids), else
+//! by its title (`games`): the exact title first (letters and digits
+//! compared), else a close one, the same title with or without a subtitle
+//! or an edition ("Fall Guys" and "Fall Guys: Ultimate Knockout", "Death
+//! Stranding Director's Cut" and "Death Stranding"); main games first.
 //! Its times (`game_time_to_beats`) are kept in a cache file per game id,
 //! and so is a game IGDB does not know, for a shorter time.
 //!
@@ -28,13 +32,20 @@ pub const FOUND_FOR: u64 = 30 * 24 * 3600;
 pub const MISSED_FOR: u64 = 7 * 24 * 3600;
 /// A token this close to its expiry (seconds) is renewed first.
 const TOKEN_MARGIN: u64 = 3600;
-/// `external_game_sources` id of Steam.
-const STEAM_SOURCE: u64 = 1;
+/// `external_game_sources` ids of Steam (uid: the app id), GOG (the
+/// product id) and the Epic Games Store. What IGDB keeps as an Epic uid
+/// is not documented: the lookup offers every id Canapé knows for the
+/// game (Legendary's app name, the catalog item id, the namespace).
+pub const STEAM_SOURCE: u64 = 1;
+pub const GOG_SOURCE: u64 = 5;
+pub const EPIC_SOURCE: u64 = 26;
 /// `game_types` ids: a main game, then the kinds that stand for one
 /// (standalone expansion, remake, remaster, expanded game, port).
 const MAIN_GAME: u64 = 0;
 const LIKE_MAIN: [u64; 5] = [4, 8, 9, 10, 11];
-const CACHE_VERSION: u32 = 1;
+/// Version 2 finds more games than version 1: version 1's misses are
+/// dropped on load, its times kept.
+const CACHE_VERSION: u32 = 2;
 
 /// The user's Twitch application. Not `Debug`: the secret must not end up
 /// in a log line by accident.
@@ -138,10 +149,18 @@ fn quoted(text: &str) -> String {
     out
 }
 
-/// `external_games` query: the IGDB game of a Steam app id.
-pub fn external_games_query(appid: u32) -> String {
+/// `external_games` query: the IGDB game of a store's id, one of `uids`
+/// (in order of preference), in the store `source` (`STEAM_SOURCE`…).
+pub fn external_games_query(source: u64, uids: &[String]) -> String {
+    let uid = match uids {
+        [one] => format!("uid = {}", quoted(one)),
+        _ => format!(
+            "uid = ({})",
+            uids.iter().map(|u| quoted(u)).collect::<Vec<_>>().join(",")
+        ),
+    };
     format!(
-        "fields game,uid,external_game_source; where uid = \"{appid}\" & external_game_source = {STEAM_SOURCE}; limit 5;"
+        "fields game,uid,external_game_source; where {uid} & external_game_source = {source}; limit 5;"
     )
 }
 
@@ -150,16 +169,44 @@ struct External {
     #[serde(default)]
     game: Option<u64>,
     #[serde(default)]
+    uid: String,
+    #[serde(default)]
     external_game_source: Option<u64>,
 }
 
-/// The IGDB game id of an `external_games` answer.
-pub fn parse_external_games(json: &[u8]) -> Option<u64> {
+/// The IGDB game id of an `external_games` answer for the store
+/// `source`: the entry of the first of `uids` it has.
+pub fn parse_external_games(json: &[u8], source: u64, uids: &[String]) -> Option<u64> {
     let found: Vec<External> = serde_json::from_slice(json).ok()?;
-    found
+    let found: Vec<External> = found
         .into_iter()
-        .filter(|e| e.external_game_source.is_none_or(|s| s == STEAM_SOURCE))
-        .find_map(|e| e.game)
+        .filter(|e| e.external_game_source.is_none_or(|s| s == source))
+        .filter(|e| e.game.is_some())
+        .collect();
+    uids.iter()
+        .find_map(|uid| found.iter().find(|e| &e.uid == uid))
+        .or(found.first())
+        .and_then(|e| e.game)
+}
+
+/// The store and ids under which IGDB may list the game `id`, plus
+/// `extra` ids its store gave (Epic's catalog ids): `None` for a game
+/// of no linked store.
+pub fn store_ids(id: &str, extra: &[String]) -> Option<(u64, Vec<String>)> {
+    let (store, own) = id.split_once(':')?;
+    let source = match store {
+        "steam" => STEAM_SOURCE,
+        "gog" => GOG_SOURCE,
+        "epic" => EPIC_SOURCE,
+        _ => return None,
+    };
+    let mut uids = vec![own.to_owned()];
+    if source == EPIC_SOURCE {
+        uids.extend(extra.iter().cloned());
+    }
+    let mut seen = std::collections::HashSet::new();
+    uids.retain(|u| !u.is_empty() && seen.insert(u.clone()));
+    (!uids.is_empty()).then_some((source, uids))
 }
 
 /// `games` query: games named like `title`.
@@ -194,17 +241,79 @@ impl Found {
     }
 }
 
-/// The game of a `games` answer whose title is `title` (letters and
-/// digits compared, see [`crate::title_key`]), main games first; `None`
-/// when no title matches.
+/// Editions a store adds to a game's title, compared folded.
+const EDITIONS: [&str; 18] = [
+    "Director's Cut",
+    "Final Cut",
+    "Game of the Year Edition",
+    "Game of the Year",
+    "GOTY Edition",
+    "GOTY",
+    "Definitive Edition",
+    "Complete Edition",
+    "Digital Deluxe Edition",
+    "Deluxe Edition",
+    "Ultimate Edition",
+    "Standard Edition",
+    "Enhanced Edition",
+    "Special Edition",
+    "Gold Edition",
+    "Anniversary Edition",
+    "Premium Edition",
+    "Legendary Edition",
+];
+
+/// `title` without its subtitle (after `:` or a dash) and without an
+/// edition at its end: "Fall Guys: Ultimate Knockout" and "Death
+/// Stranding Director's Cut" give "Fall Guys" and "Death Stranding".
+pub fn base_title(title: &str) -> String {
+    let mut text = title.trim();
+    for sep in [":", " - ", " – ", " — "] {
+        if let Some(at) = text.find(sep).filter(|&at| at > 0) {
+            text = text[..at].trim_end();
+        }
+    }
+    let words: Vec<&str> = text.split_whitespace().collect();
+    for edition in EDITIONS {
+        let key = crate::title_key(edition);
+        for n in 1..words.len() {
+            if crate::title_key(&words[words.len() - n..].join(" ")) == key {
+                let rest = words[..words.len() - n].join(" ");
+                return rest
+                    .trim_end_matches(|c: char| !c.is_alphanumeric())
+                    .to_owned();
+            }
+        }
+    }
+    text.to_owned()
+}
+
+/// How well an IGDB name matches a store title: 0 the same, 1 the same
+/// but for a subtitle or an edition on one side; `None` otherwise.
+fn closeness(name: &str, title: &str) -> Option<u8> {
+    let (name_key, title_key) = (crate::title_key(name), crate::title_key(title));
+    if name_key.is_empty() {
+        return None;
+    }
+    if name_key == title_key {
+        return Some(0);
+    }
+    (crate::title_key(&base_title(name)) == title_key
+        || name_key == crate::title_key(&base_title(title)))
+    .then_some(1)
+}
+
+/// The game of a `games` answer named like `title` (letters and digits
+/// compared, see [`crate::title_key`]): the same name first, else a close
+/// one (see [`base_title`]); main games first, then IGDB's order. `None`
+/// when no name is close.
 pub fn parse_search(json: &[u8], title: &str) -> Option<u64> {
     let found: Vec<Found> = serde_json::from_slice(json).ok()?;
-    let key = crate::title_key(title);
     found
         .iter()
-        .filter(|f| crate::title_key(&f.name) == key)
-        .filter_map(|f| Some((f.rank()?, f.id)))
-        .min_by_key(|(rank, _)| *rank)
+        .enumerate()
+        .filter_map(|(order, f)| Some(((closeness(&f.name, title)?, f.rank()?, order), f.id)))
+        .min_by_key(|(key, _)| *key)
         .map(|(_, id)| id)
 }
 
@@ -248,6 +357,8 @@ pub struct Client<'a> {
     credentials: &'a Credentials,
     /// The token in use; read it back after a lookup to keep it.
     pub token: Option<Token>,
+    /// The IGDB game the last lookup settled on, if any (for the log).
+    pub found: Option<u64>,
 }
 
 impl<'a> Client<'a> {
@@ -256,6 +367,7 @@ impl<'a> Client<'a> {
             http,
             credentials,
             token,
+            found: None,
         }
     }
 
@@ -306,12 +418,20 @@ impl<'a> Client<'a> {
     }
 
     /// The times of the game `id` (`steam:400`, `gog:1`…) titled `title`;
-    /// `None` when IGDB does not know it or has no times for it.
-    pub fn lookup(&mut self, id: &str, title: &str, now: u64) -> io::Result<Option<TimeToBeat>> {
+    /// `None` when IGDB does not know it or has no times for it. `extra`:
+    /// other ids its store gave (Epic's catalog item id and namespace).
+    pub fn lookup(
+        &mut self,
+        id: &str,
+        title: &str,
+        extra: &[String],
+        now: u64,
+    ) -> io::Result<Option<TimeToBeat>> {
+        self.found = None;
         let mut game = None;
-        if let Some(appid) = id.strip_prefix("steam:").and_then(|a| a.parse().ok()) {
-            game = match self.query("external_games", &external_games_query(appid), now) {
-                Ok(json) => parse_external_games(&json),
+        if let Some((source, uids)) = store_ids(id, extra) {
+            game = match self.query("external_games", &external_games_query(source, &uids), now) {
+                Ok(json) => parse_external_games(&json, source, &uids),
                 Err(err) if err.kind() == io::ErrorKind::PermissionDenied => return Err(err),
                 // A query IGDB rejects still leaves the title.
                 Err(_) => None,
@@ -321,6 +441,15 @@ impl<'a> Client<'a> {
             let json = self.query("games", &search_query(title), now)?;
             game = parse_search(&json, title);
         }
+        // IGDB's search may not list the game under a store's longer
+        // title: once more with the title alone.
+        let base = base_title(title);
+        if game.is_none() && crate::title_key(&base) != crate::title_key(title) && !base.is_empty()
+        {
+            let json = self.query("games", &search_query(&base), now)?;
+            game = parse_search(&json, title);
+        }
+        self.found = game;
         let Some(game) = game else { return Ok(None) };
         let json = self.query("game_time_to_beats", &time_to_beat_query(game), now)?;
         Ok(parse_time_to_beat(&json))
@@ -360,11 +489,17 @@ pub struct Cache {
 impl Cache {
     /// The saved cache; empty when missing, unreadable or of another version.
     pub fn load(path: &Path) -> Self {
-        std::fs::read_to_string(path)
+        let mut cache = std::fs::read_to_string(path)
             .ok()
             .and_then(|text| serde_json::from_str::<Self>(&text).ok())
-            .filter(|c| c.version == CACHE_VERSION)
-            .unwrap_or_default()
+            .filter(|c| c.version == CACHE_VERSION || c.version == 1)
+            .unwrap_or_default();
+        if cache.version == 1 {
+            // Found by the lookup of version 1: kept. Missed: asked again.
+            cache.games.retain(|_, e| e.times.is_some());
+            cache.version = CACHE_VERSION;
+        }
+        cache
     }
 
     pub fn save(&self, path: &Path) -> io::Result<()> {
@@ -427,8 +562,12 @@ mod tests {
     #[test]
     fn queries_are_apicalypse() {
         assert_eq!(
-            external_games_query(1_245_620),
+            external_games_query(STEAM_SOURCE, &["1245620".into()]),
             "fields game,uid,external_game_source; where uid = \"1245620\" & external_game_source = 1; limit 5;"
+        );
+        assert_eq!(
+            external_games_query(EPIC_SOURCE, &["Kiwi".into(), "a\"b".into()]),
+            "fields game,uid,external_game_source; where uid = (\"Kiwi\",\"a\\\"b\") & external_game_source = 26; limit 5;"
         );
         assert_eq!(
             search_query("Say \"Hi\"\\ DOOM™"),
@@ -442,16 +581,102 @@ mod tests {
 
     #[test]
     fn external_games_give_the_steam_entry() {
+        let steam = ["1245620".to_owned()];
         assert_eq!(
-            parse_external_games(&read("external-games.json")),
+            parse_external_games(&read("external-games.json"), STEAM_SOURCE, &steam),
             Some(119_133)
         );
         assert_eq!(
-            parse_external_games(br#"[{"id":1,"game":5,"external_game_source":5}]"#),
+            parse_external_games(
+                br#"[{"id":1,"game":5,"external_game_source":5}]"#,
+                STEAM_SOURCE,
+                &steam
+            ),
             None
         );
-        assert_eq!(parse_external_games(b"[]"), None);
-        assert_eq!(parse_external_games(b"{}"), None);
+        assert_eq!(parse_external_games(b"[]", STEAM_SOURCE, &steam), None);
+        assert_eq!(parse_external_games(b"{}", STEAM_SOURCE, &steam), None);
+        // Epic: the entry of the preferred id wins.
+        let epic = ["app".to_owned(), "item".to_owned(), "ns".to_owned()];
+        let json = br#"[{"id":1,"game":7,"uid":"ns","external_game_source":26},
+            {"id":2,"game":8,"uid":"item","external_game_source":26}]"#;
+        assert_eq!(parse_external_games(json, EPIC_SOURCE, &epic), Some(8));
+    }
+
+    #[test]
+    fn store_ids_name_the_source() {
+        assert_eq!(
+            store_ids("steam:400", &["x".into()]),
+            Some((STEAM_SOURCE, vec!["400".to_owned()]))
+        );
+        assert_eq!(
+            store_ids("gog:1207658924", &[]),
+            Some((GOG_SOURCE, vec!["1207658924".to_owned()]))
+        );
+        assert_eq!(
+            store_ids("epic:Kiwi", &["item".into(), "Kiwi".into(), "ns".into()]),
+            Some((
+                EPIC_SOURCE,
+                vec!["Kiwi".to_owned(), "item".to_owned(), "ns".to_owned()]
+            ))
+        );
+        assert_eq!(store_ids("xbox:Foo", &[]), None);
+        assert_eq!(store_ids("other:1", &[]), None);
+    }
+
+    #[test]
+    fn base_titles_drop_subtitles_and_editions() {
+        assert_eq!(base_title("Fall Guys: Ultimate Knockout"), "Fall Guys");
+        assert_eq!(
+            base_title("DEATH STRANDING DIRECTOR'S CUT"),
+            "DEATH STRANDING"
+        );
+        assert_eq!(
+            base_title("The Witcher 3: Wild Hunt - GOTY"),
+            "The Witcher 3"
+        );
+        assert_eq!(base_title("Control Ultimate Edition"), "Control");
+        assert_eq!(
+            base_title("Borderlands 3 - Deluxe Edition"),
+            "Borderlands 3"
+        );
+        assert_eq!(base_title("Hades II"), "Hades II");
+        // An edition alone stays a title.
+        assert_eq!(base_title("GOTY"), "GOTY");
+        assert_eq!(base_title(": Odd"), ": Odd");
+    }
+
+    #[test]
+    fn search_accepts_a_close_main_game() {
+        let json = br#"[
+            {"id": 1, "name": "Fall Guys: Ultimate Knockout - Season 2", "game_type": 7},
+            {"id": 2, "name": "Fall Guys: Ultimate Knockout", "game_type": 0},
+            {"id": 3, "name": "Fall Guys 2", "game_type": 0}]"#;
+        assert_eq!(parse_search(json, "Fall Guys"), Some(2));
+        assert_eq!(parse_search(json, "Fall Guys™"), Some(2));
+        let json = br#"[
+            {"id": 10, "name": "Death Stranding", "game_type": 0},
+            {"id": 11, "name": "Death Stranding: Director's Cut", "game_type": 0, "version_parent": 10},
+            {"id": 12, "name": "Death Stranding 2: On the Beach", "game_type": 0}]"#;
+        // The same name beats a close one.
+        assert_eq!(
+            parse_search(json, "DEATH STRANDING DIRECTOR'S CUT"),
+            Some(11)
+        );
+        assert_eq!(
+            parse_search(json, "Death Stranding Director's Cut"),
+            Some(11)
+        );
+        assert_eq!(parse_search(json, "Death Stranding"), Some(10));
+        assert_eq!(
+            parse_search(json, "Death Stranding Deluxe Edition"),
+            Some(10)
+        );
+        // A sequel is not close.
+        assert_eq!(
+            parse_search(br#"[{"id": 3, "name": "Hades II"}]"#, "Hades"),
+            None
+        );
     }
 
     #[test]
@@ -549,7 +774,7 @@ mod tests {
             (TOKEN_URL, &token_body, read("token.json")),
             (
                 &igdb("external_games"),
-                &external_games_query(1_245_620),
+                &external_games_query(STEAM_SOURCE, &["1245620".into()]),
                 read("external-games.json"),
             ),
             (
@@ -559,7 +784,9 @@ mod tests {
             ),
         ]);
         let mut client = Client::new(&http, &creds, None);
-        let times = client.lookup("steam:1245620", "ELDEN RING", 1000).unwrap();
+        let times = client
+            .lookup("steam:1245620", "ELDEN RING", &[], 1000)
+            .unwrap();
         assert_eq!(times.unwrap().main_story(), Some(216_000));
         let asked = http.asked.borrow();
         assert_eq!(asked.len(), 3);
@@ -598,12 +825,73 @@ mod tests {
         ]);
         let mut client = Client::new(&http, &creds, token);
         // Known, but no times yet.
-        assert_eq!(client.lookup("gog:1", "Elden Ring", 1000).unwrap(), None);
+        assert_eq!(
+            client.lookup("gog:1", "Elden Ring", &[], 1000).unwrap(),
+            None
+        );
         // Unknown: no time-to-beat query at all.
-        assert_eq!(client.lookup("epic:x", "Nowhere", 1000).unwrap(), None);
+        assert_eq!(client.lookup("epic:x", "Nowhere", &[], 1000).unwrap(), None);
         let asked = http.asked.borrow();
-        assert_eq!(asked.len(), 3);
-        assert!(asked.iter().all(|(url, _, _)| url != TOKEN_URL));
+        // Each store id first (refused here), then the title.
+        let endpoints: Vec<&str> = asked
+            .iter()
+            .map(|(url, _, _)| url.trim_start_matches(API))
+            .collect();
+        assert_eq!(
+            endpoints,
+            [
+                "/external_games",
+                "/games",
+                "/game_time_to_beats",
+                "/external_games",
+                "/games"
+            ]
+        );
+    }
+
+    #[test]
+    fn epic_games_are_found_by_their_ids_or_a_shorter_title() {
+        let creds = credentials();
+        let token = parse_token(&read("token.json"), "abc123", 0);
+        let times = br#"[{"id":1,"game_id":47823,"normally":36000,"count":5}]"#.to_vec();
+        let ids = ["item".to_owned(), "ns".to_owned()];
+        let uids = ["Kiwi".to_owned(), "item".to_owned(), "ns".to_owned()];
+        let http = Fake::new(&[
+            (
+                &igdb("external_games"),
+                &external_games_query(EPIC_SOURCE, &uids),
+                br#"[{"id":9,"game":47823,"uid":"item","external_game_source":26}]"#.to_vec(),
+            ),
+            (
+                &igdb("game_time_to_beats"),
+                &time_to_beat_query(47_823),
+                times.clone(),
+            ),
+            // Not linked: found by title, once with the edition dropped.
+            (
+                &igdb("external_games"),
+                &external_games_query(EPIC_SOURCE, &["Other".to_owned()]),
+                b"[]".to_vec(),
+            ),
+            (
+                &igdb("games"),
+                &search_query("Fall Guys Deluxe Edition"),
+                b"[]".to_vec(),
+            ),
+            (
+                &igdb("games"),
+                &search_query("Fall Guys"),
+                br#"[{"id": 47823, "name": "Fall Guys", "game_type": 0}]"#.to_vec(),
+            ),
+        ]);
+        let mut client = Client::new(&http, &creds, token);
+        let found = client.lookup("epic:Kiwi", "Fall Guys", &ids, 1000).unwrap();
+        assert_eq!(found.unwrap().main_story(), Some(36_000));
+        assert_eq!(http.asked.borrow().len(), 2);
+        let found = client
+            .lookup("epic:Other", "Fall Guys Deluxe Edition", &[], 1000)
+            .unwrap();
+        assert_eq!(found.unwrap().main_story(), Some(36_000));
     }
 
     #[test]
@@ -621,14 +909,14 @@ mod tests {
         ]);
         *http.refuse.borrow_mut() = 1;
         let mut client = Client::new(&http, &creds, Some(old));
-        assert_eq!(client.lookup("gog:2", "Nowhere", 1000).unwrap(), None);
+        assert_eq!(client.lookup("gog:2", "Nowhere", &[], 1000).unwrap(), None);
         assert_eq!(
             client.token.as_ref().unwrap().access_token,
             "fixturetoken0123456789"
         );
         // Refused again after renewing: an error, no loop.
         *http.refuse.borrow_mut() = 2;
-        let err = client.lookup("gog:2", "Nowhere", 1000).unwrap_err();
+        let err = client.lookup("gog:2", "Nowhere", &[], 1000).unwrap_err();
         assert_eq!(err.kind(), io::ErrorKind::PermissionDenied);
     }
 
@@ -654,6 +942,15 @@ mod tests {
         assert!(cache.fresh("steam:1", FOUND_FOR + 1).is_none());
         std::fs::write(&path, r#"{"version":99,"games":{}}"#).unwrap();
         assert!(Cache::load(&path).games.is_empty());
+        // A version 1 cache keeps its times and forgets its misses.
+        std::fs::write(
+            &path,
+            r#"{"version":1,"games":{"steam:1":{"at":0,"times":{"normally":3600,"count":1}},"epic:x":{"at":0,"times":null}}}"#,
+        )
+        .unwrap();
+        let old = Cache::load(&path);
+        assert!(old.fresh("steam:1", 1).is_some());
+        assert!(!old.games.contains_key("epic:x"));
 
         let token_path = dir.join("igdb-token.json");
         let token = parse_token(&read("token.json"), "abc123", 0).unwrap();

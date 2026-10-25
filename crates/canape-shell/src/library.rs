@@ -704,8 +704,18 @@ impl State {
         }
         let (id, title) = (game.id.clone(), game.title.clone());
         let (token, token_path) = self.beat.job();
+        let epic_config = self
+            .roots
+            .legendary
+            .as_ref()
+            .map(|(config, _)| config.clone());
         thread::spawn(move || {
-            let outcome = timetobeat::lookup(&id, &title, token, &token_path);
+            // Epic: the catalog ids Legendary keeps, which IGDB may link.
+            let extra = match (&epic_config, id.strip_prefix("epic:")) {
+                (Some(config), Some(app)) => legendary::catalog_ids(config, app),
+                _ => Vec::new(),
+            };
+            let outcome = timetobeat::lookup(&id, &title, &extra, token, &token_path);
             let _ = slint::invoke_from_event_loop(move || {
                 with_state(|state| {
                     let times = state.beat.finish(&id, outcome);

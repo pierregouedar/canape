@@ -230,7 +230,7 @@ Sous la fiche (**bas** depuis le bouton), un bandeau **Durée de jeu** pleine la
 
 5. Relancez Canapé (ou attendez dix minutes) et ouvrez la fiche d'un jeu : la durée apparaît une ou deux secondes plus tard si IGDB la connaît.
 
-- Les jeux Steam sont retrouvés par leur identifiant Steam, les autres par leur titre exact (le jeu lui-même plutôt qu'un DLC, un pack ou une édition). « Histoire » est la durée habituelle des joueurs d'IGDB, sinon la plus rapide.
+- Les jeux sont retrouvés par l'identifiant de leur boutique quand IGDB le connaît (Steam, GOG, et Epic par les identifiants que garde Legendary), sinon par leur titre : le même titre d'abord, sinon le même avec ou sans sous-titre ou édition (« Fall Guys » trouve « Fall Guys: Ultimate Knockout », « Death Stranding Director's Cut » trouve « Death Stranding »), le jeu lui-même plutôt qu'un DLC ou un pack. `shell.log` dit quand un jeu est introuvable ou sans durée sur IGDB (pas encore essayé sur l'Ally). « Histoire » est la durée habituelle des joueurs d'IGDB, sinon la plus rapide.
 - L'identifiant et le secret ne vont qu'à Twitch (`id.twitch.tv`), qui donne un jeton d'environ deux mois ; seuls l'identifiant et ce jeton vont à IGDB (`api.igdb.com`). Ni le secret ni le jeton n'apparaissent dans les journaux.
 - Chaque jeu est demandé une fois, quand sa fiche s'ouvre, puis gardé 30 jours dans `%LOCALAPPDATA%\Canape\igdb.json` (7 jours pour un jeu qu'IGDB ne connaît pas). Au plus 6 demandes par minute ; après une erreur (réseau, clé refusée), plus rien pendant 10 minutes, et une ligne dans `shell.log`.
 - IGDB compte moins de jeux et moins de contributions que d'autres sites : beaucoup de jeux n'ont pas de durée.
