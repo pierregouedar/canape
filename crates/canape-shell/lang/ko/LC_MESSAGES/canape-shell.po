@@ -813,3 +813,90 @@ msgstr "로그인하면 Canapé가 GOG Galaxy 없이 GOG 게임을 설치합니�
 msgctxt "decimal separator"
 msgid "."
 msgstr "."
+
+msgid "Confirm"
+msgstr "확인"
+
+msgid "Options"
+msgstr "옵션"
+
+msgid "Could not save the change"
+msgstr "변경 사항을 저장할 수 없습니다"
+
+msgid "games.json could not be read or written"
+msgstr "games.json을 읽거나 쓸 수 없습니다"
+
+msgid "Could not uninstall {}"
+msgstr "{}을(를) 제거할 수 없습니다"
+
+msgid "Uninstalling…"
+msgstr "제거 중…"
+
+msgid "Confirm in Steam's window"
+msgstr "Steam 창에서 확인하세요"
+
+msgid "Follow the game's uninstaller"
+msgstr "게임의 제거 프로그램을 따라 주세요"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "Windows 설정에서 제거하세요"
+
+msgid "Rename"
+msgstr "이름 바꾸기"
+
+msgid "Categories"
+msgstr "카테고리"
+
+msgid "Uninstall"
+msgstr "제거"
+
+msgid "Remove from the library"
+msgstr "라이브러리에서 빼기"
+
+msgid "Use the store's title"
+msgstr "스토어 제목 사용"
+
+msgid "Sign in to Epic first"
+msgstr "먼저 Epic에 로그인하세요"
+
+msgid "Taken out of games.json."
+msgstr "games.json에서 뺐습니다."
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "숨긴 게임은 설정 › 게임 추가에서 되돌릴 수 있습니다."
+
+msgid "Store's title: {}"
+msgstr "스토어 제목: {}"
+
+msgid "The game goes in the new category."
+msgstr "게임이 새 카테고리에 들어갑니다."
+
+msgid "New category"
+msgstr "새 카테고리"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "games.json에서 뺐습니다. 바로 가기가 있으면 게임 추가에 다시 나타납니다."
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam이 자체 확인을 요청한 뒤 게임 파일을 삭제합니다."
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary가 게임 파일을 삭제합니다."
+
+msgid "This folder is deleted: {}"
+msgstr "이 폴더가 삭제됩니다: {}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "게임의 제거 프로그램이 열립니다. Windows가 동의를 요청할 수 있습니다."
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "Windows 설정이 이 게임에서 열립니다. 거기서 제거하세요."
+
+msgid "Hidden games"
+msgstr "숨긴 게임"
+
+msgid "No hidden games"
+msgstr "숨긴 게임 없음"
+
+msgid "Show again"
+msgstr "다시 표시"

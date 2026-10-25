@@ -813,3 +813,90 @@ msgstr "Po zalogowaniu Canapé instaluje gry GOG bez GOG Galaxy."
 msgctxt "decimal separator"
 msgid "."
 msgstr ","
+
+msgid "Confirm"
+msgstr "Zatwierdź"
+
+msgid "Options"
+msgstr "Opcje"
+
+msgid "Could not save the change"
+msgstr "Nie udało się zapisać zmiany"
+
+msgid "games.json could not be read or written"
+msgstr "Nie udało się odczytać ani zapisać games.json"
+
+msgid "Could not uninstall {}"
+msgstr "Nie udało się odinstalować {}"
+
+msgid "Uninstalling…"
+msgstr "Odinstalowywanie…"
+
+msgid "Confirm in Steam's window"
+msgstr "Potwierdź w oknie Steam"
+
+msgid "Follow the game's uninstaller"
+msgstr "Postępuj zgodnie z deinstalatorem gry"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "Odinstaluj ją w ustawieniach Windows"
+
+msgid "Rename"
+msgstr "Zmień nazwę"
+
+msgid "Categories"
+msgstr "Kategorie"
+
+msgid "Uninstall"
+msgstr "Odinstaluj"
+
+msgid "Remove from the library"
+msgstr "Usuń z biblioteki"
+
+msgid "Use the store's title"
+msgstr "Użyj tytułu ze sklepu"
+
+msgid "Sign in to Epic first"
+msgstr "Najpierw zaloguj się do Epic"
+
+msgid "Taken out of games.json."
+msgstr "Usunięto z games.json."
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "Ukryte gry wracają z Ustawienia › Dodaj grę."
+
+msgid "Store's title: {}"
+msgstr "Tytuł w sklepie: {}"
+
+msgid "The game goes in the new category."
+msgstr "Gra trafia do nowej kategorii."
+
+msgid "New category"
+msgstr "Nowa kategoria"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "Usunięto z games.json. Dodaj grę może ją ponownie zaproponować, jeśli ma skrót."
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam prosi o własne potwierdzenie, a potem usuwa pliki gry."
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary usuwa pliki gry."
+
+msgid "This folder is deleted: {}"
+msgstr "Ten folder zostanie usunięty: {}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "Otwiera się deinstalator gry; Windows może poprosić o zgodę."
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "Ustawienia Windows otwierają się na grze: odinstaluj ją tam."
+
+msgid "Hidden games"
+msgstr "Ukryte gry"
+
+msgid "No hidden games"
+msgstr "Brak ukrytych gier"
+
+msgid "Show again"
+msgstr "Pokaż ponownie"

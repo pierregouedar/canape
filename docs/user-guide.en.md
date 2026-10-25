@@ -22,6 +22,7 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
   - [Controls](#controls)
   - [Shared elements](#shared-elements)
   - [Games](#games)
+    - [Game options](#game-options)
     - [Adding other games](#adding-other-games)
     - [Installing owned games](#installing-owned-games)
   - [Performance](#performance)
@@ -148,8 +149,8 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 | **D-pad** or **left stick** | In Games, left and right move along the shelf, up and down swap the shelves. On Performance, Hardware and Settings, the same: up and down change shelf, left and right change card; in a drawer they change the value or move over the choices. On a sub-page, up and down change line. Held, the move repeats after 0.4 s. |
 | **A** | On a card, open its drawer (or its page); in a drawer, apply the focused choice; in Games, launch the game (or install it) |
 | **X** | Save for the game in the foreground (Performance, Hardware, Bench); restore the default buttons (Back buttons drawer); delete a profile (Game profiles) |
-| **Y** | Switch between M1 and M2 (Back buttons drawer), between the minimum and the maximum (Power range drawer) |
-| **B** | Close a drawer; leave a sub-page (Game profiles, Add a game, Bench) back on the card it was opened from; otherwise back to Games |
+| **Y** | Switch between M1 and M2 (Back buttons drawer), between the minimum and the maximum (Power range drawer); on a game page, the game's options (rename, categories, remove, uninstall; see [Game options](#game-options)) |
+| **B** | Close a drawer; leave a sub-page (Game profiles, Add a game, Hidden games, Bench) back on the card it was opened from; otherwise back to Games |
 
 The gamepad is only read while Canapé is in the foreground: a game launched from Canapé keeps the whole gamepad. When Canapé comes back to the front, a button still held for the game does nothing until it is released; the first time (when the Ally starts, for example), the gamepad is ignored for 2 s (the window only shows about 1.5 s later), so that a press while signing in does not launch a game. The same rules apply to keyboard keys, including the Enter and Escape that tools such as Steam Input send for A and B. The focused card, line or tile has a white outline (a focused card also lifts a little, its value in the accent colour); the accent colour marks what is chosen (a bar under a tile, the value of a line). On a keyboard (development), the same actions are the arrow keys, Enter, F2 (X), Esc and Page Up / Page Down.
 
@@ -173,6 +174,7 @@ The first section, the one Canapé opens on: the selected game large, then shelv
 | **Selected game** | Its store's logo and name (STEAM, EPIC, GOG, XBOX, OTHER GAMES), its title, when it was last played ("Played today", "Played yesterday", "Played in the last 7 days"…) and the **Details** button: A opens the game page. Behind it, a glow takes the colour of its cover. |
 | **Recent** | The last 10 games played, the most recent first. Absent until a game has been played. The selected cover is larger, opaque and outlined in white; the others are dimmed. A game without art shows its title on a tinted card. |
 | **Installed · N** | Every installed game, in alphabetical order. |
+| **Your categories · N** | One shelf per category you made (see [Game options](#game-options)), by name: its games, installed or to install, in alphabetical order. A category without games has no shelf. |
 | **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N**, **Other games · N** | Each store's games, with its logo, installed and to install mixed in alphabetical order, then the games added by hand (see [Adding other games](#adding-other-games)). Only stores that have games (a lone store with nothing to install gets no shelf: it would repeat Installed). |
 | **To install · N** | Always last: the Steam, Epic and GOG games you own but have not installed (see [Installing owned games](#installing-owned-games)). Empty, it explains how to set up Steam, with two buttons to sign in to Epic or GOG (left and right pick, A confirms). |
 
@@ -186,6 +188,8 @@ Below the page, a second part: from the button, **down** scrolls the page to it 
 
 > [!NOTE]
 > Not tried on the Ally yet: the page scrolling was only seen on Linux, with the fake library.
+
+**Y** on the game page opens its options: see [Game options](#game-options).
 
 **Where the games come from**
 
@@ -252,6 +256,40 @@ Below the time to beat (or alone below the game page), a Steam game shows its **
 
 > [!NOTE]
 > Not tried on the Ally yet: neither the Steam requests (written from Valve's published Web API documentation and tested on answers written from it, not recorded ones), nor the icon downloads, nor the grid on the device. Only the page (on Linux, with the fake library) and the reading of the answers were tested.
+
+#### Game options
+
+<img src="images/en/game-options.png" alt="A game's options over its page" width="720">
+
+On a game page, **Y** opens a panel on the right with what can be done to the game. **Up / down** move, **A** picks, **B** goes back one step (and closes the panel from its first step), **Y** closes it. Only the lines that apply show:
+
+| Line | What it does |
+|---|---|
+| **Rename** | A text field with the current title (selected: typing replaces it). **A** (or Enter) keeps the new title, **B** (or Escape) cancels. The new title shows everywhere in Canapé (shelves, page, order by name); the stores' files are not touched. An empty title, or the store's own, takes the rename back. On the Ally, the touch keyboard opens with the field (it also works with the gamepad) and closes after. |
+| **Use the store's title** | Only for a renamed game: back to the store's title (shown on the right). |
+| **Categories** | The game's categories (on the right). **A** opens the list: **New category** asks for a name (same text field) and puts the game in it; **A** on a category puts the game in it or takes it out (✓). Each category is a shelf of the library, after **Installed**, by name. A category whose last game leaves it disappears. |
+| **Remove from the library** | A store's game is hidden: it leaves every shelf, but stays installed. Hidden games come back from **Settings → Add a game → Hidden games** (A shows the game again). A game added by hand (Other games) is taken out of `games.json` instead, after a confirmation (A on **Remove from the library** again, or **Cancel**). |
+| **Uninstall** | Installed games only, after a confirmation step that says what will happen (**Uninstall** / **Cancel**). See below. |
+
+<img src="images/en/game-uninstall.png" alt="The uninstall confirmation" width="720">
+
+**How each store uninstalls**: Canapé never deletes a store's game by itself except the GOG games it installed itself.
+
+| Store | What happens |
+|---|---|
+| **Steam** | Steam's own uninstall (`steam://uninstall/<appid>`): **Steam asks for its own confirmation** in its window. Canapé waits (15 min at most) for the game's manifest to go, then rescans. |
+| **Epic** (installed from Canapé, or by the Epic launcher once handed to Legendary) | `legendary uninstall` without a window: Legendary deletes the game's files (and runs the game's own uninstaller if it has one). A game of the Epic launcher not yet handed over is first imported (`legendary import`, no download), then uninstalled the same way. Without an Epic sign-in in Canapé, the line says **Sign in to Epic first** and does nothing. |
+| **GOG** installed from Canapé (gogdl) | The game's folder is deleted (only if it holds the game's `goggame-<id>.info`), and Canapé's record of it updated. |
+| **GOG** installed by GOG Galaxy or GOG's installer | The game's own uninstaller (`unins000.exe` in its folder) opens; Windows may ask for the administrator's consent. Follow it. |
+| **Xbox app** | Windows' settings open on the game's page (`ms-settings:appsfeatures-app`): uninstall it there; **Windows asks** for confirmation. |
+| **Other games** | No uninstall: only **Remove from the library**. |
+
+While it runs, the button says **Uninstalling…** and the line beside it where to confirm (Steam's window, the game's uninstaller, Windows' settings). Once done, the page closes and the library scans again: a game you own (Steam, Epic, GOG) moves to **To install**, the others disappear. A failure shows "Could not uninstall …" in yellow; the details are in `shell.log`.
+
+Titles, categories and hidden games are kept in `%LOCALAPPDATA%\Canape\overrides.json`.
+
+> [!WARNING]
+> Not tried on the Ally yet. Only the panel, the rename, the categories, hiding and removing were tried, on Linux with the fake library (the uninstall there is pretended). Untested: the touch keyboard (Canapé asks Windows for it; whether it shows over the full-screen experience is unknown), every uninstall on Windows (Steam's dialog, Legendary, the GOG uninstaller and its consent prompt, the Settings page of an Xbox game), and Canapé coming back to the front afterwards.
 
 #### Adding other games
 
@@ -522,7 +560,7 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 | **Appearance → The Ally's buttons** | On or Off (**A** applies). The **Armoury** button (right, under the screen) brings Canapé to the front from a game, or goes back to Games when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget lives. Turn it off if Armoury Crate or another tool should handle them (otherwise both react). Not tried on the Ally yet. |
 | **Library → Games folder** | Where Epic and GOG games are installed; its free space beside the drawer's title. By default, the folder that already holds most of the games installed by Canapé or the Epic launcher, else `Games` on the drive with the most free space. Left and right go through the folders that already hold games and `Games` on each internal drive; the choice is saved in `shell.json` (`games_folder`). Not tried on the Ally yet. |
 | **Library → Missing covers** | On or Off: download the covers of games that have none, see [Games](#games). |
-| **Library → Add a game** | The number of games in `games.json`; opens the list of games to add (see [Adding other games](#adding-other-games)). Not tried on the Ally yet. |
+| **Library → Add a game** | The number of games in `games.json`; opens the list of games to add (see [Adding other games](#adding-other-games)). With games hidden from the library, its first line **Hidden games · N** opens their list: **A** shows the game again (see [Game options](#game-options)). Not tried on the Ally yet. |
 | **Library → Game profiles** | The number of profiles; opens the [Game profiles](#game-profiles) page. |
 | **Accounts → Steam** | Whether a Steam Web API key is set, and how to add one: `steam_api_key` in `shell.json` lists the games you own (see [Installing owned games](#installing-owned-games)). |
 | **Accounts → Epic Games** | The signed-in account, or "Sign in": **A** in the drawer opens the Epic sign-in, downloading Legendary first if needed (see [Installing owned games](#installing-owned-games)); while it waits, the drawer says what to copy. Not tried on the Ally yet. |
@@ -679,6 +717,7 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%LOCALAPPDATA%\Canape\covers\` | Downloaded covers (`<store>_<id>.jpg` / `.png`, `.miss` markers). |
 | `%LOCALAPPDATA%\Canape\library.json` | The games of the last scan, shown at once on the next start. Can be deleted: the next scan writes it again. |
 | `%LOCALAPPDATA%\Canape\recent.json` | When each game was last launched from Canapé (for the "Recent" order). |
+| `%LOCALAPPDATA%\Canape\overrides.json` | Your changes to games, by game id: titles, categories, hidden games (see [Game options](#game-options)). Deleting it takes them all back. |
 | `%LOCALAPPDATA%\Canape\igdb.json` | Times to beat asked of IGDB, per game, with their date. `igdb-token.json` next to it: the current Twitch token. Both can be deleted. |
 | `%LOCALAPPDATA%\Canape\achievements.json` | Steam achievements per game, with their date and language; `achievement-icons\` next to it: their downloaded icons. Both can be deleted. |
 | `%LOCALAPPDATA%\Canape\owned.json` | The owned games from the last request to Steam and Epic, shown at once in To install mode. Can be deleted: the next request writes it again. |

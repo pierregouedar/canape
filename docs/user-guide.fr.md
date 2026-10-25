@@ -22,6 +22,7 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
   - [Commandes](#commandes)
   - [Éléments communs](#éléments-communs)
   - [Jeux](#jeux)
+    - [Options d'un jeu](#options-dun-jeu)
     - [Ajouter d'autres jeux](#ajouter-dautres-jeux)
     - [Installer des jeux possédés](#installer-des-jeux-possédés)
   - [Performance](#performance)
@@ -148,8 +149,8 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 | **Croix** ou **stick gauche** | Dans Jeux, gauche et droite parcourent l'étagère, haut et bas passent d'une étagère à l'autre. Dans Performance, Matériel et Réglages, de même : haut et bas changent d'étagère, gauche et droite de carte ; dans un tiroir, ils changent la valeur ou parcourent les choix. Dans une sous-page, haut et bas changent de ligne. Maintenu, le déplacement se répète après 0,4 s. |
 | **A** | Sur une carte, ouvrir son tiroir (ou sa page) ; dans un tiroir, appliquer le choix qui a le focus ; dans Jeux, lancer le jeu (ou l'installer) |
 | **X** | Enregistrer pour le jeu au premier plan (Performance, Matériel, Banc d'essai) ; rétablir les boutons d'origine (tiroir Boutons arrière) ; supprimer un profil (Profils de jeu) |
-| **Y** | Passer de M1 à M2 (tiroir Boutons arrière), du minimum au maximum (tiroir Plage de puissance) |
-| **B** | Fermer un tiroir ; quitter une sous-page (Profils de jeu, Ajouter un jeu, Banc d'essai) en retrouvant la carte d'où on l'a ouverte ; sinon revenir à Jeux |
+| **Y** | Passer de M1 à M2 (tiroir Boutons arrière), du minimum au maximum (tiroir Plage de puissance) ; sur la fiche d'un jeu, ses options (renommer, catégories, retirer, désinstaller ; voir [Options d'un jeu](#options-dun-jeu)) |
+| **B** | Fermer un tiroir ; quitter une sous-page (Profils de jeu, Ajouter un jeu, Jeux masqués, Banc d'essai) en retrouvant la carte d'où on l'a ouverte ; sinon revenir à Jeux |
 
 La manette n'est lue que lorsque Canapé est au premier plan : un jeu lancé depuis Canapé garde toute la manette. Quand Canapé revient au premier plan, un bouton encore enfoncé pour le jeu n'agit pas tant qu'il n'a pas été relâché ; la première fois (au démarrage de l'Ally par exemple), la manette est ignorée pendant 2 s (la fenêtre n'apparaît qu'environ 1,5 s après), pour qu'un appui pendant l'ouverture de session ne lance pas un jeu. Les mêmes règles valent pour les touches du clavier, y compris l'Entrée et l'Échap que des outils comme Steam Input envoient pour A et B. La carte, la ligne ou la tuile sélectionnée est entourée de blanc (une carte sélectionnée se soulève aussi un peu, sa valeur en couleur d'accent) ; la couleur d'accent marque ce qui est choisi (trait sous une tuile, valeur d'une ligne). Au clavier (développement), les mêmes actions passent par les flèches, Entrée, F2 (X), Échap et Page préc. / Page suiv.
 
@@ -173,6 +174,7 @@ La première section, celle sur laquelle Canapé s'ouvre : le jeu sélectionné 
 | **Jeu sélectionné** | Le logo et le nom de sa boutique (STEAM, EPIC, GOG, XBOX, AUTRES JEUX), son titre, quand il a été joué pour la dernière fois (« Joué aujourd'hui », « Joué hier », « Joué ces 7 derniers jours »…) et le bouton **Détails** : A ouvre la fiche du jeu. Derrière, une lueur reprend la couleur de sa jaquette. |
 | **Récents** | Les 10 derniers jeux joués, le plus récent en premier. Absente tant qu'aucun jeu n'a été joué. La jaquette sélectionnée est plus grande, opaque et entourée de blanc ; les autres sont atténuées. Un jeu sans image affiche son titre sur une carte teintée. |
 | **Installés · N** | Tous les jeux installés, par ordre alphabétique. |
+| **Vos catégories · N** | Une étagère par catégorie que vous avez créée (voir [Options d'un jeu](#options-dun-jeu)), par nom : ses jeux, installés ou à installer, par ordre alphabétique. Une catégorie sans jeu n'a pas d'étagère. |
 | **Steam · N**, **Epic · N**, **GOG · N**, **Xbox · N**, **Autres jeux · N** | Les jeux de chaque boutique, avec son logo, installés et à installer mélangés par ordre alphabétique, puis les jeux ajoutés à la main (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). Seulement les boutiques qui ont des jeux (une boutique seule sans rien à installer n'a pas d'étagère : elle répéterait Installés). |
 | **À installer · N** | Toujours en dernier : les jeux Steam, Epic et GOG que vous possédez sans les avoir installés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). Vide, elle explique comment configurer Steam, avec deux boutons pour se connecter à Epic ou à GOG (gauche et droite choisissent, A valide). |
 
@@ -186,6 +188,8 @@ Sous la fiche, une seconde partie : depuis le bouton, **bas** fait défiler la p
 
 > [!NOTE]
 > Pas encore essayé sur l'Ally : le défilement de la fiche n'a été vu que sous Linux, avec la bibliothèque de test.
+
+**Y** sur la fiche ouvre les options du jeu : voir [Options d'un jeu](#options-dun-jeu).
 
 **D'où viennent les jeux**
 
@@ -252,6 +256,40 @@ Sous la durée de jeu (ou seule sous la fiche), un jeu Steam montre ses **Succè
 
 > [!NOTE]
 > Pas encore essayé sur l'Ally : ni les requêtes Steam (écrites d'après la documentation publiée de l'API Web de Valve et testées sur des réponses écrites d'après elle, pas enregistrées), ni le téléchargement des icônes, ni la grille sur l'appareil. Seules la fiche (sous Linux, avec la bibliothèque de test) et la lecture des réponses ont été testées.
+
+#### Options d'un jeu
+
+<img src="images/fr/game-options.png" alt="Les options d'un jeu sur sa fiche" width="720">
+
+Sur la fiche d'un jeu, **Y** ouvre un panneau à droite avec ce qu'on peut faire du jeu. **Haut / bas** se déplacent, **A** choisit, **B** revient d'un pas (et ferme le panneau depuis son premier niveau), **Y** le ferme. Seules les lignes qui s'appliquent apparaissent :
+
+| Ligne | Effet |
+|---|---|
+| **Renommer** | Un champ de texte avec le titre actuel (sélectionné : la saisie le remplace). **A** (ou Entrée) garde le nouveau titre, **B** (ou Échap) annule. Le nouveau titre s'affiche partout dans Canapé (étagères, fiche, tri par nom) ; les fichiers des boutiques ne sont pas touchés. Un titre vide, ou celui de la boutique, annule le renommage. Sur l'Ally, le clavier tactile s'ouvre avec le champ (il se pilote aussi à la manette) et se referme après. |
+| **Reprendre le titre de la boutique** | Seulement pour un jeu renommé : revient au titre de la boutique (affiché à droite). |
+| **Catégories** | Les catégories du jeu (à droite). **A** ouvre la liste : **Nouvelle catégorie** demande un nom (même champ de texte) et y range le jeu ; **A** sur une catégorie y range le jeu ou l'en retire (✓). Chaque catégorie est une étagère de la bibliothèque, après **Installés**, par nom. Une catégorie que son dernier jeu quitte disparaît. |
+| **Retirer de la bibliothèque** | Un jeu de boutique est masqué : il quitte toutes les étagères mais reste installé. Les jeux masqués reviennent par **Réglages → Ajouter un jeu → Jeux masqués** (A réaffiche le jeu). Un jeu ajouté à la main (Autres jeux) est plutôt retiré de `games.json`, après confirmation (A à nouveau sur **Retirer de la bibliothèque**, ou **Annuler**). |
+| **Désinstaller** | Jeux installés seulement, après une étape de confirmation qui dit ce qui va se passer (**Désinstaller** / **Annuler**). Voir plus bas. |
+
+<img src="images/fr/game-uninstall.png" alt="La confirmation de désinstallation" width="720">
+
+**Comment chaque boutique désinstalle** : Canapé ne supprime jamais lui-même un jeu d'une boutique, sauf les jeux GOG qu'il a installés lui-même.
+
+| Boutique | Ce qui se passe |
+|---|---|
+| **Steam** | La désinstallation de Steam (`steam://uninstall/<appid>`) : **Steam demande sa propre confirmation** dans sa fenêtre. Canapé attend (15 min au plus) que le manifeste du jeu disparaisse, puis relance un scan. |
+| **Epic** (installé depuis Canapé, ou par le lanceur Epic une fois confié à Legendary) | `legendary uninstall` sans fenêtre : Legendary supprime les fichiers du jeu (et lance le désinstalleur du jeu s'il en a un). Un jeu du lanceur Epic pas encore confié est d'abord importé (`legendary import`, sans téléchargement), puis désinstallé de la même façon. Sans connexion Epic dans Canapé, la ligne indique **Connectez-vous d'abord à Epic** et ne fait rien. |
+| **GOG** installé depuis Canapé (gogdl) | Le dossier du jeu est supprimé (seulement s'il contient le `goggame-<id>.info` du jeu), et la liste de Canapé mise à jour. |
+| **GOG** installé par GOG Galaxy ou l'installeur GOG | Le désinstalleur du jeu (`unins000.exe` dans son dossier) s'ouvre ; Windows peut demander l'autorisation d'un administrateur. Suivez-le. |
+| **Application Xbox** | Les paramètres de Windows s'ouvrent sur la page du jeu (`ms-settings:appsfeatures-app`) : désinstallez-le là ; **Windows demande** confirmation. |
+| **Autres jeux** | Pas de désinstallation : seulement **Retirer de la bibliothèque**. |
+
+Pendant ce temps, le bouton indique **Désinstallation…** et la ligne à côté où confirmer (fenêtre de Steam, désinstalleur du jeu, paramètres de Windows). Une fois fini, la fiche se ferme et la bibliothèque est relue : un jeu que vous possédez (Steam, Epic, GOG) passe dans **À installer**, les autres disparaissent. Un échec affiche « Impossible de désinstaller … » en jaune ; le détail est dans `shell.log`.
+
+Titres, catégories et jeux masqués sont gardés dans `%LOCALAPPDATA%\Canape\overrides.json`.
+
+> [!WARNING]
+> Pas encore essayé sur l'Ally. Seuls le panneau, le renommage, les catégories, le masquage et le retrait ont été essayés, sous Linux avec la bibliothèque de test (la désinstallation y est simulée). Non testés : le clavier tactile (Canapé le demande à Windows ; on ignore s'il s'affiche par-dessus l'expérience plein écran), toutes les désinstallations sous Windows (boîte de dialogue de Steam, Legendary, désinstalleur GOG et sa demande d'autorisation, page Paramètres d'un jeu Xbox) et le retour de Canapé au premier plan ensuite.
 
 #### Ajouter d'autres jeux
 
@@ -522,7 +560,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 | **Apparence → Boutons de l'Ally** | Activé ou Désactivé (**A** applique). Le bouton **Armoury** (à droite, sous l'écran) ramène Canapé au premier plan depuis un jeu, ou revient à Jeux si Canapé est déjà devant ; le bouton **Command Center** (à gauche) ouvre la Xbox Game Bar, où se trouve le widget Canapé. Désactivez-le si Armoury Crate ou un autre outil doit les gérer (sinon les deux réagissent). Pas encore essayé sur l'Ally. |
 | **Bibliothèque → Dossier des jeux** | Où s'installent les jeux Epic et GOG ; sa place libre à côté du titre du tiroir. Par défaut, le dossier qui contient déjà le plus de jeux installés par Canapé ou par le lanceur Epic, sinon `Games` sur le lecteur qui a le plus de place libre. Gauche et droite parcourent les dossiers qui contiennent déjà des jeux et `Games` sur chaque lecteur interne ; le choix est enregistré dans `shell.json` (`games_folder`). Pas encore essayé sur l'Ally. |
 | **Bibliothèque → Jaquettes manquantes** | Activé ou Désactivé : télécharger les jaquettes des jeux qui n'en ont pas, voir [Jeux](#jeux). |
-| **Bibliothèque → Ajouter un jeu** | Le nombre de jeux de `games.json` ; ouvre la liste des jeux à ajouter (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). Pas encore essayé sur l'Ally. |
+| **Bibliothèque → Ajouter un jeu** | Le nombre de jeux de `games.json` ; ouvre la liste des jeux à ajouter (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). S'il y a des jeux masqués, sa première ligne **Jeux masqués · N** ouvre leur liste : **A** réaffiche le jeu (voir [Options d'un jeu](#options-dun-jeu)). Pas encore essayé sur l'Ally. |
 | **Bibliothèque → Profils de jeu** | Le nombre de profils ; ouvre la page [Profils de jeu](#profils-de-jeu). |
 | **Comptes → Steam** | La présence d'une clé d'API Web Steam, et comment l'ajouter : `steam_api_key` dans `shell.json` liste les jeux possédés (voir [Installer des jeux possédés](#installer-des-jeux-possédés)). |
 | **Comptes → Epic Games** | Le compte connecté, ou « Se connecter » : **A** dans le tiroir ouvre la connexion Epic, en téléchargeant Legendary d'abord si besoin (voir [Installer des jeux possédés](#installer-des-jeux-possédés)) ; pendant l'attente, le tiroir dit quoi copier. Pas encore essayé sur l'Ally. |
@@ -679,6 +717,7 @@ Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) 
 | `%LOCALAPPDATA%\Canape\covers\` | Jaquettes téléchargées (`<boutique>_<id>.jpg` / `.png`, marqueurs `.miss`). |
 | `%LOCALAPPDATA%\Canape\library.json` | Les jeux de la dernière recherche, affichés tout de suite au démarrage suivant. Peut être supprimé : la recherche suivante le réécrit. |
 | `%LOCALAPPDATA%\Canape\recent.json` | Quand chaque jeu a été lancé depuis Canapé pour la dernière fois (pour l'ordre « Récents »). |
+| `%LOCALAPPDATA%\Canape\overrides.json` | Vos modifications des jeux, par identifiant : titres, catégories, jeux masqués (voir [Options d'un jeu](#options-dun-jeu)). Le supprimer les annule toutes. |
 | `%LOCALAPPDATA%\Canape\igdb.json` | Durées de jeu demandées à IGDB, par jeu, avec leur date. `igdb-token.json` à côté : le jeton Twitch en cours. Les deux peuvent être supprimés. |
 | `%LOCALAPPDATA%\Canape\achievements.json` | Succès Steam par jeu, avec leur date et leur langue ; `achievement-icons\` à côté : leurs icônes téléchargées. Les deux peuvent être supprimés. |
 | `%LOCALAPPDATA%\Canape\owned.json` | Les jeux possédés de la dernière demande à Steam et à Epic, affichés tout de suite en mode À installer. Peut être supprimé : la demande suivante le réécrit. |

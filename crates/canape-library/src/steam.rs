@@ -374,6 +374,20 @@ pub fn download(steam: &Path, appid: u32) -> Option<Download> {
         })
 }
 
+/// Whether a library folder has a manifest for `appid` (installed,
+/// installing or being uninstalled).
+pub fn has_manifest(steam: &Path, appid: u32) -> bool {
+    let vdf_text = read(&steam.join("steamapps").join("libraryfolders.vdf"));
+    library_folders(steam, vdf_text.as_deref())
+        .iter()
+        .any(|folder| {
+            folder
+                .join("steamapps")
+                .join(format!("appmanifest_{appid}.acf"))
+                .is_file()
+        })
+}
+
 /// `BytesToDownload` of a manifest, 0 when missing.
 fn bytes_to_download(text: &str) -> u64 {
     vdf::parse(text)

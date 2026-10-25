@@ -404,6 +404,22 @@ pub fn scan(record: &Path) -> Vec<Game> {
         .collect()
 }
 
+/// Takes the game `id` out of `record` (uninstalled).
+pub fn forget_install(record: &Path, id: &str) -> io::Result<()> {
+    let mut all = load_installed(record);
+    let before = all.len();
+    all.retain(|e| e.id != id);
+    if all.len() == before {
+        return Ok(());
+    }
+    let tmp = record.with_extension("json.tmp");
+    std::fs::write(
+        &tmp,
+        serde_json::to_string_pretty(&all).map_err(io::Error::other)?,
+    )?;
+    std::fs::rename(&tmp, record)
+}
+
 /// Folders holding the games of `record`.
 pub fn install_parents(record: &Path) -> Vec<PathBuf> {
     load_installed(record)

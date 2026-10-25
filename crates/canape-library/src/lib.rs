@@ -34,11 +34,13 @@ pub mod install;
 mod launch;
 pub mod legendary;
 pub mod online;
+pub mod overrides;
 mod sha256;
 pub mod shortcut;
 pub mod steam;
 pub mod steam_queue;
 pub mod tools;
+pub mod uninstall;
 pub mod vdf;
 #[cfg(windows)]
 mod win;

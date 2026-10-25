@@ -813,3 +813,90 @@ msgstr "Une fois connecté, Canapé installe les jeux GOG sans GOG Galaxy."
 msgctxt "decimal separator"
 msgid "."
 msgstr ","
+
+msgid "Confirm"
+msgstr "Valider"
+
+msgid "Options"
+msgstr "Options"
+
+msgid "Could not save the change"
+msgstr "Impossible d'enregistrer la modification"
+
+msgid "games.json could not be read or written"
+msgstr "games.json n'a pas pu être lu ou écrit"
+
+msgid "Could not uninstall {}"
+msgstr "Impossible de désinstaller {}"
+
+msgid "Uninstalling…"
+msgstr "Désinstallation…"
+
+msgid "Confirm in Steam's window"
+msgstr "Confirmez dans la fenêtre de Steam"
+
+msgid "Follow the game's uninstaller"
+msgstr "Suivez le désinstalleur du jeu"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "Désinstallez-le dans les paramètres de Windows"
+
+msgid "Rename"
+msgstr "Renommer"
+
+msgid "Categories"
+msgstr "Catégories"
+
+msgid "Uninstall"
+msgstr "Désinstaller"
+
+msgid "Remove from the library"
+msgstr "Retirer de la bibliothèque"
+
+msgid "Use the store's title"
+msgstr "Reprendre le titre de la boutique"
+
+msgid "Sign in to Epic first"
+msgstr "Connectez-vous d'abord à Epic"
+
+msgid "Taken out of games.json."
+msgstr "Retiré de games.json."
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "Les jeux masqués se retrouvent dans Réglages › Ajouter un jeu."
+
+msgid "Store's title: {}"
+msgstr "Titre de la boutique : {}"
+
+msgid "The game goes in the new category."
+msgstr "Le jeu rejoint la nouvelle catégorie."
+
+msgid "New category"
+msgstr "Nouvelle catégorie"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "Retiré de games.json. Ajouter un jeu peut le proposer à nouveau s'il a un raccourci."
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam demande sa propre confirmation, puis supprime les fichiers du jeu."
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary supprime les fichiers du jeu."
+
+msgid "This folder is deleted: {}"
+msgstr "Ce dossier est supprimé : {}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "Le désinstalleur du jeu s'ouvre ; Windows peut demander une autorisation."
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "Les paramètres de Windows s'ouvrent sur le jeu : désinstallez-le là."
+
+msgid "Hidden games"
+msgstr "Jeux masqués"
+
+msgid "No hidden games"
+msgstr "Aucun jeu masqué"
+
+msgid "Show again"
+msgstr "Afficher à nouveau"

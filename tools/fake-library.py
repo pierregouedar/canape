@@ -17,6 +17,8 @@ for Settings -> Add a game (one is an uninstaller, which is left out).
 Three Steam games have a time to beat (`igdb-fixture.json`), shown below
 the fold of their game page, and two have achievements
 (`achievements-fixture.json`, icons drawn in `achievement-icons-fixture`).
+Four games are in a "Co-op" category and one is hidden
+(`overrides-fixture.json`, as the game page's options write it).
 """
 
 import hashlib
@@ -341,6 +343,14 @@ def main(out):
             game_id: {"at": now, "times": dict(times, count=12)}
             for game_id, times in beats.items()}}, f, indent=1)
     achievements(os.path.join(out, "appdata", "Canape"), now)
+    # The user's changes, as the game page's options save them: a category
+    # of three installed games and one to install (its own shelf), and one
+    # game hidden (listed under Settings -> Add a game -> Hidden games).
+    coop = ["steam:900001", "steam:900002", "epic:StarfallTactics", "steam:910001"]
+    changes = {game_id: {"categories": ["Co-op"]} for game_id in coop}
+    changes["steam:900013"] = {"hidden": True}
+    with open(os.path.join(out, "appdata", "Canape", "overrides-fixture.json"), "w") as f:
+        json.dump({"version": 1, "games": changes}, f, indent=1)
     print(f"LOCALAPPDATA={out}/appdata CANAPE_LIBRARY_FIXTURE={library}")
 
 

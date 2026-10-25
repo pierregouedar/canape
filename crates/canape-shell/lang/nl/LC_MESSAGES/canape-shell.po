@@ -813,3 +813,90 @@ msgstr "Eenmaal aangemeld installeert Canapé GOG-games zonder GOG Galaxy."
 msgctxt "decimal separator"
 msgid "."
 msgstr ","
+
+msgid "Confirm"
+msgstr "Bevestigen"
+
+msgid "Options"
+msgstr "Opties"
+
+msgid "Could not save the change"
+msgstr "Wijziging kon niet worden opgeslagen"
+
+msgid "games.json could not be read or written"
+msgstr "games.json kon niet worden gelezen of geschreven"
+
+msgid "Could not uninstall {}"
+msgstr "{} kon niet worden verwijderd"
+
+msgid "Uninstalling…"
+msgstr "Bezig met verwijderen…"
+
+msgid "Confirm in Steam's window"
+msgstr "Bevestig in het venster van Steam"
+
+msgid "Follow the game's uninstaller"
+msgstr "Volg het verwijderprogramma van de game"
+
+msgid "Uninstall it in Windows' settings"
+msgstr "Verwijder het in de Windows-instellingen"
+
+msgid "Rename"
+msgstr "Naam wijzigen"
+
+msgid "Categories"
+msgstr "Categorieën"
+
+msgid "Uninstall"
+msgstr "Verwijderen"
+
+msgid "Remove from the library"
+msgstr "Uit de bibliotheek halen"
+
+msgid "Use the store's title"
+msgstr "Titel van de winkel gebruiken"
+
+msgid "Sign in to Epic first"
+msgstr "Meld je eerst aan bij Epic"
+
+msgid "Taken out of games.json."
+msgstr "Uit games.json gehaald."
+
+msgid "Hidden games come back from Settings › Add a game."
+msgstr "Verborgen games vind je terug via Instellingen › Game toevoegen."
+
+msgid "Store's title: {}"
+msgstr "Titel in de winkel: {}"
+
+msgid "The game goes in the new category."
+msgstr "De game komt in de nieuwe categorie."
+
+msgid "New category"
+msgstr "Nieuwe categorie"
+
+msgid "Taken out of games.json. Add a game can list it again if it has a shortcut."
+msgstr "Uit games.json gehaald. Game toevoegen kan hem opnieuw aanbieden als er een snelkoppeling is."
+
+msgid "Steam asks for its own confirmation, then deletes the game's files."
+msgstr "Steam vraagt zelf om bevestiging en verwijdert dan de bestanden van de game."
+
+msgid "Legendary deletes the game's files."
+msgstr "Legendary verwijdert de bestanden van de game."
+
+msgid "This folder is deleted: {}"
+msgstr "Deze map wordt verwijderd: {}"
+
+msgid "The game's own uninstaller opens; Windows may ask for consent."
+msgstr "Het verwijderprogramma van de game opent; Windows kan om toestemming vragen."
+
+msgid "Windows' settings open on the game: uninstall it there."
+msgstr "De Windows-instellingen openen bij de game: verwijder hem daar."
+
+msgid "Hidden games"
+msgstr "Verborgen games"
+
+msgid "No hidden games"
+msgstr "Geen verborgen games"
+
+msgid "Show again"
+msgstr "Weer tonen"

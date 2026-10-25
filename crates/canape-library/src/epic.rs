@@ -31,6 +31,8 @@ struct Item {
     is_incomplete_install: bool,
     install_size: u64,
     install_location: String,
+    /// The game's executable, relative to `install_location`.
+    launch_executable: String,
 }
 
 /// A game from one manifest, if it is a complete game install.
@@ -87,6 +89,27 @@ pub fn installs(dir: &Path) -> Vec<(String, PathBuf)> {
     manifests(dir)
         .iter()
         .filter_map(|text| parse_install(text))
+        .collect()
+}
+
+/// The launcher's installs in `dir` whose files are gone (uninstalled by
+/// another program, the manifest left behind): their app names.
+pub fn missing(dir: &Path) -> Vec<String> {
+    manifests(dir)
+        .iter()
+        .filter(|text| parse_item(text).is_some())
+        .filter_map(|text| serde_json::from_str::<Item>(text).ok())
+        .filter(|item| !item.install_location.is_empty())
+        .filter(|item| {
+            let dir = Path::new(&item.install_location);
+            let exe = item.launch_executable.trim();
+            if exe.is_empty() {
+                !dir.is_dir()
+            } else {
+                !dir.join(exe).is_file()
+            }
+        })
+        .map(|item| item.app_name)
         .collect()
 }
 
@@ -152,6 +175,30 @@ mod tests {
                 PathBuf::from(r"C:\Program Files\Epic Games\Fortnite")
             )]
         );
+    }
+
+    #[test]
+    fn installs_without_their_files_are_missing() {
+        // The fixture's folders are not on this machine.
+        assert_eq!(missing(&fixture("epic")), ["Fortnite"]);
+        let dir = std::env::temp_dir().join(format!("canape-epic-{}", std::process::id()));
+        let game = dir.join("Game");
+        std::fs::create_dir_all(game.join("bin")).unwrap();
+        std::fs::write(game.join("bin/game.exe"), b"").unwrap();
+        let item = |exe: &str| {
+            serde_json::json!({
+                "AppName": "A", "CatalogNamespace": "ns", "CatalogItemId": "id",
+                "InstallLocation": game.to_string_lossy(), "LaunchExecutable": exe,
+            })
+            .to_string()
+        };
+        let manifests = dir.join("manifests");
+        std::fs::create_dir_all(&manifests).unwrap();
+        std::fs::write(manifests.join("a.item"), item("bin/game.exe")).unwrap();
+        assert!(missing(&manifests).is_empty());
+        std::fs::write(manifests.join("a.item"), item("bin/gone.exe")).unwrap();
+        assert_eq!(missing(&manifests), ["A"]);
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

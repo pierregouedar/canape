@@ -10,10 +10,16 @@
 //! model and remembers its selection; a cover is decoded once and shared
 //! by every shelf that shows the game.
 //!
+//! The game page's options (Y) rename a game, put it in categories (each a
+//! shelf), hide it (or take a game of games.json out of the file) and
+//! uninstall it: titles, categories and hidden games are Canapé's own, in
+//! `overrides.json` (see `canape_library::overrides`), never in a store's
+//! files; uninstalls go through each store (`canape_library::uninstall`).
+//!
 //! Everything here runs on the UI thread except the scan, the decoding,
-//! the launch, the owned lists, the installs, the time-to-beat lookups
-//! (timetobeat.rs) and the achievements (achievements.rs), which post their
-//! results back to the event loop.
+//! the launch, the owned lists, the installs and uninstalls, the
+//! time-to-beat lookups (timetobeat.rs) and the achievements
+//! (achievements.rs), which post their results back to the event loop.
 
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -27,7 +33,9 @@ use std::time::{Duration, Instant};
 
 use canape_library::cache::{self, Recent};
 use canape_library::install::{self, Event, Install, Tools};
-use canape_library::{Game, Launch, Played, Roots, eac, legendary, online, tools};
+use canape_library::overrides::Overrides;
+use canape_library::uninstall::{self, Uninstall};
+use canape_library::{Game, Launch, Played, Roots, Source, eac, legendary, online, tools};
 use slint::{
     ComponentHandle, Image, Model, ModelRc, Rgb8Pixel, Rgba8Pixel, SharedPixelBuffer, Timer,
     TimerMode, VecModel, Weak,
@@ -37,7 +45,9 @@ use crate::backdrop;
 use crate::grid;
 use crate::shelves::{self, Kind, Shelf};
 use crate::timetobeat::{self, Lookups};
-use crate::{AppWindow, DetailView, GameView, Library, ShelfView};
+use crate::{
+    AppWindow, CategoryView, DetailView, GameView, HiddenGameView, Library, OptionsView, ShelfView,
+};
 
 /// How long "Launching…" shows: the game's window usually covers the shell
 /// before that.
@@ -63,6 +73,8 @@ const OWNED_REFRESH: Duration = Duration::from_secs(10 * 60);
 const GOG_WAIT: Duration = Duration::from_secs(10 * 60);
 /// How often the clipboard is read meanwhile.
 const GOG_POLL: Duration = Duration::from_secs(1);
+/// Development: how long a pretend uninstall takes.
+const FIXTURE_UNINSTALL: Duration = Duration::from_secs(3);
 /// Development: the fake drives, and their free space.
 const FIXTURE_DRIVES: [(&str, u64); 2] = [("C:\\", 21_400_000_000), ("D:\\", 48_240_000_000)];
 
@@ -72,11 +84,15 @@ static LIBRARY_FOCUSED: AtomicBool = AtomicBool::new(false);
 static LIBRARY_SHOWN: AtomicBool = AtomicBool::new(false);
 /// Another page that moves with the arrow keys has the focus.
 static PAGE_ARROWS: AtomicBool = AtomicBool::new(false);
+/// A text field of the game page's options has the focus: left and right
+/// move in the text.
+static TEXT_ENTRY: AtomicBool = AtomicBool::new(false);
 
 /// True when the D-pad should send arrow keys.
 #[cfg_attr(not(windows), allow(dead_code))]
 pub fn arrow_navigation() -> bool {
-    (LIBRARY_SHOWN.load(Ordering::Relaxed) && LIBRARY_FOCUSED.load(Ordering::Relaxed))
+    (LIBRARY_SHOWN.load(Ordering::Relaxed)
+        && (LIBRARY_FOCUSED.load(Ordering::Relaxed) || TEXT_ENTRY.load(Ordering::Relaxed)))
         || PAGE_ARROWS.load(Ordering::Relaxed)
 }
 
@@ -202,6 +218,21 @@ struct State {
     backdrop_mask: Option<(u32, u32, backdrop::Mask)>,
     /// Games whose anti-cheat setup the user refused this session.
     eac_refused: HashSet<String>,
+    /// The user's titles, categories and hidden games.
+    overrides: Overrides,
+    overrides_path: PathBuf,
+    /// overrides.json could not be read: it is never overwritten.
+    overrides_locked: bool,
+    /// The categories the options menu lists, in its order.
+    option_categories: Vec<String>,
+    categories_model: Rc<VecModel<CategoryView>>,
+    /// The hidden games as their sub-page lists them: ids.
+    hidden: Vec<String>,
+    hidden_model: Rc<VecModel<HiddenGameView>>,
+    /// The game being uninstalled.
+    uninstalling: Option<String>,
+    /// Clears the last change's error after a while.
+    change_timer: Timer,
 }
 
 thread_local! {
@@ -255,14 +286,27 @@ impl State {
     /// shelf. Unchanged shelves keep their models, so their covers stay.
     fn rebuild(&mut self, keep: Option<(Kind, String)>) {
         let keep = keep.or_else(|| self.current());
+        // A shelf still on its first game stays on its first game: games
+        // arriving later (the owned list before the scan) do not leave the
+        // selection in the middle.
         let previous: HashMap<Kind, String> = self
             .shelves
             .iter()
             .zip(&self.picks)
-            .filter_map(|(shelf, &i)| shelf.games.get(i).map(|g| (shelf.kind, g.id.clone())))
+            .filter(|(_, i)| **i > 0)
+            .filter_map(|(shelf, &i)| {
+                shelf
+                    .games
+                    .get(i)
+                    .map(|g| (shelf.kind.clone(), g.id.clone()))
+            })
             .collect();
+        // Hidden games stay out of the games to install too: the list of
+        // owned games is taken before they are left out.
         let to_install = canape_library::not_installed(&self.owned, &self.all);
-        let shelves = shelves::build(&self.all, to_install);
+        let shown = self.overrides.apply(&self.all);
+        let to_install = self.overrides.apply(&to_install);
+        let shelves = shelves::build(&shown, to_install, &self.overrides.category_map());
         let now = canape_library::now();
 
         let same_kinds = shelves.len() == self.shelves.len()
@@ -313,6 +357,17 @@ impl State {
                     .and_then(|_| shelves.iter().position(|s| s.kind == Kind::Installed))
             })
             .unwrap_or(0);
+        // The page is open on a game that left that shelf (taken out of a
+        // category): the shelf that still has it, the installed games first.
+        let has = |s: &Shelf, id: &str| s.games.iter().any(|g| g.id == id);
+        let focus = match (&keep, &self.detail) {
+            (Some((_, id)), Some(open)) if id == open && !has(&shelves[focus], id) => shelves
+                .iter()
+                .position(|s| s.kind == Kind::Installed && has(s, id))
+                .or_else(|| shelves.iter().position(|s| has(s, id)))
+                .unwrap_or(focus),
+            _ => focus,
+        };
         if let Some((_, id)) = &keep
             && let Some(i) = shelves[focus].games.iter().position(|g| &g.id == id)
         {
@@ -340,13 +395,14 @@ impl State {
         }
         if let Some(ui) = self.ui.upgrade() {
             let library = ui.global::<Library>();
-            library.set_total(self.all.len() as i32);
+            library.set_total(shown.len() as i32);
             library.set_shelf(self.focus as i32);
             library.set_first(self.firsts[self.focus] as i32);
             library.set_selected(self.picks[self.focus] as i32);
         }
         self.refresh_covers();
         self.show_backdrop();
+        self.show_hidden();
     }
 
     fn game_view(&self, g: &Game, now: u64) -> GameView {
@@ -366,7 +422,7 @@ impl State {
     fn current(&self) -> Option<(Kind, String)> {
         let shelf = self.shelves.get(self.focus)?;
         let game = shelf.games.get(*self.picks.get(self.focus)?)?;
-        Some((shelf.kind, game.id.clone()))
+        Some((shelf.kind.clone(), game.id.clone()))
     }
 
     fn selected_id(&self) -> Option<String> {
@@ -706,7 +762,14 @@ impl State {
         if !self.beat.start(&game.id, Instant::now()) {
             return;
         }
-        let (id, title) = (game.id.clone(), game.title.clone());
+        // Looked up under the store's title, not the user's.
+        let title = self
+            .all
+            .iter()
+            .chain(&self.owned)
+            .find(|g| g.id == game.id)
+            .map_or_else(|| game.title.clone(), |g| g.title.clone());
+        let id = game.id.clone();
         let (token, token_path) = self.beat.job();
         let epic_config = self
             .roots
@@ -918,6 +981,7 @@ impl State {
     fn close_detail(&mut self) {
         self.detail = None;
         crate::achievements::close();
+        self.close_options();
         let Some(ui) = self.ui.upgrade() else { return };
         ui.global::<Library>().set_detail(false);
         let ui = ui.as_weak();
@@ -990,6 +1054,14 @@ impl State {
             // launcher from now on: scan again to pick them up.
             if !fixture && adopt_epic_installs(&roots) {
                 games = canape_library::scan(&roots);
+            }
+            // Launcher manifests left behind by an uninstall elsewhere.
+            if !fixture && let Some(dir) = &roots.epic {
+                let missing = canape_library::epic::missing(dir);
+                games.retain(|g| {
+                    !(matches!(g.launch, Launch::Uri { .. })
+                        && missing.iter().any(|app| g.id == format!("epic:{app}")))
+                });
             }
             online::attach(&mut games, &covers);
             crate::log(&format!(
@@ -1522,6 +1594,335 @@ impl State {
         true
     }
 
+    /// The game whose page is open, as shown (under the user's title) and
+    /// as its store lists it.
+    fn detail_game(&self) -> Option<(Game, Game)> {
+        let id = self.detail.as_ref()?;
+        let shown = self
+            .shelves
+            .iter()
+            .flat_map(|s| &s.games)
+            .find(|g| &g.id == id)?
+            .clone();
+        let raw = self
+            .all
+            .iter()
+            .chain(&self.owned)
+            .find(|g| &g.id == id)
+            .cloned()
+            .unwrap_or_else(|| shown.clone());
+        Some((shown, raw))
+    }
+
+    /// Fills the options menu for the game whose page is open.
+    fn show_options(&mut self) {
+        let Some((_, raw)) = self.detail_game() else {
+            return;
+        };
+        let Some(ui) = self.ui.upgrade() else { return };
+        let plan = uninstall::plan(&raw, &self.roots);
+        let custom = self.overrides.title(&raw.id).unwrap_or_default().to_owned();
+        let mut entries = vec![0];
+        if !custom.is_empty() {
+            entries.push(1);
+        }
+        entries.extend([2, 3]);
+        if plan.is_some() && self.uninstalling.is_none() && !self.installing.contains_key(&raw.id) {
+            entries.push(4);
+        }
+        let folder = match &plan {
+            Some(Uninstall::Gogdl { path, .. }) => path.clone(),
+            Some(Uninstall::GogUninstaller { dir, .. }) => dir.clone(),
+            _ => PathBuf::new(),
+        };
+        let mine = self.overrides.categories(&raw.id).to_vec();
+        let mut names = self.overrides.all_categories();
+        for name in &mine {
+            if !names
+                .iter()
+                .any(|n| n.to_lowercase() == name.to_lowercase())
+            {
+                names.push(name.clone());
+            }
+        }
+        names.sort_by_key(|n| n.to_lowercase());
+        let views: Vec<CategoryView> = names
+            .iter()
+            .map(|name| CategoryView {
+                name: name.as_str().into(),
+                checked: mine.iter().any(|m| m.to_lowercase() == name.to_lowercase()),
+            })
+            .collect();
+        self.categories_model.set_vec(views);
+        self.option_categories = names;
+        ui.global::<Library>().set_options_view(OptionsView {
+            entries: ModelRc::new(VecModel::from(entries)),
+            original: raw.title.as_str().into(),
+            custom: custom.into(),
+            categories: mine.join(" · ").into(),
+            listed: raw.source == Source::Other,
+            uninstall: uninstall_kind(plan.as_ref()),
+            folder: folder.to_string_lossy().as_ref().into(),
+        });
+    }
+
+    /// Y on the game page.
+    fn open_options(&mut self) {
+        self.show_options();
+        if let Some(ui) = self.ui.upgrade() {
+            ui.global::<Library>().set_options(true);
+        }
+    }
+
+    fn close_options(&mut self) {
+        text_entry(false);
+        if let Some(ui) = self.ui.upgrade() {
+            ui.global::<Library>().set_options(false);
+        }
+    }
+
+    /// Shows why the last change failed (see `Library.change-error`).
+    fn change_error(&mut self, code: i32, title: &str) {
+        let Some(ui) = self.ui.upgrade() else { return };
+        let library = ui.global::<Library>();
+        library.set_change_error(code);
+        library.set_uninstall_failed(title.into());
+        let ui = ui.as_weak();
+        self.change_timer
+            .start(TimerMode::SingleShot, ERROR_SHOWN, move || {
+                if let Some(ui) = ui.upgrade() {
+                    ui.global::<Library>().set_change_error(0);
+                }
+            });
+    }
+
+    /// Writes overrides.json; false (and the error shown) if it failed.
+    fn save_overrides(&mut self) -> bool {
+        let result = if self.overrides_locked {
+            Err(std::io::Error::other("unreadable, not overwritten"))
+        } else {
+            self.overrides.save(&self.overrides_path)
+        };
+        match result {
+            Ok(()) => true,
+            Err(err) => {
+                crate::log(&format!(
+                    "library: saving {}: {err}",
+                    self.overrides_path.display()
+                ));
+                self.change_error(1, "");
+                false
+            }
+        }
+    }
+
+    /// The shelves and the options menu after a change.
+    fn changed(&mut self) {
+        self.save_overrides();
+        self.rebuild(None);
+        self.show_options();
+    }
+
+    fn rename(&mut self, text: &str) {
+        let Some((_, raw)) = self.detail_game() else {
+            return;
+        };
+        if self.overrides.set_title(&raw.id, text, &raw.title) {
+            crate::log(&format!("library: {} renamed", raw.id));
+            self.changed();
+        }
+    }
+
+    fn toggle_category(&mut self, index: usize) {
+        let (Some((_, raw)), Some(name)) = (
+            self.detail_game(),
+            self.option_categories.get(index).cloned(),
+        ) else {
+            return;
+        };
+        self.overrides.toggle_category(&raw.id, &name);
+        self.changed();
+    }
+
+    fn new_category(&mut self, text: &str) {
+        let Some((_, raw)) = self.detail_game() else {
+            return;
+        };
+        if self.overrides.add_category(&raw.id, text).is_some() {
+            self.changed();
+        }
+    }
+
+    /// Hides the game whose page is open, or takes a game of games.json
+    /// out of the file; then back to the shelves.
+    fn remove_game(&mut self) {
+        let Some((_, raw)) = self.detail_game() else {
+            return;
+        };
+        if raw.source == Source::Other {
+            let Some(path) = self.roots.external.clone() else {
+                return;
+            };
+            // An unreadable file is never overwritten: the user's games are in it.
+            let result = canape_library::external::load(&path).and_then(|listed| {
+                let left: Vec<_> = listed
+                    .into_iter()
+                    .filter(|e| canape_library::external::id(e) != raw.id)
+                    .collect();
+                canape_library::external::save(&path, &left).map(|_| left.len())
+            });
+            match result {
+                Ok(count) => {
+                    crate::log(&format!("library: {} taken out of games.json", raw.id));
+                    if let Some(ui) = self.ui.upgrade() {
+                        ui.global::<Library>().set_external(count as i32);
+                    }
+                    self.close_detail();
+                    self.all.retain(|g| g.id != raw.id);
+                    self.rebuild(None);
+                    self.scan();
+                }
+                Err(err) => {
+                    crate::log(&format!("library: {}: {err}", path.display()));
+                    self.change_error(2, "");
+                }
+            }
+            return;
+        }
+        self.overrides.set_hidden(&raw.id, true);
+        crate::log(&format!("library: {} hidden", raw.id));
+        self.save_overrides();
+        self.close_detail();
+        self.rebuild(None);
+    }
+
+    /// A on a hidden game: back on the shelves.
+    fn show_game(&mut self, index: usize) {
+        let Some(id) = self.hidden.get(index).cloned() else {
+            return;
+        };
+        self.overrides.set_hidden(&id, false);
+        crate::log(&format!("library: {id} shown again"));
+        self.save_overrides();
+        self.rebuild(None);
+    }
+
+    /// Lists the hidden games that are still installed or owned, by title.
+    fn show_hidden(&mut self) {
+        let mut list: Vec<(String, String, &'static str)> = self
+            .overrides
+            .hidden_ids()
+            .into_iter()
+            .filter_map(|id| {
+                let game = self.all.iter().chain(&self.owned).find(|g| g.id == id)?;
+                let title = self.overrides.title(id).unwrap_or(&game.title).to_owned();
+                Some((id.to_owned(), title, game.source.label()))
+            })
+            .collect();
+        list.sort_by_key(|(_, title, _)| title.to_lowercase());
+        let views: Vec<HiddenGameView> = list
+            .iter()
+            .map(|(_, title, source)| HiddenGameView {
+                title: title.as_str().into(),
+                source: (*source).into(),
+            })
+            .collect();
+        let ids: Vec<String> = list.into_iter().map(|(id, _, _)| id).collect();
+        if ids != self.hidden || self.hidden_model.row_count() != views.len() {
+            self.hidden_model.set_vec(views);
+        } else {
+            for (i, view) in views.into_iter().enumerate() {
+                if self.hidden_model.row_data(i).is_none_or(|old| old != view) {
+                    self.hidden_model.set_row_data(i, view);
+                }
+            }
+        }
+        self.hidden = ids;
+    }
+
+    /// Uninstalls the game whose page is open, on its own thread.
+    fn uninstall(&mut self) {
+        let Some((_, raw)) = self.detail_game() else {
+            return;
+        };
+        if self.uninstalling.is_some() || self.installing.contains_key(&raw.id) {
+            return;
+        }
+        let Some(plan) = uninstall::plan(&raw, &self.roots) else {
+            return;
+        };
+        if matches!(plan, Uninstall::EpicLauncher { .. }) {
+            return;
+        }
+        crate::log(&format!("library: uninstalling {} ({plan:?})", raw.id));
+        let kind = uninstall_kind(Some(&plan));
+        self.uninstalling = Some(raw.id.clone());
+        self.close_options();
+        if let Some(ui) = self.ui.upgrade() {
+            let library = ui.global::<Library>();
+            library.set_uninstalling(raw.id.as_str().into());
+            library.set_uninstalling_kind(kind);
+            library.set_change_error(0);
+        }
+        let (id, title, fixture, roots) = (
+            raw.id.clone(),
+            self.overrides
+                .title(&raw.id)
+                .unwrap_or(&raw.title)
+                .to_owned(),
+            self.fixture,
+            self.roots.clone(),
+        );
+        thread::spawn(move || {
+            let post = |event: Event| {
+                let (id, title) = (id.clone(), title.clone());
+                let _ = slint::invoke_from_event_loop(move || {
+                    with_state(|state| state.uninstall_event(&id, &title, kind, event));
+                });
+            };
+            if fixture {
+                // Development: a pretend uninstall; the fake game stays.
+                thread::sleep(FIXTURE_UNINSTALL);
+                post(Event::Note("fixture: nothing removed".into()));
+                post(Event::Done);
+            } else {
+                uninstall::run(&plan, &roots, post);
+            }
+        });
+    }
+
+    fn uninstall_event(&mut self, id: &str, title: &str, kind: i32, event: Event) {
+        // Steam's dialog, the game's uninstaller or Windows' settings came
+        // in front: Canapé comes back once they are done.
+        let dialog = matches!(kind, 1 | 5 | 6);
+        match event {
+            Event::Progress(_) => return,
+            Event::Note(message) => {
+                crate::log(&format!("library: uninstalling {id}: {message}"));
+                return;
+            }
+            Event::Done => {
+                crate::log(&format!("library: {id} uninstalled"));
+                if self.detail.as_deref() == Some(id) {
+                    self.close_detail();
+                }
+                self.scan();
+            }
+            Event::Failed(message) => {
+                crate::log(&format!("library: uninstalling {id}: {message}"));
+                self.change_error(3, title);
+            }
+        }
+        self.uninstalling = None;
+        if let Some(ui) = self.ui.upgrade() {
+            ui.global::<Library>().set_uninstalling("".into());
+        }
+        if dialog {
+            #[cfg(windows)]
+            crate::instance::bring_to_front();
+        }
+    }
+
     /// The launch returned: show the outcome, then put the game first.
     fn launched(&mut self, id: String, title: String, result: std::io::Result<()>) {
         if let Err(err) = &result {
@@ -1551,6 +1952,31 @@ impl State {
     }
 }
 
+/// How a game is uninstalled, for the page: see `OptionsView.uninstall`.
+fn uninstall_kind(plan: Option<&Uninstall>) -> i32 {
+    match plan {
+        None => 0,
+        Some(Uninstall::Steam { .. }) => 1,
+        Some(Uninstall::Legendary { .. }) => 2,
+        Some(Uninstall::EpicLauncher { .. }) => 3,
+        Some(Uninstall::Gogdl { .. }) => 4,
+        Some(Uninstall::GogUninstaller { .. }) => 5,
+        Some(Uninstall::Xbox { .. }) => 6,
+    }
+}
+
+/// A text field gained or lost the focus: the touch keyboard follows.
+fn text_entry(on: bool) {
+    if TEXT_ENTRY.swap(on, Ordering::Relaxed) == on {
+        return;
+    }
+    if on {
+        crate::touchkb::show();
+    } else {
+        crate::touchkb::hide();
+    }
+}
+
 /// Whether a row needs no update: the same game in the same state, its
 /// cover aside (covers come and go with the scroll).
 fn same_view(old: &GameView, new: &GameView) -> bool {
@@ -1577,7 +2003,7 @@ fn adopt_epic_installs(roots: &Roots) -> bool {
         .collect();
     let todo: Vec<(String, PathBuf)> = canape_library::epic::installs(dir)
         .into_iter()
-        .filter(|(app, _)| !taken.contains(&format!("epic:{app}")))
+        .filter(|(app, path)| !taken.contains(&format!("epic:{app}")) && path.is_dir())
         .filter(|(app, _)| !TRIED.lock().unwrap().contains(app))
         .collect();
     if todo.is_empty() || !matches!(install::epic_account(exe), Ok(Some(_))) {
@@ -2061,11 +2487,23 @@ pub fn start(ui: &AppWindow) {
     );
     let owned = cache::load(&owned_path);
     let recent = Recent::load(&recent_path);
+    let overrides_path = dir.join(format!("overrides{suffix}.json"));
+    let (overrides, overrides_locked) = match Overrides::load(&overrides_path) {
+        Ok(overrides) => (overrides, false),
+        Err(err) => {
+            crate::log(&format!("library: {}: {err}", overrides_path.display()));
+            (Overrides::default(), true)
+        }
+    };
     let cached = cache::load(&cache_path);
 
     let shelf_model = Rc::new(VecModel::<ShelfView>::default());
+    let categories_model = Rc::new(VecModel::<CategoryView>::default());
+    let hidden_model = Rc::new(VecModel::<HiddenGameView>::default());
     let library = ui.global::<Library>();
     library.set_shelves(ModelRc::from(shelf_model.clone()));
+    library.set_categories(ModelRc::from(categories_model.clone()));
+    library.set_hidden_games(ModelRc::from(hidden_model.clone()));
     library.set_ready(!cached.is_empty());
 
     let wanted = Arc::new(Mutex::new(HashSet::new()));
@@ -2121,6 +2559,15 @@ pub fn start(ui: &AppWindow) {
         detail_timer: Timer::default(),
         awaiting: None,
         eac_refused: HashSet::new(),
+        overrides,
+        overrides_path,
+        overrides_locked,
+        option_categories: Vec::new(),
+        categories_model,
+        hidden: Vec::new(),
+        hidden_model,
+        uninstalling: None,
+        change_timer: Timer::default(),
     };
     state.rebuild(None);
     state.scan();
@@ -2188,6 +2635,24 @@ pub fn start(ui: &AppWindow) {
         }
     });
     library.on_close_detail(|| with_state(State::close_detail));
+    library.on_open_options(|| with_state(State::open_options));
+    library.on_close_options(|| with_state(State::close_options));
+    library.on_rename(|text| with_state(|state| state.rename(&text)));
+    library.on_reset_name(|| with_state(|state| state.rename("")));
+    library.on_toggle_category(|index| {
+        if let Ok(index) = usize::try_from(index) {
+            with_state(|state| state.toggle_category(index));
+        }
+    });
+    library.on_new_category(|text| with_state(|state| state.new_category(&text)));
+    library.on_remove_game(|| with_state(State::remove_game));
+    library.on_uninstall_game(|| with_state(State::uninstall));
+    library.on_show_game(|index| {
+        if let Ok(index) = usize::try_from(index) {
+            with_state(|state| state.show_game(index));
+        }
+    });
+    library.on_text_entry(text_entry);
     library.on_focus_changed(|focused| LIBRARY_FOCUSED.store(focused, Ordering::Relaxed));
     library.on_shown(|shown| {
         set_shown(shown);
