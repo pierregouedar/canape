@@ -62,6 +62,24 @@ Avec `refresh_full_speed`, le shell redessine sans arrêt : les FPS « au repos 
 
 Une image coûte environ 10 ms sans animation et 22 ms pendant la navigation : le rendu logiciel n'atteint pas 120 FPS sur la page Jeux. Avec vsync, chaque image attend la composition suivante, donc les FPS tombent sur un diviseur de 120 (60 au repos, 40 en navigation) ; sans vsync on gagne quelques images mais le ressenti ne change pas. La page Jeux n'est plus à 22–25 FPS comme avant a424975, mais reste loin de 120.
 
+### Après c2d9614 (animations allégées)
+
+Même méthode, version normale installée par `install-dev.ps1` (la sortie redirigée en admin ne bloque plus). Cas en plus, « gauche/droite lent » : un appui toutes les 300 ms.
+
+| | Vsync (par défaut) | `CANAPE_NO_VSYNC=1` |
+|---|---|---|
+| FPS repos (plein régime) | 60 | 94 |
+| FPS gauche/droite rapide | 60 | 97 |
+| FPS haut/bas rapide | 60 | 97 |
+| FPS gauche/droite lent | 39 | 50 |
+| CPU repos, 20 s | 1,1 % | 1,1 % |
+| CPU gauche/droite rapide | 54 % | 62 % |
+| CPU haut/bas rapide | 62 % | 105 % |
+| CPU gauche/droite lent | 73 % | 99 % |
+| Ressenti (Pierre) | pareil qu'avant c2d9614 | plus fluide qu'avec vsync |
+
+La navigation rapide ne coûte plus rien de plus qu'une image sans animation (60 ou 97 FPS, contre 36 ou 45 avant). Le cas lent est le plus lourd : avec un appui toutes les 300 ms, la sélection se pose à chaque pas et le fondu du fond, qui couvre tout l'écran, se joue à chaque fois ; en rafale de 70 ms il ne se déclenche pas. Avec vsync, les images de plus de 8,3 ms tombent à 40 FPS, ce qui peut expliquer que Pierre trouve la version sans vsync plus fluide.
+
 ### Version de test, `CANAPE_RENDERER=software`
 
 | Mesure | Valeur |
