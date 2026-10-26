@@ -4,13 +4,15 @@
 // tour), B goes back, the D-pad moves on the right. Steps: 0 welcome,
 // 1 language, 2 accent colour, 3 other tools driving the hardware (only
 // while the service reports some), 4 game stores, 5 games folder, 6 the
-// Ally's buttons, 7 Windows optimisations (only when the build has them),
+// Ally's buttons, 7 Windows optimisations (the recommended set, applied
+// as the tweaks page applies it, with its outcome shown),
 // 8 done. Everything a step changes goes through the same callbacks as
 // the settings page.
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
 import { Library } from "library.slint";
+import { Tweaks } from "tweaks.slint";
 import { Hint, Logo, PadGlyph } from "widgets.slint";
 import { ChoiceTile, Reveal, SectionTitle, SettingLine, Swatch } from "kit.slint";
 
@@ -20,6 +22,8 @@ export global Onboarding {
     in-out property <int> step;
     // The build has the Windows optimisations (step 7).
     in property <bool> tweaks-available;
+    // The step shows the tweaks page's state (Tweaks.rows), listed on
+    // arrival.
     // Steam's client was found, and the Steam games installed.
     in property <bool> steam-found;
     in property <int> steam-games;
@@ -287,6 +291,13 @@ export component OnboardingFlow inherits Rectangle {
     property <length> enter-x: 32px;
     // A few seconds to reach the service before saying it is not there.
     property <bool> waited;
+    // Windows step: the recommended set was asked for, and what the tweaks
+    // page says of it (its first row): tweaks left, and whether the list
+    // has come.
+    property <bool> tweaks-tried;
+    property <int> tweaks-left: Tweaks.rows.length > 0 ? Tweaks.rows[0].count : 0;
+    property <bool> tweaks-known: Tweaks.rows.length > 0 && (Tweaks.rows[0].applied || Tweaks.rows[0].count > 0);
+    property <bool> tweaks-busy: Tweaks.busy == 0;
 
     pure function after(s: int) -> int {
         (s + 1 == 3 && !root.has-conflicts) || (s + 1 == 7 && !root.has-tweaks) ? s + 2 : s + 1
@@ -300,6 +311,7 @@ export component OnboardingFlow inherits Rectangle {
     function go(s: int) {
         root.enter-x = s > root.step ? 32px : -32px;
         root.editing = "";
+        root.tweaks-tried = false;
         Onboarding.step = clamp(s, 0, 8);
         Onboarding.step-changed(Onboarding.step);
         root.enter();
@@ -330,8 +342,17 @@ export component OnboardingFlow inherits Rectangle {
         if root.step == 4 && root.line < 5 {
             root.act-row();
         } else if root.step == 7 {
-            Onboarding.apply-tweaks();
-            root.next();
+            // The first A applies and stays to show the outcome; the next
+            // one goes on.
+            if root.tweaks-busy {
+                return;
+            }
+            if !root.tweaks-tried && root.tweaks-left > 0 && App.status.connected {
+                root.tweaks-tried = true;
+                Onboarding.apply-tweaks();
+            } else {
+                root.next();
+            }
         } else if root.step == 8 {
             Onboarding.finish();
         } else {
@@ -532,8 +553,8 @@ export component OnboardingFlow inherits Rectangle {
                         wrap: word-wrap;
                     }
 
-                    if s == 0 || s == 3 || s == 4 || s == 5: Text {
-                        text: s == 0 ? @tr("A few choices to start with. Each stays in Settings.") : s == 3 ? @tr("{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it.", root.conflicts) : s == 4 ? @tr("Installed games show up by themselves. Accounts add the games you own but have not installed.") : @tr("Where Epic and GOG games install. Steam keeps its own folders.");
+                    if s == 0 || s == 3 || s == 4 || s == 5 || s == 7: Text {
+                        text: s == 0 ? @tr("A few choices to start with. Each stays in Settings.") : s == 7 ? @tr("Turns off Copilot, ads, tips and background game recording, and excludes the game folders from Defender scans. Each one can be undone in Settings.") : s == 3 ?@tr("{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it.", root.conflicts) : s == 4 ? @tr("Installed games show up by themselves. Accounts add the games you own but have not installed.") : @tr("Where Epic and GOG games install. Steam keeps its own folders.");
                         color: Theme.text.mix(Theme.dim, 0.6);
                         font-size: 16px;
                         wrap: word-wrap;
@@ -568,7 +589,7 @@ export component OnboardingFlow inherits Rectangle {
                         spacing: 12px;
                         alignment: start;
                         Action {
-                            label: s == 0 ? @tr("Start") : s == 7 ? @tr("Apply the recommended set") : s == 8 ? @tr("Go to the games") : @tr("Continue");
+                            label: s == 0 ? @tr("Start") : s == 7 && !root.tweaks-tried && root.tweaks-left > 0 && App.status.connected ? @tr("Apply the recommended set") : s == 8 ? @tr("Go to the games") : @tr("Continue");
                             quiet: s == 4 && root.line < 5;
                             clicked => {
                                 if s == 4 {
@@ -641,6 +662,17 @@ export component OnboardingFlow inherits Rectangle {
                                 fs.focus();
                             }
                         }
+                    }
+
+                    // The outcome of the recommended set.
+                    if s == 7: Text {
+                        y: (parent.height - self.height) / 2;
+                        width: parent.width;
+                        text: !App.status.connected ? @tr("Service not connected") : root.tweaks-busy ? "…" : !root.tweaks-known ? "…" : root.tweaks-left == 0 ? @tr("All applied") : root.tweaks-tried ? @tr("{} could not be applied", root.tweaks-left) : @tr("{} to apply", root.tweaks-left);
+                        color: !App.status.connected || (root.tweaks-tried && root.tweaks-left > 0 && !root.tweaks-busy) ? Theme.warn : root.tweaks-known && root.tweaks-left == 0 ? Theme.good : Theme.text;
+                        font-size: 32px;
+                        font-weight: 600;
+                        wrap: word-wrap;
                     }
 
                     if s == 3: VerticalLayout {

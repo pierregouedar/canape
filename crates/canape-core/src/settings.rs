@@ -80,11 +80,90 @@ pub struct Profile {
     /// the refresh rate, applied by the shell.
     #[serde(default)]
     pub gyro: Option<GyroSettings>,
+    /// Processor power settings for this game; `None` keeps the global ones.
+    #[serde(default)]
+    pub cpu_power: Option<CpuPower>,
 }
 
 impl Profile {
     pub fn matches(&self, exe: &str) -> bool {
         self.exe.eq_ignore_ascii_case(exe)
+    }
+}
+
+/// How far the processor may boost above its base frequency, as the
+/// power plan's boost mode numbers it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CpuBoost {
+    Disabled,
+    Enabled,
+    Aggressive,
+}
+
+impl CpuBoost {
+    pub const ALL: [CpuBoost; 3] = [CpuBoost::Disabled, CpuBoost::Enabled, CpuBoost::Aggressive];
+
+    /// The value the power plan stores.
+    pub fn mode(self) -> u32 {
+        match self {
+            CpuBoost::Disabled => 0,
+            CpuBoost::Enabled => 1,
+            CpuBoost::Aggressive => 2,
+        }
+    }
+
+    pub fn from_mode(mode: u32) -> Option<Self> {
+        Self::ALL.into_iter().find(|b| b.mode() == mode)
+    }
+}
+
+/// Processor settings of the active Windows power plan, for plugged in and
+/// on battery alike. A `None` leaves the setting as Windows has it (and
+/// puts back what Canapé replaced).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct CpuPower {
+    pub boost: Option<CpuBoost>,
+    /// Energy performance preference: 0 favours speed, 100 saving power.
+    pub epp: Option<u32>,
+    /// Highest frequency in MHz; `Some(0)` removes the limit.
+    pub max_mhz: Option<u32>,
+    /// Share of the cores that stay awake, in percent.
+    pub min_cores: Option<u32>,
+}
+
+/// Energy performance preference, in percent.
+pub const CPU_EPP_RANGE: (u32, u32) = (0, 100);
+/// Frequency limits accepted, in MHz (0 removes the limit).
+pub const CPU_MAX_MHZ_RANGE: (u32, u32) = (1000, 6000);
+/// Share of the cores kept awake, in percent.
+pub const CPU_MIN_CORES_RANGE: (u32, u32) = (0, 100);
+
+impl CpuPower {
+    /// True when every setting is left to Windows.
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+
+    /// Why these settings cannot be applied, if they cannot.
+    pub fn validate(&self) -> Result<(), String> {
+        let check =
+            |name: &str, value: Option<u32>, (low, high): (u32, u32), zero: bool| match value {
+                Some(v) if !(low..=high).contains(&v) && !(zero && v == 0) => Err(format!(
+                    "{name} not in {low}..={high}{}",
+                    if zero { " (or 0)" } else { "" }
+                )),
+                _ => Ok(()),
+            };
+        check("energy preference", self.epp, CPU_EPP_RANGE, false)?;
+        check("maximum frequency", self.max_mhz, CPU_MAX_MHZ_RANGE, true)?;
+        check(
+            "minimum active cores",
+            self.min_cores,
+            CPU_MIN_CORES_RANGE,
+            false,
+        )
     }
 }
 
@@ -414,6 +493,49 @@ impl Lighting {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn cpu_power_is_validated_and_defaults_to_untouched() {
+        assert!(CpuPower::default().is_default());
+        let ok = CpuPower {
+            boost: Some(CpuBoost::Disabled),
+            epp: Some(100),
+            max_mhz: Some(0),
+            min_cores: Some(100),
+        };
+        assert_eq!(ok.validate(), Ok(()));
+        assert!(!ok.is_default());
+        for bad in [
+            CpuPower {
+                epp: Some(101),
+                ..CpuPower::default()
+            },
+            CpuPower {
+                max_mhz: Some(500),
+                ..CpuPower::default()
+            },
+            CpuPower {
+                max_mhz: Some(9000),
+                ..CpuPower::default()
+            },
+            CpuPower {
+                min_cores: Some(101),
+                ..CpuPower::default()
+            },
+        ] {
+            assert!(bad.validate().is_err(), "{bad:?}");
+        }
+        for boost in CpuBoost::ALL {
+            assert_eq!(CpuBoost::from_mode(boost.mode()), Some(boost));
+        }
+        assert_eq!(CpuBoost::from_mode(3), None);
+        // A profile saved before CPU settings existed still decodes.
+        let profile: Profile = serde_json::from_str(
+            r#"{"exe":"a.exe","auto_tdp":{"enabled":false,"target_fps":60,"min_watts":7,"max_watts":25}}"#,
+        )
+        .unwrap();
+        assert_eq!(profile.cpu_power, None);
+    }
 
     #[test]
     fn auto_tdp_clamps_to_the_device() {

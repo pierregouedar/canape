@@ -46,8 +46,9 @@ use std::time::Duration;
 
 use canape_core::settings::GYRO_SENSITIVITY_RANGE;
 use canape_core::{
-    AutoTdpSettings, BackButton, BenchPlan, ButtonTarget, ControllerMode, GyroActivation, GyroAxis,
-    GyroSettings, Lighting, LightingEffect, LightingSpeed, PerformanceMode, Request,
+    AutoTdpSettings, BackButton, BenchPlan, ButtonTarget, ControllerMode, CpuBoost, CpuPower,
+    GyroActivation, GyroAxis, GyroSettings, Lighting, LightingEffect, LightingSpeed,
+    PerformanceMode, Request,
 };
 
 use slint::{ComponentHandle, Timer, TimerMode};
@@ -183,6 +184,18 @@ fn update_gyro(link: &Link, change: impl FnOnce(&mut GyroSettings)) {
     link.send(Request::SetGyro { settings });
 }
 
+/// Changes the processor power settings from the last known ones.
+fn update_cpu(link: &Link, change: impl FnOnce(&mut CpuPower)) {
+    let mut settings = link.status().cpu_power;
+    change(&mut settings);
+    link.send(Request::SetCpuPower { settings });
+}
+
+/// A value from the UI, where a negative one means "left to Windows".
+fn optional(value: i32) -> Option<u32> {
+    u32::try_from(value).ok()
+}
+
 fn step(value: u32, delta: i32, lo: u32, hi: u32) -> u32 {
     value.saturating_add_signed(delta).clamp(lo, hi.max(lo))
 }
@@ -282,12 +295,14 @@ fn connect(ui: &AppWindow, link: &Link) {
             if let Some(exe) = status.foreground {
                 let learned_watts = status.tdp_watts.filter(|_| status.auto_tdp.enabled);
                 // Keep what this screen does not edit (fan curves, FPS limit).
+                // The processor settings in effect go with the power ones.
                 let existing = link.profile(&exe).unwrap_or_default();
                 link.send(Request::SaveProfile {
                     profile: canape_core::Profile {
                         exe,
                         auto_tdp: status.auto_tdp,
                         learned_watts,
+                        cpu_power: Some(status.cpu_power),
                         ..existing
                     },
                 });
@@ -350,6 +365,7 @@ fn connect(ui: &AppWindow, link: &Link) {
                 fps_limit: link.profile(&exe).and_then(|p| p.fps_limit),
                 refresh_hz: link.profile(&exe).and_then(|p| p.refresh_hz),
                 gyro: link.profile(&exe).and_then(|p| p.gyro),
+                cpu_power: link.profile(&exe).and_then(|p| p.cpu_power),
                 ..report::profile_for(&report, rec, &exe, status.auto_tdp)
             };
             link.send(Request::SaveProfile { profile });
@@ -371,6 +387,26 @@ fn connect(ui: &AppWindow, link: &Link) {
                 fps: (fps > 0).then_some(fps as u32),
             })
         }
+    });
+    app.on_set_cpu_boost({
+        let link = link.clone();
+        move |mode| {
+            update_cpu(&link, |p| {
+                p.boost = optional(mode).and_then(CpuBoost::from_mode)
+            })
+        }
+    });
+    app.on_set_cpu_epp({
+        let link = link.clone();
+        move |percent| update_cpu(&link, |p| p.epp = optional(percent))
+    });
+    app.on_set_cpu_max_mhz({
+        let link = link.clone();
+        move |mhz| update_cpu(&link, |p| p.max_mhz = optional(mhz))
+    });
+    app.on_set_cpu_min_cores({
+        let link = link.clone();
+        move |percent| update_cpu(&link, |p| p.min_cores = optional(percent))
     });
     app.on_set_back_button({
         let link = link.clone();

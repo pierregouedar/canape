@@ -22,7 +22,23 @@ use windows_sys::Win32::System::Registry::{
 use windows_sys::Win32::System::RemoteDesktop::{WTSGetActiveConsoleSessionId, WTSQueryUserToken};
 use windows_sys::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 
-use super::{RegData, Scope, System};
+use windows_sys::Win32::Foundation::{ERROR_SERVICE_DOES_NOT_EXIST, GetLastError};
+use windows_sys::Win32::System::Power::{
+    PowerGetActiveScheme, PowerReadACValueIndex, PowerReadDCValueIndex, PowerSetActiveScheme,
+    PowerWriteACValueIndex, PowerWriteDCValueIndex,
+};
+use windows_sys::Win32::System::Services::{
+    ChangeServiceConfig2W, ChangeServiceConfigW, CloseServiceHandle, ControlService,
+    OpenSCManagerW, OpenServiceW, QUERY_SERVICE_CONFIGW, QueryServiceConfig2W, QueryServiceConfigW,
+    QueryServiceStatus, SC_HANDLE, SC_MANAGER_CONNECT, SERVICE_AUTO_START, SERVICE_CHANGE_CONFIG,
+    SERVICE_CONFIG_DELAYED_AUTO_START_INFO, SERVICE_CONTROL_STOP, SERVICE_DELAYED_AUTO_START_INFO,
+    SERVICE_NO_CHANGE, SERVICE_QUERY_CONFIG, SERVICE_QUERY_STATUS, SERVICE_START, SERVICE_STATUS,
+    SERVICE_STOP, SERVICE_STOPPED, StartServiceW,
+};
+use windows_sys::core::GUID;
+
+use super::power::{PROCESSOR_SUBGROUP, parse_guid};
+use super::{PowerSetting, PowerSource, RegData, Scope, ServiceState, System};
 
 const DEFENDER: &str = r"SOFTWARE\Microsoft\Windows Defender";
 const DEFENDER_POLICY: &str = r"SOFTWARE\Policies\Microsoft\Windows Defender";
@@ -287,6 +303,113 @@ fn powershell(script: &'static str, folders: &[String]) -> Result<(), String> {
     ))
 }
 
+fn guid(text: &str) -> Result<GUID, String> {
+    let (data1, data2, data3, data4) = parse_guid(text).ok_or("invalid GUID")?;
+    Ok(GUID {
+        data1,
+        data2,
+        data3,
+        data4,
+    })
+}
+
+fn guid_text(g: &GUID) -> String {
+    format!(
+        "{:08x}-{:04x}-{:04x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+        g.data1,
+        g.data2,
+        g.data3,
+        g.data4[0],
+        g.data4[1],
+        g.data4[2],
+        g.data4[3],
+        g.data4[4],
+        g.data4[5],
+        g.data4[6],
+        g.data4[7]
+    )
+}
+
+fn win32(status: u32) -> Result<(), String> {
+    if status == ERROR_SUCCESS {
+        Ok(())
+    } else {
+        Err(format!("error {status}"))
+    }
+}
+
+/// A service handle, closed on drop.
+struct Service(SC_HANDLE);
+
+impl Drop for Service {
+    fn drop(&mut self) {
+        unsafe { CloseServiceHandle(self.0) };
+    }
+}
+
+/// Opens a service; `Ok(None)` when it is not installed.
+fn open_service(name: &str, access: u32) -> Result<Option<Service>, String> {
+    let manager = unsafe { OpenSCManagerW(std::ptr::null(), std::ptr::null(), SC_MANAGER_CONNECT) };
+    if manager.is_null() {
+        return Err(format!("error {}", unsafe { GetLastError() }));
+    }
+    let manager = Service(manager);
+    let name = wide(name);
+    let handle = unsafe { OpenServiceW(manager.0, name.as_ptr(), access) };
+    if handle.is_null() {
+        return match unsafe { GetLastError() } {
+            ERROR_SERVICE_DOES_NOT_EXIST => Ok(None),
+            error => Err(format!("error {error}")),
+        };
+    }
+    Ok(Some(Service(handle)))
+}
+
+fn service_error() -> String {
+    format!("error {}", unsafe { GetLastError() })
+}
+
+fn service_running(service: &Service) -> Option<bool> {
+    let mut status = SERVICE_STATUS::default();
+    (unsafe { QueryServiceStatus(service.0, &mut status) } != 0)
+        .then_some(status.dwCurrentState != SERVICE_STOPPED)
+}
+
+fn service_state(name: &str) -> Option<ServiceState> {
+    let service = open_service(name, SERVICE_QUERY_CONFIG | SERVICE_QUERY_STATUS)
+        .ok()
+        .flatten()?;
+    let mut needed = 0u32;
+    unsafe { QueryServiceConfigW(service.0, std::ptr::null_mut(), 0, &mut needed) };
+    if needed == 0 {
+        return None;
+    }
+    // u64 words keep the structure aligned.
+    let mut buffer = vec![0u64; (needed as usize).div_ceil(8)];
+    let config = buffer.as_mut_ptr().cast::<QUERY_SERVICE_CONFIGW>();
+    if unsafe { QueryServiceConfigW(service.0, config, needed, &mut needed) } == 0 {
+        return None;
+    }
+    let start = unsafe { (*config).dwStartType };
+    let mut delayed = SERVICE_DELAYED_AUTO_START_INFO {
+        fDelayedAutostart: 0,
+    };
+    let ok = unsafe {
+        QueryServiceConfig2W(
+            service.0,
+            SERVICE_CONFIG_DELAYED_AUTO_START_INFO,
+            (&mut delayed as *mut SERVICE_DELAYED_AUTO_START_INFO).cast(),
+            std::mem::size_of::<SERVICE_DELAYED_AUTO_START_INFO>() as u32,
+            &mut needed,
+        )
+    };
+    Some(ServiceState {
+        start,
+        delayed: ok != 0 && delayed.fDelayedAutostart != 0,
+        running: service_running(&service)?,
+    })
+}
+
 impl System for WinSystem {
     fn read(&self, scope: Scope, key: &str, name: &str) -> Result<Option<RegData>, String> {
         let (hkey, key) = root(scope, key)?;
@@ -379,5 +502,158 @@ impl System for WinSystem {
 
     fn set_realtime_disabled(&mut self, disabled: bool) -> Result<(), String> {
         powershell(if disabled { REALTIME_OFF } else { REALTIME_ON }, &[])
+    }
+
+    fn power_scheme(&self) -> Result<String, String> {
+        let mut scheme: *mut GUID = std::ptr::null_mut();
+        win32(unsafe { PowerGetActiveScheme(std::ptr::null_mut(), &mut scheme) })?;
+        if scheme.is_null() {
+            return Err("no active power plan".into());
+        }
+        let text = guid_text(unsafe { &*scheme });
+        unsafe { LocalFree(scheme.cast()) };
+        Ok(text)
+    }
+
+    fn power_get(
+        &self,
+        scheme: &str,
+        setting: PowerSetting,
+        source: PowerSource,
+    ) -> Result<u32, String> {
+        let (scheme, subgroup, setting) = (
+            guid(scheme)?,
+            guid(PROCESSOR_SUBGROUP)?,
+            guid(setting.guid())?,
+        );
+        let mut value = 0u32;
+        let status = unsafe {
+            match source {
+                PowerSource::Ac => PowerReadACValueIndex(
+                    std::ptr::null_mut(),
+                    &scheme,
+                    &subgroup,
+                    &setting,
+                    &mut value,
+                ),
+                PowerSource::Dc => PowerReadDCValueIndex(
+                    std::ptr::null_mut(),
+                    &scheme,
+                    &subgroup,
+                    &setting,
+                    &mut value,
+                ),
+            }
+        };
+        win32(status).map(|()| value)
+    }
+
+    fn power_set(
+        &mut self,
+        scheme: &str,
+        setting: PowerSetting,
+        source: PowerSource,
+        value: u32,
+    ) -> Result<(), String> {
+        let (scheme, subgroup, setting) = (
+            guid(scheme)?,
+            guid(PROCESSOR_SUBGROUP)?,
+            guid(setting.guid())?,
+        );
+        let status = unsafe {
+            match source {
+                PowerSource::Ac => PowerWriteACValueIndex(
+                    std::ptr::null_mut(),
+                    &scheme,
+                    &subgroup,
+                    &setting,
+                    value,
+                ),
+                PowerSource::Dc => PowerWriteDCValueIndex(
+                    std::ptr::null_mut(),
+                    &scheme,
+                    &subgroup,
+                    &setting,
+                    value,
+                ),
+            }
+        };
+        win32(status)
+    }
+
+    fn power_commit(&mut self, scheme: &str) -> Result<(), String> {
+        let scheme = guid(scheme)?;
+        win32(unsafe { PowerSetActiveScheme(std::ptr::null_mut(), &scheme) })
+    }
+
+    fn service(&self, name: &str) -> Option<ServiceState> {
+        service_state(name)
+    }
+
+    fn set_service_start(&mut self, name: &str, start: u32, delayed: bool) -> Result<(), String> {
+        let service = open_service(name, SERVICE_CHANGE_CONFIG)?.ok_or("no such service")?;
+        let changed = unsafe {
+            ChangeServiceConfigW(
+                service.0,
+                SERVICE_NO_CHANGE,
+                start,
+                SERVICE_NO_CHANGE,
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null_mut(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+            )
+        };
+        if changed == 0 {
+            return Err(service_error());
+        }
+        // Only an automatic service has a delayed flag.
+        if start == SERVICE_AUTO_START {
+            let info = SERVICE_DELAYED_AUTO_START_INFO {
+                fDelayedAutostart: i32::from(delayed),
+            };
+            let ok = unsafe {
+                ChangeServiceConfig2W(
+                    service.0,
+                    SERVICE_CONFIG_DELAYED_AUTO_START_INFO,
+                    (&info as *const SERVICE_DELAYED_AUTO_START_INFO).cast(),
+                )
+            };
+            if ok == 0 {
+                return Err(service_error());
+            }
+        }
+        Ok(())
+    }
+
+    fn stop_service(&mut self, name: &str) -> Result<(), String> {
+        let service =
+            open_service(name, SERVICE_STOP | SERVICE_QUERY_STATUS)?.ok_or("no such service")?;
+        if service_running(&service) == Some(false) {
+            return Ok(());
+        }
+        let mut status = SERVICE_STATUS::default();
+        if unsafe { ControlService(service.0, SERVICE_CONTROL_STOP, &mut status) } == 0 {
+            return Err(service_error());
+        }
+        // A service takes a moment to stop; give it a few seconds.
+        for _ in 0..40 {
+            if service_running(&service) == Some(false) {
+                return Ok(());
+            }
+            std::thread::sleep(std::time::Duration::from_millis(250));
+        }
+        Err("still running".into())
+    }
+
+    fn start_service(&mut self, name: &str) -> Result<(), String> {
+        let service = open_service(name, SERVICE_START)?.ok_or("no such service")?;
+        if unsafe { StartServiceW(service.0, 0, std::ptr::null()) } == 0 {
+            return Err(service_error());
+        }
+        Ok(())
     }
 }

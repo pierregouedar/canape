@@ -13,7 +13,7 @@ use std::time::Duration;
 use slint::{ComponentHandle, Timer, TimerMode};
 
 use crate::i18n::ShellSettings;
-use crate::{App, AppWindow, Onboarding};
+use crate::{App, AppWindow, Onboarding, Tweaks};
 
 /// Steps, as `Onboarding.step` numbers them (see onboarding.slint).
 const CONFLICTS_STEP: u32 = 3;
@@ -21,9 +21,9 @@ const STORES_STEP: u32 = 4;
 const TWEAKS_STEP: u32 = 7;
 const LAST_STEP: u32 = 8;
 
-/// The Windows optimisations step (7). Hidden until the build has a
-/// recommended set to apply: `apply-tweaks` then has to call it.
-const WINDOWS_TWEAKS: bool = false;
+/// The Windows optimisations step (7): applies the recommended set through
+/// the tweaks page's own callback, and shows its outcome.
+const WINDOWS_TWEAKS: bool = true;
 
 /// How often the stores step reads what the library found.
 const REFRESH: Duration = Duration::from_secs(1);
@@ -162,10 +162,19 @@ fn save_entry(ui: &AppWindow, entry: Entry, text: Option<String>) {
     }
 }
 
+/// A step came into view: the Windows step asks the service for the
+/// tweaks, as the tweaks page does when it opens.
+fn entered(ui: &AppWindow, step: u32) {
+    if WINDOWS_TWEAKS && step == TWEAKS_STEP {
+        ui.global::<Tweaks>().invoke_open();
+    }
+}
+
 /// Shows the tour from `step`, refreshing what the stores step shows.
 fn open(ui: &AppWindow, refresh: &Timer, step: u32) {
     let tour = ui.global::<Onboarding>();
     tour.set_step(step as i32);
+    entered(ui, step);
     tour.set_refused("".into());
     show_keys(ui, &ShellSettings::load());
     show_steam(ui);
@@ -189,10 +198,17 @@ pub fn start(ui: &AppWindow) {
     }
     let refresh = Rc::new(Timer::default());
 
-    tour.on_step_changed(|step| {
-        let mut settings = ShellSettings::load();
-        settings.onboarding_step = u32::try_from(step).unwrap_or(0);
-        save(&settings);
+    tour.on_step_changed({
+        let weak = ui.as_weak();
+        move |step| {
+            let step = u32::try_from(step).unwrap_or(0);
+            let mut settings = ShellSettings::load();
+            settings.onboarding_step = step;
+            save(&settings);
+            if let Some(ui) = weak.upgrade() {
+                entered(&ui, step);
+            }
+        }
     });
     tour.on_finish({
         let (weak, refresh) = (ui.as_weak(), refresh.clone());
@@ -240,9 +256,14 @@ pub fn start(ui: &AppWindow) {
         }
     });
     tour.on_show_keyboard(crate::touchkb::show);
-    tour.on_apply_tweaks(|| {
-        // Not reachable while WINDOWS_TWEAKS is false.
-        crate::log("onboarding: no Windows optimisations in this build");
+    tour.on_apply_tweaks({
+        let weak = ui.as_weak();
+        move || {
+            crate::log("onboarding: applying the recommended Windows optimisations");
+            if let Some(ui) = weak.upgrade() {
+                ui.global::<Tweaks>().invoke_apply_recommended();
+            }
+        }
     });
 
     let settings = ShellSettings::load();

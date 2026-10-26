@@ -395,6 +395,10 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
             battery: -1,
             cpu_rpm: -1,
             gpu_rpm: -1,
+            cpu_boost: -1,
+            cpu_epp: -1,
+            cpu_max_mhz: -1,
+            cpu_min_cores: -1,
             ..StatusView::default()
         };
     };
@@ -446,6 +450,10 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
         fan_line: fan_line.into(),
         fan_area: fan_area.into(),
         fps_limit: s.fps_limit.map_or(0, |f| f as i32),
+        cpu_boost: s.cpu_power.boost.map_or(-1, |b| b.mode() as i32),
+        cpu_epp: s.cpu_power.epp.map_or(-1, |v| v as i32),
+        cpu_max_mhz: s.cpu_power.max_mhz.map_or(-1, |v| v as i32),
+        cpu_min_cores: s.cpu_power.min_cores.map_or(-1, |v| v as i32),
         controller: match s.controller_mode {
             Some(ControllerMode::Gamepad) => "gamepad",
             Some(ControllerMode::Wasd) => "wasd",
@@ -529,6 +537,7 @@ fn profile_view(profile: &Profile) -> ProfileView {
         max_watts: a.max_watts as i32,
         learned_watts: profile.learned_watts.map_or(-1, |w| w as i32),
         fps_limit: profile.fps_limit.map_or(0, |f| f as i32),
+        cpu_power: profile.cpu_power.is_some_and(|p| !p.is_default()),
     }
 }
 

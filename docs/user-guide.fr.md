@@ -172,8 +172,7 @@ Au tout premier lancement, une courte visite remplace les sections. Chaque étap
 
 <sub>Autres étapes : [langue](images/fr/onboarding-language.png), [couleur d'accent](images/fr/onboarding-accent.png), [dossier des jeux](images/fr/onboarding-folder.png), [boutons de l'Ally](images/fr/onboarding-buttons.png). La capture « autre outil » est simulée : hors Windows, le service n'en signale jamais.</sub>
 
-> [!NOTE]
-> Une étape **Optimisations de Windows** (« Appliquer la sélection recommandée » / « Plus tard ») est prévue entre les boutons de l'Ally et la fin : elle reste masquée tant que Canapé n'a pas cette sélection.
+Une étape **Optimisations de Windows** vient entre les boutons de l'Ally et la fin. Elle dit ce que fait la [sélection recommandée](#optimisations-windows) (Copilot, publicités, astuces et enregistrement des jeux en arrière-plan désactivés, dossiers de jeux exclus des analyses de Defender) et **A** (« Appliquer la sélection recommandée ») l'applique, comme la page des optimisations Windows. L'étape reste et montre le résultat : « Tout est appliqué », ou le nombre de réglages non appliqués ; le **A** suivant continue, et « Plus tard » passe l'étape. Sans le service, elle le dit et rien n'est appliqué. *Pas encore essayé sur l'Ally.*
 
 Une installation qui avait déjà un `shell.json` d'une version précédente voit aussi la visite, une fois.
 
@@ -447,6 +446,13 @@ Le navigateur ne se pilote pas à la manette : l'écran tactile et le clavier ta
 | **Mesures et écran → Banc d'essai** | Ouvre la page du [banc d'essai](#banc-dessai). La carte montre sa durée, ou le temps restant pendant un essai. |
 | **Mesures et écran → Écran** | Les fréquences que propose l'écran, en tuiles : **A** applique celle qui a le focus (voir Écran, dans la page [Matériel](#matériel)). |
 | **Mesures et écran → Profils de jeu** | Le nombre de profils ; ouvre la page [Profils de jeu](#profils-de-jeu). |
+| **Processeur → Boost du processeur** | Une réglette : Par défaut, Désactivé, Activé, Agressif. *Par défaut* laisse le réglage à Windows (et remet ce qu'il était si Canapé l'avait changé). |
+| **Processeur → Préférence énergétique** | Une réglette : Par défaut, 0, 25, 50, 75, 100 %. Bas : vitesse, haut : économie d'énergie. |
+| **Processeur → Fréquence maximale** | Une réglette : Par défaut, 2,0, 2,8, 3,6, 4,4 GHz. Plafonne la fréquence du processeur ; utile pour économiser la batterie dans les jeux légers. |
+| **Processeur → Cœurs actifs** | Une réglette : Par défaut, 25, 50, 75, 100 % : la part des cœurs que Windows garde éveillés. |
+
+> [!WARNING]
+> **Étagère Processeur : pas encore essayée sur l'Ally.** Testée avec le simulateur seulement. Canapé modifie les paramètres du processeur du **mode d'alimentation actif de Windows**, sur secteur comme sur batterie ; il garde les valeurs que le mode avait et les remet quand vous choisissez *Par défaut* et à la désinstallation (`uninstall-dev.ps1` les rétablit). **X** les enregistre dans le profil du jeu avec les réglages de puissance ; avec un profil en cours, un changement va dans le profil. Le curseur de mode d'alimentation de Windows peut en écraser certains : si une valeur semble sans effet, signalez-le.
 
 Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md).
 
@@ -620,7 +626,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 
 <img src="images/fr/profiles.png" alt="Sous-page Profils de jeu" width="720">
 
-Ouverte depuis la carte **Profils de jeu**, dans la page Performance ou Réglages ; **B** y revient. Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages d'auto TDP et, si vous les avez enregistrés depuis la page [Matériel](#matériel), à des courbes de ventilateurs, une limite de FPS et une fréquence d'écran. Quand ce programme passe au premier plan, le service applique le profil ; quand il le quitte, les réglages généraux reviennent.
+Ouverte depuis la carte **Profils de jeu**, dans la page Performance ou Réglages ; **B** y revient. Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages d'auto TDP et, si vous les avez enregistrés depuis la page [Matériel](#matériel), à des courbes de ventilateurs, une limite de FPS et une fréquence d'écran, et, si vous les avez enregistrés avec **X** sur la page Performance, à des [réglages du processeur](#performance) (affichés « Réglages du processeur » dans la liste). Quand ce programme passe au premier plan, le service applique le profil ; quand il le quitte, les réglages généraux reviennent.
 
 - **Première ligne** : « Enregistrer un profil pour <jeu> » (ou « Mettre à jour le profil de <jeu> ») ; **A** enregistre les réglages d'auto TDP en cours (objectif, puissance, maximum sur batterie, limite de température). Grisée tant qu'aucun jeu n'est au premier plan.
   - Si l'auto TDP est actif, la puissance actuelle est aussi enregistrée comme **watts appris** : la prochaine session du jeu démarre directement à cette valeur.
@@ -689,6 +695,8 @@ Ouverte depuis **Réglages → Optimisations Windows** ; **B** y revient. Une li
 | Jeux | **Mode Jeu** | Le mode Jeu de Windows activé. | oui | non |
 | | **Planification GPU à accélération matérielle** | Activée (« Redémarrez Windows pour appliquer » tant que ce n'est pas fait). | oui | **oui** |
 | | **Optimisations pour les jeux fenêtrés** | Activées pour les jeux DirectX 10 et 11 en fenêtre ou sans bordure ; les autres réglages graphiques de Windows sont gardés. | oui | non |
+| | **Enregistrement des jeux en arrière-plan** | Enregistrement en arrière-plan de Game DVR désactivé (`GameDVR_Enabled` et `AppCaptureEnabled`, pour votre compte). La Game Bar reste disponible, donc le widget Canapé continue de fonctionner : la stratégie `AllowGameDVR` n'est pas utilisée, car elle retire aussi la Game Bar. Pas encore essayé sur l'Ally. | oui | non |
+| | **Services ASUS** | Arrête et désactive les services d'arrière-plan d'Armoury Crate et d'ASUS qui sont installés (`ArmouryCrateService`, `AsusAppService`, `ASUSOptimization`, `ASUSSoftwareManager`, `ASUSSwitch`, `ASUSSystemAnalysis`, `ASUSSystemDiagnosis`, `asus_framework`, `LightingService`, `AsusCertService`), après avoir noté comment chacun démarrait ; le rétablir les remet comme avant et relance ceux qui tournaient. **Armoury Crate ne fonctionne plus.** Le pilote ATK que Canapé utilise n'est pas touché. La ligne indique le nombre de services trouvés, et « Indisponible » s'il n'y en a aucun. **La liste est à confirmer sur l'Ally** ; pas encore essayé. | non | non |
 | Sécurité | **Exclure les dossiers de jeux des analyses Defender** | Ajoute aux exclusions de Microsoft Defender les dossiers de jeux trouvés : `steamapps\common` de chaque bibliothèque Steam, les dossiers qui contiennent des jeux Epic ou GOG, et `Games` à la racine des lecteurs (le dossier de Canapé par défaut). Jamais une racine de lecteur, Windows, Program Files ni un dossier de profil. La ligne affiche le nombre de dossiers. Le rétablir retire seulement les exclusions ajoutées par Canapé. | oui | non |
 | | **Protection en temps réel de Defender** | La désactive. **L'appareil n'est plus protégé contre les virus.** Windows refuse tant que la *protection contre les falsifications* est active : la ligne affiche alors « Indisponible » et dit de la couper d'abord dans **Sécurité Windows → Protection contre les virus et menaces → Gérer les paramètres**. Windows peut la réactiver de lui-même. | non | non |
 | | **Intégrité de la mémoire** | Désactive l'intégrité de la mémoire (HVCI) et la sécurité basée sur la virtualisation : un peu plus de performances en jeu, **moins de protection contre les pilotes malveillants**. « Indisponible » si le firmware ou une stratégie la verrouille. | non | **oui** |
@@ -874,7 +882,7 @@ Pour repartir de zéro côté réglages : arrêtez le service, supprimez `%Progr
 
 | Étape | Ce que fait le script |
 |---|---|
-| 1/6 | Tant que le service tourne, remet le matériel au neutre : ventilateurs sur les courbes du firmware (**Automatique**), pas de limite de FPS, manette en mode **Manette de jeu**, et limite de charge à 100 % si Canapé en avait réglé une. Rétablit aussi les [optimisations Windows](#optimisations-windows) appliquées par Canapé (chaque valeur remise comme avant) et liste les applications retirées, à réinstaller depuis le Microsoft Store si besoin. Une fois le service parti, plus rien ne les annulerait. Si le service ne tourne pas, il le signale et continue. |
+| 1/6 | Tant que le service tourne, remet le matériel au neutre : ventilateurs sur les courbes du firmware (**Automatique**), pas de limite de FPS, manette en mode **Manette de jeu**, et limite de charge à 100 % si Canapé en avait réglé une. Rétablit aussi les [optimisations Windows](#optimisations-windows) appliquées par Canapé (chaque valeur remise comme avant, services ASUS compris) et les réglages du processeur du mode d'alimentation et liste les applications retirées, à réinstaller depuis le Microsoft Store si besoin. Une fois le service parti, plus rien ne les annulerait. Si le service ne tourne pas, il le signale et continue. |
 | 2/6 | Ferme le shell, arrête et supprime le service `CanapeService`. |
 | 3/6 | Retire le paquet d'identité du shell (`Canape`) et celui du widget (`Canape.Widget`). |
 | 4/6 | Efface la valeur d'accueil du FSE (`GamingHomeApp`) si elle désigne encore Canapé. |

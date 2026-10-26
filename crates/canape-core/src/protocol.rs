@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 use crate::bench::{BenchPlan, BenchProgress, BenchReport};
 use crate::fan::{Fan, FanCurve, FanCurves, FanPreset};
 use crate::settings::{
-    AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, GyroSettings, Lighting,
-    PerformanceMode, Profile,
+    AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, CpuPower, GyroSettings,
+    Lighting, PerformanceMode, Profile,
 };
 use crate::tweaks::{TweakId, TweakState};
 
@@ -111,6 +111,13 @@ pub enum Request {
     /// changes with it.
     SetLighting {
         lighting: Option<Lighting>,
+    },
+    /// Processor settings of the Windows power plan (boost, energy
+    /// preference, frequency limit, awake cores). Settings left `None` go
+    /// back to what Windows had. Saved, and written again at startup; they
+    /// belong to the active profile when it has its own.
+    SetCpuPower {
+        settings: CpuPower,
     },
     /// Answered with [`Response::Tweaks`]: every Windows tweak of the
     /// catalogue and its state.
@@ -227,13 +234,18 @@ pub struct Status {
     /// Light of the stick rings set through Canape, if any.
     #[serde(default)]
     pub lighting: Option<Lighting>,
+    /// Processor power settings in effect: the global ones, or the active
+    /// profile's.
+    #[serde(default)]
+    pub cpu_power: CpuPower,
 }
 
 /// What [`Request::SaveForegroundProfile`] saves.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ProfilePart {
-    /// Auto TDP, and the wattage it holds as the learned one.
+    /// Auto TDP and the wattage it holds as the learned one, with the
+    /// processor power settings.
     Power,
     /// Fan curves, frame rate cap and gyro aiming.
     Hardware,
@@ -402,6 +414,30 @@ mod tests {
         assert_eq!(status.gyro, GyroSettings::default());
         assert!(status.back_buttons.is_default());
         assert_eq!(status.lighting, None);
+        assert!(status.cpu_power.is_default());
+    }
+
+    #[test]
+    fn cpu_power_request_in_json() {
+        let request: Request = decode(
+            r#"{"type":"set_cpu_power","settings":{"boost":"disabled","epp":80,"max_mhz":0}}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            request,
+            Request::SetCpuPower {
+                settings: CpuPower {
+                    boost: Some(crate::CpuBoost::Disabled),
+                    epp: Some(80),
+                    max_mhz: Some(0),
+                    min_cores: None,
+                }
+            }
+        );
+        assert_eq!(
+            decode::<Request>(&encode(&request).unwrap()).unwrap(),
+            request
+        );
     }
 
     #[test]

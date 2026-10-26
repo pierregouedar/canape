@@ -1191,3 +1191,51 @@ msgstr "Prima A novamente"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Pode ser reinstalada a partir da Microsoft Store."
+
+msgid "Processor"
+msgstr "Processador"
+
+msgid "CPU boost"
+msgstr "Boost da CPU"
+
+msgid "Energy preference"
+msgstr "Preferência de energia"
+
+msgid "Maximum frequency"
+msgstr "Frequência máxima"
+
+msgid "Active cores"
+msgstr "Núcleos ativos"
+
+msgid "Aggressive"
+msgstr "Agressivo"
+
+msgid "{} GHz"
+msgstr "{} GHz"
+
+msgid "Low favours speed, high saves power"
+msgstr "Um valor baixo favorece a velocidade, um alto poupa energia"
+
+msgid "Share of the cores kept awake"
+msgstr "Parte dos núcleos mantidos ativos"
+
+msgid "CPU settings"
+msgstr "Configurações da CPU"
+
+msgid "Background game recording"
+msgstr "Gravação de jogos em segundo plano"
+
+msgid "ASUS services"
+msgstr "Serviços ASUS"
+
+msgid "The Game Bar stays available."
+msgstr "A Game Bar continua disponível."
+
+msgid "ASUS apps stop working ({} services)."
+msgstr "Os aplicativos da ASUS deixam de funcionar ({} serviços)."
+
+msgid "Turns off Copilot, ads, tips and background game recording, and excludes the game folders from Defender scans. Each one can be undone in Settings."
+msgstr "Desativa o Copilot, os anúncios, as dicas e a gravação de jogos em segundo plano, e exclui as pastas de jogos das verificações do Defender. Cada alteração pode ser desfeita em Configurações."
+
+msgid "{} could not be applied"
+msgstr "Não aplicadas: {}"

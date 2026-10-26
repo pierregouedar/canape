@@ -303,7 +303,7 @@ export component ProfilesPage inherits Rectangle {
                 y: i * root.pitch;
                 width: list.width;
                 label: profile.exe + (profile.exe.to-lowercase() == App.status.active-profile.to-lowercase() ? "  ·  " + @tr("In use") : "");
-                value: root.armed == i + 1 ? @tr("Press X again to delete") : (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "") + (profile.fps-limit > 0 ? " · " + @tr("limit {}", App.fps-value(profile.fps-limit)) : "");
+                value: root.armed == i + 1 ? @tr("Press X again to delete") : (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "") + (profile.fps-limit > 0 ? " · " + @tr("limit {}", App.fps-value(profile.fps-limit)) : "") + (profile.cpu-power ? " · " + @tr("CPU settings") : "");
                 chevrons: false;
                 focused: root.active && root.focus-row == i + 1;
                 clicked => {

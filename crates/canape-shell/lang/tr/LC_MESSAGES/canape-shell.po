@@ -1188,3 +1188,51 @@ msgstr "Tekrar A'ya basın"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Microsoft Store'dan yeniden yüklenebilir."
+
+msgid "Processor"
+msgstr "İşlemci"
+
+msgid "CPU boost"
+msgstr "CPU boost"
+
+msgid "Energy preference"
+msgstr "Enerji tercihi"
+
+msgid "Maximum frequency"
+msgstr "En yüksek frekans"
+
+msgid "Active cores"
+msgstr "Etkin çekirdekler"
+
+msgid "Aggressive"
+msgstr "Agresif"
+
+msgid "{} GHz"
+msgstr "{} GHz"
+
+msgid "Low favours speed, high saves power"
+msgstr "Düşük değer hızı, yüksek değer tasarrufu öne çıkarır"
+
+msgid "Share of the cores kept awake"
+msgstr "Etkin tutulan çekirdeklerin oranı"
+
+msgid "CPU settings"
+msgstr "İşlemci ayarları"
+
+msgid "Background game recording"
+msgstr "Arka planda oyun kaydı"
+
+msgid "ASUS services"
+msgstr "ASUS hizmetleri"
+
+msgid "The Game Bar stays available."
+msgstr "Game Bar kullanılabilir kalır."
+
+msgid "ASUS apps stop working ({} services)."
+msgstr "ASUS uygulamaları çalışmayı bırakır ({} hizmet)."
+
+msgid "Turns off Copilot, ads, tips and background game recording, and excludes the game folders from Defender scans. Each one can be undone in Settings."
+msgstr "Copilot'u, reklamları, ipuçlarını ve arka planda oyun kaydını kapatır; oyun klasörlerini Defender taramalarının dışında tutar. Her değişiklik Ayarlar'dan geri alınabilir."
+
+msgid "{} could not be applied"
+msgstr "Uygulanamayanlar: {}"

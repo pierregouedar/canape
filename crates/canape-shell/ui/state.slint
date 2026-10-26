@@ -52,6 +52,13 @@ export struct StatusView {
     fan-area: string,
     // Driver frame rate cap, 0 = none.
     fps-limit: int,
+    // Processor settings of the power plan, -1 when left to Windows:
+    // boost mode (0 off, 1 on, 2 aggressive), energy preference (percent),
+    // frequency limit (MHz, 0 none), cores kept awake (percent).
+    cpu-boost: int,
+    cpu-epp: int,
+    cpu-max-mhz: int,
+    cpu-min-cores: int,
     // "gamepad", "wasd", "mouse" or "" when unknown.
     controller: string,
     // Battery charge limit set through Canapé, percent, 0 when unknown.
@@ -86,6 +93,8 @@ export struct ProfileView {
     learned-watts: int,
     // Frame rate cap, 0 for none.
     fps-limit: int,
+    // The game has its own processor settings.
+    cpu-power: bool,
 }
 
 export struct BenchRow {
@@ -193,6 +202,11 @@ export global App {
     callback set-fan-preset(string);
     // 0 removes the cap.
     callback set-fps-limit(int);
+    // Processor settings of the power plan; -1 puts back what Windows had.
+    callback set-cpu-boost(int);
+    callback set-cpu-epp(int);
+    callback set-cpu-max-mhz(int);
+    callback set-cpu-min-cores(int);
     callback set-controller(string);
     // Percent, 40 to 100.
     callback set-charge-limit(int);

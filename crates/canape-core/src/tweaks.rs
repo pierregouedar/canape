@@ -37,6 +37,11 @@ pub enum TweakId {
     GpuSchedulingOn,
     /// Flip presentation model for DirectX 10/11 games in a window.
     WindowedOptimizationsOn,
+    /// Background recording (Game DVR) off; the Game Bar itself stays.
+    GameDvrOff,
+    /// The ASUS background services stopped and
+    /// disabled, except the driver Canapé talks to.
+    AsusServicesOff,
     /// Game folders excluded from Microsoft Defender scans.
     DefenderExclusions,
     /// Microsoft Defender real-time protection off. Windows ignores it
@@ -81,7 +86,7 @@ pub struct TweakInfo {
 
 impl TweakId {
     /// The catalogue, in display order.
-    pub const ALL: [TweakId; 14] = [
+    pub const ALL: [TweakId; 16] = [
         TweakId::CopilotOff,
         TweakId::WidgetsOff,
         TweakId::WebSearchOff,
@@ -93,6 +98,8 @@ impl TweakId {
         TweakId::GameModeOn,
         TweakId::GpuSchedulingOn,
         TweakId::WindowedOptimizationsOn,
+        TweakId::GameDvrOff,
+        TweakId::AsusServicesOff,
         TweakId::DefenderExclusions,
         TweakId::DefenderRealtimeOff,
         TweakId::MemoryIntegrityOff,
@@ -107,7 +114,9 @@ impl TweakId {
             TelemetryMin => (Privacy, true, false, false),
             // Can stop notifications or syncing of Store apps.
             BackgroundAppsOff => (Privacy, false, false, false),
-            GameModeOn | WindowedOptimizationsOn => (Games, true, false, false),
+            GameModeOn | WindowedOptimizationsOn | GameDvrOff => (Games, true, false, false),
+            // The ASUS apps stop working; the user chooses.
+            AsusServicesOff => (Games, false, false, false),
             GpuSchedulingOn => (Games, true, true, false),
             DefenderExclusions => (Security, true, false, true),
             DefenderRealtimeOff => (Security, false, false, true),
@@ -165,8 +174,8 @@ pub struct TweakState {
     /// restart.
     #[serde(default)]
     pub reboot_pending: bool,
-    /// Defender exclusions: the folders concerned (excluded when applied,
-    /// to exclude otherwise).
+    /// ASUS services: the ones present. Defender exclusions: the folders
+    /// concerned (excluded when applied, to exclude otherwise).
     #[serde(default)]
     pub paths: Vec<String>,
 }
@@ -322,6 +331,8 @@ mod tests {
         }
         assert!(!TweakId::DefenderRealtimeOff.info().recommended);
         assert!(!TweakId::MemoryIntegrityOff.info().recommended);
+        assert!(TweakId::GameDvrOff.info().recommended);
+        assert!(!TweakId::AsusServicesOff.info().recommended);
     }
 
     #[test]

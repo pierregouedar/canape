@@ -1191,3 +1191,51 @@ msgstr "Pulsa A otra vez"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Se puede reinstalar desde Microsoft Store."
+
+msgid "Processor"
+msgstr "Procesador"
+
+msgid "CPU boost"
+msgstr "Boost de la CPU"
+
+msgid "Energy preference"
+msgstr "Preferencia de energía"
+
+msgid "Maximum frequency"
+msgstr "Frecuencia máxima"
+
+msgid "Active cores"
+msgstr "Núcleos activos"
+
+msgid "Aggressive"
+msgstr "Agresivo"
+
+msgid "{} GHz"
+msgstr "{} GHz"
+
+msgid "Low favours speed, high saves power"
+msgstr "Un valor bajo favorece la velocidad, uno alto ahorra energía"
+
+msgid "Share of the cores kept awake"
+msgstr "Parte de los núcleos que se mantienen activos"
+
+msgid "CPU settings"
+msgstr "Ajustes de la CPU"
+
+msgid "Background game recording"
+msgstr "Grabación de juegos en segundo plano"
+
+msgid "ASUS services"
+msgstr "Servicios de ASUS"
+
+msgid "The Game Bar stays available."
+msgstr "La Game Bar sigue disponible."
+
+msgid "ASUS apps stop working ({} services)."
+msgstr "Las aplicaciones de ASUS dejan de funcionar ({} servicios)."
+
+msgid "Turns off Copilot, ads, tips and background game recording, and excludes the game folders from Defender scans. Each one can be undone in Settings."
+msgstr "Desactiva Copilot, los anuncios, los consejos y la grabación de juegos en segundo plano, y excluye las carpetas de juegos de los análisis de Defender. Cada cambio se puede deshacer en Ajustes."
+
+msgid "{} could not be applied"
+msgstr "No aplicados: {}"

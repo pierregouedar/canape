@@ -1188,3 +1188,51 @@ msgstr "再按一次 A"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "可以从 Microsoft Store 重新安装。"
+
+msgid "Processor"
+msgstr "处理器"
+
+msgid "CPU boost"
+msgstr "CPU 加速"
+
+msgid "Energy preference"
+msgstr "能效偏好"
+
+msgid "Maximum frequency"
+msgstr "最大频率"
+
+msgid "Active cores"
+msgstr "活动核心"
+
+msgid "Aggressive"
+msgstr "激进"
+
+msgid "{} GHz"
+msgstr "{} GHz"
+
+msgid "Low favours speed, high saves power"
+msgstr "数值低偏向速度，数值高更省电"
+
+msgid "Share of the cores kept awake"
+msgstr "保持活动的核心比例"
+
+msgid "CPU settings"
+msgstr "CPU 设置"
+
+msgid "Background game recording"
+msgstr "后台游戏录制"
+
+msgid "ASUS services"
+msgstr "ASUS 服务"
+
+msgid "The Game Bar stays available."
+msgstr "Game Bar 仍然可用。"
+
+msgid "ASUS apps stop working ({} services)."
+msgstr "ASUS 应用将停止工作（{} 项服务）。"
+
+msgid "Turns off Copilot, ads, tips and background game recording, and excludes the game folders from Defender scans. Each one can be undone in Settings."
+msgstr "关闭 Copilot、广告、提示和后台游戏录制，并将游戏文件夹排除在 Defender 扫描之外。每一项都可以在设置中撤销。"
+
+msgid "{} could not be applied"
+msgstr "未能应用：{}"
