@@ -35,6 +35,7 @@ mod link;
 #[cfg(any(windows, test))]
 mod nav;
 mod onboarding;
+mod renderer;
 mod report;
 mod screen;
 mod shelves;
@@ -92,12 +93,20 @@ fn main() -> Result<(), slint::PlatformError> {
         env!("CARGO_PKG_VERSION")
     ));
 
+    renderer::log_startup();
+
     if !instance::acquire() {
         log("already running: activation forwarded");
         return Ok(());
     }
+    // Before any window or Slint object: the setting may ask for the other
+    // executable.
+    if renderer::hand_over_at_startup(&args) {
+        return Ok(());
+    }
 
-    let ui = AppWindow::new()?;
+    let ui = AppWindow::new().inspect_err(|err| log(&format!("window: {err}")))?;
+    renderer::signal_when_shown(ui.window());
     keys::install(ui.window());
     if std::env::var_os("CANAPE_WINDOWED").is_none() {
         ui.window().set_fullscreen(true);
@@ -162,6 +171,7 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
     ui.run()
+        .inspect_err(|err| log(&format!("renderer failed: {err}")))
 }
 
 fn show_shell_settings(ui: &AppWindow, settings: &i18n::ShellSettings) {
@@ -170,6 +180,7 @@ fn show_shell_settings(ui: &AppWindow, settings: &i18n::ShellSettings) {
     app.set_online_covers(settings.online_covers);
     app.set_griddb_key(online.griddb_key.is_some());
     app.set_ally_buttons(settings.ally_buttons);
+    app.set_gpu_renderer(renderer::is_gpu(settings));
 }
 
 /// Changes the auto TDP settings from the last known ones.
@@ -615,6 +626,26 @@ fn connect(ui: &AppWindow, link: &Link) {
     app.on_set_ui_power({
         let link = link.clone();
         move |enabled| link.send(Request::SetUiPower { enabled })
+    });
+
+    app.on_set_gpu_renderer({
+        let ui = ui.as_weak();
+        move |gpu| {
+            let target = if gpu {
+                i18n::Renderer::Gpu
+            } else {
+                i18n::Renderer::Software
+            };
+            if let Some(ui) = ui.upgrade() {
+                ui.global::<App>().set_gpu_renderer(gpu);
+            }
+            let back = ui.clone();
+            renderer::switch(target, Some(renderer::SETTINGS_PAGE), move || {
+                if let Some(ui) = back.upgrade() {
+                    ui.global::<App>().set_gpu_renderer(!gpu);
+                }
+            });
+        }
     });
 
     app.on_set_language({

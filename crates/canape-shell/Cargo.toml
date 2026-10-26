@@ -6,6 +6,30 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+default = ["software"]
+# canape-shell: Slint's software renderer, no OpenGL linked.
+software = [
+    "slint/renderer-software",
+    "slint/software-renderer-path",
+    "slint/software-renderer-systemfonts",
+]
+# canape-shell-gpu: FemtoVG on OpenGL. Build it on its own, without the
+# software renderer: cargo build --release -p canape-shell --no-default-features --features gpu
+gpu = ["slint/renderer-femtovg"]
+
+# The same sources build two executables; each is built with its own
+# feature set (see docs/gpu-renderer-test.md).
+[[bin]]
+name = "canape-shell"
+path = "src/main.rs"
+required-features = ["software"]
+
+[[bin]]
+name = "canape-shell-gpu"
+path = "src/main.rs"
+required-features = ["gpu"]
+
 [dependencies]
 canape-core.workspace = true
 canape-hw.workspace = true
@@ -13,7 +37,7 @@ canape-ipc.workspace = true
 canape-library = { path = "../canape-library" }
 serde.workspace = true
 serde_json.workspace = true
-slint = { version = "1.18", default-features = false, features = ["std", "compat-1-2", "backend-winit", "renderer-software", "software-renderer-path", "software-renderer-systemfonts", "unstable-winit-030"] }
+slint = { version = "1.18", default-features = false, features = ["std", "compat-1-2", "backend-winit", "unstable-winit-030"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { workspace = true, features = [

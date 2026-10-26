@@ -7,7 +7,8 @@
 //   profiles;
 //   shelf 2, accounts: Steam, Epic Games, GOG, time to beat (IGDB);
 //   shelf 3, system: Windows tweaks (a page of its own), the welcome tour
-//   again, full power while Canapé is in front.
+//   again, full power while Canapé is in front, the display (software
+//   renderer or graphics card).
 // In the language drawer the arrows move over the languages and A applies
 // one; in the accent drawer, up and down go from the presets (A applies
 // one) to the hue, saturation and brightness tracks, which left and right
@@ -107,7 +108,7 @@ export component SettingsPage inherits Rectangle {
         move2: @tr("Value"),
         a: root.accent-row == 0 ? @tr("Apply") : "",
         b: @tr("Close"),
-    } : root.drawer == "ally" || root.drawer == "covers" || root.drawer == "uipower" ? {
+    } : root.drawer == "ally" || root.drawer == "covers" || root.drawer == "uipower" || root.drawer == "display" ? {
         move-glyph: "leftright",
         move: @tr("Choose"),
         a: @tr("Apply"),
@@ -130,10 +131,10 @@ export component SettingsPage inherits Rectangle {
     }
 
     pure function key(s: int, c: int) -> string {
-        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : s == 2 ? ["steam", "epic", "gog", "igdb"][c] : ["tweaks", "tour", "uipower"][c]
+        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : s == 2 ? ["steam", "epic", "gog", "igdb"][c] : ["tweaks", "tour", "uipower", "display"][c]
     }
     pure function cards(s: int) -> int {
-        s == 0 || s == 3 ? 3 : 4
+        s == 0 ? 3 : 4
     }
     // The setting behind an On / Off drawer.
     pure function toggle-value(key: string) -> bool {
@@ -151,7 +152,7 @@ export component SettingsPage inherits Rectangle {
         } else {
             root.language-pick = root.language-index;
             root.accent-row = 0;
-            root.toggle-col = root.toggle-value(root.focused-key) ? 0 : 1;
+            root.toggle-col = root.focused-key == "display" ? (App.gpu-renderer ? 1 : 0) : root.toggle-value(root.focused-key) ? 0 : 1;
             root.sheet = root.focused-key;
             root.drawer = root.focused-key;
         }
@@ -180,7 +181,7 @@ export component SettingsPage inherits Rectangle {
             } else {
                 root.brightness(d);
             }
-        } else if root.drawer == "ally" || root.drawer == "covers" || root.drawer == "uipower" {
+        } else if root.drawer == "ally" || root.drawer == "covers" || root.drawer == "uipower" || root.drawer == "display" {
             root.toggle-col = clamp(root.toggle-col + d, 0, 1);
         } else if root.drawer == "folder" {
             Library.games-folder-step(d);
@@ -215,6 +216,10 @@ export component SettingsPage inherits Rectangle {
         } else if root.drawer == "uipower" {
             if App.status.ui-power-enabled != (root.toggle-col == 0) {
                 App.set-ui-power(root.toggle-col == 0);
+            }
+        } else if root.drawer == "display" {
+            if App.gpu-renderer != (root.toggle-col == 1) {
+                App.set-gpu-renderer(root.toggle-col == 1);
             }
         } else if root.drawer == "epic" {
             if !Library.epic-busy {
@@ -547,6 +552,19 @@ export component SettingsPage inherits Rectangle {
                     fs.focus();
                 }
             }
+
+            ShelfCard {
+                label: @tr("Display");
+                icon: "screen";
+                value: App.gpu-renderer ? @tr("Smooth") : @tr("Efficient");
+                focused: root.active && root.shelf == 3 && root.card == 3;
+                clicked => {
+                    root.shelf = 3;
+                    root.card = 3;
+                    root.activate();
+                    fs.focus();
+                }
+            }
         }
     }
 
@@ -555,9 +573,10 @@ export component SettingsPage inherits Rectangle {
         page-height: parent.height;
         open: root.open;
         sheet-height: root.sheet-height;
-        title: root.sheet == "language" ? @tr("Language") : root.sheet == "accent" ? @tr("Accent colour") : root.sheet == "ally" ? @tr("Use the Ally's buttons") : root.sheet == "folder" ? @tr("Games folder") : root.sheet == "covers" ? @tr("Download missing covers") : root.sheet == "steam" ? "Steam" : root.sheet == "epic" ? @tr("Epic Games account") : root.sheet == "gog" ? @tr("GOG account") : root.sheet == "uipower" ? @tr("Full power in Canapé") : @tr("Time to beat");
+        title: root.sheet == "language" ? @tr("Language") : root.sheet == "accent" ? @tr("Accent colour") : root.sheet == "ally" ? @tr("Use the Ally's buttons") : root.sheet == "folder" ? @tr("Games folder") : root.sheet == "covers" ? @tr("Download missing covers") : root.sheet == "steam" ? "Steam" : root.sheet == "epic" ? @tr("Epic Games account") : root.sheet == "gog" ? @tr("GOG account") : root.sheet == "uipower" ? @tr("Full power in Canapé") : root.sheet == "display" ? @tr("Display") : @tr("Time to beat");
         note: root.sheet == "folder" && Library.games-free-tenths >= 0 ? @tr("{} GB free", App.tenths(Library.games-free-tenths))
             : root.sheet == "accent" ? Theme.accent-hex.to-uppercase()
+            : root.sheet == "display" ? @tr("Smooth uses about 300 MB more memory, also during games. Canapé restarts.")
             : root.sheet == "steam" ? (Library.steam-key ? @tr("Steam API key set") : @tr("No Steam API key"))
             : root.sheet == "epic" ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-waiting ? @tr("Waiting for the Epic code…") : Library.epic-account)
             : root.sheet == "gog" ? (Library.gog-busy ? @tr("Opening the GOG sign-in…") : Library.gog-waiting ? @tr("Waiting for the GOG address…") : Library.gog-account)
@@ -663,6 +682,22 @@ export component SettingsPage inherits Rectangle {
                 width: 180px;
                 label: i == 0 ? @tr("On") : @tr("Off");
                 selected: root.toggle-value(root.sheet) == (i == 0);
+                focused: root.active && root.toggle-col == i;
+                clicked => {
+                    root.toggle-col = i;
+                    root.apply();
+                    fs.focus();
+                }
+            }
+        }
+
+        if root.sheet == "display": HorizontalLayout {
+            spacing: 12px;
+            alignment: start;
+            for i in 2: ChoiceTile {
+                width: 180px;
+                label: i == 0 ? @tr("Efficient") : @tr("Smooth");
+                selected: App.gpu-renderer == (i == 1);
                 focused: root.active && root.toggle-col == i;
                 clicked => {
                     root.toggle-col = i;

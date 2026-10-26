@@ -1272,3 +1272,18 @@ msgstr "Faktor"
 
 msgid "Adaptive"
 msgstr "Adaptiv"
+
+msgid "Display"
+msgstr "Anzeige"
+
+msgid "Efficient"
+msgstr "Sparsam"
+
+msgid "Smooth"
+msgstr "Flüssig"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "Flüssig braucht etwa 300 MB mehr Speicher, auch während Spielen. Canapé startet am Ende der Einführung neu."
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "Flüssig braucht etwa 300 MB mehr Speicher, auch während Spielen. Canapé startet neu."

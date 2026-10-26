@@ -1272,3 +1272,18 @@ msgstr "Vermenigvuldiger"
 
 msgid "Adaptive"
 msgstr "Adaptief"
+
+msgid "Display"
+msgstr "Weergave"
+
+msgid "Efficient"
+msgstr "Zuinig"
+
+msgid "Smooth"
+msgstr "Vloeiend"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "Vloeiend gebruikt ongeveer 300 MB meer geheugen, ook tijdens games. Canapé start aan het einde van de rondleiding opnieuw."
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "Vloeiend gebruikt ongeveer 300 MB meer geheugen, ook tijdens games. Canapé start opnieuw."

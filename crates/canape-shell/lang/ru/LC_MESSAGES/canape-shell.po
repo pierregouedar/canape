@@ -1269,3 +1269,18 @@ msgstr "Множитель"
 
 msgid "Adaptive"
 msgstr "Адаптивный"
+
+msgid "Display"
+msgstr "Отображение"
+
+msgid "Efficient"
+msgstr "Экономный"
+
+msgid "Smooth"
+msgstr "Плавный"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "Плавный режим занимает примерно на 300 МБ больше памяти, в том числе во время игр. Canapé перезапустится после знакомства."
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "Плавный режим занимает примерно на 300 МБ больше памяти, в том числе во время игр. Canapé перезапустится."

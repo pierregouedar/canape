@@ -1269,3 +1269,18 @@ msgstr "Mnożnik"
 
 msgid "Adaptive"
 msgstr "Adaptacyjny"
+
+msgid "Display"
+msgstr "Wyświetlanie"
+
+msgid "Efficient"
+msgstr "Oszczędny"
+
+msgid "Smooth"
+msgstr "Płynny"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "Płynny zużywa około 300 MB więcej pamięci, także podczas gier. Canapé uruchomi się ponownie po zakończeniu wprowadzenia."
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "Płynny zużywa około 300 MB więcej pamięci, także podczas gier. Canapé uruchomi się ponownie."

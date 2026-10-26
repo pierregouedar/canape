@@ -4,22 +4,24 @@
 //! it again, and so can `CANAPE_ONBOARDING=1` (development).
 //!
 //! The steps only call what the settings page already uses (language,
-//! accent, sign-ins, games folder, the Ally's buttons); this module adds
-//! the keys typed or pasted on the stores step and the touch keyboard.
+//! accent, sign-ins, games folder, the Ally's buttons, the renderer); this
+//! module adds the keys typed or pasted on the stores step and the touch
+//! keyboard. The display step only saves its choice: the other executable
+//! is started once the tour is saved as done (see `finish`).
 
 use std::rc::Rc;
 use std::time::Duration;
 
 use slint::{ComponentHandle, Timer, TimerMode};
 
-use crate::i18n::ShellSettings;
+use crate::i18n::{Renderer, ShellSettings};
 use crate::{App, AppWindow, Onboarding, Tweaks};
 
 /// Steps, as `Onboarding.step` numbers them (see onboarding.slint).
 const CONFLICTS_STEP: u32 = 3;
 const STORES_STEP: u32 = 4;
 const TWEAKS_STEP: u32 = 7;
-const LAST_STEP: u32 = 8;
+const LAST_STEP: u32 = 9;
 
 /// The Windows optimisations step (7): applies the recommended set through
 /// the tweaks page's own callback, and shows its outcome.
@@ -224,6 +226,35 @@ pub fn start(ui: &AppWindow) {
             ui.set_page(0);
             // The library tells the gamepad itself once it has the focus.
             crate::library::set_page_arrows(false);
+            // The display choice applies now that the tour is saved as done.
+            if settings.renderer != crate::renderer::built() {
+                let back = ui.as_weak();
+                let gpu = crate::renderer::built() == Renderer::Gpu;
+                crate::renderer::switch(settings.renderer, None, move || {
+                    if let Some(ui) = back.upgrade() {
+                        ui.global::<App>().set_gpu_renderer(gpu);
+                    }
+                });
+            }
+        }
+    });
+    tour.on_choose_renderer({
+        let weak = ui.as_weak();
+        move |gpu| {
+            let mut settings = ShellSettings::load();
+            settings.renderer = if gpu {
+                Renderer::Gpu
+            } else {
+                Renderer::Software
+            };
+            save(&settings);
+            crate::log(&format!(
+                "onboarding: renderer {}",
+                crate::renderer::describe(settings.renderer)
+            ));
+            if let Some(ui) = weak.upgrade() {
+                ui.global::<App>().set_gpu_renderer(gpu);
+            }
         }
     });
     tour.on_replay({

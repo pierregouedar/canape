@@ -145,7 +145,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 > [!NOTE]
 > **Pas encore essayé sur l'Ally.** La visite n'a tourné que sous Linux, avec le simulateur matériel et la fausse bibliothèque ; les captures viennent de là. Sur l'Ally, restent à vérifier le clavier tactile, le presse-papiers et les connexions dans le navigateur par-dessus le FSE.
 
-Au tout premier lancement, une courte visite remplace les sections. Chaque étape change les mêmes réglages que la page [Réglages](#réglages), appliqués tout de suite ; **A** continue, **X** passe l'étape (« Plus tard » sur la première ferme toute la visite), **B** revient à l'étape précédente, la croix se déplace à droite. Les points en haut à gauche disent où vous en êtes. L'étape atteinte est enregistrée : après un redémarrage, Canapé y revient. Une fois terminée (ou remise à plus tard), la visite ne revient plus ; **Réglages → Système → Visite de bienvenue** la relance depuis le début.
+Au tout premier lancement, une courte visite remplace les sections. Chaque étape change les mêmes réglages que la page [Réglages](#réglages), appliqués tout de suite (sauf l'affichage, appliqué à la fin de la visite) ; **A** continue, **X** passe l'étape (« Plus tard » sur la première ferme toute la visite), **B** revient à l'étape précédente, la croix se déplace à droite. Les points en haut à gauche disent où vous en êtes. L'étape atteinte est enregistrée : après un redémarrage, Canapé y revient. Une fois terminée (ou remise à plus tard), la visite ne revient plus ; **Réglages → Système → Visite de bienvenue** la relance depuis le début.
 
 | Étape | Ce qu'elle fait |
 |---|---|
@@ -155,6 +155,7 @@ Au tout premier lancement, une courte visite remplace les sections. Chaque étap
 | **Boutiques de jeux** | Steam : si le client a été trouvé et combien de jeux Steam sont installés, puis la **clé Steam Web API** (pour lister les jeux possédés non installés). Epic et GOG : **A** lance la même connexion que dans Réglages (navigateur, puis presse-papiers) et la ligne affiche le compte une fois connecté. **Durée de jeu (IGDB)** : le **Client ID** et le **Client secret** de l'application Twitch, facultatifs. |
 | **Dossier des jeux** | Où s'installent les jeux Epic et GOG et son espace libre ; gauche et droite le changent (comme dans Réglages). |
 | **Les boutons de l'Ally** | Ce que font les boutons Armoury et Command Center avec Canapé, et **Utiliser les boutons de l'Ally** activé ou non. |
+| **Affichage** | **Économe** (rendu logiciel, le défaut) ou **Fluide** (carte graphique) ; gauche et droite choisissent. Fluide demande environ 300 Mo de mémoire en plus, aussi pendant les jeux. Le choix est appliqué à la fin de la visite : Canapé redémarre alors si c'est Fluide. Voir [Affichage](#affichage--économe-ou-fluide). Pas encore essayé sur l'Ally. |
 | **C'est prêt** | Les gestes principaux : LB / RB les sections, A choisir ou jouer, B retour, X enregistrer pour ce jeu (Performance, Matériel), Y les options d'un jeu sur sa page. **A** mène aux jeux. |
 
 | Boutiques de jeux | Saisie d'une clé |
@@ -172,7 +173,7 @@ Au tout premier lancement, une courte visite remplace les sections. Chaque étap
 
 <sub>Autres étapes : [langue](images/fr/onboarding-language.png), [couleur d'accent](images/fr/onboarding-accent.png), [dossier des jeux](images/fr/onboarding-folder.png), [boutons de l'Ally](images/fr/onboarding-buttons.png). La capture « autre outil » est simulée : hors Windows, le service n'en signale jamais.</sub>
 
-Une étape **Optimisations de Windows** vient entre les boutons de l'Ally et la fin. Elle dit ce que fait la [sélection recommandée](#optimisations-windows) (Copilot, publicités, astuces et enregistrement des jeux en arrière-plan désactivés, dossiers de jeux exclus des analyses de Defender) et **A** (« Appliquer la sélection recommandée ») l'applique, comme la page des optimisations Windows. L'étape reste et montre le résultat : « Tout est appliqué », ou le nombre de réglages non appliqués ; le **A** suivant continue, et « Plus tard » passe l'étape. Sans le service, elle le dit et rien n'est appliqué. *Pas encore essayé sur l'Ally.*
+Une étape **Optimisations de Windows** vient entre les boutons de l'Ally et l'affichage. Elle dit ce que fait la [sélection recommandée](#optimisations-windows) (Copilot, publicités, astuces et enregistrement des jeux en arrière-plan désactivés, dossiers de jeux exclus des analyses de Defender) et **A** (« Appliquer la sélection recommandée ») l'applique, comme la page des optimisations Windows. L'étape reste et montre le résultat : « Tout est appliqué », ou le nombre de réglages non appliqués ; le **A** suivant continue, et « Plus tard » passe l'étape. Sans le service, elle le dit et rien n'est appliqué. *Pas encore essayé sur l'Ally.*
 
 Une installation qui avait déjà un `shell.json` d'une version précédente voit aussi la visite, une fois.
 
@@ -631,12 +632,20 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 | **Système → Optimisations Windows** | **A** ouvre la sous-page [Optimisations Windows](#optimisations-windows) (Copilot, publicités, applications préinstallées, Defender…). Pas encore essayé sur l'Ally. |
 | **Système → Visite de bienvenue** | **A** relance la [visite du premier lancement](#premier-lancement) depuis le début. Pas encore essayé sur l'Ally. |
 | **Système → Pleine puissance dans Canapé** | Activé (par défaut) ou Désactivé. Canapé s'affiche avec le processeur : en mode Silencieux ou avec une limite basse, l'interface saccade. Activé, tant que Canapé est la fenêtre au premier plan et qu'aucun jeu ne tourne, le service écrit les limites de puissance du mode Performance ; dès qu'un jeu passe devant ou que Canapé perd le premier plan (après 1,5 s, pour ne pas osciller), il remet exactement votre état (mode, TDP manuel, profil de jeu, auto TDP). Les courbes de ventilateurs personnalisées sont gardées. Rien n'est écrit si votre niveau est déjà celui du mode Performance ou au-dessus (TDP manuel de 15 W et plus, Performance, Turbo), pendant un banc d'essai ni quand le mode est inconnu. Si Canapé cesse de se signaler (fermé, bloqué), l'état est remis après 4 s. Les lignes `ui power: on (…)` et `ui power: off (…)` de `service.log` marquent chaque passage. Pas encore essayé sur l'Ally. |
+| **Système → Affichage** | **Économe** ou **Fluide** (**A** applique) ; le tiroir rappelle le coût en mémoire et que Canapé redémarre. Voir [Affichage](#affichage--économe-ou-fluide). Pas encore essayé sur l'Ally. |
 
 | Accent sarcelle | Accent orange |
 |---|---|
 | <img src="images/accent-teal.png" alt="Performance avec l'accent sarcelle" width="400"> | <img src="images/accent-amber.png" alt="Performance avec l'accent orange" width="400"> |
 
 <sub>Captures en anglais. Les mêmes réglages en allemand : [de/settings.png](images/de/settings.png).</sub>
+
+#### Affichage : Économe ou Fluide
+
+> [!NOTE]
+> **Pas encore essayé sur l'Ally.** Les mesures citées viennent de l'essai décrit dans [gpu-renderer-test.md](gpu-renderer-test.md).
+
+Canapé s'installe avec deux exécutables : `canape-shell.exe`, qui dessine avec le processeur (**Économe**, le défaut : environ 28 Mo de mémoire, accueil à 104 à 114 images par seconde), et `canape-shell-gpu.exe`, qui dessine avec la carte graphique (**Fluide** : accueil plus fluide, mais environ 300 Mo de mémoire en plus, aussi pendant les jeux). C'est toujours `canape-shell.exe` que l'expérience plein écran lance. Avec **Fluide**, il démarre `canape-shell-gpu.exe`, attend jusqu'à 5 secondes qu'il ait affiché sa fenêtre, puis se ferme. Si l'autre exécutable manque, se ferme ou n'affiche rien à temps, Canapé reste en **Économe** et remet le réglage sur Économe. Changer le réglage dans **Réglages → Système → Affichage** enregistre le choix, redémarre Canapé sur la page Réglages et ferme l'ancien exécutable. Le réglage est `renderer` dans `shell.json` (`"software"` ou `"gpu"`, absent : `"software"`). `shell.log` note au démarrage `renderer: …` et si le processus a une identité de paquet.
 
 ### Profils de jeu
 

@@ -188,6 +188,9 @@ export global App {
     in property <bool> lossless-scaling;
     // The Ally's own buttons act on Canapé (shell.json).
     in property <bool> ally-buttons;
+    // The graphics card draws the shell (shell.json): the other executable
+    // runs.
+    in property <bool> gpu-renderer;
     // Time of day, "21:42".
     in property <string> clock;
     // Power the auto TDP learned for the game in the foreground, -1 when
@@ -261,6 +264,9 @@ export global App {
     callback toggle-ally-buttons();
     // "Full power in Canapé": on (true) or off.
     callback set-ui-power(bool);
+    // Saves the renderer, starts the other executable on the settings
+    // page and quits this one.
+    callback set-gpu-renderer(bool);
 
     // Shared formatting, translated.
     public pure function watts(w: int) -> string {

@@ -1269,3 +1269,18 @@ msgstr "배수"
 
 msgid "Adaptive"
 msgstr "적응형"
+
+msgid "Display"
+msgstr "화면 표시"
+
+msgid "Efficient"
+msgstr "효율"
+
+msgid "Smooth"
+msgstr "부드럽게"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "부드럽게는 게임 중에도 메모리를 약 300 MB 더 사용합니다. 둘러보기가 끝나면 Canapé가 다시 시작됩니다."
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "부드럽게는 게임 중에도 메모리를 약 300 MB 더 사용합니다. Canapé가 다시 시작됩니다."

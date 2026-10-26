@@ -1269,3 +1269,18 @@ msgstr "倍数"
 
 msgid "Adaptive"
 msgstr "自适应"
+
+msgid "Display"
+msgstr "显示"
+
+msgid "Efficient"
+msgstr "节能"
+
+msgid "Smooth"
+msgstr "流畅"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "流畅模式约多占用 300 MB 内存，游戏时也一样。导览结束时 Canapé 会重启。"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "流畅模式约多占用 300 MB 内存，游戏时也一样。Canapé 会重启。"

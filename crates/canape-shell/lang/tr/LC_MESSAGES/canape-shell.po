@@ -1269,3 +1269,18 @@ msgstr "Çarpan"
 
 msgid "Adaptive"
 msgstr "Uyarlanabilir"
+
+msgid "Display"
+msgstr "Görüntü"
+
+msgid "Efficient"
+msgstr "Verimli"
+
+msgid "Smooth"
+msgstr "Akıcı"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "Akıcı yaklaşık 300 MB daha fazla bellek kullanır, oyunlar sırasında da. Canapé turun sonunda yeniden başlar."
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "Akıcı yaklaşık 300 MB daha fazla bellek kullanır, oyunlar sırasında da. Canapé yeniden başlar."

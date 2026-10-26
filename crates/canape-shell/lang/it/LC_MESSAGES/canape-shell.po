@@ -1272,3 +1272,18 @@ msgstr "Moltiplicatore"
 
 msgid "Adaptive"
 msgstr "Adattivo"
+
+msgid "Display"
+msgstr "Schermo"
+
+msgid "Efficient"
+msgstr "Efficiente"
+
+msgid "Smooth"
+msgstr "Fluido"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "Fluido usa circa 300 MB di memoria in più, anche durante i giochi. Canapé si riavvia alla fine del tour."
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "Fluido usa circa 300 MB di memoria in più, anche durante i giochi. Canapé si riavvia."

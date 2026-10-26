@@ -23,11 +23,14 @@ jobs:
       # Release binaries built here, since Smart App Control on the Ally
       # blocks fresh build scripts (see docs/m2-report.md).
       - run: cargo build --release -p canape-shell -p canape-service -p canape-ctl
+      # The GPU executable is built apart, without the software renderer.
+      - run: cargo build --release -p canape-shell --no-default-features --features gpu
       - uses: actions/upload-artifact@v4
         with:
           name: canape-windows-x64
           path: |
             target/release/canape-shell.exe
+            target/release/canape-shell-gpu.exe
             target/release/canape-service.exe
             target/release/canape-ctl.exe
 
