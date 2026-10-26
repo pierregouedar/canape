@@ -55,7 +55,7 @@ export global Tweaks {
         if row.kind == 0 {
             return row.id == "clutter" ? @tr("Copilot and ads") : row.id == "privacy" ? @tr("Privacy") : row.id == "games" ? @tr("Games") : row.id == "security" ? @tr("Security") : @tr("Preinstalled apps");
         }
-        row.id == "copilot_off" ? @tr("Copilot") : row.id == "widgets_off" ? @tr("Widgets") : row.id == "web_search_off" ? @tr("Web results in search") : row.id == "suggestions_off" ? @tr("Suggestions and ads") : row.id == "lock_screen_tips_off" ? @tr("Tips on the lock screen") : row.id == "tips_off" ? @tr("Tips and welcome screens") : row.id == "telemetry_min" ? @tr("Diagnostic data") : row.id == "background_apps_off" ? @tr("Store apps in the background") : row.id == "game_mode_on" ? @tr("Game Mode") : row.id == "gpu_scheduling_on" ? @tr("Hardware-accelerated GPU scheduling") : row.id == "windowed_optimizations_on" ? @tr("Optimizations for windowed games") : row.id == "defender_exclusions" ? @tr("Exclude game folders from Defender scans") : row.id == "defender_realtime_off" ? @tr("Defender real-time protection") : row.id == "memory_integrity_off" ? @tr("Memory integrity") : row.id
+        row.id == "copilot_off" ? @tr("Copilot") : row.id == "widgets_off" ? @tr("Widgets") : row.id == "web_search_off" ? @tr("Web results in search") : row.id == "suggestions_off" ? @tr("Suggestions and ads") : row.id == "lock_screen_tips_off" ? @tr("Tips on the lock screen") : row.id == "tips_off" ? @tr("Tips and welcome screens") : row.id == "telemetry_min" ? @tr("Diagnostic data") : row.id == "background_apps_off" ? @tr("Store apps in the background") : row.id == "game_mode_on" ? @tr("Game Mode") : row.id == "gpu_scheduling_on" ? @tr("Hardware-accelerated GPU scheduling") : row.id == "windowed_optimizations_on" ? @tr("Optimizations for windowed games") : row.id == "game_dvr_off" ? @tr("Background game recording") : row.id == "asus_services_off" ? @tr("ASUS services") : row.id == "defender_exclusions" ? @tr("Exclude game folders from Defender scans") : row.id == "defender_realtime_off" ? @tr("Defender real-time protection") : row.id == "memory_integrity_off" ? @tr("Memory integrity") : row.id
     }
 
     // Names Windows shows translated; the others are brands.
@@ -78,7 +78,7 @@ export global Tweaks {
             return row.applied ? @tr("Minimum") : @tr("Default");
         }
         // The *_off tweaks turn a feature off; the others turn one on.
-        (row.applied != (row.id == "copilot_off" || row.id == "widgets_off" || row.id == "web_search_off" || row.id == "suggestions_off" || row.id == "lock_screen_tips_off" || row.id == "tips_off" || row.id == "background_apps_off" || row.id == "defender_realtime_off" || row.id == "memory_integrity_off")) ? @tr("On") : @tr("Off")
+        (row.applied != (row.id == "copilot_off" || row.id == "widgets_off" || row.id == "web_search_off" || row.id == "suggestions_off" || row.id == "lock_screen_tips_off" || row.id == "tips_off" || row.id == "background_apps_off" || row.id == "game_dvr_off" || row.id == "asus_services_off" || row.id == "defender_realtime_off" || row.id == "memory_integrity_off")) ? @tr("On") : @tr("Off")
     }
 
     // A consequence that is not obvious, "" when there is none.
@@ -107,7 +107,7 @@ export global Tweaks {
         if row.reboot-pending {
             return @tr("Restart Windows to apply.");
         }
-        row.id == "telemetry_min" ? @tr("Home and Pro editions keep the required level.") : row.id == "background_apps_off" ? @tr("Except Xbox, the Game Bar, the Store and Canapé's widget.") : row.id == "gpu_scheduling_on" ? @tr("Takes effect after a restart.") : row.id == "defender_exclusions" ? @tr("{} game folders", row.count) : row.id == "defender_realtime_off" ? @tr("Leaves the device without antivirus protection. Windows may turn it back on.") : row.id == "memory_integrity_off" ? @tr("Less protection against malicious drivers. Restart needed.") : ""
+        row.id == "telemetry_min" ? @tr("Home and Pro editions keep the required level.") : row.id == "background_apps_off" ? @tr("Except Xbox, the Game Bar, the Store and Canapé's widget.") : row.id == "gpu_scheduling_on" ? @tr("Takes effect after a restart.") : row.id == "game_dvr_off" ? @tr("The Game Bar stays available.") : row.id == "asus_services_off" ? @tr("ASUS apps stop working ({} services).", row.count) : row.id == "defender_exclusions" ? @tr("{} game folders", row.count) : row.id == "defender_realtime_off" ? @tr("Leaves the device without antivirus protection. Windows may turn it back on.") : row.id == "memory_integrity_off" ? @tr("Less protection against malicious drivers. Restart needed.") : ""
     }
 }
 

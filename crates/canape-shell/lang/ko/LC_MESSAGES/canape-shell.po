@@ -1188,3 +1188,51 @@ msgstr "A를 다시 누르세요"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Microsoft Store에서 다시 설치할 수 있습니다."
+
+msgid "Processor"
+msgstr "프로세서"
+
+msgid "CPU boost"
+msgstr "CPU 부스트"
+
+msgid "Energy preference"
+msgstr "에너지 선호도"
+
+msgid "Maximum frequency"
+msgstr "최대 주파수"
+
+msgid "Active cores"
+msgstr "활성 코어"
+
+msgid "Aggressive"
+msgstr "공격적"
+
+msgid "{} GHz"
+msgstr "{} GHz"
+
+msgid "Low favours speed, high saves power"
+msgstr "낮을수록 속도 우선, 높을수록 절전"
+
+msgid "Share of the cores kept awake"
+msgstr "활성 상태로 유지하는 코어 비율"
+
+msgid "CPU settings"
+msgstr "CPU 설정"
+
+msgid "Background game recording"
+msgstr "백그라운드 게임 녹화"
+
+msgid "ASUS services"
+msgstr "ASUS 서비스"
+
+msgid "The Game Bar stays available."
+msgstr "Game Bar는 계속 사용할 수 있습니다."
+
+msgid "ASUS apps stop working ({} services)."
+msgstr "ASUS 앱이 작동하지 않습니다({}개 서비스)."
+
+msgid "Turns off Copilot, ads, tips and background game recording, and excludes the game folders from Defender scans. Each one can be undone in Settings."
+msgstr "Copilot, 광고, 팁, 백그라운드 게임 녹화를 끄고 게임 폴더를 Defender 검사에서 제외합니다. 각 항목은 설정에서 되돌릴 수 있습니다."
+
+msgid "{} could not be applied"
+msgstr "적용하지 못한 항목: {}"

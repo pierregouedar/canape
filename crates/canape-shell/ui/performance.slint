@@ -1,11 +1,13 @@
-// Performance page: the live figures at the top, then two shelves of
+// Performance page: the live figures at the top, then three shelves of
 // setting cards. Up and down change shelf, left and right change card; A
 // opens the card's drawer (or the bench and the game profiles, which are
 // pages of their own); X saves the settings for the game in the
 // foreground. In a drawer, left and right change the value or pick a tile
 // that A applies; B closes it. Cards:
 //   shelf 0, power: mode, target, power range, on battery, temperature;
-//   shelf 1, measures and screen: bench, screen, game profiles.
+//   shelf 1, measures and screen: bench, screen, game profiles;
+//   shelf 2, processor: boost, energy preference, maximum frequency and
+//   active cores of the Windows power plan (left to Windows by default).
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
@@ -141,6 +143,15 @@ export component PerformancePage inherits Rectangle {
     property <int> battery-index: App.status.battery-cap <= 0 ? 0 : App.status.battery-cap <= 10 ? 1 : App.status.battery-cap <= 15 ? 2 : 3;
     property <[int]> temp-stops: [0, 80, 85, 90];
     property <int> temp-index: App.status.temp-limit <= 0 ? 0 : App.status.temp-limit <= 80 ? 1 : App.status.temp-limit <= 85 ? 2 : 3;
+    // Processor settings; the first stop (-1) leaves the setting to Windows.
+    property <[int]> boost-stops: [-1, 0, 1, 2];
+    property <int> boost-index: clamp(App.status.cpu-boost + 1, 0, 3);
+    property <[int]> energy-stops: [-1, 0, 25, 50, 75, 100];
+    property <int> energy-index: App.status.cpu-epp < 0 ? 0 : App.status.cpu-epp <= 0 ? 1 : App.status.cpu-epp <= 25 ? 2 : App.status.cpu-epp <= 50 ? 3 : App.status.cpu-epp <= 75 ? 4 : 5;
+    property <[int]> freq-stops: [-1, 2000, 2800, 3600, 4400];
+    property <int> freq-index: App.status.cpu-max-mhz <= 0 ? 0 : App.status.cpu-max-mhz <= 2000 ? 1 : App.status.cpu-max-mhz <= 2800 ? 2 : App.status.cpu-max-mhz <= 3600 ? 3 : 4;
+    property <[int]> cores-stops: [-1, 25, 50, 75, 100];
+    property <int> cores-index: App.status.cpu-min-cores < 0 ? 0 : App.status.cpu-min-cores <= 25 ? 1 : App.status.cpu-min-cores <= 50 ? 2 : App.status.cpu-min-cores <= 75 ? 3 : 4;
     property <bool> active: fs.has-focus;
     property <bool> open: root.drawer != "";
     property <string> focused-key: root.key(root.shelf, root.card);
@@ -174,10 +185,14 @@ export component PerformancePage inherits Rectangle {
     }
 
     pure function key(s: int, c: int) -> string {
-        s == 0 ? ["mode", "target", "range", "battery", "temp"][c] : ["bench", "screen", "profiles"][c]
+        s == 0 ? ["mode", "target", "range", "battery", "temp"][c] : s == 1 ? ["bench", "screen", "profiles"][c] : ["boost", "energy", "freq", "cores"][c]
     }
     pure function cards(s: int) -> int {
-        s == 0 ? 5 : 3
+        s == 0 ? 5 : s == 1 ? 3 : 4
+    }
+    // A frequency in MHz as GHz, one decimal.
+    pure function ghz(mhz: int) -> string {
+        @tr("{} GHz", App.tenths(Math.round(mhz / 100)))
     }
     // A card that A acts on now.
     pure function usable(k: string) -> bool {
@@ -228,6 +243,14 @@ export component PerformancePage inherits Rectangle {
             App.set-battery-cap(root.battery-stops[clamp(root.battery-index + d, 0, 3)]);
         } else if root.drawer == "temp" {
             App.set-temp-limit(root.temp-stops[clamp(root.temp-index + d, 0, 3)]);
+        } else if root.drawer == "boost" {
+            App.set-cpu-boost(root.boost-stops[clamp(root.boost-index + d, 0, 3)]);
+        } else if root.drawer == "energy" {
+            App.set-cpu-epp(root.energy-stops[clamp(root.energy-index + d, 0, 5)]);
+        } else if root.drawer == "freq" {
+            App.set-cpu-max-mhz(root.freq-stops[clamp(root.freq-index + d, 0, 4)]);
+        } else if root.drawer == "cores" {
+            App.set-cpu-min-cores(root.cores-stops[clamp(root.cores-index + d, 0, 4)]);
         } else if root.drawer == "screen" {
             root.refresh-col = clamp(root.refresh-col + d, 0, App.refresh-rates.length - 1);
         }
@@ -280,7 +303,7 @@ export component PerformancePage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.UpArrow || event.text == Key.DownArrow {
-                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 1);
+                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 2);
                 root.card = min(root.card, root.cards(root.shelf) - 1);
                 return accept;
             }
@@ -480,6 +503,70 @@ export component PerformancePage inherits Rectangle {
                 }
             }
         }
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 2;
+            front: root.shelf;
+            icon: "gauge";
+            title: @tr("Processor");
+            ShelfCard {
+                label: @tr("CPU boost");
+                icon: "turbo";
+                value: !App.status.connected ? "—" : App.status.cpu-boost < 0 ? @tr("Default") : App.status.cpu-boost == 0 ? @tr("Off") : App.status.cpu-boost == 1 ? @tr("On") : @tr("Aggressive");
+                enabled: root.usable("boost");
+                focused: root.active && root.shelf == 2 && root.card == 0;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Energy preference");
+                icon: "gauge";
+                value: !App.status.connected ? "—" : App.status.cpu-epp < 0 ? @tr("Default") : App.percent(App.status.cpu-epp);
+                enabled: root.usable("energy");
+                focused: root.active && root.shelf == 2 && root.card == 1;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 1;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Maximum frequency");
+                icon: "auto";
+                value: !App.status.connected ? "—" : App.status.cpu-max-mhz < 0 ? @tr("Default") : App.status.cpu-max-mhz == 0 ? @tr("None") : root.ghz(App.status.cpu-max-mhz);
+                enabled: root.usable("freq");
+                focused: root.active && root.shelf == 2 && root.card == 2;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 2;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Active cores");
+                icon: "library";
+                value: !App.status.connected ? "—" : App.status.cpu-min-cores < 0 ? @tr("Default") : App.percent(App.status.cpu-min-cores);
+                enabled: root.usable("cores");
+                focused: root.active && root.shelf == 2 && root.card == 3;
+                clicked => {
+                    root.shelf = 2;
+                    root.card = 3;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
     }
 
     Drawer {
@@ -487,8 +574,10 @@ export component PerformancePage inherits Rectangle {
         page-height: parent.height;
         open: root.open;
         sheet-height: root.sheet == "mode" ? 226px : root.sheet == "range" ? 212px : 200px;
-        title: root.sheet == "mode" ? @tr("Mode") : root.sheet == "target" ? @tr("Target") : root.sheet == "range" ? (root.manual ? @tr("Power limit") : @tr("Power range")) : root.sheet == "battery" ? @tr("On battery") : root.sheet == "temp" ? @tr("Temperature") : @tr("Screen");
+        title: root.sheet == "mode" ? @tr("Mode") : root.sheet == "target" ? @tr("Target") : root.sheet == "range" ? (root.manual ? @tr("Power limit") : @tr("Power range")) : root.sheet == "battery" ? @tr("On battery") : root.sheet == "temp" ? @tr("Temperature") : root.sheet == "boost" ? @tr("CPU boost") : root.sheet == "energy" ? @tr("Energy preference") : root.sheet == "freq" ? @tr("Maximum frequency") : root.sheet == "cores" ? @tr("Active cores") : @tr("Screen");
         note: root.sheet == "mode" ? root.profile-note
+            : root.sheet == "energy" ? @tr("Low favours speed, high saves power")
+            : root.sheet == "cores" ? @tr("Share of the cores kept awake")
             : root.sheet == "target" ? App.known(App.status.fps, @tr("{} now", App.fps-value(App.status.fps)))
             : root.sheet == "range" ? App.known(App.status.power-tenths, App.learned-watts > 0 ? @tr("{} now · {} learned", App.watts-tenths(App.status.power-tenths), App.watts(App.learned-watts)) : @tr("{} now", App.watts-tenths(App.status.power-tenths)))
             : root.sheet == "temp" ? App.known(App.status.temp, @tr("{} now", App.celsius(App.status.temp)))
@@ -575,6 +664,46 @@ export component PerformancePage inherits Rectangle {
             selected: root.temp-index;
             pick(i) => {
                 App.set-temp-limit(root.temp-stops[i]);
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "boost": Ruler {
+            y: 4px;
+            labels: [@tr("Default"), @tr("Off"), @tr("On"), @tr("Aggressive")];
+            selected: root.boost-index;
+            pick(i) => {
+                App.set-cpu-boost(root.boost-stops[i]);
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "energy": Ruler {
+            y: 4px;
+            labels: [@tr("Default"), App.percent(0), App.percent(25), App.percent(50), App.percent(75), App.percent(100)];
+            selected: root.energy-index;
+            pick(i) => {
+                App.set-cpu-epp(root.energy-stops[i]);
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "freq": Ruler {
+            y: 4px;
+            labels: [@tr("Default"), root.ghz(2000), root.ghz(2800), root.ghz(3600), root.ghz(4400)];
+            selected: root.freq-index;
+            pick(i) => {
+                App.set-cpu-max-mhz(root.freq-stops[i]);
+                fs.focus();
+            }
+        }
+
+        if root.sheet == "cores": Ruler {
+            y: 4px;
+            labels: [@tr("Default"), App.percent(25), App.percent(50), App.percent(75), App.percent(100)];
+            selected: root.cores-index;
+            pick(i) => {
+                App.set-cpu-min-cores(root.cores-stops[i]);
                 fs.focus();
             }
         }

@@ -4,9 +4,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use canape_autotdp::{Config, Controller};
 use canape_core::settings::{DEFAULT_ACCENT, FPS_LIMIT_RANGE, GYRO_SENSITIVITY_RANGE};
 use canape_core::{
-    AutoTdpSettings, BackButtons, BenchPlan, BenchProgress, BenchReport, ControllerMode, Fan,
-    FanCurve, FanCurves, FanPreset, GyroSettings, Lighting, PerformanceMode, Profile, ProfilePart,
-    Request, Response, Status, TweakId, protocol,
+    AutoTdpSettings, BackButtons, BenchPlan, BenchProgress, BenchReport, ControllerMode, CpuPower,
+    Fan, FanCurve, FanCurves, FanPreset, GyroSettings, Lighting, PerformanceMode, Profile,
+    ProfilePart, Request, Response, Status, TweakId, protocol,
 };
 use canape_hw::{Device, HwError, Telemetry};
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use crate::bench_run::{BenchRun, Reading, Step};
 #[cfg(test)]
 use crate::tweaks;
-use crate::tweaks::{Applied, System, Tweaks};
+use crate::tweaks::{Applied, PowerRecord, System, Tweaks};
 
 /// Below this frame rate nothing is being played (desktop, idle shell).
 const MIN_GAME_FPS: f32 = 5.0;
@@ -49,6 +49,10 @@ pub struct Saved {
     pub lighting: Option<Lighting>,
     /// Windows tweaks Canapé applied, and what they replaced.
     pub tweaks: BTreeMap<TweakId, Applied>,
+    /// Global processor power settings (a profile may override them).
+    pub cpu_power: CpuPower,
+    /// What those settings replaced in the Windows power plan.
+    pub cpu_power_prior: PowerRecord,
 }
 
 /// Service state and request dispatch, independent of the transport.
@@ -85,6 +89,9 @@ pub struct Handler {
     gyro: GyroSettings,
     back_buttons: BackButtons,
     lighting: Option<Lighting>,
+    /// Processor power settings in effect: the global ones, or the active
+    /// profile's.
+    cpu_power: CpuPower,
     tweaks: Tweaks,
     /// Something worth saving changed outside a request (learned watts, bench).
     dirty: bool,
@@ -123,6 +130,7 @@ impl Handler {
             gyro: GyroSettings::default(),
             back_buttons: BackButtons::default(),
             lighting: None,
+            cpu_power: CpuPower::default(),
             tweaks: Tweaks::new(system),
             dirty: false,
         }
@@ -312,6 +320,7 @@ impl Handler {
                     ProfilePart::Power => Profile {
                         auto_tdp: self.auto_tdp,
                         learned_watts: self.tdp_watts.filter(|_| self.auto_tdp.enabled),
+                        cpu_power: Some(self.cpu_power),
                         ..existing
                     },
                     ProfilePart::Hardware => Profile {
@@ -379,9 +388,26 @@ impl Handler {
                 Err(message) => Response::Error { message },
             },
             Request::RevertTweaks => match self.tweaks.revert_all() {
-                Ok(()) => Response::Ok,
+                Ok(()) => {
+                    // The processor settings are back to Windows' own.
+                    self.cpu_power = CpuPower::default();
+                    for saved in self.global_snapshots() {
+                        saved.cpu_power = CpuPower::default();
+                    }
+                    Response::Ok
+                }
                 Err(message) => Response::Error { message },
             },
+            Request::SetCpuPower { settings } => {
+                if let Err(message) = settings.validate() {
+                    return Response::Error { message };
+                }
+                let response = self.write_cpu_power(settings);
+                if response == Response::Ok {
+                    self.remember_cpu_power();
+                }
+                response
+            }
             Request::SetGyro { settings } => {
                 let (low, high) = GYRO_SENSITIVITY_RANGE;
                 if !(low..=high).contains(&settings.sensitivity) {
@@ -519,6 +545,7 @@ impl Handler {
             gyro: self.gyro,
             back_buttons: self.back_buttons,
             lighting: self.lighting.clone(),
+            cpu_power: self.cpu_power,
         }
     }
 
@@ -552,6 +579,8 @@ impl Handler {
             back_buttons: BackButtons::default(),
             lighting: None,
             tweaks: BTreeMap::new(),
+            cpu_power: self.cpu_power,
+            cpu_power_prior: PowerRecord::default(),
         };
         let global = self
             .before_bench
@@ -568,6 +597,7 @@ impl Handler {
             back_buttons: self.back_buttons,
             lighting: self.lighting.clone(),
             tweaks: self.tweaks.saved(),
+            cpu_power_prior: self.tweaks.saved_power(),
             ..global
         }
     }
@@ -579,8 +609,10 @@ impl Handler {
         self.accent = saved.accent.clone();
         self.gyro = saved.gyro;
         self.tweaks.restore(saved.tweaks.clone());
+        self.tweaks.restore_power(saved.cpu_power_prior.clone());
         let mut errors = self.apply_power_state(saved);
         errors.extend(self.apply_fans_and_fps(&saved.fan_curves, saved.fps_limit));
+        errors.extend(self.apply_cpu_power(saved.cpu_power));
         let mut requests = Vec::new();
         if let Some(percent) = saved.battery_limit {
             requests.push(Request::SetBatteryChargeLimit { percent });
@@ -727,7 +759,9 @@ impl Handler {
                     .unwrap_or_else(|| global.fan_curves.clone());
                 let fps_limit = profile.fps_limit.or(global.fps_limit);
                 self.gyro = profile.gyro.unwrap_or(global.gyro);
+                let cpu_power = profile.cpu_power.unwrap_or(global.cpu_power);
                 self.apply_fans_and_fps(&curves, fps_limit);
+                self.apply_cpu_power(cpu_power);
             }
             Some(_) => {}
             None => {
@@ -738,6 +772,7 @@ impl Handler {
                     }
                     self.gyro = global.gyro;
                     self.apply_fans_and_fps(&global.fan_curves, global.fps_limit);
+                    self.apply_cpu_power(global.cpu_power);
                 }
             }
         }
@@ -882,6 +917,44 @@ impl Handler {
             errors.push(message);
         }
         errors
+    }
+
+    /// Moves the power plan to `power`, writing only when it differs.
+    fn apply_cpu_power(&mut self, power: CpuPower) -> Vec<String> {
+        if power == self.cpu_power {
+            return Vec::new();
+        }
+        match self.write_cpu_power(power) {
+            Response::Error { message } => vec![message],
+            _ => Vec::new(),
+        }
+    }
+
+    fn write_cpu_power(&mut self, power: CpuPower) -> Response {
+        // Even when it fails halfway, the record of what was replaced is
+        // kept, and saved.
+        self.dirty = true;
+        match self.tweaks.set_cpu_power(&power) {
+            Ok(()) => {
+                self.cpu_power = power;
+                Response::Ok
+            }
+            Err(message) => Response::Error { message },
+        }
+    }
+
+    /// Same rule as [`Self::remember_fan_curves`].
+    fn remember_cpu_power(&mut self) {
+        let power = self.cpu_power;
+        if let Some(profile) = self.active_profile_mut()
+            && profile.cpu_power.is_some()
+        {
+            profile.cpu_power = Some(power);
+            return;
+        }
+        for saved in self.global_snapshots() {
+            saved.cpu_power = power;
+        }
     }
 
     fn write_fps_limit(&mut self, fps: Option<u32>) -> Response {
@@ -1948,5 +2021,128 @@ mod tests {
             .unwrap();
         assert!(game.auto_tdp.enabled);
         assert_eq!(game.fan_curves, None);
+    }
+
+    fn cpu_handler() -> (Handler, tweaks::SimSystem) {
+        let sim = tweaks::SimSystem::new(true);
+        let h = Handler::with_system(
+            Box::new(MockDevice {
+                gpu_util: Some(0.7),
+                ..MockDevice::default()
+            }),
+            Box::new(sim.clone()),
+        );
+        (h, sim)
+    }
+
+    fn epp(sim: &tweaks::SimSystem) -> (u32, u32) {
+        use crate::tweaks::{PowerSetting, PowerSource};
+        let scheme = sim.power_scheme().unwrap();
+        (
+            sim.power_get(&scheme, PowerSetting::Epp, PowerSource::Ac)
+                .unwrap(),
+            sim.power_get(&scheme, PowerSetting::Epp, PowerSource::Dc)
+                .unwrap(),
+        )
+    }
+
+    fn cpu(epp: u32) -> CpuPower {
+        CpuPower {
+            epp: Some(epp),
+            ..CpuPower::default()
+        }
+    }
+
+    #[test]
+    fn cpu_power_is_validated_applied_saved_and_restored() {
+        let (mut h, sim) = cpu_handler();
+        let untouched = epp(&sim);
+        assert!(matches!(
+            h.handle(Request::SetCpuPower { settings: cpu(101) }),
+            Response::Error { .. }
+        ));
+        assert_eq!(epp(&sim), untouched);
+        assert_eq!(
+            h.handle(Request::SetCpuPower { settings: cpu(80) }),
+            Response::Ok
+        );
+        assert_eq!(epp(&sim), (80, 80));
+        assert_eq!(h.status().cpu_power, cpu(80));
+        let saved = h.saved();
+        assert_eq!(saved.cpu_power, cpu(80));
+        assert!(!saved.cpu_power_prior.prior.is_empty());
+
+        // A new service run takes the record back and writes the settings
+        // again; reverting then puts back what Windows had at the start.
+        let json = serde_json::to_string(&saved).unwrap();
+        let mut again =
+            Handler::with_system(Box::new(MockDevice::default()), Box::new(sim.clone()));
+        assert!(
+            again
+                .restore(&serde_json::from_str(&json).unwrap())
+                .is_empty()
+        );
+        assert_eq!(again.status().cpu_power, cpu(80));
+        assert_eq!(again.handle(Request::RevertTweaks), Response::Ok);
+        assert_eq!(epp(&sim), untouched);
+        assert!(again.status().cpu_power.is_default());
+        assert!(again.saved().cpu_power_prior.prior.is_empty());
+
+        // A state.json from before these settings still loads.
+        let old: Saved = serde_json::from_str(r#"{"mode":"turbo","profiles":[]}"#).unwrap();
+        assert!(old.cpu_power.is_default() && old.cpu_power_prior.prior.is_empty());
+    }
+
+    #[test]
+    fn a_profile_brings_its_cpu_settings_and_hands_back() {
+        let (mut h, sim) = cpu_handler();
+        let untouched = epp(&sim);
+        h.handle(Request::SetCpuPower { settings: cpu(60) });
+        h.handle(Request::SaveProfile {
+            profile: Profile {
+                cpu_power: Some(cpu(10)),
+                ..profile("game.exe", 40, None)
+            },
+        });
+        h.handle(Request::SaveProfile {
+            profile: profile("other.exe", 40, None),
+        });
+        h.handle(Request::ForegroundApp {
+            exe: Some("game.exe".into()),
+        });
+        assert_eq!(epp(&sim), (10, 10));
+        // A change during the game belongs to the profile.
+        h.handle(Request::SetCpuPower { settings: cpu(20) });
+        assert_eq!(h.saved().cpu_power, cpu(60));
+        assert_eq!(h.saved().profiles[0].cpu_power, Some(cpu(20)));
+        h.handle(Request::ForegroundApp { exe: None });
+        assert_eq!(epp(&sim), (60, 60));
+        assert_eq!(h.status().cpu_power, cpu(60));
+
+        // A profile without its own settings follows the global ones.
+        h.handle(Request::ForegroundApp {
+            exe: Some("other.exe".into()),
+        });
+        assert_eq!(epp(&sim), (60, 60));
+        h.handle(Request::SetCpuPower { settings: cpu(70) });
+        assert_eq!(h.saved().cpu_power, cpu(70));
+        assert_eq!(h.saved().profiles[1].cpu_power, None);
+        h.handle(Request::ForegroundApp { exe: None });
+
+        // Saving the game in front keeps what is in effect.
+        h.handle(Request::ForegroundApp {
+            exe: Some("other.exe".into()),
+        });
+        h.handle(Request::SaveForegroundProfile {
+            part: ProfilePart::Power,
+        });
+        assert_eq!(h.saved().profiles[1].cpu_power, Some(cpu(70)));
+
+        // Leaving every setting to Windows puts back the original values.
+        h.handle(Request::ForegroundApp { exe: None });
+        h.handle(Request::SetCpuPower {
+            settings: CpuPower::default(),
+        });
+        assert_eq!(epp(&sim), untouched);
     }
 }

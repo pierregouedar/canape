@@ -173,7 +173,7 @@ The first time Canapé opens, a short tour replaces the sections. Each step chan
 <sub>Other steps: [language](images/en/onboarding-language.png), [accent colour](images/en/onboarding-accent.png), [games folder](images/en/onboarding-folder.png), [the Ally's buttons](images/en/onboarding-buttons.png). The "other tool" capture is simulated: off Windows the service never reports one.</sub>
 
 > [!NOTE]
-> A **Windows optimisations** step ("Apply the recommended set" / "Later") is planned between the Ally's buttons and the end: it stays hidden until Canapé has that set.
+A **Windows optimisations** step comes between the Ally's buttons and the end. It says what the [recommended set](#windows-tweaks) does (Copilot, ads, tips and background game recording off, game folders excluded from Defender scans) and **A** ("Apply the recommended set") applies it, as the Windows tweaks page does. The step stays and shows the outcome: "All applied", or how many could not be applied; the next **A** goes on, and "Later" skips the step. Without the service, it says so and nothing is applied. *Not tried on the Ally yet.*
 
 An installation that already had a `shell.json` from an earlier version also gets the tour, once.
 
@@ -447,6 +447,13 @@ The browser is not made for the gamepad: the touch screen and the touch keyboard
 | **Measures and screen → Bench** | Opens the [bench](#bench) page. The card shows its duration, or the time left during a run. |
 | **Measures and screen → Screen** | The rates the screen offers, as tiles: **A** applies the focused one (see [Screen](#hardware), on the Hardware page). |
 | **Measures and screen → Game profiles** | The number of profiles; opens the [Game profiles](#game-profiles) page. |
+| **Processor → CPU boost** | A ruler: Default, Off, On, Aggressive. *Default* leaves the setting to Windows (and puts back what it was if Canapé had changed it). |
+| **Processor → Energy preference** | A ruler: Default, 0, 25, 50, 75, 100 %. Low favours speed, high saves power. |
+| **Processor → Maximum frequency** | A ruler: Default, 2.0, 2.8, 3.6, 4.4 GHz. Caps the processor's frequency; useful to save battery in light games. |
+| **Processor → Active cores** | A ruler: Default, 25, 50, 75, 100 %: the share of the cores Windows keeps awake. |
+
+> [!WARNING]
+> **Processor shelf: not tried on the Ally yet.** Tested with the simulator only. Canapé changes the processor settings of the **active Windows power plan**, for plugged in and on battery alike; it keeps the values the plan had and puts them back when you choose *Default* and when you uninstall (`uninstall-dev.ps1` reverts them). **X** saves them in the game's profile with the power settings; with a profile in use, a change goes into the profile. The Windows power mode slider may override some of them: if a value seems to have no effect, tell us.
 
 How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
@@ -620,7 +627,7 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 
 <img src="images/en/profiles.png" alt="Game profiles sub-page" width="720">
 
-Opened from the **Game profiles** card, on the Performance or the Settings page; **B** goes back. A profile ties an executable (for example `eldenring.exe`) to auto TDP settings and, if you saved them from the [Hardware](#hardware) page, to fan curves, a frame rate limit and a screen refresh rate. When that program comes to the foreground the service applies the profile; when it leaves, the global settings come back.
+Opened from the **Game profiles** card, on the Performance or the Settings page; **B** goes back. A profile ties an executable (for example `eldenring.exe`) to auto TDP settings and, if you saved them from the [Hardware](#hardware) page, to fan curves, a frame rate limit and a screen refresh rate, and, if you saved them with **X** on the Performance page, to [processor settings](#performance) (shown as "CPU settings" in the list). When that program comes to the foreground the service applies the profile; when it leaves, the global settings come back.
 
 - **First line**: "Save a profile for <game>" (or "Update the profile of <game>"); **A** saves the current auto TDP settings (target, power, maximum on battery, temperature limit). Greyed out while no game is in the foreground.
   - With auto TDP on, the current power is saved too as **learned watts**: the game's next session starts right there.
@@ -689,6 +696,8 @@ Opened from **Settings → Windows tweaks**; **B** goes back. A list of Windows 
 | Games | **Game Mode** | Windows Game Mode on. | yes | no |
 | | **Hardware-accelerated GPU scheduling** | On ("Restart Windows to apply" until done). | yes | **yes** |
 | | **Optimizations for windowed games** | On for DirectX 10 and 11 games in a window or borderless; Windows' other graphics settings are kept. | yes | no |
+| | **Background game recording** | Game DVR's background recording off (`GameDVR_Enabled` and `AppCaptureEnabled`, for your account). The Game Bar stays available, so Canapé's widget keeps working: the `AllowGameDVR` policy is not used, since it also removes the Game Bar. Not tried on the Ally yet. | yes | no |
+| | **ASUS services** | Stops and disables the Armoury Crate and other ASUS background services that are installed (`ArmouryCrateService`, `AsusAppService`, `ASUSOptimization`, `ASUSSoftwareManager`, `ASUSSwitch`, `ASUSSystemAnalysis`, `ASUSSystemDiagnosis`, `asus_framework`, `LightingService`, `AsusCertService`), after noting how each one started; reverting sets them back and starts those that were running. **Armoury Crate stops working.** The ATK driver Canapé talks to is not touched. The line says how many services were found, and is "Unavailable" when there are none. **The list is to be confirmed on the Ally**; not tried yet. | no | no |
 | Security | **Exclude game folders from Defender scans** | Adds the game folders found to Microsoft Defender's exclusions: each Steam library's `steamapps\common`, the folders holding Epic or GOG games, and `Games` at a drive's root (Canapé's default folder). Never a drive root, Windows, Program Files or a profile folder. The line shows how many folders. Reverting removes only the exclusions Canapé added. | yes | no |
 | | **Defender real-time protection** | Turns it off. **The device is no longer protected against viruses.** Windows refuses while *Tamper Protection* is on: the line then reads "Unavailable" and says to turn it off first in **Windows Security → Virus & threat protection → Manage settings**. Windows may turn it back on by itself. | no | no |
 | | **Memory integrity** | Turns memory integrity (HVCI) and virtualization-based security off: a little more performance in games, **less protection against malicious drivers**. "Unavailable" when the firmware or a policy locks it. | no | **yes** |
@@ -872,7 +881,7 @@ To start over with the settings: stop the service, delete `%ProgramData%\Canape\
 
 | Step | What the script does |
 |---|---|
-| 1/6 | While the service still runs, puts the hardware back to neutral: fans on the firmware's curves (**Automatic**), no frame rate limit, controller in **Gamepad** mode, and the charge limit back to 100 % if Canapé had set one. Also reverts the [Windows tweaks](#windows-tweaks) Canapé applied (each value put back as it was) and lists the apps removed, to install again from the Microsoft Store if needed. Once the service is gone, nothing would undo them. If the service is not running, it says so and goes on. |
+| 1/6 | While the service still runs, puts the hardware back to neutral: fans on the firmware's curves (**Automatic**), no frame rate limit, controller in **Gamepad** mode, and the charge limit back to 100 % if Canapé had set one. Also reverts the [Windows tweaks](#windows-tweaks) Canapé applied (each value put back as it was, ASUS services included) and the processor settings of the power plan and lists the apps removed, to install again from the Microsoft Store if needed. Once the service is gone, nothing would undo them. If the service is not running, it says so and goes on. |
 | 2/6 | Closes the shell, stops and removes the `CanapeService` service. |
 | 3/6 | Removes the shell's identity package (`Canape`) and the widget's (`Canape.Widget`). |
 | 4/6 | Clears the FSE home app value (`GamingHomeApp`) if it still names Canapé. |

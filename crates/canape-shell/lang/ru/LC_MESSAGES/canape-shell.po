@@ -1188,3 +1188,51 @@ msgstr "Нажмите A ещё раз"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Можно снова установить из Microsoft Store."
+
+msgid "Processor"
+msgstr "Процессор"
+
+msgid "CPU boost"
+msgstr "Буст процессора"
+
+msgid "Energy preference"
+msgstr "Приоритет энергопотребления"
+
+msgid "Maximum frequency"
+msgstr "Максимальная частота"
+
+msgid "Active cores"
+msgstr "Активные ядра"
+
+msgid "Aggressive"
+msgstr "Агрессивный"
+
+msgid "{} GHz"
+msgstr "{} ГГц"
+
+msgid "Low favours speed, high saves power"
+msgstr "Низкое значение — скорость, высокое — экономия энергии"
+
+msgid "Share of the cores kept awake"
+msgstr "Доля ядер, остающихся активными"
+
+msgid "CPU settings"
+msgstr "Параметры процессора"
+
+msgid "Background game recording"
+msgstr "Фоновая запись игр"
+
+msgid "ASUS services"
+msgstr "Службы ASUS"
+
+msgid "The Game Bar stays available."
+msgstr "Game Bar остаётся доступной."
+
+msgid "ASUS apps stop working ({} services)."
+msgstr "Приложения ASUS перестают работать (служб: {})."
+
+msgid "Turns off Copilot, ads, tips and background game recording, and excludes the game folders from Defender scans. Each one can be undone in Settings."
+msgstr "Отключает Copilot, рекламу, советы и фоновую запись игр и исключает папки с играми из проверок Defender. Каждое изменение можно отменить в Настройках."
+
+msgid "{} could not be applied"
+msgstr "Не применено: {}"

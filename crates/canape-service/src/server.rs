@@ -141,8 +141,11 @@ fn serve(mut conn: Connection, shared: &Shared) -> io::Result<()> {
                 | Request::ListTweaks
         );
         let subscribe = request == Request::Subscribe;
-        // A tweak that failed halfway still records what it replaced.
-        let tweak = matches!(request, Request::SetTweak { .. } | Request::RevertTweaks);
+        // A change that failed halfway still records what it replaced.
+        let tweak = matches!(
+            request,
+            Request::SetTweak { .. } | Request::RevertTweaks | Request::SetCpuPower { .. }
+        );
         let described = changes_state.then(|| format!("{request:?}"));
         let response = shared.handler.lock().unwrap().handle(request);
         conn.send(&response)?;

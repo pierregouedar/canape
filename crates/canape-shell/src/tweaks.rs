@@ -394,7 +394,11 @@ mod tests {
     fn rows_group_the_tweaks_then_the_apps() {
         let mut tweaks: Vec<TweakState> = TweakId::ALL.iter().map(|&id| state(id, false)).collect();
         tweaks[0].applied = true;
-        tweaks[12].unavailable = Some(Unavailable::TamperProtection);
+        let realtime = TweakId::ALL
+            .iter()
+            .position(|&id| id == TweakId::DefenderRealtimeOff)
+            .unwrap();
+        tweaks[realtime].unavailable = Some(Unavailable::TamperProtection);
         let apps = [
             (&REMOVABLE_APPS[0], true),
             (&REMOVABLE_APPS[1], false),
@@ -403,9 +407,9 @@ mod tests {
         let removed = vec![REMOVABLE_APPS[1].package().to_string()];
         let rows = rows(Some(&tweaks), &apps, &removed);
         let kinds: Vec<i32> = rows.iter().map(|r| r.kind).collect();
-        // Recommended, 4 headings with 14 tweaks, a heading and two apps
+        // Recommended, 4 headings with every tweak, a heading and two apps
         // (the third was never there).
-        assert_eq!(rows.len(), 1 + 4 + 14 + 1 + 2);
+        assert_eq!(rows.len(), 1 + 4 + TweakId::ALL.len() + 1 + 2);
         assert_eq!(kinds[..3], [1, 0, 2]);
         assert_eq!(rows[1].id, "clutter");
         let recommended = TweakId::ALL.iter().filter(|t| t.info().recommended).count();

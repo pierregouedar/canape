@@ -5,6 +5,8 @@
 //! comes from here. Applying a tweak records what each value held before,
 //! so that reverting puts it back (`state.json` keeps the record).
 
+mod power;
+mod services;
 mod sim;
 #[cfg(windows)]
 mod windows;
@@ -15,6 +17,8 @@ use std::path::PathBuf;
 use canape_core::{TweakId, TweakState, Unavailable};
 use serde::{Deserialize, Serialize};
 
+pub use power::{PowerRecord, PowerSetting, PowerSource};
+pub use services::{ASUS_SERVICES, START_DISABLED, SavedService, ServiceState};
 pub use sim::SimSystem;
 
 /// Which registry hive a value lives in.
@@ -66,6 +70,30 @@ pub trait System: Send {
     /// Real-time protection is off.
     fn realtime_disabled(&self) -> bool;
     fn set_realtime_disabled(&mut self, disabled: bool) -> Result<(), String>;
+    /// GUID of the active power plan.
+    fn power_scheme(&self) -> Result<String, String>;
+    /// A processor setting of a plan, for AC or DC.
+    fn power_get(
+        &self,
+        scheme: &str,
+        setting: PowerSetting,
+        source: PowerSource,
+    ) -> Result<u32, String>;
+    fn power_set(
+        &mut self,
+        scheme: &str,
+        setting: PowerSetting,
+        source: PowerSource,
+        value: u32,
+    ) -> Result<(), String>;
+    /// Makes Windows apply the plan's current values.
+    fn power_commit(&mut self, scheme: &str) -> Result<(), String>;
+    /// A service by name; `None` when it is not installed.
+    fn service(&self, name: &str) -> Option<ServiceState>;
+    /// Sets how the service starts (`start` is a `SERVICE_*_START` value).
+    fn set_service_start(&mut self, name: &str, start: u32, delayed: bool) -> Result<(), String>;
+    fn stop_service(&mut self, name: &str) -> Result<(), String>;
+    fn start_service(&mut self, name: &str) -> Result<(), String>;
 }
 
 /// The real system on Windows, unless `CANAPE_MOCK_TWEAKS` is set; the
@@ -105,6 +133,7 @@ enum Action {
     None,
     DefenderExclusions,
     DefenderRealtime,
+    AsusServices,
 }
 
 struct Def {
@@ -343,6 +372,26 @@ static CATALOGUE: &[Def] = &[
         action: Action::None,
     },
     Def {
+        id: TweakId::GameDvrOff,
+        values: &[
+            // Background recording and its capture settings, per user. The
+            // `AllowGameDVR` policy is left alone: it also takes the Game
+            // Bar away.
+            user(r"System\GameConfigStore", "GameDVR_Enabled", 0),
+            user(
+                r"Software\Microsoft\Windows\CurrentVersion\GameDVR",
+                "AppCaptureEnabled",
+                0,
+            ),
+        ],
+        action: Action::None,
+    },
+    Def {
+        id: TweakId::AsusServicesOff,
+        values: &[],
+        action: Action::AsusServices,
+    },
+    Def {
         id: TweakId::DefenderExclusions,
         values: &[],
         action: Action::DefenderExclusions,
@@ -387,6 +436,8 @@ pub struct Applied {
     pub prior: Vec<Prior>,
     /// Defender exclusions Canapé added (and only those are removed).
     pub paths: Vec<String>,
+    /// ASUS services Canapé disabled, as they were.
+    pub services: Vec<SavedService>,
 }
 
 /// A registry value before Canapé changed it; `data: None` when absent.
@@ -405,6 +456,8 @@ pub struct Tweaks {
     applied: BTreeMap<TweakId, Applied>,
     at_start: HashMap<TweakId, bool>,
     widget_family: String,
+    /// What Canapé replaced in the power plan (CPU settings).
+    power: PowerRecord,
 }
 
 impl Tweaks {
@@ -414,6 +467,7 @@ impl Tweaks {
             applied: BTreeMap::new(),
             at_start: HashMap::new(),
             widget_family: canape_ipc::widget_family_name(),
+            power: PowerRecord::default(),
         }
     }
 
@@ -441,13 +495,17 @@ impl Tweaks {
         if on { self.apply(id) } else { self.revert(id) }
     }
 
-    /// Reverts every tweak Canapé applied; the errors, joined, if any.
+    /// Reverts every tweak Canapé applied, and the CPU settings of the
+    /// power plan; the errors, joined, if any.
     pub fn revert_all(&mut self) -> Result<(), String> {
         let ids: Vec<TweakId> = self.applied.keys().copied().collect();
-        let errors: Vec<String> = ids
+        let mut errors: Vec<String> = ids
             .into_iter()
             .filter_map(|id| self.revert(id).err().map(|e| format!("{}: {e}", id.name())))
             .collect();
+        if let Err(e) = self.set_cpu_power(&canape_core::CpuPower::default()) {
+            errors.push(format!("power plan: {e}"));
+        }
         if errors.is_empty() {
             Ok(())
         } else {
@@ -472,6 +530,7 @@ impl Tweaks {
         let by_canape = self.applied.contains_key(&id);
         let paths = match id {
             TweakId::DefenderExclusions => folders.to_vec(),
+            TweakId::AsusServicesOff => self.asus_services().into_iter().map(|(n, _)| n).collect(),
             _ => Vec::new(),
         };
         TweakState {
@@ -494,6 +553,9 @@ impl Tweaks {
                 Some(Unavailable::TamperProtection)
             }
             TweakId::DefenderExclusions if folders.is_empty() => Some(Unavailable::NoGameFolders),
+            TweakId::AsusServicesOff if self.asus_services().is_empty() => {
+                Some(Unavailable::NotSupported)
+            }
             TweakId::MemoryIntegrityOff => {
                 let locked = self
                     .system
@@ -570,7 +632,20 @@ impl Tweaks {
                             .all(|f| excluded.iter().any(|e| same_folder(e, f)))
                 }
                 Action::DefenderRealtime => self.system.realtime_disabled(),
+                Action::AsusServices => {
+                    let present = self.asus_services();
+                    !present.is_empty() && present.iter().all(|(_, s)| s.start == START_DISABLED)
+                }
             }
+    }
+
+    /// The ASUS services installed, with their state.
+    fn asus_services(&self) -> Vec<(String, ServiceState)> {
+        ASUS_SERVICES
+            .iter()
+            .filter(|name| !services::is_kept(name))
+            .filter_map(|name| Some((name.to_string(), self.system.service(name)?)))
+            .collect()
     }
 
     fn apply(&mut self, id: TweakId) -> Result<(), String> {
@@ -644,6 +719,26 @@ impl Tweaks {
                     });
                 }
             }
+            Action::AsusServices => {
+                for (name, state) in self.asus_services() {
+                    if !record.services.iter().any(|s| s.name == name) {
+                        record.services.push(SavedService {
+                            name: name.clone(),
+                            start: state.start,
+                            delayed: state.delayed,
+                            running: state.running,
+                        });
+                    }
+                    if let Err(e) = self.system.set_service_start(&name, START_DISABLED, false) {
+                        error.get_or_insert(format!("service {name}: {e}"));
+                        continue;
+                    }
+                    // A service that will not stop is off after a restart.
+                    if state.running {
+                        let _ = self.system.stop_service(&name);
+                    }
+                }
+            }
         }
         self.applied.insert(id, record);
         error.map_or(Ok(()), Err)
@@ -696,6 +791,31 @@ impl Tweaks {
                     && let Err(e) = self.system.set_realtime_disabled(false)
                 {
                     error.get_or_insert(e);
+                }
+            }
+            Action::AsusServices => {
+                let mut left = Vec::new();
+                for saved in record.iter().flat_map(|r| r.services.iter()) {
+                    // Gone since (uninstalled): nothing to put back.
+                    if self.system.service(&saved.name).is_none() {
+                        continue;
+                    }
+                    if let Err(e) =
+                        self.system
+                            .set_service_start(&saved.name, saved.start, saved.delayed)
+                    {
+                        error.get_or_insert(format!("service {}: {e}", saved.name));
+                        left.push(saved.clone());
+                        continue;
+                    }
+                    if saved.running {
+                        let _ = self.system.start_service(&saved.name);
+                    }
+                }
+                if !left.is_empty() {
+                    let mut kept = record.clone().unwrap_or_default();
+                    kept.services = left;
+                    self.applied.insert(id, kept);
                 }
             }
         }
@@ -878,6 +998,7 @@ mod tests {
             RegData::Sz("VRROptimizeEnable=0;".into()),
         );
         let before = sim.registry();
+        let services_before = sim.services();
         for id in TweakId::ALL {
             assert_eq!(tweaks.set(id, true), Ok(()), "{id:?}");
         }
@@ -903,11 +1024,85 @@ mod tests {
         assert_eq!(excluded_before.len(), 3);
         assert_eq!(tweaks.revert_all(), Ok(()));
         assert_eq!(sim.registry(), before);
+        assert_eq!(sim.services(), services_before);
         assert!(sim.defender_exclusions().is_empty());
         assert!(!sim.realtime_disabled());
         for state in tweaks.list() {
             assert!(!state.by_canape && !state.reboot_pending, "{state:?}");
         }
+    }
+
+    #[test]
+    fn game_recording_off_keeps_the_game_bar_policy_alone() {
+        let (mut tweaks, sim) = engine();
+        assert_eq!(tweaks.set(TweakId::GameDvrOff, true), Ok(()));
+        assert_eq!(
+            sim.read(Scope::User, r"System\GameConfigStore", "GameDVR_Enabled")
+                .unwrap(),
+            Some(RegData::Dword(0))
+        );
+        assert_eq!(
+            sim.read(
+                Scope::User,
+                r"Software\Microsoft\Windows\CurrentVersion\GameDVR",
+                "AppCaptureEnabled"
+            )
+            .unwrap(),
+            Some(RegData::Dword(0))
+        );
+        let written = sim.registry();
+        assert!(
+            written
+                .keys()
+                .all(|(_, key, _)| !key.contains("windows\\gamedvr")),
+            "the AllowGameDVR policy must stay untouched: {written:?}"
+        );
+    }
+
+    #[test]
+    fn asus_services_are_disabled_and_restored_as_they_were() {
+        let (mut tweaks, sim) = engine();
+        let before = sim.services();
+        let state = |t: &mut Tweaks| {
+            t.list()
+                .into_iter()
+                .find(|s| s.id == TweakId::AsusServicesOff)
+                .unwrap()
+        };
+        let listed = state(&mut tweaks);
+        assert!(!listed.applied);
+        assert_eq!(listed.paths.len(), before.len());
+        assert_eq!(tweaks.set(TweakId::AsusServicesOff, true), Ok(()));
+        assert!(state(&mut tweaks).applied);
+        for (name, service) in sim.services() {
+            assert_eq!(service.start, START_DISABLED, "{name}");
+            assert!(!service.running, "{name}");
+        }
+        // Nothing else than the listed names is ever touched.
+        assert!(
+            sim.services()
+                .keys()
+                .all(|n| ASUS_SERVICES.contains(&n.as_str()))
+        );
+        assert_eq!(tweaks.set(TweakId::AsusServicesOff, false), Ok(()));
+        assert_eq!(sim.services(), before);
+        assert!(!state(&mut tweaks).by_canape);
+    }
+
+    #[test]
+    fn asus_services_are_unavailable_without_them() {
+        let sim = SimSystem::new(false);
+        let mut tweaks = Tweaks::new(Box::new(sim.clone()));
+        for name in sim.services().keys() {
+            sim.remove_service(name);
+        }
+        let state = tweaks
+            .list()
+            .into_iter()
+            .find(|s| s.id == TweakId::AsusServicesOff)
+            .unwrap();
+        assert_eq!(state.unavailable, Some(Unavailable::NotSupported));
+        assert!(tweaks.set(TweakId::AsusServicesOff, true).is_err());
     }
 
     #[test]
