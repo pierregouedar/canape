@@ -1188,3 +1188,18 @@ msgstr "もう一度 A を押す"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Microsoft Store から再インストールできます。"
+
+msgid "Display"
+msgstr "表示"
+
+msgid "Efficient"
+msgstr "省メモリ"
+
+msgid "Smooth"
+msgstr "スムーズ"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "スムーズはメモリを約300 MB多く使います（ゲーム中も）。ツアーの最後にCanapéが再起動します。"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "スムーズはメモリを約300 MB多く使います（ゲーム中も）。Canapéが再起動します。"

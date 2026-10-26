@@ -1191,3 +1191,18 @@ msgstr "Appuyez encore sur A"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Se réinstalle depuis le Microsoft Store."
+
+msgid "Display"
+msgstr "Affichage"
+
+msgid "Efficient"
+msgstr "Économe"
+
+msgid "Smooth"
+msgstr "Fluide"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "Fluide utilise environ 300 Mo de mémoire en plus, aussi pendant les jeux. Canapé redémarre à la fin de la visite."
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "Fluide utilise environ 300 Mo de mémoire en plus, aussi pendant les jeux. Canapé redémarre."

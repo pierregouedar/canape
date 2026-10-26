@@ -18,6 +18,19 @@ pub const LANGUAGES: &[&str] = &[
     "en", "fr", "es", "de", "it", "pt", "nl", "pl", "ru", "tr", "ja", "ko", "zh_CN",
 ];
 
+/// Which executable draws the shell (see renderer.rs).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Renderer {
+    /// `canape-shell-gpu.exe`: OpenGL on the graphics card.
+    Gpu,
+    /// `canape-shell.exe`: the processor draws, little memory.
+    // Last, as serde requires: an unknown value in the file reads as this.
+    #[default]
+    #[serde(other)]
+    Software,
+}
+
 /// Shell-only preferences (the hardware settings live in the service).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
@@ -54,6 +67,8 @@ pub struct ShellSettings {
     /// Packages removed from the Windows tweaks page, to install again
     /// from the Store (the uninstall script lists them).
     pub removed_apps: Vec<String>,
+    /// Software renderer (the default) or the graphics card.
+    pub renderer: Renderer,
 }
 
 impl Default for ShellSettings {
@@ -72,6 +87,7 @@ impl Default for ShellSettings {
             onboarded: false,
             onboarding_step: 0,
             removed_apps: Vec::new(),
+            renderer: Renderer::Software,
         }
     }
 }
@@ -229,6 +245,17 @@ mod tests {
         let settings: ShellSettings = serde_json::from_str(r#"{"language":"ja"}"#).unwrap();
         assert_eq!(settings.language, "ja");
         assert_eq!(settings.accent, crate::accent::DEFAULT);
+        assert_eq!(settings.renderer, Renderer::Software);
+    }
+
+    #[test]
+    fn renderer_is_saved_by_name_and_unknown_values_are_software() {
+        let gpu: ShellSettings = serde_json::from_str(r#"{"renderer":"gpu"}"#).unwrap();
+        assert_eq!(gpu.renderer, Renderer::Gpu);
+        let text = serde_json::to_string(&gpu).unwrap();
+        assert!(text.contains(r#""renderer":"gpu""#));
+        let other: ShellSettings = serde_json::from_str(r#"{"renderer":"vulkan"}"#).unwrap();
+        assert_eq!(other.renderer, Renderer::Software);
     }
 
     /// Reads the string literal at the start of `s`; returns it, unescaped,

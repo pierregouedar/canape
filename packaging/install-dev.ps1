@@ -53,6 +53,13 @@ if ($BinariesDir) {
     $ErrorActionPreference = "Continue"
     cargo build @cargoProfile -p canape-shell -p canape-service -p canape-ctl --manifest-path "$repo\Cargo.toml" 2>&1 | ForEach-Object { "$_" }
     $built = $LASTEXITCODE
+    if ($built -eq 0) {
+        # canape-shell-gpu.exe is built apart, without the software renderer:
+        # one executable with both renderers costs memory even when the
+        # software one is picked.
+        cargo build @cargoProfile -p canape-shell --no-default-features --features gpu --manifest-path "$repo\Cargo.toml" 2>&1 | ForEach-Object { "$_" }
+        $built = $LASTEXITCODE
+    }
     $ErrorActionPreference = "Stop"
     if ($built -ne 0) { throw "cargo build failed" }
     $binaries = "$repo\target\$BuildProfile"
@@ -66,9 +73,9 @@ if (Test-Path $service) {
     try { & $service uninstall 2>&1 | Out-Null } catch { }
 }
 # Stop-Process returns before the exe is unlocked: wait for the exit.
-Get-Process canape-shell -ErrorAction SilentlyContinue | Stop-Process -Force -PassThru | Wait-Process -Timeout 10
+Get-Process canape-shell, canape-shell-gpu -ErrorAction SilentlyContinue | Stop-Process -Force -PassThru | Wait-Process -Timeout 10
 New-Item -ItemType Directory -Force $InstallDir | Out-Null
-foreach ($exe in "canape-shell.exe", "canape-service.exe", "canape-ctl.exe") {
+foreach ($exe in "canape-shell.exe", "canape-shell-gpu.exe", "canape-service.exe", "canape-ctl.exe") {
     Copy-Item "$binaries\$exe" $InstallDir -Force
 }
 Copy-Item "$repo\packaging\identity\CustomCapability.SCCD" $InstallDir -Force

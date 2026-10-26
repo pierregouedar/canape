@@ -1191,3 +1191,18 @@ msgstr "Prima A novamente"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Pode ser reinstalada a partir da Microsoft Store."
+
+msgid "Display"
+msgstr "Ecrã"
+
+msgid "Efficient"
+msgstr "Eficiente"
+
+msgid "Smooth"
+msgstr "Fluido"
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour."
+msgstr "Fluido usa cerca de 300 MB de memória a mais, também durante os jogos. O Canapé reinicia no fim da visita."
+
+msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
+msgstr "Fluido usa cerca de 300 MB de memória a mais, também durante os jogos. O Canapé reinicia."

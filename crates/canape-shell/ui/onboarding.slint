@@ -5,7 +5,7 @@
 // 1 language, 2 accent colour, 3 other tools driving the hardware (only
 // while the service reports some), 4 game stores, 5 games folder, 6 the
 // Ally's buttons, 7 Windows optimisations (only when the build has them),
-// 8 done. Everything a step changes goes through the same callbacks as
+// 8 display, 9 done. Everything a step changes goes through the same callbacks as
 // the settings page.
 
 import { Theme } from "theme.slint";
@@ -46,6 +46,9 @@ export global Onboarding {
     callback save-entry(string, string);
     callback paste-entry(string);
     callback apply-tweaks();
+    // The display choice (true: graphics card), saved; applied when the
+    // tour ends.
+    callback choose-renderer(bool);
 }
 
 // The step's action: white with the A glyph, or quiet while the focus is
@@ -270,7 +273,7 @@ export component OnboardingFlow inherits Rectangle {
     property <bool> has-conflicts: root.conflicts != "";
     property <bool> has-tweaks: Onboarding.tweaks-available;
     // Steps shown, and the place of this one among them, for the dots.
-    property <int> count: 9 - (root.has-conflicts ? 0 : 1) - (root.has-tweaks ? 0 : 1);
+    property <int> count: 10 - (root.has-conflicts ? 0 : 1) - (root.has-tweaks ? 0 : 1);
     property <int> place: root.step - (root.step > 3 && !root.has-conflicts ? 1 : 0) - (root.step > 7 && !root.has-tweaks ? 1 : 0);
     // Language step: the line focused, the languages laid in two columns
     // of seven.
@@ -300,7 +303,7 @@ export component OnboardingFlow inherits Rectangle {
     function go(s: int) {
         root.enter-x = s > root.step ? 32px : -32px;
         root.editing = "";
-        Onboarding.step = clamp(s, 0, 8);
+        Onboarding.step = clamp(s, 0, 9);
         Onboarding.step-changed(Onboarding.step);
         root.enter();
     }
@@ -322,7 +325,7 @@ export component OnboardingFlow inherits Rectangle {
     function skip() {
         if root.step == 0 {
             Onboarding.finish();
-        } else if root.step < 8 {
+        } else if root.step < 9 {
             root.next();
         }
     }
@@ -332,7 +335,7 @@ export component OnboardingFlow inherits Rectangle {
         } else if root.step == 7 {
             Onboarding.apply-tweaks();
             root.next();
-        } else if root.step == 8 {
+        } else if root.step == 9 {
             Onboarding.finish();
         } else {
             root.next();
@@ -386,6 +389,10 @@ export component OnboardingFlow inherits Rectangle {
         } else if root.step == 6 {
             if (dx < 0 && !App.ally-buttons) || (dx > 0 && App.ally-buttons) {
                 App.toggle-ally-buttons();
+            }
+        } else if root.step == 8 {
+            if (dx < 0 && App.gpu-renderer) || (dx > 0 && !App.gpu-renderer) {
+                Onboarding.choose-renderer(dx > 0);
             }
         }
     }
@@ -495,7 +502,7 @@ export component OnboardingFlow inherits Rectangle {
             vertical-alignment: center;
         }
 
-        for s in 9: Rectangle {
+        for s in 10: Rectangle {
             x: 0;
             y: 64px;
             width: parent.width;
@@ -524,7 +531,7 @@ export component OnboardingFlow inherits Rectangle {
                     }
 
                     Text {
-                        text: s == 0 ? @tr("Welcome to Canapé") : s == 1 ? @tr("Language") : s == 2 ? @tr("Accent colour") : s == 3 ? @tr("Another tool drives the hardware") : s == 4 ? @tr("Game stores") : s == 5 ? @tr("Games folder") : s == 6 ? @tr("The Ally's buttons") : s == 7 ? @tr("Windows optimisations") : @tr("All set");
+                        text: s == 0 ? @tr("Welcome to Canapé") : s == 1 ? @tr("Language") : s == 2 ? @tr("Accent colour") : s == 3 ? @tr("Another tool drives the hardware") : s == 4 ? @tr("Game stores") : s == 5 ? @tr("Games folder") : s == 6 ? @tr("The Ally's buttons") : s == 7 ? @tr("Windows optimisations") : s == 8 ? @tr("Display") : @tr("All set");
                         color: Theme.text;
                         font-size: 48px;
                         font-weight: 700;
@@ -532,8 +539,8 @@ export component OnboardingFlow inherits Rectangle {
                         wrap: word-wrap;
                     }
 
-                    if s == 0 || s == 3 || s == 4 || s == 5: Text {
-                        text: s == 0 ? @tr("A few choices to start with. Each stays in Settings.") : s == 3 ? @tr("{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it.", root.conflicts) : s == 4 ? @tr("Installed games show up by themselves. Accounts add the games you own but have not installed.") : @tr("Where Epic and GOG games install. Steam keeps its own folders.");
+                    if s == 0 || s == 3 || s == 4 || s == 5 || s == 8: Text {
+                        text: s == 8 ? @tr("Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour.") : s == 0 ? @tr("A few choices to start with. Each stays in Settings.") : s == 3 ? @tr("{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it.", root.conflicts) : s == 4 ? @tr("Installed games show up by themselves. Accounts add the games you own but have not installed.") : @tr("Where Epic and GOG games install. Steam keeps its own folders.");
                         color: Theme.text.mix(Theme.dim, 0.6);
                         font-size: 16px;
                         wrap: word-wrap;
@@ -568,7 +575,7 @@ export component OnboardingFlow inherits Rectangle {
                         spacing: 12px;
                         alignment: start;
                         Action {
-                            label: s == 0 ? @tr("Start") : s == 7 ? @tr("Apply the recommended set") : s == 8 ? @tr("Go to the games") : @tr("Continue");
+                            label: s == 0 ? @tr("Start") : s == 7 ? @tr("Apply the recommended set") : s == 9 ? @tr("Go to the games") : @tr("Continue");
                             quiet: s == 4 && root.line < 5;
                             clicked => {
                                 if s == 4 {
@@ -579,7 +586,7 @@ export component OnboardingFlow inherits Rectangle {
                             }
                         }
 
-                        if s < 8: Later {
+                        if s < 9: Later {
                             label: s == 0 || s == 4 || s == 7 ? @tr("Later") : @tr("Skip");
                             clicked => {
                                 root.skip();
@@ -866,7 +873,25 @@ export component OnboardingFlow inherits Rectangle {
                         }
                     }
 
-                    if s == 8: VerticalLayout {
+                    if s == 8: HorizontalLayout {
+                        y: (parent.height - self.height) / 2;
+                        width: parent.width;
+                        height: 72px;
+                        spacing: 12px;
+                        for i in 2: ChoiceTile {
+                            horizontal-stretch: 1;
+                            preferred-width: 10px;
+                            label: i == 0 ? @tr("Efficient") : @tr("Smooth");
+                            selected: App.gpu-renderer == (i == 1);
+                            focused: App.gpu-renderer == (i == 1);
+                            clicked => {
+                                Onboarding.choose-renderer(i == 1);
+                                fs.focus();
+                            }
+                        }
+                    }
+
+                    if s == 9: VerticalLayout {
                         y: (parent.height - self.preferred-height) / 2;
                         width: parent.width;
                         height: self.preferred-height;
@@ -912,13 +937,13 @@ export component OnboardingFlow inherits Rectangle {
                 glyph: "updown";
                 text: @tr("Setting");
             }
-            if root.editing == "" && (root.step == 1 || root.step == 2 || root.step == 5 || root.step == 6): Hint {
+            if root.editing == "" && (root.step == 1 || root.step == 2 || root.step == 5 || root.step == 6 || root.step == 8): Hint {
                 glyph: "leftright";
                 text: @tr("Value");
             }
             if root.editing == "": Hint {
                 glyph: "A";
-                text: root.step == 4 && root.line < 5 ? @tr("Choose") : root.step == 8 ? @tr("Go to the games") : @tr("Continue");
+                text: root.step == 4 && root.line < 5 ? @tr("Choose") : root.step == 9 ? @tr("Go to the games") : @tr("Continue");
             }
             if root.editing != "": Hint {
                 glyph: "A";
@@ -928,7 +953,7 @@ export component OnboardingFlow inherits Rectangle {
                 glyph: "Y";
                 text: @tr("Paste");
             }
-            if root.editing == "" && root.step < 8: Hint {
+            if root.editing == "" && root.step < 9: Hint {
                 glyph: "X";
                 text: root.step == 0 || root.step == 4 || root.step == 7 ? @tr("Later") : @tr("Skip");
             }

@@ -145,7 +145,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfigur
 > [!NOTE]
 > **Not tried on the Ally yet.** The tour was only run on Linux, with the hardware simulator and the fake library; the screenshots come from there. On the Ally, the touch keyboard, the clipboard and the sign-ins in the browser over the FSE are still to be checked.
 
-The first time Canapé opens, a short tour replaces the sections. Each step changes the same settings as the [Settings](#settings) page, applied at once; **A** continues, **X** skips the step ("Later" on the first one closes the whole tour), **B** goes back to the previous step, the D-pad moves on the right. The dots at the top left show where you are. The step reached is saved: after a restart, Canapé comes back to it. Once finished (or put off), the tour does not show again; **Settings → System → Welcome tour** shows it again from the start.
+The first time Canapé opens, a short tour replaces the sections. Each step changes the same settings as the [Settings](#settings) page, applied at once (except the display, applied when the tour ends); **A** continues, **X** skips the step ("Later" on the first one closes the whole tour), **B** goes back to the previous step, the D-pad moves on the right. The dots at the top left show where you are. The step reached is saved: after a restart, Canapé comes back to it. Once finished (or put off), the tour does not show again; **Settings → System → Welcome tour** shows it again from the start.
 
 | Step | What it does |
 |---|---|
@@ -155,6 +155,7 @@ The first time Canapé opens, a short tour replaces the sections. Each step chan
 | **Game stores** | Steam: whether the client was found and how many Steam games are installed, then the **Steam Web API key** (to list the owned games that are not installed). Epic and GOG: **A** starts the same sign-in as in Settings (browser, then the clipboard) and the line shows the account once signed in. **Time to beat (IGDB)**: the Twitch application's **Client ID** and **Client secret**, optional. |
 | **Games folder** | Where Epic and GOG games install and its free space; left and right change it (as in Settings). |
 | **The Ally's buttons** | What the Armoury and Command Center buttons do with Canapé, and **Use the Ally's buttons** on or off. |
+| **Display** | **Efficient** (software rendering, the default) or **Smooth** (graphics card); left and right choose. Smooth needs about 300 MB more memory, also during games. The choice is applied when the tour ends: Canapé then restarts if it is Smooth. See [Display](#display-efficient-or-smooth). Not tried on the Ally yet. |
 | **All set** | The main gestures: LB / RB the sections, A choose or play, B back, X save for this game (Performance, Hardware), Y a game's options on its page. **A** goes to the games. |
 
 | Game stores | Typing a key |
@@ -609,12 +610,20 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 | **Accounts → Time to beat** | "IGDB" when `igdb_client_id` and `igdb_client_secret` are set in `shell.json`, Off otherwise; the drawer says how to set them. |
 | **System → Windows tweaks** | **A** opens the [Windows tweaks](#windows-tweaks) sub-page (Copilot, ads, preinstalled apps, Defender…). Not tried on the Ally yet. |
 | **System → Welcome tour** | **A** shows the [first-launch tour](#first-launch) again from the start. Not tried on the Ally yet. |
+| **System → Display** | **Efficient** or **Smooth** (**A** applies); the drawer states the memory cost and that Canapé restarts. See [Display](#display-efficient-or-smooth). Not tried on the Ally yet. |
 
 | Teal accent | Orange accent |
 |---|---|
 | <img src="images/accent-teal.png" alt="Performance with a teal accent" width="400"> | <img src="images/accent-amber.png" alt="Performance with an orange accent" width="400"> |
 
 <sub>The same settings in German: [de/settings.png](images/de/settings.png).</sub>
+
+#### Display: Efficient or Smooth
+
+> [!NOTE]
+> **Not tried on the Ally yet.** The figures come from the test described in [gpu-renderer-test.md](gpu-renderer-test.md).
+
+Canapé installs two executables: `canape-shell.exe`, which draws with the processor (**Efficient**, the default: about 28 MB of memory, the home page at 104 to 114 frames per second), and `canape-shell-gpu.exe`, which draws with the graphics card (**Smooth**: a smoother home page, but about 300 MB more memory, also during games). The full-screen experience always starts `canape-shell.exe`. With **Smooth**, it starts `canape-shell-gpu.exe`, waits up to 5 seconds for it to show its window, then exits. If the other executable is missing, exits, or shows nothing in time, Canapé stays on **Efficient** and sets the option back to Efficient. Changing the option in **Settings → System → Display** saves the choice, restarts Canapé on the Settings page and closes the previous executable. The setting is `renderer` in `shell.json` (`"software"` or `"gpu"`, missing: `"software"`). `shell.log` records `renderer: …` at startup, and whether the process has a package identity.
 
 ### Game profiles
 

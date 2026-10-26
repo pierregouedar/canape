@@ -2,6 +2,21 @@
 
 Le shell dessine avec le rendu logiciel de Slint (voir [architecture.md](architecture.md)). Cet essai mesure sur l'Ally ce que coûteraient les rendus par la carte graphique, avant de décider quoi que ce soit. La version normale du shell n'est pas concernée. **Décision** : on garde le rendu logiciel (voir le bilan en fin de page) ; la version de test a été retirée du code après l'essai, elle reste accessible dans l'historique (52dbfc0).
 
+## Deux exécutables
+
+> **Pas encore essayé sur l'Ally.**
+
+Décision suivante : le rendu GPU devient une option, sans coût quand elle est éteinte. Les 82 Mo de la version de test avec le rendu logiciel montrent que lier un rendu GPU coûte de la mémoire même quand il n'est pas choisi ; on ne lie donc jamais les deux dans un même exécutable. Deux exécutables, installés ensemble et construits depuis le même crate :
+
+| Exécutable | Rendu | Construction |
+|---|---|---|
+| `canape-shell.exe` | Logiciel seulement, comme avant | `cargo build --release -p canape-shell` |
+| `canape-shell-gpu.exe` | FemtoVG sur OpenGL seulement, sans wgpu | `cargo build --release -p canape-shell --no-default-features --features gpu` |
+
+`canape-shell.exe` reste celui du FSE (`AppxManifest.xml`). Le réglage `renderer` (`software` ou `gpu`) est dans `shell.json`, proposé dans Réglages → Système → Affichage (« Économe » / « Fluide ») et dans la visite de bienvenue. Au démarrage, `canape-shell.exe` le lit avant de créer sa fenêtre ; sur `gpu`, il lance `canape-shell-gpu.exe`, attend jusqu'à 5 s un événement nommé posé quand la fenêtre a dessiné sa première image, puis se ferme (`renderer::PARENT_STAYS_WAITING` le fait attendre sans fenêtre à la place). En cas d'échec, le réglage repasse sur `software` et le shell continue. Les deux exécutables écrivent `renderer: …` et l'identité du paquet dans `shell.log`. Détails dans le [guide du développeur](developer-guide.fr.md#deux-exécutables--rendu-logiciel-ou-carte-graphique).
+
+À vérifier sur l'Ally : mémoire privée de `canape-shell.exe` avec l'option éteinte (28 Mo attendus, plus les 82 Mo des bibliothèques liées en moins), fluidité avec l'option allumée, réaction du FSE quand `canape-shell.exe` se ferme au profit de l'autre, et identité du paquet de `canape-shell-gpu.exe` dans le journal.
+
 ## Ce qu'on sait avant l'essai
 
 - **Rendu logiciel** : 11 Mo privés au premier plan, 14 Mo avec un jeu devant (M4, M5). Sous Windows, il ne redessine que les zones qui changent.

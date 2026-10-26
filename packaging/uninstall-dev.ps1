@@ -3,7 +3,7 @@
 .SYNOPSIS
   Removes what install-dev.ps1 and build-widget.ps1 installed: the service,
   the identity package, the widget package, the home app setting and the
-  installed binaries.
+  installed binaries (canape-shell.exe and canape-shell-gpu.exe included).
 
 .DESCRIPTION
   Before removing the service, asks it to put the hardware back to neutral
@@ -89,7 +89,7 @@ if (Test-Path $shellJson) {
 
 Write-Host "2/6 Removing the service"
 # Stop-Process returns before the exe is unlocked: wait for the exit.
-Get-Process canape-shell -ErrorAction SilentlyContinue | Stop-Process -Force -PassThru | Wait-Process -Timeout 10
+Get-Process canape-shell, canape-shell-gpu -ErrorAction SilentlyContinue | Stop-Process -Force -PassThru | Wait-Process -Timeout 10
 if (Get-Service $serviceName -ErrorAction SilentlyContinue) {
     if (Test-Path $service) {
         & $service uninstall
