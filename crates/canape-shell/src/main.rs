@@ -155,6 +155,7 @@ fn main() -> Result<(), slint::PlatformError> {
         buttons::spawn(ui.as_weak());
         gyro::spawn();
         foreground::spawn(link.clone());
+        foreground::report_front(link.clone());
         std::thread::spawn(|| match canape_hw::FrameMetrics::arm() {
             Ok(metrics) => log(&metrics.describe()),
             Err(err) => log(&format!("adl: {err}")),
@@ -609,6 +610,11 @@ fn connect(ui: &AppWindow, link: &Link) {
                 show_shell_settings(&ui, &settings);
             }
         }
+    });
+
+    app.on_set_ui_power({
+        let link = link.clone();
+        move |enabled| link.send(Request::SetUiPower { enabled })
     });
 
     app.on_set_language({

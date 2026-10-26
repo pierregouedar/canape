@@ -460,6 +460,8 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 > [!TIP]
 > While a game profile is active, these settings change **the profile**, not the global settings.
 
+**Lighter animations** (not tried on the Ally yet): in Silent mode, or with a power limit of 12 W or less, when [Full power in Canapé](#settings) is not in effect, Canapé skips its costliest animations (the library background fade, shelves and drawers sliding). The other animations stay.
+
 ### Hardware
 
 <img src="images/en/hardware.png" alt="Hardware page" width="720">
@@ -629,6 +631,7 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 | **Accounts → Time to beat** | "IGDB" when `igdb_client_id` and `igdb_client_secret` are set in `shell.json`, Off otherwise; the drawer says how to set them. |
 | **System → Windows tweaks** | **A** opens the [Windows tweaks](#windows-tweaks) sub-page (Copilot, ads, preinstalled apps, Defender…). Not tried on the Ally yet. |
 | **System → Welcome tour** | **A** shows the [first-launch tour](#first-launch) again from the start. Not tried on the Ally yet. |
+| **System → Full power in Canapé** | On (the default) or Off. Canapé draws on the CPU, so in Silent mode or with a low limit the interface stutters. When on, while Canapé is the window in front and no game is running, the service writes the Performance mode's power limits; as soon as a game comes to the front or Canapé leaves the foreground (after 1.5 s, to avoid flapping), it puts your state back exactly (mode, manual TDP, game profile, auto TDP). Custom fan curves are kept. Nothing is written when your level is already the Performance mode's or above (manual TDP of 15 W and up, Performance, Turbo), during a bench, or when the mode is unknown. If Canapé stops reporting (closed, hung), the state is put back after 4 s. The `ui power: on (…)` and `ui power: off (…)` lines of `service.log` mark each change. Not tried on the Ally yet. |
 
 | Teal accent | Orange accent |
 |---|---|

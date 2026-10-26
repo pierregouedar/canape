@@ -1018,6 +1018,9 @@ msgstr "Plakken"
 msgid "Welcome tour"
 msgstr "Welkomstrondleiding"
 
+msgid "Full power in Canapé"
+msgstr "Volledig vermogen in Canapé"
+
 msgid "System"
 msgstr "Systeem"
 

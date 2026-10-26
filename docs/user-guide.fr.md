@@ -459,6 +459,8 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 > [!TIP]
 > Quand un profil de jeu est actif, ces réglages modifient **le profil**, pas les réglages généraux.
 
+**Animations allégées** (pas encore essayé sur l'Ally) : en mode Silencieux, ou avec une limite de puissance de 12 W ou moins, quand [Pleine puissance dans Canapé](#réglages) n'est pas en vigueur, Canapé saute les animations les plus coûteuses (fondu du fond de la bibliothèque, glissement des étagères et des tiroirs). Les autres animations restent.
+
 ### Matériel
 
 <img src="images/fr/hardware.png" alt="Page Matériel" width="720">
@@ -628,6 +630,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 | **Comptes → Durée de jeu** | « IGDB » quand `igdb_client_id` et `igdb_client_secret` sont dans `shell.json`, Désactivé sinon ; le tiroir explique comment les régler. |
 | **Système → Optimisations Windows** | **A** ouvre la sous-page [Optimisations Windows](#optimisations-windows) (Copilot, publicités, applications préinstallées, Defender…). Pas encore essayé sur l'Ally. |
 | **Système → Visite de bienvenue** | **A** relance la [visite du premier lancement](#premier-lancement) depuis le début. Pas encore essayé sur l'Ally. |
+| **Système → Pleine puissance dans Canapé** | Activé (par défaut) ou Désactivé. Canapé s'affiche avec le processeur : en mode Silencieux ou avec une limite basse, l'interface saccade. Activé, tant que Canapé est la fenêtre au premier plan et qu'aucun jeu ne tourne, le service écrit les limites de puissance du mode Performance ; dès qu'un jeu passe devant ou que Canapé perd le premier plan (après 1,5 s, pour ne pas osciller), il remet exactement votre état (mode, TDP manuel, profil de jeu, auto TDP). Les courbes de ventilateurs personnalisées sont gardées. Rien n'est écrit si votre niveau est déjà celui du mode Performance ou au-dessus (TDP manuel de 15 W et plus, Performance, Turbo), pendant un banc d'essai ni quand le mode est inconnu. Si Canapé cesse de se signaler (fermé, bloqué), l'état est remis après 4 s. Les lignes `ui power: on (…)` et `ui power: off (…)` de `service.log` marquent chaque passage. Pas encore essayé sur l'Ally. |
 
 | Accent sarcelle | Accent orange |
 |---|---|

@@ -1015,6 +1015,9 @@ msgstr "Wklej"
 msgid "Welcome tour"
 msgstr "Przewodnik powitalny"
 
+msgid "Full power in Canapé"
+msgstr "Pełna moc w Canapé"
+
 msgid "System"
 msgstr "System"
 

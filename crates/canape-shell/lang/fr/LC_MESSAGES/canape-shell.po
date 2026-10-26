@@ -1018,6 +1018,9 @@ msgstr "Coller"
 msgid "Welcome tour"
 msgstr "Visite de bienvenue"
 
+msgid "Full power in Canapé"
+msgstr "Pleine puissance dans Canapé"
+
 msgid "System"
 msgstr "Système"
 

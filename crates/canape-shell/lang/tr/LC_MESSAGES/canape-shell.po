@@ -1015,6 +1015,9 @@ msgstr "Yapıştır"
 msgid "Welcome tour"
 msgstr "Hoş geldin turu"
 
+msgid "Full power in Canapé"
+msgstr "Canapé'de tam güç"
+
 msgid "System"
 msgstr "Sistem"
 

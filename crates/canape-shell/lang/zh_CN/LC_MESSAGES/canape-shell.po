@@ -1015,6 +1015,9 @@ msgstr "粘贴"
 msgid "Welcome tour"
 msgstr "欢迎导览"
 
+msgid "Full power in Canapé"
+msgstr "在 Canapé 中全功率"
+
 msgid "System"
 msgstr "系统"
 

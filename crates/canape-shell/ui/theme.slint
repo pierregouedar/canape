@@ -17,6 +17,15 @@ export global Theme {
     // Windows' own gamepad glyphs (Segoe Fluent Icons) are available: set
     // by the Rust side on Windows; elsewhere the glyphs are drawn.
     in-out property <bool> system-glyphs: false;
+    // The power limit is low (silent mode, or 12 W and under) and the
+    // interface does not have full power: the costly animations (the
+    // backdrop fading, shelves and drawers sliding) jump to their end.
+    // Set by the Rust side from the status (link.rs).
+    in-out property <bool> reduced-motion: false;
+    // A duration of the costly animations, none when motion is reduced.
+    public pure function motion(duration: duration) -> duration {
+        root.reduced-motion ? 0ms : duration
+    }
     // Selected tiles: a lighter grey and an accent bar, white being kept
     // for the focus.
     out property <color> selected: #2f323a;

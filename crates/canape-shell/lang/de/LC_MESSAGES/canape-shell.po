@@ -1018,6 +1018,9 @@ msgstr "Einfügen"
 msgid "Welcome tour"
 msgstr "Willkommenstour"
 
+msgid "Full power in Canapé"
+msgstr "Volle Leistung in Canapé"
+
 msgid "System"
 msgstr "System"
 

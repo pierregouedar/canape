@@ -1018,6 +1018,9 @@ msgstr "Pegar"
 msgid "Welcome tour"
 msgstr "Recorrido de bienvenida"
 
+msgid "Full power in Canapé"
+msgstr "Máxima potencia en Canapé"
+
 msgid "System"
 msgstr "Sistema"
 

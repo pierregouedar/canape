@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use canape_autotdp::{Config, Controller};
 use canape_core::settings::{DEFAULT_ACCENT, FPS_LIMIT_RANGE, GYRO_SENSITIVITY_RANGE};
@@ -15,6 +15,7 @@ use crate::bench_run::{BenchRun, Reading, Step};
 #[cfg(test)]
 use crate::tweaks;
 use crate::tweaks::{Applied, PowerRecord, System, Tweaks};
+use crate::ui_power;
 
 /// Below this frame rate nothing is being played (desktop, idle shell).
 const MIN_GAME_FPS: f32 = 5.0;
@@ -53,6 +54,24 @@ pub struct Saved {
     pub cpu_power: CpuPower,
     /// What those settings replaced in the Windows power plan.
     pub cpu_power_prior: PowerRecord,
+    /// "Full power in Canapé" turned off (it is on unless said otherwise).
+    pub ui_power_off: bool,
+}
+
+/// Where "full power in Canapé" stands.
+#[derive(Debug, Default)]
+struct UiPowerState {
+    /// Last report from the shell: whether it is in front, and when.
+    seen: Option<(bool, Instant)>,
+    /// The performance mode's limits are written now.
+    active: bool,
+    /// Since when the shell has been out of front while active.
+    out_since: Option<Instant>,
+    /// A user power request overwrote the firmware while active: the level
+    /// is written again without a log line.
+    resume: bool,
+    /// Writing the level failed (see [`ui_power::Input::failed`]).
+    failed: bool,
 }
 
 /// Service state and request dispatch, independent of the transport.
@@ -95,6 +114,11 @@ pub struct Handler {
     tweaks: Tweaks,
     /// Something worth saving changed outside a request (learned watts, bench).
     dirty: bool,
+    ui: UiPowerState,
+    ui_power_off: bool,
+    clock: Box<dyn Fn() -> Instant + Send>,
+    /// Lines for the service log, taken by the server after each call.
+    notes: Vec<String>,
 }
 
 impl Handler {
@@ -133,11 +157,42 @@ impl Handler {
             cpu_power: CpuPower::default(),
             tweaks: Tweaks::new(system),
             dirty: false,
+            ui: UiPowerState::default(),
+            ui_power_off: false,
+            clock: Box::new(Instant::now),
+            notes: Vec::new(),
         }
     }
 
     pub fn handle(&mut self, request: Request) -> Response {
+        // The request writes the firmware itself: what the interface level
+        // wrote is gone, and is written again below if it still applies.
+        if self.ui.active
+            && matches!(
+                request,
+                Request::SetPerformanceMode { .. }
+                    | Request::SetTdp { .. }
+                    | Request::SetAutoTdp { .. }
+            )
+        {
+            self.ui.active = false;
+            self.ui.resume = true;
+        }
+        let response = self.dispatch(request);
+        self.update_ui_power();
+        response
+    }
+
+    fn dispatch(&mut self, request: Request) -> Response {
         match request {
+            Request::UiForeground { front } => {
+                self.ui.seen = Some((front, (self.clock)()));
+                Response::Ok
+            }
+            Request::SetUiPower { enabled } => {
+                self.ui_power_off = !enabled;
+                Response::Ok
+            }
             Request::Hello { protocol_version }
                 if protocol_version == protocol::PROTOCOL_VERSION =>
             {
@@ -428,6 +483,7 @@ impl Handler {
         self.fps = self.device.frame_rate();
         self.telemetry = self.device.telemetry().ok();
         let telemetry = self.telemetry.unwrap_or_default();
+        self.update_ui_power();
 
         if let Some((plan, waited, frames)) = self.pending_bench.as_mut() {
             *waited += 1;
@@ -466,6 +522,10 @@ impl Handler {
             return;
         }
 
+        // Auto TDP waits: it would write over the interface level.
+        if self.ui.active {
+            return;
+        }
         let Some(controller) = self.controller.as_mut() else {
             return;
         };
@@ -546,6 +606,134 @@ impl Handler {
             back_buttons: self.back_buttons,
             lighting: self.lighting.clone(),
             cpu_power: self.cpu_power,
+            ui_power_enabled: !self.ui_power_off,
+            ui_power: self.ui.active,
+        }
+    }
+
+    /// Takes the lines waiting for the service log.
+    pub fn take_notes(&mut self) -> Vec<String> {
+        std::mem::take(&mut self.notes)
+    }
+
+    /// Replaces the clock the shell's reports are dated with.
+    #[cfg(test)]
+    fn set_clock(&mut self, clock: impl Fn() -> Instant + Send + 'static) {
+        self.clock = Box::new(clock);
+    }
+
+    /// Applies the interface power level or puts the user's state back, as
+    /// [`ui_power::decide`] says. The user's state (`mode`, `tdp_watts`, the
+    /// auto TDP and profile in effect) is never touched: the level only
+    /// lives in the firmware, and stays out of what is saved.
+    fn update_ui_power(&mut self) {
+        let now = (self.clock)();
+        let timeout = std::time::Duration::from_secs(protocol::UI_FOREGROUND_TIMEOUT_SECS);
+        let shell_front = self
+            .ui
+            .seen
+            .is_some_and(|(front, at)| front && now.saturating_duration_since(at) <= timeout);
+        let input = ui_power::Input {
+            enabled: !self.ui_power_off,
+            shell_front,
+            game_running: self.foreground.is_some(),
+            bench: self.bench.is_some() || self.pending_bench.is_some(),
+            mode: self.mode,
+            watts: self.tdp_watts,
+            failed: self.ui.failed,
+        };
+        if !shell_front {
+            self.ui.failed = false;
+        }
+        if self.ui.active && !shell_front {
+            self.ui.out_since.get_or_insert(now);
+        } else {
+            self.ui.out_since = None;
+        }
+        let out_for = self
+            .ui
+            .out_since
+            .map(|since| now.saturating_duration_since(since));
+        let resume = std::mem::take(&mut self.ui.resume);
+        match ui_power::decide(input, self.ui.active, out_for) {
+            ui_power::Step::Boost => self.boost_ui_power(resume),
+            ui_power::Step::Release => {
+                let why = if input.game_running {
+                    "game running"
+                } else if input.bench {
+                    "bench"
+                } else if !input.enabled {
+                    "setting off"
+                } else if !ui_power::below_ui_level(input.mode, input.watts) {
+                    "power level changed"
+                } else if self.ui.seen.is_some_and(|(front, _)| front) {
+                    "shell stopped reporting"
+                } else {
+                    "shell left the foreground"
+                };
+                self.release_ui_power(why);
+            }
+            ui_power::Step::Keep => {
+                if resume {
+                    self.note("ui power: off (power level changed)".into());
+                }
+            }
+        }
+    }
+
+    fn note(&mut self, line: String) {
+        self.notes.push(line);
+    }
+
+    /// The user's state as a few words for the log.
+    fn describe_level(&self) -> String {
+        match (self.mode, self.tdp_watts) {
+            (Some(PerformanceMode::Manual), Some(watts)) => format!("manual {watts} W"),
+            (Some(mode), _) => format!("{mode:?}").to_lowercase(),
+            (None, _) => "unknown".into(),
+        }
+    }
+
+    fn boost_ui_power(&mut self, quiet: bool) {
+        match self
+            .device
+            .set_performance_mode(PerformanceMode::Performance)
+        {
+            Ok(()) => {
+                self.ui.active = true;
+                // A mode write resets the fan curves: write ours again.
+                self.rewrite_fan_curves();
+                if !quiet {
+                    let line = format!(
+                        "ui power: on (shell in front, was {})",
+                        self.describe_level()
+                    );
+                    self.note(line);
+                }
+            }
+            Err(err) => {
+                self.ui.failed = true;
+                self.note(format!("ui power: not applied ({err})"));
+            }
+        }
+    }
+
+    fn release_ui_power(&mut self, why: &str) {
+        self.ui.active = false;
+        self.ui.out_since = None;
+        let result = match (self.mode, self.tdp_watts) {
+            (Some(PerformanceMode::Manual), Some(watts)) => self.device.set_tdp(watts),
+            (Some(PerformanceMode::Manual), None) | (None, _) => Ok(()),
+            (Some(mode), _) => self.device.set_performance_mode(mode).inspect(|()| {
+                self.rewrite_fan_curves();
+            }),
+        };
+        let level = self.describe_level();
+        match result {
+            Ok(()) => self.note(format!("ui power: off ({why}, back to {level})")),
+            Err(err) => self.note(format!(
+                "ui power: off ({why}), {level} not restored: {err}"
+            )),
         }
     }
 
@@ -581,6 +769,7 @@ impl Handler {
             tweaks: BTreeMap::new(),
             cpu_power: self.cpu_power,
             cpu_power_prior: PowerRecord::default(),
+            ui_power_off: false,
         };
         let global = self
             .before_bench
@@ -598,6 +787,7 @@ impl Handler {
             lighting: self.lighting.clone(),
             tweaks: self.tweaks.saved(),
             cpu_power_prior: self.tweaks.saved_power(),
+            ui_power_off: self.ui_power_off,
             ..global
         }
     }
@@ -610,6 +800,7 @@ impl Handler {
         self.gyro = saved.gyro;
         self.tweaks.restore(saved.tweaks.clone());
         self.tweaks.restore_power(saved.cpu_power_prior.clone());
+        self.ui_power_off = saved.ui_power_off;
         let mut errors = self.apply_power_state(saved);
         errors.extend(self.apply_fans_and_fps(&saved.fan_curves, saved.fps_limit));
         errors.extend(self.apply_cpu_power(saved.cpu_power));
@@ -2147,5 +2338,287 @@ mod tests {
             settings: CpuPower::default(),
         });
         assert_eq!(epp(&sim), untouched);
+    }
+    mod ui_power_flow {
+        use super::*;
+        use std::sync::{Arc, Mutex};
+        use std::time::Duration;
+
+        /// The mock, with the power writes kept where the test sees them.
+        struct Spy(MockDevice, Arc<Mutex<Vec<String>>>);
+        impl Device for Spy {
+            fn name(&self) -> &str {
+                self.0.name()
+            }
+            fn tdp_range(&self) -> (u32, u32) {
+                self.0.tdp_range()
+            }
+            fn set_tdp(&mut self, watts: u32) -> canape_hw::Result<()> {
+                self.1.lock().unwrap().push(format!("tdp {watts}"));
+                self.0.set_tdp(watts)
+            }
+            fn set_performance_mode(&mut self, mode: PerformanceMode) -> canape_hw::Result<()> {
+                self.1.lock().unwrap().push(format!("mode {mode:?}"));
+                self.0.set_performance_mode(mode)
+            }
+            fn set_battery_charge_limit(&mut self, percent: u8) -> canape_hw::Result<()> {
+                self.0.set_battery_charge_limit(percent)
+            }
+            fn telemetry(&mut self) -> canape_hw::Result<Telemetry> {
+                self.0.telemetry()
+            }
+            fn frame_rate(&mut self) -> Option<f32> {
+                self.0.frame_rate()
+            }
+            fn set_fan_curve(&mut self, fan: Fan, curve: &FanCurve) -> canape_hw::Result<()> {
+                self.1.lock().unwrap().push(format!("curve {fan:?}"));
+                self.0.set_fan_curve(fan, curve)
+            }
+        }
+
+        struct Rig {
+            h: Handler,
+            writes: Arc<Mutex<Vec<String>>>,
+            now: Arc<Mutex<Instant>>,
+        }
+
+        impl Rig {
+            fn new() -> Self {
+                Self::with_fps(None)
+            }
+
+            fn with_fps(fps: Option<f32>) -> Self {
+                let writes = Arc::new(Mutex::new(Vec::new()));
+                let now = Arc::new(Mutex::new(Instant::now()));
+                let device = MockDevice {
+                    fps,
+                    ..MockDevice::default()
+                };
+                let mut h = Handler::new(Box::new(Spy(device, writes.clone())));
+                let clock = now.clone();
+                h.set_clock(move || *clock.lock().unwrap());
+                Self { h, writes, now }
+            }
+
+            fn wait(&mut self, millis: u64) {
+                *self.now.lock().unwrap() += Duration::from_millis(millis);
+                self.h.tick();
+            }
+
+            fn front(&mut self, front: bool) {
+                self.h.handle(Request::UiForeground { front });
+            }
+
+            fn writes(&self) -> Vec<String> {
+                std::mem::take(&mut *self.writes.lock().unwrap())
+            }
+        }
+
+        fn silent(rig: &mut Rig) {
+            rig.h.handle(Request::SetPerformanceMode {
+                mode: PerformanceMode::Silent,
+            });
+            rig.writes();
+            rig.h.take_notes();
+        }
+
+        #[test]
+        fn a_low_mode_gets_full_power_while_the_shell_is_in_front() {
+            let mut rig = Rig::new();
+            silent(&mut rig);
+            rig.front(true);
+            assert_eq!(rig.writes(), ["mode Performance"]);
+            let status = rig.h.status();
+            assert!(status.ui_power);
+            assert_eq!(status.performance_mode, Some(PerformanceMode::Silent));
+            assert_eq!(rig.h.saved().mode, Some(PerformanceMode::Silent));
+            assert_eq!(
+                rig.h.take_notes(),
+                ["ui power: on (shell in front, was silent)"]
+            );
+            // Nothing changes, nothing is written.
+            rig.front(true);
+            rig.wait(1000);
+            rig.front(true);
+            assert!(rig.writes().is_empty());
+        }
+
+        #[test]
+        fn the_user_state_comes_back_after_the_hold() {
+            let mut rig = Rig::new();
+            silent(&mut rig);
+            rig.front(true);
+            rig.writes();
+            rig.h.take_notes();
+            rig.front(false);
+            rig.wait(1000);
+            assert!(rig.writes().is_empty(), "held for a moment");
+            // Back in front: no flapping.
+            rig.front(true);
+            rig.wait(1000);
+            assert!(rig.writes().is_empty());
+            rig.front(false);
+            rig.wait(500);
+            rig.wait(1600);
+            assert_eq!(rig.writes(), ["mode Silent"]);
+            assert!(!rig.h.status().ui_power);
+            assert_eq!(
+                rig.h.take_notes(),
+                ["ui power: off (shell left the foreground, back to silent)"]
+            );
+        }
+
+        #[test]
+        fn a_silent_shell_times_out() {
+            let mut rig = Rig::new();
+            rig.h.handle(Request::SetTdp { watts: 9 });
+            rig.writes();
+            rig.front(true);
+            assert_eq!(rig.writes(), ["mode Performance"]);
+            for _ in 0..8 {
+                rig.wait(1000);
+            }
+            assert_eq!(rig.writes(), ["tdp 9"]);
+            assert!(
+                rig.h
+                    .take_notes()
+                    .last()
+                    .is_some_and(|note| note.starts_with("ui power: off (shell stopped reporting"))
+            );
+        }
+
+        #[test]
+        fn a_game_in_front_restores_at_once_and_the_shell_does_not_boost_it() {
+            let mut rig = Rig::new();
+            silent(&mut rig);
+            rig.front(true);
+            rig.writes();
+            rig.h.handle(Request::ForegroundApp {
+                exe: Some("game.exe".into()),
+            });
+            assert_eq!(rig.writes(), ["mode Silent"]);
+            // The game is still running behind the shell.
+            rig.front(true);
+            rig.wait(1000);
+            assert!(rig.writes().is_empty());
+            // The game is gone: the shell has the level again.
+            rig.h.handle(Request::ForegroundApp { exe: None });
+            assert_eq!(rig.writes(), ["mode Performance"]);
+        }
+
+        #[test]
+        fn a_profile_is_restored_not_the_state_before_it() {
+            let mut rig = Rig::new();
+            silent(&mut rig);
+            rig.h.handle(Request::SaveProfile {
+                profile: profile("game.exe", 40, Some(11)),
+            });
+            rig.front(true);
+            rig.writes();
+            rig.h.handle(Request::ForegroundApp {
+                exe: Some("game.exe".into()),
+            });
+            let status = rig.h.status();
+            assert_eq!(status.tdp_watts, Some(11));
+            assert!(!status.ui_power);
+            assert_eq!(rig.writes().last().map(String::as_str), Some("tdp 11"));
+        }
+
+        #[test]
+        fn levels_at_or_above_the_ui_level_are_left_alone() {
+            for mode in [PerformanceMode::Performance, PerformanceMode::Turbo] {
+                let mut rig = Rig::new();
+                rig.h.handle(Request::SetPerformanceMode { mode });
+                rig.writes();
+                rig.front(true);
+                rig.wait(1000);
+                assert!(rig.writes().is_empty());
+                assert!(!rig.h.status().ui_power);
+            }
+            let mut rig = Rig::new();
+            rig.h.handle(Request::SetTdp { watts: 25 });
+            rig.writes();
+            rig.front(true);
+            assert!(rig.writes().is_empty());
+        }
+
+        #[test]
+        fn a_bench_never_gets_the_boost() {
+            let mut rig = Rig::with_fps(Some(60.0));
+            silent(&mut rig);
+            rig.wait(1000);
+            assert_eq!(
+                rig.h.handle(Request::StartBench { plan: short_plan() }),
+                Response::Ok
+            );
+            rig.front(true);
+            rig.wait(1000);
+            assert!(rig.h.status().bench.is_some());
+            assert!(!rig.h.status().ui_power);
+        }
+
+        #[test]
+        fn the_setting_turns_it_off_and_is_saved() {
+            let mut rig = Rig::new();
+            silent(&mut rig);
+            rig.front(true);
+            rig.writes();
+            rig.h.handle(Request::SetUiPower { enabled: false });
+            assert_eq!(rig.writes(), ["mode Silent"]);
+            let status = rig.h.status();
+            assert!(!status.ui_power && !status.ui_power_enabled);
+            rig.wait(1000);
+            assert!(rig.writes().is_empty());
+
+            let saved = rig.h.saved();
+            assert!(saved.ui_power_off);
+            let mut restored = Rig::new();
+            restored.h.restore(&saved);
+            assert!(!restored.h.status().ui_power_enabled);
+            assert!(Rig::new().h.status().ui_power_enabled);
+        }
+
+        #[test]
+        fn a_user_change_while_boosted_is_written_then_boosted_again() {
+            let mut rig = Rig::new();
+            silent(&mut rig);
+            rig.front(true);
+            rig.writes();
+            rig.h.take_notes();
+            rig.h.handle(Request::SetTdp { watts: 8 });
+            assert_eq!(rig.writes(), ["tdp 8", "mode Performance"]);
+            assert!(rig.h.take_notes().is_empty(), "no log line for a step");
+            let status = rig.h.status();
+            assert!(status.ui_power);
+            assert_eq!(status.tdp_watts, Some(8));
+            // Raised past the ui level: nothing to boost any more.
+            rig.h.handle(Request::SetTdp { watts: 20 });
+            assert_eq!(rig.writes(), ["tdp 20"]);
+            assert!(!rig.h.status().ui_power);
+            assert_eq!(rig.h.take_notes(), ["ui power: off (power level changed)"]);
+        }
+
+        #[test]
+        fn auto_tdp_waits_while_boosted_and_the_fan_curve_is_kept() {
+            let mut rig = Rig::new();
+            rig.h.handle(Request::SetAutoTdp {
+                settings: AutoTdpSettings {
+                    enabled: true,
+                    min_watts: 7,
+                    max_watts: 12,
+                    ..AutoTdpSettings::default()
+                },
+            });
+            rig.h.handle(set_curve(Fan::Cpu, FanPreset::Balanced));
+            rig.writes();
+            rig.front(true);
+            assert_eq!(rig.writes(), ["mode Performance", "curve Cpu"]);
+            rig.wait(1000);
+            assert!(rig.writes().is_empty(), "the controller does not write");
+            rig.front(false);
+            rig.wait(2000);
+            assert_eq!(rig.writes(), ["tdp 12"]);
+            assert!(rig.h.status().auto_tdp.enabled);
+        }
     }
 }

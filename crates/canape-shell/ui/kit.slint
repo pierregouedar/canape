@@ -670,7 +670,7 @@ export component Reveal inherits Rectangle {
         self.shown = 1;
     }
     animate shown {
-        duration: root.duration;
+        duration: Theme.motion(root.duration);
         easing: cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
@@ -862,7 +862,7 @@ export component ShelfPane inherits Rectangle {
         y: root.margin - root.front * Shelves.pitch;
         width: parent.width;
         height: parent.height;
-        animate y { duration: 200ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+        animate y { duration: Theme.motion(200ms); easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
         @children
     }
 }
@@ -883,7 +883,7 @@ export component Drawer inherits Rectangle {
     x: 0;
     height: root.sheet-height;
     y: root.open ? root.page-height - root.sheet-height : root.page-height + 24px;
-    animate y { duration: 200ms; easing: cubic-bezier(0.16, 1, 0.3, 1); }
+    animate y { duration: Theme.motion(200ms); easing: cubic-bezier(0.16, 1, 0.3, 1); }
     visible: root.open || self.y < root.page-height + 24px;
 
     // A short shadow above the sheet.

@@ -75,7 +75,7 @@ pub fn file_name(path: &str) -> &str {
 }
 
 #[cfg(windows)]
-pub use self::windows::spawn;
+pub use self::windows::{report_front, spawn};
 
 #[cfg(windows)]
 mod windows {
@@ -94,6 +94,8 @@ mod windows {
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetForegroundWindow, GetWindowRect, GetWindowThreadProcessId,
     };
+
+    use canape_core::Request;
 
     use super::{Seen, Tracker, file_name};
     use crate::link::Link;
@@ -173,6 +175,20 @@ mod windows {
         let process = Process::open(pid)?;
         let exe = process.exe()?;
         Some((process, exe, fills_screen(window)))
+    }
+
+    /// Tells the service once a second whether the shell's own window is
+    /// the one in front: the service gives the interface full power while
+    /// it is, and takes it back when the reports stop.
+    pub fn report_front(link: Link) {
+        thread::spawn(move || {
+            loop {
+                link.send(Request::UiForeground {
+                    front: crate::instance::is_foreground(),
+                });
+                thread::sleep(Duration::from_secs(1));
+            }
+        });
     }
 
     pub fn spawn(link: Link) {

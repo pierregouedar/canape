@@ -1018,6 +1018,9 @@ msgstr "Colar"
 msgid "Welcome tour"
 msgstr "Tour de boas-vindas"
 
+msgid "Full power in Canapé"
+msgstr "Potência máxima no Canapé"
+
 msgid "System"
 msgstr "Sistema"
 

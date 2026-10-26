@@ -11,6 +11,7 @@ mod conflicts;
 mod handler;
 mod server;
 mod tweaks;
+mod ui_power;
 #[cfg(windows)]
 mod winsvc;
 
