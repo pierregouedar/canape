@@ -41,6 +41,7 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 | 🎨 **Couleur d'accent** | Sélecteur teinte / saturation / luminosité et préréglages ; le widget de la Game Bar suit la couleur d'accent. |
 | 🌍 **13 langues** | English, Français, Español, Deutsch, Italiano, Português, Nederlands, Polski, Русский, Türkçe, 日本語, 한국어, 简体中文. Langue de Windows par défaut, ou choix manuel. |
 | 💾 **Réglages persistants** | Le service réapplique au démarrage le dernier état (le firmware ne sait pas le relire). |
+| ⚠️ **Détection des conflits** | Avertit si un autre programme pilote aussi le matériel. |
 
 ### Captures
 
@@ -67,7 +68,7 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
    ```
 3. Choisir **Canapé** dans Paramètres → Jeux → Expérience plein écran, puis redémarrer.
 
-Tout le détail (binaires de la CI, widget, retour à Winhanced ou à l'app Xbox, dépannage) est dans le **[guide d'utilisation](docs/user-guide.fr.md)**.
+Tout le détail (binaires de la CI, widget, retour à l'accueil Xbox, dépannage) est dans le **[guide d'utilisation](docs/user-guide.fr.md)**.
 
 ### État d'avancement
 
@@ -80,7 +81,7 @@ Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas e
 | M2 | Service Windows + named pipe, backend ATKACPI, shell Slint à la manette, instance unique ([rapport](docs/m2-report.md)) | ✅ |
 | M2.5 | État persistant, journal des écritures, détection des conflits, rendu logiciel, XInput direct, CI | ✅ ([rapport](docs/m4-report.md)) |
 | M3 | Widget Game Bar relié au service ([rapport](docs/m3-report.md)) | ✅ première version · 🧪 nouvelle version 13 langues pas encore compilée |
-| M4 | Auto TDP réel : FPS et charge GPU via AMD ADL ([rapport](docs/m4-report.md)) | ✅ jusqu'à `1268753` · 🧪 optimisations suivantes |
+| M4 | Auto TDP réel : FPS et charge GPU via AMD ADL ([rapport](docs/m4-report.md)) | ✅ jusqu'à `13ee476` · 🧪 optimisations suivantes |
 | M5 | Profils par jeu, banc d'essai, shell en 13 langues ([rapport, 1ʳᵉ partie](docs/m5-report.md)) | 🚧 shell, ventilateurs, manette, écran, boutons, bibliothèque et bench essayés sur l'Ally ; auto TDP corrigé · 🧪 installations, widget, limite de FPS corrigée |
 | M6 | Bibliothèque de jeux, installation des jeux Steam et Epic, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | ✅ bibliothèque (Steam, Xbox), ventilateurs, manette, fréquence de l'écran, boutons Armoury / Command Center, essayés sur l'Ally ([M5](docs/m5-report.md)) · 🧪 installation des jeux Steam et Epic, limite de FPS corrigée, fréquence par jeu, boutons arrière M1 / M2, éclairage des sticks · ⏳ installation des jeux GOG ([étude](docs/game-install-study.md)) |
 
@@ -137,6 +138,7 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 | 🎨 **Accent colour** | Hue / saturation / brightness picker and presets; the widget follows the accent colour. |
 | 🌍 **13 languages** | English, Français, Español, Deutsch, Italiano, Português, Nederlands, Polski, Русский, Türkçe, 日本語, 한국어, 简体中文. Windows language by default, or a manual choice. |
 | 💾 **Persistent settings** | The service re-applies the last state at startup (the firmware cannot report it back). |
+| ⚠️ **Conflict detection** | Warns when another program also drives the hardware. |
 
 ### Screenshots
 
@@ -163,7 +165,7 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
    ```
 3. Pick **Canapé** in Settings → Gaming → Full screen experience, then reboot.
 
-All the details (CI binaries, the widget, going back to Winhanced or the Xbox app, troubleshooting) are in the **[user guide](docs/user-guide.en.md)**.
+All the details (CI binaries, the widget, going back to the Xbox home, troubleshooting) are in the **[user guide](docs/user-guide.en.md)**.
 
 ### Project status
 
@@ -176,7 +178,7 @@ Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, n
 | M2 | Windows service + named pipe, ATKACPI backend, gamepad Slint shell, single instance ([report](docs/m2-report.md)) | ✅ |
 | M2.5 | Persistent state, write log, conflict detection, software rendering, direct XInput, CI | ✅ ([report](docs/m4-report.md)) |
 | M3 | Game Bar widget talking to the service ([report](docs/m3-report.md)) | ✅ first version · 🧪 new 13-language version not built yet |
-| M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `1268753` · 🧪 later optimizations |
+| M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `13ee476` · 🧪 later optimizations |
 | M5 | Per-game profiles, bench, shell in 13 languages ([report, part 1](docs/m5-report.md)) | 🚧 shell, fans, controller, screen, buttons, library and bench tried on the Ally; auto TDP fixed · 🧪 installs, widget, fixed frame rate limit |
 | M6 | Game library, installing Steam and Epic games, fans, frame rate limit, controller mode, display refresh rate, special buttons | ✅ library (Steam, Xbox), fans, controller, screen refresh rate, Armoury / Command Center buttons, tried on the Ally ([M5](docs/m5-report.md)) · 🧪 installing Steam and Epic games, fixed frame rate limit, per-game refresh rate, M1 / M2 back buttons, stick lighting · ⏳ installing GOG games ([study](docs/game-install-study.md), in French) |
 

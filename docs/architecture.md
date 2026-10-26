@@ -2,7 +2,6 @@
 
 Canapé est une interface « console » pour la ROG Ally : elle démarre à la place de l'accueil Xbox dans l'expérience plein écran (FSE) de Windows, pilote tout le matériel de l'Ally et ajuste le TDP automatiquement. Deux contraintes guident tous les choix : **booter en FSE** et **rester le plus léger possible**.
 
-
 ## Vue d'ensemble
 
 ```
@@ -39,9 +38,11 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 
 ### Pourquoi un vrai service plutôt que des tâches planifiées
 
+Des tâches planifiées « Highest » avec un réveil via `schtasks` seraient possibles. Un service Windows est plus simple : il démarre une fois au boot, tourne en permanence, redémarre tout seul en cas de crash (options de récupération du service) et n'a pas besoin d'être réveillé par le widget.
 
 ## Démarrage en FSE
 
+Le FSE active l'app d'accueil **sans droits administrateur** (medium IL). `canape-shell.exe` est donc conçu pour tourner sans droits : pas besoin d'un programme « pont » élevé.
 
 1. `canape-shell.exe` est installé normalement dans `C:\Program Files\Canape`.
 2. Un **paquet MSIX sparse** (`packaging/identity`) lui donne une identité d'app :
@@ -50,7 +51,7 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
    - capacité `Microsoft.appCategory.gamingHome_8wekyb3d8bbwe`, débloquée par `CustomCapability.SCCD` (catalogue de test `FFFF`, donc **mode développeur requis**).
 3. L'installateur enregistre le paquet : `Add-AppxPackage -Path Canape.Identity.msix -ExternalLocation "C:\Program Files\Canape"`. Le paquet doit être signé ; en développement, un certificat auto-signé placé dans `LocalMachine\TrustedPeople`.
 4. Choix de l'accueil : en priorité par l'utilisateur dans Paramètres → Jeux → Expérience plein écran. En option, l'installateur écrit `HKCU\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration\GamingHomeApp = <PFN>!App` (valeur non documentée par Microsoft).
-5. Au boot : si « démarrer dans l'expérience plein écran » est activé (`StartupToGamingHome = 1`), Windows lance lui-même `canape-shell.exe`.
+5. Au boot : si « démarrer dans l'expérience plein écran » est activé (`StartupToGamingHome = 1`), Windows lance lui-même `canape-shell.exe`, en l'activant avec l'argument `windows.gaming:///home` (c'est ce qui le distingue d'un lancement hors FSE, sans argument).
 
 À l'exécution, le shell peut utiliser les API de `api-ms-win-gaming-experience-l1-1-0.dll` (`IsGamingFullScreenExperienceActive`, notification de changement, etc.) pour suivre l'état du FSE.
 
@@ -63,11 +64,13 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 
 ## Matériel (`canape-hw`)
 
+Les faits (identifiants, formats, ordre d'écriture) du backend Windows sont implémentés dans `crates/canape-hw/src/atk.rs`.
 
 | Fonction | Interface | État |
 |---|---|---|
 | Mode de performance, limites de puissance (sPPT, SPL, fPPT), limite de charge, température CPU | Firmware ASUS via `\\.\ATKACPI` (IOCTL `0x0022240C`, méthodes DEVS/DSTS) | M2 |
 | Batterie (pourcentage) | `GetSystemPowerStatus` | M2 |
+| FPS et charge GPU | AMD ADL (`ADL2_Adapter_FrameMetrics_*`, PMLog activité GFX) | M4 |
 | Courbes et vitesses des ventilateurs | ATKACPI `0x00110024`/`0x00110025` (8 températures + 8 % de PWM, `0x00110032` pour un ventilateur central), vitesses `0x00110013`/`0x00110014` | M6 : code écrit (service et page Matériel), à valider sur l'Ally |
 | Limite de FPS | AMD ADL (`ADL2_FPS_Settings_Set`), depuis le service | M6 : code écrit, à valider sur l'Ally (session 0 non essayée) |
 | Mode de la manette | HID ASUS (VID `0x0B05`, rapport `0x5A`, commande `0xD1 0x01`) | M6 : code écrit, à valider sur l'Ally |
@@ -75,13 +78,17 @@ Seul le service a des droits élevés. L'app FSE et le widget ne touchent jamais
 | Gyroscope (visée) | Capteurs Windows (`Windows.Devices.Sensors.Gyrometer`), lus par le shell, qui déplace la souris par `SendInput` pendant qu'un jeu est devant (voir `gyro-study.md`) | Code écrit, à valider sur l'Ally |
 | Boutons spéciaux | HID ASUS (VID `0x0B05`, rapports d'entrée `0x5A` : 166 Command Center, 56/147 Armoury, 165/0 palettes arrière), lus par le shell | M6 : code écrit (Armoury → Canapé, Command Center → Game Bar), à valider sur l'Ally |
 
+Le SMU du Ryzen n'est pas nécessaire : sur l'Ally, il ne servirait au TDP que si l'ID sPPT est absent.
 
+Plages de TDP retenues : 5 à 30 W pour RC71L / RC72LA, 5 à 35 W pour RC73 (valeurs non confirmées par ASUS pour RC73). Le modèle est lu dans `HKLM\HARDWARE\DESCRIPTION\System\BIOS\SystemProductName`.
 
+**Un seul programme doit piloter le matériel** : d'autres outils (services d'arrière-plan d'ASUS, outils de réglage tiers) écrivent les mêmes limites. Pendant les tests de Canapé, ils doivent être arrêtés.
 
 ## Auto TDP (`canape-autotdp`)
 
 Boucle d'environ une seconde dans le service :
 
+1. **Mesure** : FPS et charge GPU via le pilote AMD (ADL), sans injection dans le jeu, donc sans risque avec l'anti-triche ; la mesure est armée par le shell, depuis la session utilisateur (voir `m4-report.md`).
 2. **Décision** : objectif = FPS cible (par exemple 60) avec le moins de watts possible.
    - FPS sous la cible (au-delà d'une marge) → on monte le TDP ;
    - FPS au-dessus de la cible avec de la marge → on baisse le TDP par petits pas ;

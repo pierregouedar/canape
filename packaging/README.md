@@ -25,7 +25,7 @@ Prérequis : mode développeur activé, Rust et Build Tools installés (le Windo
 3. Choisis Canapé comme app d'accueil : Paramètres → Jeux → Expérience plein écran. S'il n'apparaît pas dans la liste, relance le script avec `-SetAsHomeApp`.
 4. Active « démarrer dans l'expérience plein écran », redémarre l'Ally : Canapé doit s'afficher au démarrage.
 
-Pour revenir à Winhanced ou à l'app Xbox, choisis-les à nouveau dans les mêmes Paramètres.
+Pour revenir à l'accueil Xbox (ou à un autre accueil), choisis-le à nouveau dans les mêmes Paramètres.
 
 Le certificat de développement est créé dans `$HOME\dev\canape-cert` et ajouté à `LocalMachine\TrustedPeople`. Ne le commite jamais.
 
@@ -49,4 +49,4 @@ powershell -ExecutionPolicy Bypass -File packaging\install-dev.ps1 -BinariesDir 
 
 ## Vérifications automatisées (M5)
 
-`m5-check.ps1 -Game <exe du jeu lancé>` vérifie la télémétrie (matériel détecté, consommation réelle, GPU, FPS), la couleur d'accent partagée, l'activation d'un profil et le TDP appris, un bench court, puis relève la mémoire du service, du shell et du widget. Il écrit les limites de puissance : à lancer avec l'accord du propriétaire, Winhanced en pause, un jeu ou une charge stable au premier plan : Unigine Heaven pour un banc proche d'un jeu, FurMark 2 pour les courbes de puissance et de température, à défaut l'Aquarium WebGL avec 30 000 poissons (voir [Choisir une charge de test](../docs/auto-tdp.fr.md#choisir-une-charge-de-test)). Il remet ensuite l'état d'origine et écrit `results.md`, `bench.json` et `service-tail.log` dans `$HOME\dev\canape-m5`.
+`m5-check.ps1 -Game <exe du jeu lancé>` vérifie la télémétrie (matériel détecté, consommation réelle, GPU, FPS), la couleur d'accent partagée, l'activation d'un profil et le TDP appris, un bench court, puis relève la mémoire du service, du shell et du widget. Il écrit les limites de puissance : à lancer avec l'accord du propriétaire, un autre outil de pilotage en pause, un jeu ou une charge stable au premier plan : Unigine Heaven pour un banc proche d'un jeu, FurMark 2 pour les courbes de puissance et de température, à défaut l'Aquarium WebGL avec 30 000 poissons (voir [Choisir une charge de test](../docs/auto-tdp.fr.md#choisir-une-charge-de-test)). Il remet ensuite l'état d'origine et écrit `results.md`, `bench.json` et `service-tail.log` dans `$HOME\dev\canape-m5`.

@@ -8,8 +8,8 @@ Résumé : c'est **possible pour Steam et Epic**, partiellement pour GOG, et **p
 
 | Étape | État |
 |---|---|
-| 1. Steam | 🧪 Code écrit (`40413ab`) : mode **À installer** dans la bibliothèque, liste par l'API Web (clé `steam_api_key` dans `shell.json`), installation par `steam.exe -silent steam://install/<appid>`, progression lue dans le manifeste. Testé sous Linux seulement, **pas encore essayé sur l'Ally**. |
-| 2. Epic | 🧪 Code écrit (`40413ab`) : Legendary téléchargé à la demande dans `%LOCALAPPDATA%\Canape\tools` (vérifié contre le SHA-256 publié par GitHub), connexion depuis la bibliothèque ou les Réglages, liste, installation avec progression, lancement par `legendary launch`. **Pas encore essayé sur l'Ally.** |
+| 1. Steam | 🧪 Code écrit (`778a222`) : mode **À installer** dans la bibliothèque, liste par l'API Web (clé `steam_api_key` dans `shell.json`), installation par `steam.exe -silent steam://install/<appid>`, progression lue dans le manifeste. Testé sous Linux seulement, **pas encore essayé sur l'Ally**. |
+| 2. Epic | 🧪 Code écrit (`778a222`) : Legendary téléchargé à la demande dans `%LOCALAPPDATA%\Canape\tools` (vérifié contre le SHA-256 publié par GitHub), connexion depuis la bibliothèque ou les Réglages, liste, installation avec progression, lancement par `legendary launch`. **Pas encore essayé sur l'Ally.** |
 | 3. GOG | 🧪 Code écrit : gogdl (heroic-gogdl 1.3.1, version fixée, SHA-256 vérifié) téléchargé à la demande dans `%LOCALAPPDATA%\Canape\tools` ; connexion par la page GOG ouverte dans le navigateur, dont Canapé lit l'adresse d'arrivée dans le presse-papiers ; liste par l'API web de GOG avec le jeton de gogdl ; installation par `gogdl download` avec progression ; lancement direct par l'exécutable du jeu (`goggame-<id>.info`). Les réponses de GOG n'ont pas pu être enregistrées (serveurs injoignables depuis la session cloud) : fixtures écrites d'après le code de gogdl. **Pas encore essayé sur l'Ally.** |
 | 4. Xbox | ⏳ Ouvert. |
 

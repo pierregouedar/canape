@@ -5,3 +5,5 @@
 *.msix
 *.pfx
 *.cer
+# Third-party binaries and code never belong in the repository
+/third-party/

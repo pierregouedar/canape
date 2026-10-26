@@ -12,7 +12,7 @@ Tested on the ROG Ally (Windows 11 10.0.26200, PowerShell 5.1, Rust 1.99.1 MSVC,
 | `packaging\install-dev.ps1` (elevated) | Ran without errors on the first try: certificate created and trusted, `makeappx` + `signtool` OK, `Add-AppxPackage -ExternalLocation` OK |
 | Package | `Canape_0.1.0.0_neutral__84zrj1c9kn010`, `SignatureKind = Developer`, `Status = Ok`; AUMID `Canape_84zrj1c9kn010!App` |
 | Launch outside the FSE (`explorer.exe shell:AppsFolder\Canape_84zrj1c9kn010!App`) | "Canapé a démarré." box shown, a line in `%LOCALAPPDATA%\Canape\shell.log`; `tasklist /apps` shows `canape-shell.exe (App)` with the package identity |
-| `windows.gamingApp` catalog | `AppExtensionCatalog.Open("windows.gamingApp")` lists `Canape` next to `XboxPcApp` and `Winhanced` |
+| `windows.gamingApp` catalog | `AppExtensionCatalog.Open("windows.gamingApp")` lists `Canape` next to `XboxPcApp` and another home app |
 | Settings → Gaming → Full screen experience | Canapé appears in the home app list (checked by Pierre) |
 | Real boot test | **OK**: the FSE activates `canape-shell.exe` at boot (see below) |
 
@@ -26,7 +26,7 @@ Nothing in the code or the packaging: the manifests, the SCCD and the script wri
 
 ## FSE state before the test
 
-`HKCU\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration`: `GamingHomeApp = Winhanced_2wdva71107yvr!App`, `StartupToGamingHome = 1`. Exported to `$HOME\dev\re\GamingConfiguration.before-canape.reg` (outside the repo).
+`HKCU\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration`: `GamingHomeApp = <PFN of the previous home app>!App`, `StartupToGamingHome = 1`. Exported to a `.reg` file outside the repo before the change.
 
 ## Real boot test
 
@@ -36,7 +36,7 @@ With Pierre's approval: `GamingHomeApp = Canape_84zrj1c9kn010!App`, `StartupToGa
 - **The FSE activates its home app through the URI `windows.gaming:///home`**, passed on the command line. Outside the FSE (AppsFolder), `args=[]`. This is how to tell the two kinds of launch apart.
 - Afterwards only one `canape-shell` process is still running (the 19:35:45 one).
 
-Winhanced was put back afterwards: `GamingHomeApp = Winhanced_2wdva71107yvr!App`, `StartupToGamingHome` unchanged (1).
+The previous home app was put back afterwards: `GamingHomeApp` restored, `StartupToGamingHome` unchanged (1).
 
 ## Still open
 

@@ -5,7 +5,7 @@
 Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil de l'expérience plein écran (FSE), l'utiliser à la manette, ajouter le widget Xbox Game Bar, puis dépanner et désinstaller.
 
 > [!IMPORTANT]
-> Canapé est un projet personnel en cours de développement. Ce qui a été **validé sur l'Ally** : l'installation, le démarrage en FSE, le service, les modes, le TDP manuel, l'auto TDP (version `1268753`) et la première version du widget. Ce qui est **écrit et testé sans matériel, mais pas encore essayé sur l'Ally** : le shell en 13 langues (quatre sections, navigation aux flèches), la bibliothèque de jeux et l'installation des jeux Steam et Epic, la page Matériel (ventilateurs, limite de FPS, mode de la manette), les profils par jeu, le banc d'essai, les dernières optimisations de l'auto TDP et la nouvelle version du widget. Les sections concernées le signalent.
+> Canapé est un projet personnel en cours de développement. Ce qui a été **validé sur l'Ally** : l'installation, le démarrage en FSE, le service, les modes, le TDP manuel, l'auto TDP (version `13ee476`) et la première version du widget. Ce qui est **écrit et testé sans matériel, mais pas encore essayé sur l'Ally** : le shell en 13 langues (quatre sections, navigation aux flèches), la bibliothèque de jeux et l'installation des jeux Steam et Epic, la page Matériel (ventilateurs, limite de FPS, mode de la manette), les profils par jeu, le banc d'essai, les dernières optimisations de l'auto TDP et la nouvelle version du widget. Les sections concernées le signalent.
 
 ## Sommaire
 
@@ -17,7 +17,7 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
   - [Utiliser les binaires de la CI](#utiliser-les-binaires-de-la-ci)
   - [Vérifier l'installation](#vérifier-linstallation)
 - [Faire de Canapé l'accueil du FSE](#faire-de-canapé-laccueil-du-fse)
-  - [Revenir à Winhanced ou à l'app Xbox](#revenir-à-winhanced-ou-à-lapp-xbox)
+  - [Revenir à l'accueil Xbox](#revenir-à-laccueil-xbox)
 - [Premier lancement](#premier-lancement)
 - [Utiliser Canapé à la manette](#utiliser-canapé-à-la-manette)
   - [Commandes](#commandes)
@@ -35,6 +35,7 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
   - [Optimisations Windows](#optimisations-windows)
 - [Le widget Xbox Game Bar](#le-widget-xbox-game-bar)
 - [Langues](#langues)
+- [Cohabiter avec d'autres outils](#cohabiter-avec-dautres-outils)
 - [Dépannage](#dépannage)
 - [Désinstaller](#désinstaller)
 
@@ -44,11 +45,13 @@ Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil
 |---|---|
 | Console | **ROG Ally RC71L** (seul modèle testé). Les ROG Ally X (RC72LA), ROG Xbox Ally (RC73YA) et ROG Xbox Ally X (RC73XA) sont reconnus par le code mais n'ont jamais été essayés. |
 | Windows | Windows 11 **24H2 ou plus récent** (le paquet d'identité exige la version 10.0.26100). |
+| Mode développeur | Obligatoire : la capacité « gaming home » du FSE est débloquée par un catalogue de test (le FSE n'offre comme accueil que les apps dont le paquet porte cette capacité). |
 | Outils | **Visual Studio Build Tools 2022** avec les outils C++ et le **Windows SDK** (fournit `makeappx` et `signtool`, utilisés même avec des binaires précompilés). **Rust** (toolchain MSVC) si vous compilez sur l'Ally. **Git** pour récupérer le dépôt. |
 | Droits | Un Terminal **administrateur** pour l'installation (service Windows et certificat). |
 | Optionnel | [GitHub CLI](https://cli.github.com/) (`gh`) pour télécharger les binaires de la CI ; le workload **UWP** des Build Tools pour le widget. |
 
 > [!WARNING]
+> Un seul programme doit piloter le matériel. Arrêtez tout autre outil qui pilote le matériel pendant que vous utilisez Canapé (voir [Cohabiter avec…](#cohabiter-avec-dautres-outils)).
 
 ## Installer Canapé
 
@@ -127,16 +130,11 @@ Si Canapé n'apparaît pas dans la liste, relancez le script avec `-SetAsHomeApp
 > [!NOTE]
 > Le démarrage en FSE a été validé sur l'Ally en M1 et M2 (une seule activation au boot, service déjà prêt). Il n'a pas été retesté depuis, car rien n'a changé côté démarrage.
 
-### Revenir à Winhanced ou à l'app Xbox
+### Revenir à l'accueil Xbox
 
-Choisissez simplement l'autre application dans **Paramètres → Jeux → Expérience plein écran**. Canapé reste installé et peut être resélectionné à tout moment.
+Choisissez simplement l'accueil Xbox (ou un autre) dans **Paramètres → Jeux → Expérience plein écran**. Canapé reste installé et peut être resélectionné à tout moment.
 
-Pour le faire en ligne de commande, remettez l'ancienne valeur de `GamingHomeApp`. Par exemple pour Winhanced :
-
-```powershell
-Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration" -Name GamingHomeApp -Value "Winhanced_2wdva71107yvr!App"
-```
-
+Pensez à arrêter `CanapeService` si l'autre outil pilote aussi le matériel (voir [Cohabiter avec…](#cohabiter-avec-dautres-outils)).
 
 ## Premier lancement
 
@@ -152,6 +150,7 @@ Au tout premier lancement, une courte visite remplace les sections. Chaque étap
 | **Bienvenue** | Dit si le service répond. S'il ne répond pas au bout de 3 s : les réglages de puissance, de ventilateurs et de manette sont indisponibles ; installez-le avec `packaging\install-dev.ps1` (voir [Installer Canapé](#installer-canapé)) ou démarrez `CanapeService` dans Services. On peut continuer sans lui. |
 | **Langue** | Automatique ou l'une des 13 langues, sur deux colonnes ; l'interface change au fil de la croix. |
 | **Couleur d'accent** | Les huit pastilles de la page Réglages ; gauche et droite les appliquent tout de suite. |
+| **Un autre outil pilote le matériel** | Seulement quand le service en signale un (voir [Cohabiter avec…](#cohabiter-avec-dautres-outils)) : son nom, et qu'il modifie les mêmes réglages que Canapé, donc qu'il faut le fermer ou le désinstaller. Sautée sinon. |
 | **Boutiques de jeux** | Steam : si le client a été trouvé et combien de jeux Steam sont installés, puis la **clé Steam Web API** (pour lister les jeux possédés non installés). Epic et GOG : **A** lance la même connexion que dans Réglages (navigateur, puis presse-papiers) et la ligne affiche le compte une fois connecté. **Durée de jeu (IGDB)** : le **Client ID** et le **Client secret** de l'application Twitch, facultatifs. |
 | **Dossier des jeux** | Où s'installent les jeux Epic et GOG et son espace libre ; gauche et droite le changent (comme dans Réglages). |
 | **Les boutons de l'Ally** | Ce que font les boutons Armoury et Command Center avec Canapé, et **Utiliser les boutons de l'Ally** activé ou non. |
@@ -467,6 +466,7 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 <img src="images/fr/hardware.png" alt="Page Matériel" width="720">
 
 > [!NOTE]
+> Les écritures des ventilateurs, de la limite de FPS et du mode de la manette n'ont **pas encore été essayées sur l'Ally** : elles n'ont été testées qu'avec le simulateur matériel. Avant de les essayer, arrêtez tout autre programme qui pilote les mêmes réglages (voir [Cohabiter avec…](#cohabiter-avec-dautres-outils)). Au moindre doute, **Automatique** rend les ventilateurs au firmware et **Aucune** retire la limite de FPS.
 
 **En haut**, en direct : le jeu au premier plan, la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU, un trait en pointillés marquant la température du moment. « — » quand le firmware ne donne pas de mesure.
 
@@ -587,7 +587,7 @@ La carte **Boutons arrière** (étagère Manette) choisit ce qu'envoient M1 et M
 | Volume + / −, couper le micro, clavier tactile | Cette action |
 
 - C'est la manette elle-même qui traduit : cela marche dans tous les jeux et programmes, quel que soit ce qui lit la manette.
-- Le choix est général (pas par jeu), mémorisé, et réécrit au démarrage du service et après chaque changement de mode de la manette. Canapé écrit chaque fois toute la table des boutons de la manette, avec les associations d'usine pour tous les autres boutons : une réassociation faite ailleurs (Armoury Crate, un autre outil) pour les autres boutons est défaite, le turbo aussi.
+- Le choix est général (pas par jeu), mémorisé, et réécrit au démarrage du service et après chaque changement de mode de la manette. Canapé écrit chaque fois toute la table des boutons de la manette, avec les associations d'usine pour tous les autres boutons : une réassociation faite ailleurs (un autre outil) pour les autres boutons est défaite, le turbo aussi.
 - Il faut le mode manette ou souris : en mode clavier (WASD) le choix est refusé, et les boutons enregistrés reviennent avec un autre mode. Choisir un bouton alors que Canapé n'a pas réglé le mode met la manette en mode manette.
 - Avec le bouton gauche sous l'écran maintenu, M1 et M2 gardent leurs propres touches.
 - **X** dans le tiroir (**Rétablir les boutons d'origine**) rend à M1 et M2 leurs propres touches.
@@ -620,7 +620,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 |---|---|
 | **Apparence → Langue** | « Automatique » (langue de Windows) et les 13 langues, en tuiles sur deux rangées : les flèches se déplacent, **A** applique la langue qui a le focus ; le choix est mémorisé. Voir [Langues](#langues). |
 | **Apparence → Couleur d'accent** | La carte montre le code de la couleur. Huit pastilles prêtes (gauche et droite, **A** choisit) et trois lignes **Teinte**, **Saturation** et **Luminosité** que gauche et droite déplacent, haut et bas passant de l'une à l'autre. Toute l'interface suit en direct ; la couleur est enregistrée dans `shell.json` et envoyée au service une fois le réglage terminé, et **le widget de la Game Bar suit la couleur d'accent**. |
-| **Apparence → Boutons de l'Ally** | Activé ou Désactivé (**A** applique). Le bouton **Armoury** (à droite, sous l'écran) ramène Canapé au premier plan depuis un jeu, ou revient à Jeux si Canapé est déjà devant ; le bouton **Command Center** (à gauche) ouvre la Xbox Game Bar, où se trouve le widget Canapé. Désactivez-le si Armoury Crate ou un autre outil doit les gérer (sinon les deux réagissent). Pas encore essayé sur l'Ally. |
+| **Apparence → Boutons de l'Ally** | Activé ou Désactivé (**A** applique). Le bouton **Armoury** (à droite, sous l'écran) ramène Canapé au premier plan depuis un jeu, ou revient à Jeux si Canapé est déjà devant ; le bouton **Command Center** (à gauche) ouvre la Xbox Game Bar, où se trouve le widget Canapé. Désactivez-le si un autre outil doit les gérer (sinon les deux réagissent). Pas encore essayé sur l'Ally. |
 | **Bibliothèque → Dossier des jeux** | Où s'installent les jeux Epic et GOG ; sa place libre à côté du titre du tiroir. Par défaut, le dossier qui contient déjà le plus de jeux installés par Canapé ou par le lanceur Epic, sinon `Games` sur le lecteur qui a le plus de place libre. Gauche et droite parcourent les dossiers qui contiennent déjà des jeux et `Games` sur chaque lecteur interne ; le choix est enregistré dans `shell.json` (`games_folder`). Pas encore essayé sur l'Ally. |
 | **Bibliothèque → Jaquettes manquantes** | Activé ou Désactivé : télécharger les jaquettes des jeux qui n'en ont pas, voir [Jeux](#jeux). |
 | **Bibliothèque → Ajouter un jeu** | Le nombre de jeux de `games.json` ; ouvre la liste des jeux à ajouter (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). S'il y a des jeux masqués, sa première ligne **Jeux masqués · N** ouvre leur liste : **A** réaffiche le jeu (voir [Options d'un jeu](#options-dun-jeu)). Pas encore essayé sur l'Ally. |
@@ -721,7 +721,7 @@ Ouverte depuis **Réglages → Optimisations Windows** ; **B** y revient. Une li
 | | **Planification GPU à accélération matérielle** | Activée (« Redémarrez Windows pour appliquer » tant que ce n'est pas fait). | oui | **oui** |
 | | **Optimisations pour les jeux fenêtrés** | Activées pour les jeux DirectX 10 et 11 en fenêtre ou sans bordure ; les autres réglages graphiques de Windows sont gardés. | oui | non |
 | | **Enregistrement des jeux en arrière-plan** | Enregistrement en arrière-plan de Game DVR désactivé (`GameDVR_Enabled` et `AppCaptureEnabled`, pour votre compte). La Game Bar reste disponible, donc le widget Canapé continue de fonctionner : la stratégie `AllowGameDVR` n'est pas utilisée, car elle retire aussi la Game Bar. Pas encore essayé sur l'Ally. | oui | non |
-| | **Services ASUS** | Arrête et désactive les services d'arrière-plan d'Armoury Crate et d'ASUS qui sont installés (`ArmouryCrateService`, `AsusAppService`, `ASUSOptimization`, `ASUSSoftwareManager`, `ASUSSwitch`, `ASUSSystemAnalysis`, `ASUSSystemDiagnosis`, `asus_framework`, `LightingService`, `AsusCertService`), après avoir noté comment chacun démarrait ; le rétablir les remet comme avant et relance ceux qui tournaient. **Armoury Crate ne fonctionne plus.** Le pilote ATK que Canapé utilise n'est pas touché. La ligne indique le nombre de services trouvés, et « Indisponible » s'il n'y en a aucun. **La liste est à confirmer sur l'Ally** ; pas encore essayé. | non | non |
+| | **Services ASUS** | Arrête et désactive les services d'arrière-plan d'ASUS qui sont installés (`ArmouryCrateService`, `AsusAppService`, `ASUSOptimization`, `ASUSSoftwareManager`, `ASUSSwitch`, `ASUSSystemAnalysis`, `ASUSSystemDiagnosis`, `asus_framework`, `LightingService`, `AsusCertService`), après avoir noté comment chacun démarrait ; le rétablir les remet comme avant et relance ceux qui tournaient. **Les applications ASUS qui en dépendent ne fonctionnent plus.** Le pilote ATK que Canapé utilise n'est pas touché. La ligne indique le nombre de services trouvés, et « Indisponible » s'il n'y en a aucun. **La liste est à confirmer sur l'Ally** ; pas encore essayé. | non | non |
 | Sécurité | **Exclure les dossiers de jeux des analyses Defender** | Ajoute aux exclusions de Microsoft Defender les dossiers de jeux trouvés : `steamapps\common` de chaque bibliothèque Steam, les dossiers qui contiennent des jeux Epic ou GOG, et `Games` à la racine des lecteurs (le dossier de Canapé par défaut). Jamais une racine de lecteur, Windows, Program Files ni un dossier de profil. La ligne affiche le nombre de dossiers. Le rétablir retire seulement les exclusions ajoutées par Canapé. | oui | non |
 | | **Protection en temps réel de Defender** | La désactive. **L'appareil n'est plus protégé contre les virus.** Windows refuse tant que la *protection contre les falsifications* est active : la ligne affiche alors « Indisponible » et dit de la couper d'abord dans **Sécurité Windows → Protection contre les virus et menaces → Gérer les paramètres**. Windows peut la réactiver de lui-même. | non | non |
 | | **Intégrité de la mémoire** | Désactive l'intégrité de la mémoire (HVCI) et la sécurité basée sur la virtualisation : un peu plus de performances en jeu, **moins de protection contre les pilotes malveillants**. « Indisponible » si le firmware ou une stratégie la verrouille. | non | **oui** |
@@ -799,20 +799,13 @@ Canapé est traduit en 13 langues :
 - **Widget** : il suit toujours la liste des langues préférées de Windows (Paramètres → Heure et langue → Langue) ; relancez la Game Bar après un changement.
 - Les messages d'erreur renvoyés par le service restent en anglais, précédés d'un texte traduit.
 
+## Cohabiter avec d'autres outils
 
-Ces programmes écrivent les mêmes limites de puissance dans le firmware, et certains aussi les courbes de ventilateurs, la limite de FPS du pilote ou le mode de la manette : si deux d'entre eux tournent, le dernier qui écrit gagne, et l'auto TDP ou le préréglage de ventilateurs de Canapé peuvent être annulés sans prévenir.
+D'autres programmes écrivent les mêmes limites de puissance dans le firmware, et certains aussi les courbes de ventilateurs, la limite de FPS du pilote ou le mode de la manette : si deux d'entre eux tournent, le dernier qui écrit gagne, et l'auto TDP ou le préréglage de ventilateurs de Canapé peuvent être annulés sans prévenir.
 
-Toutes les 5 secondes, le service cherche ces processus et affiche un avertissement jaune dans le shell (et dans le widget) :
+Toutes les 5 secondes, le service cherche les processus de ces programmes. S'il en trouve un, le shell (et le widget) affiche un avertissement jaune avec le nom du programme trouvé.
 
-| Programme | Processus détecté |
-|---|---|
-| Armoury Crate | `ArmouryCrate.Service.exe` |
-
-Que faire :
-
-- **Armoury Crate** : arrêtez ses services (`services.msc`) ou désactivez-le.
-  ```powershell
-  ```
+Que faire : quittez ce programme (et retirez-le du démarrage automatique), ou désactivez-le. S'il relance son service tout seul, arrêtez ce service et sa tâche planifiée.
 
 Les autres services ASUS (ASUS Optimization, System Analysis, ROG Live Service) et RTSS ne sont pas signalés : à notre connaissance, ils n'écrivent pas les limites de puissance.
 
@@ -899,7 +892,7 @@ Pour repartir de zéro côté réglages : arrêtez le service, supprimez `%Progr
 
 ## Désinstaller
 
-1. **Choisir un autre accueil** dans Paramètres → Jeux → Expérience plein écran (voir [Revenir à Winhanced ou à l'app Xbox](#revenir-à-winhanced-ou-à-lapp-xbox)).
+1. **Choisir un autre accueil** dans Paramètres → Jeux → Expérience plein écran (voir [Revenir à l'accueil Xbox](#revenir-à-laccueil-xbox)).
 2. Dans un **Terminal administrateur**, à la racine du dépôt :
    ```powershell
    powershell -ExecutionPolicy Bypass -File packaging\uninstall-dev.ps1
@@ -925,3 +918,4 @@ Pour repartir de zéro côté réglages : arrêtez le service, supprimez `%Progr
 
 Les jeux installés depuis Canapé restent sur le disque, et la configuration de Legendary (connexion Epic comprise) reste dans `%USERPROFILE%\.config\legendary`.
 
+Le mode et les limites de puissance restent ceux du dernier réglage jusqu'au prochain changement de mode : choisissez un mode dans l'outil qui reprend la main.

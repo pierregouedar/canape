@@ -5,7 +5,7 @@
 This guide explains how to install Canapé on a ROG Ally, make it the home app of the full-screen experience (FSE), use it with the gamepad, add the Xbox Game Bar widget, and then troubleshoot and uninstall it.
 
 > [!IMPORTANT]
-> Canapé is a personal project under development. **Validated on the Ally**: installation, FSE boot, the service, modes, manual TDP, auto TDP (version `1268753`) and the first version of the widget. **Written and tested without hardware, but not tried on the Ally yet**: the shell in 13 languages (four sections, arrow navigation), the game library and installing Steam and Epic games, the Hardware page (fans, frame rate limit, controller mode), per-game profiles, the bench, the latest auto TDP optimizations and the new version of the widget. The sections concerned say so.
+> Canapé is a personal project under development. **Validated on the Ally**: installation, FSE boot, the service, modes, manual TDP, auto TDP (version `13ee476`) and the first version of the widget. **Written and tested without hardware, but not tried on the Ally yet**: the shell in 13 languages (four sections, arrow navigation), the game library and installing Steam and Epic games, the Hardware page (fans, frame rate limit, controller mode), per-game profiles, the bench, the latest auto TDP optimizations and the new version of the widget. The sections concerned say so.
 
 ## Contents
 
@@ -17,7 +17,7 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
   - [Using the CI binaries](#using-the-ci-binaries)
   - [Checking the installation](#checking-the-installation)
 - [Making Canapé the FSE home app](#making-canapé-the-fse-home-app)
-  - [Going back to Winhanced or the Xbox app](#going-back-to-winhanced-or-the-xbox-app)
+  - [Going back to the Xbox home](#going-back-to-the-xbox-home)
 - [First launch](#first-launch)
 - [Using Canapé with the gamepad](#using-canapé-with-the-gamepad)
   - [Controls](#controls)
@@ -35,6 +35,7 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
   - [Windows tweaks](#windows-tweaks)
 - [The Xbox Game Bar widget](#the-xbox-game-bar-widget)
 - [Languages](#languages)
+- [Living with other tools](#living-with-other-tools)
 - [Troubleshooting](#troubleshooting)
 - [Uninstalling](#uninstalling)
 
@@ -44,11 +45,13 @@ This guide explains how to install Canapé on a ROG Ally, make it the home app o
 |---|---|
 | Handheld | **ROG Ally RC71L** (the only model tested). The ROG Ally X (RC72LA), ROG Xbox Ally (RC73YA) and ROG Xbox Ally X (RC73XA) are recognized by the code but have never been tried. |
 | Windows | Windows 11 **24H2 or later** (the identity package requires version 10.0.26100). |
+| Developer Mode | Required: the FSE "gaming home" capability is unlocked by a test catalog (the FSE only offers apps whose package carries this capability as a home). |
 | Tools | **Visual Studio Build Tools 2022** with the C++ tools and the **Windows SDK** (provides `makeappx` and `signtool`, used even with prebuilt binaries). **Rust** (MSVC toolchain) if you build on the Ally. **Git** to get the repository. |
 | Rights | An **elevated** Terminal for the installation (Windows service and certificate). |
 | Optional | [GitHub CLI](https://cli.github.com/) (`gh`) to download the CI binaries; the **UWP** workload of the Build Tools for the widget. |
 
 > [!WARNING]
+> Only one program should drive the hardware. Stop any other tool that drives the hardware while you use Canapé (see [Living with…](#living-with-other-tools)).
 
 ## Installing Canapé
 
@@ -127,16 +130,11 @@ If Canapé is not in the list, run the script again with `-SetAsHomeApp`. It wri
 > [!NOTE]
 > Booting into the FSE was validated on the Ally in M1 and M2 (a single activation at boot, service already up). It has not been retested since, as nothing changed on the startup side.
 
-### Going back to Winhanced or the Xbox app
+### Going back to the Xbox home
 
-Just pick the other app in **Settings → Gaming → Full screen experience**. Canapé stays installed and can be picked again at any time.
+Just pick the Xbox home (or another one) in **Settings → Gaming → Full screen experience**. Canapé stays installed and can be picked again at any time.
 
-To do it from the command line, put back the previous `GamingHomeApp` value. For example, for Winhanced:
-
-```powershell
-Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\GamingConfiguration" -Name GamingHomeApp -Value "Winhanced_2wdva71107yvr!App"
-```
-
+Remember to stop `CanapeService` if the other tool also drives the hardware (see [Living with…](#living-with-other-tools)).
 
 ## First launch
 
@@ -152,6 +150,7 @@ The first time Canapé opens, a short tour replaces the sections. Each step chan
 | **Welcome** | Says whether the service answers. If it does not after 3 s: power, fans and controller settings are unavailable; install it with `packaging\install-dev.ps1` (see [Installing Canapé](#installing-canapé)) or start `CanapeService` in Services. You can go on without it. |
 | **Language** | Automatic or one of the 13 languages, in two columns; the interface switches as the D-pad moves. |
 | **Accent colour** | The eight swatches of the settings page; left and right apply them at once. |
+| **Another tool drives the hardware** | Only when the service reports one (see [Living with…](#living-with-other-tools)): its name, and that it changes the same settings as Canapé, so it should be closed or uninstalled. Skipped otherwise. |
 | **Game stores** | Steam: whether the client was found and how many Steam games are installed, then the **Steam Web API key** (to list the owned games that are not installed). Epic and GOG: **A** starts the same sign-in as in Settings (browser, then the clipboard) and the line shows the account once signed in. **Time to beat (IGDB)**: the Twitch application's **Client ID** and **Client secret**, optional. |
 | **Games folder** | Where Epic and GOG games install and its free space; left and right change it (as in Settings). |
 | **The Ally's buttons** | What the Armoury and Command Center buttons do with Canapé, and **Use the Ally's buttons** on or off. |
@@ -468,6 +467,7 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 <img src="images/en/hardware.png" alt="Hardware page" width="720">
 
 > [!NOTE]
+> The fan, frame rate limit and controller writes have **not been tried on the Ally yet**: they were only tested with the hardware simulator. Before trying them, stop every other program that drives the same settings (see [Living with…](#living-with-other-tools)). If something looks wrong, **Automatic** gives the fans back to the firmware and **None** removes the frame rate limit.
 
 **At the top**, live: the game in the foreground, the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve, a dashed line marking the temperature now. "—" when the firmware gives no reading.
 
@@ -588,7 +588,7 @@ The **Back buttons** card (Controller shelf) chooses what M1 and M2, the two but
 | Volume up / down, mute the microphone, touch keyboard | That action |
 
 - The controller itself does the translation: it works in every game and program, whatever reads the gamepad.
-- The choice is global (not per game), remembered, and written again when the service starts and after every change of controller mode. Canapé writes the controller's whole button table each time, with the factory bindings for every other button: a remap made elsewhere (Armoury Crate, another tool) for the other buttons is undone, and so is turbo.
+- The choice is global (not per game), remembered, and written again when the service starts and after every change of controller mode. Canapé writes the controller's whole button table each time, with the factory bindings for every other button: a remap made elsewhere (another tool) for the other buttons is undone, and so is turbo.
 - It needs the gamepad or mouse mode: in keyboard (WASD) mode the choice is refused, and the saved buttons come back with another mode. Choosing a button while Canapé has not set the mode puts the controller in gamepad mode.
 - With the left button under the screen held, M1 and M2 keep their own keys.
 - **X** in the drawer (**Restore the default buttons**) gives M1 and M2 their own keys back.
@@ -621,7 +621,7 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 |---|---|
 | **Appearance → Language** | "Automatic" (the Windows language) and the 13 languages, as tiles on two rows: the arrows move, **A** applies the focused language; the choice is remembered. See [Languages](#languages). |
 | **Appearance → Accent colour** | The card shows the colour's code. Eight ready-made swatches (left and right, **A** picks) and three lines **Hue**, **Saturation** and **Brightness** that left and right move, up and down going from one to the next. The whole interface follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the Game Bar widget follows the accent colour**. |
-| **Appearance → The Ally's buttons** | On or Off (**A** applies). The **Armoury** button (right, under the screen) brings Canapé to the front from a game, or goes back to Games when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget lives. Turn it off if Armoury Crate or another tool should handle them (otherwise both react). Not tried on the Ally yet. |
+| **Appearance → The Ally's buttons** | On or Off (**A** applies). The **Armoury** button (right, under the screen) brings Canapé to the front from a game, or goes back to Games when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget lives. Turn it off if another tool should handle them (otherwise both react). Not tried on the Ally yet. |
 | **Library → Games folder** | Where Epic and GOG games are installed; its free space beside the drawer's title. By default, the folder that already holds most of the games installed by Canapé or the Epic launcher, else `Games` on the drive with the most free space. Left and right go through the folders that already hold games and `Games` on each internal drive; the choice is saved in `shell.json` (`games_folder`). Not tried on the Ally yet. |
 | **Library → Missing covers** | On or Off: download the covers of games that have none, see [Games](#games). |
 | **Library → Add a game** | The number of games in `games.json`; opens the list of games to add (see [Adding other games](#adding-other-games)). With games hidden from the library, its first line **Hidden games · N** opens their list: **A** shows the game again (see [Game options](#game-options)). Not tried on the Ally yet. |
@@ -722,7 +722,7 @@ Opened from **Settings → Windows tweaks**; **B** goes back. A list of Windows 
 | | **Hardware-accelerated GPU scheduling** | On ("Restart Windows to apply" until done). | yes | **yes** |
 | | **Optimizations for windowed games** | On for DirectX 10 and 11 games in a window or borderless; Windows' other graphics settings are kept. | yes | no |
 | | **Background game recording** | Game DVR's background recording off (`GameDVR_Enabled` and `AppCaptureEnabled`, for your account). The Game Bar stays available, so Canapé's widget keeps working: the `AllowGameDVR` policy is not used, since it also removes the Game Bar. Not tried on the Ally yet. | yes | no |
-| | **ASUS services** | Stops and disables the Armoury Crate and other ASUS background services that are installed (`ArmouryCrateService`, `AsusAppService`, `ASUSOptimization`, `ASUSSoftwareManager`, `ASUSSwitch`, `ASUSSystemAnalysis`, `ASUSSystemDiagnosis`, `asus_framework`, `LightingService`, `AsusCertService`), after noting how each one started; reverting sets them back and starts those that were running. **Armoury Crate stops working.** The ATK driver Canapé talks to is not touched. The line says how many services were found, and is "Unavailable" when there are none. **The list is to be confirmed on the Ally**; not tried yet. | no | no |
+| | **ASUS services** | Stops and disables the ASUS background services that are installed (`ArmouryCrateService`, `AsusAppService`, `ASUSOptimization`, `ASUSSoftwareManager`, `ASUSSwitch`, `ASUSSystemAnalysis`, `ASUSSystemDiagnosis`, `asus_framework`, `LightingService`, `AsusCertService`), after noting how each one started; reverting sets them back and starts those that were running. **The ASUS apps that depend on them stop working.** The ATK driver Canapé talks to is not touched. The line says how many services were found, and is "Unavailable" when there are none. **The list is to be confirmed on the Ally**; not tried yet. | no | no |
 | Security | **Exclude game folders from Defender scans** | Adds the game folders found to Microsoft Defender's exclusions: each Steam library's `steamapps\common`, the folders holding Epic or GOG games, and `Games` at a drive's root (Canapé's default folder). Never a drive root, Windows, Program Files or a profile folder. The line shows how many folders. Reverting removes only the exclusions Canapé added. | yes | no |
 | | **Defender real-time protection** | Turns it off. **The device is no longer protected against viruses.** Windows refuses while *Tamper Protection* is on: the line then reads "Unavailable" and says to turn it off first in **Windows Security → Virus & threat protection → Manage settings**. Windows may turn it back on by itself. | no | no |
 | | **Memory integrity** | Turns memory integrity (HVCI) and virtualization-based security off: a little more performance in games, **less protection against malicious drivers**. "Unavailable" when the firmware or a policy locks it. | no | **yes** |
@@ -798,20 +798,13 @@ Canapé is translated into 13 languages:
 - **Widget**: it always follows Windows' preferred languages (Settings → Time & language → Language); restart Game Bar after a change.
 - Error messages returned by the service stay in English, after a translated prefix.
 
+## Living with other tools
 
-These programs write the same power limits to the firmware, and some also the fan curves, the driver's frame rate limit or the controller mode: if two of them run, the last one to write wins, and Canapé's auto TDP or fan preset can be overridden without notice.
+Other programs write the same power limits to the firmware, and some also the fan curves, the driver's frame rate limit or the controller mode: if two of them run, the last one to write wins, and Canapé's auto TDP or fan preset can be overridden without notice.
 
-Every 5 seconds, the service looks for these processes and shows a yellow warning in the shell (and in the widget):
+Every 5 seconds, the service looks for the processes of these programs. If it finds one, the shell (and the widget) shows a yellow warning with the name of the program it found.
 
-| Program | Process detected |
-|---|---|
-| Armoury Crate | `ArmouryCrate.Service.exe` |
-
-What to do:
-
-- **Armoury Crate**: stop its services (`services.msc`) or turn it off.
-  ```powershell
-  ```
+What to do: quit that program (and remove it from startup), or turn it off. If it restarts its own service, stop that service and its scheduled task.
 
 Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and RTSS are not reported: as far as we know, they do not write the power limits.
 
@@ -898,7 +891,7 @@ To start over with the settings: stop the service, delete `%ProgramData%\Canape\
 
 ## Uninstalling
 
-1. **Pick another home app** in Settings → Gaming → Full screen experience (see [Going back to Winhanced or the Xbox app](#going-back-to-winhanced-or-the-xbox-app)).
+1. **Pick another home app** in Settings → Gaming → Full screen experience (see [Going back to the Xbox home](#going-back-to-the-xbox-home)).
 2. In an **elevated Terminal**, from the repository root:
    ```powershell
    powershell -ExecutionPolicy Bypass -File packaging\uninstall-dev.ps1
@@ -924,3 +917,4 @@ To start over with the settings: stop the service, delete `%ProgramData%\Canape\
 
 Games installed from Canapé stay on disk, and Legendary's configuration (Epic sign-in included) stays in `%USERPROFILE%\.config\legendary`.
 
+The power mode and power limits stay at the last setting until the next mode change: pick a mode in whichever tool takes over.

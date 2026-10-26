@@ -387,7 +387,7 @@ Sous-page 8 (`ui/tweaks.slint`, `canape-shell/src/tweaks.rs`), ouverte depuis R�
 | `defender_realtime_off` | *`HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection\DisableRealtimeMonitoring = 1`*, puis `Set-MpPreference -DisableRealtimeMonitoring $true` (retour : `$false`). Indisponible tant que `HKLM\SOFTWARE\Microsoft\Windows Defender\Features\TamperProtection` a le bit 0 (5 = activée, 4 = désactivée) ; si Defender la dit encore active après coup, l'erreur demande de couper la protection contre les falsifications | non |
 | `memory_integrity_off` | `HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity\Enabled = 0` ; `HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\EnableVirtualizationBasedSecurity = 0`. Indisponible si `…\HypervisorEnforcedCodeIntegrity\Locked = 1` ou si `HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard\EnableVirtualizationBasedSecurity` existe | **oui** |
 
-**Services ASUS** (`tweaks/services.rs`, **à confirmer sur l'Ally** : des noms connus, pas encore comparés à une vraie installation d'Armoury Crate) : `ArmouryCrateService`, `AsusAppService`, `ASUSOptimization`, `ASUSSoftwareManager`, `ASUSSwitch`, `ASUSSystemAnalysis`, `ASUSSystemDiagnosis`, `asus_framework`, `LightingService`, `AsusCertService`. Seuls ceux qui sont présents sont touchés. Appliquer note pour chacun son type de démarrage, son drapeau de démarrage différé et s'il tournait (`SavedService`, dans `tweaks[asus_services_off].services` de `state.json`), le passe en Désactivé et l'arrête (un service qui ne s'arrête pas sera éteint au prochain redémarrage) ; rétablir remet le type de démarrage et le drapeau, et relance les services qui tournaient. Le pilote ACPI ATK et le paquet ATK (`\\.\ATKACPI`, que `canape-hw` utilise) sont des pilotes noyau, absents de la liste ; `is_kept` refuse tout nom contenant `atk` ou `acpi`, et un test vérifie la liste. `applied` = au moins un service présent et tous Désactivés ; `paths` dans l'état liste les services présents.
+**Services ASUS** (`tweaks/services.rs`, **à confirmer sur l'Ally** : des noms connus, pas encore comparés à une vraie installation) : `ArmouryCrateService`, `AsusAppService`, `ASUSOptimization`, `ASUSSoftwareManager`, `ASUSSwitch`, `ASUSSystemAnalysis`, `ASUSSystemDiagnosis`, `asus_framework`, `LightingService`, `AsusCertService`. Seuls ceux qui sont présents sont touchés. Appliquer note pour chacun son type de démarrage, son drapeau de démarrage différé et s'il tournait (`SavedService`, dans `tweaks[asus_services_off].services` de `state.json`), le passe en Désactivé et l'arrête (un service qui ne s'arrête pas sera éteint au prochain redémarrage) ; rétablir remet le type de démarrage et le drapeau, et relance les services qui tournaient. Le pilote ACPI ATK et le paquet ATK (`\\.\ATKACPI`, que `canape-hw` utilise) sont des pilotes noyau, absents de la liste ; `is_kept` refuse tout nom contenant `atk` ou `acpi`, et un test vérifie la liste. `applied` = au moins un service présent et tous Désactivés ; `paths` dans l'état liste les services présents.
 
 *Recommandées* (`TweakInfo::recommended`) : toutes sauf `background_apps_off`, `asus_services_off`, `defender_realtime_off` et `memory_integrity_off`. *Sécurité* (second A demandé) : les trois optimisations Defender / intégrité de la mémoire.
 
@@ -471,6 +471,7 @@ sequenceDiagram
 | `get_bench_report` | — | `bench` | Le dernier rapport terminé ou annulé (pendant un banc d'essai, le précédent). |
 | `set_accent` | `color: string` (`#rrggbb`) | `ok` / `error` | Couleur d'accent de l'interface, partagée par le shell et le widget. Validée (`#` et six chiffres hexadécimaux, sinon une erreur), stockée en minuscules, enregistrée dans `state.json` et poussée dans `status.accent`. |
 | `set_fan_curve` | `fan` : `cpu` \| `gpu` \| `mid`, `curve: FanCurve` | `ok` / `error` | Courbe personnalisée d'un ventilateur, [validée](#courbes-de-ventilateurs) (plancher de sécurité compris). Conservée aux changements de mode, enregistrée dans `state.json`. Pendant un profil qui a ses propres courbes, modifie le profil ; sinon les courbes globales. |
+| `reset_fan_curves` | — | `ok` / `error` | Tous les ventilateurs reviennent à la courbe du mode : le service réécrit le mode de performance, puis le TDP manuel s'il y en a un. Même règle de profil que `set_fan_curve`. |
 | `get_fan_curves` | — | `fan_curves` | Les courbes personnalisées et celles du firmware pour le mode courant (point de départ d'un éditeur). |
 | `set_fan_preset` | `preset: "balanced" \| "max_cooling" \| null` | `ok` / `error` | Le préréglage sur les ventilateurs CPU et GPU, `null` pour les courbes du firmware (comme `reset_fan_curves`). Le statut le renvoie dans `fan_preset` (`null` sans courbe ou avec d'autres courbes). |
 | `save_foreground_profile` | `part: "power" \| "hardware"` | `ok` / `error` | Enregistre dans le profil du jeu au premier plan (créé avec l'auto TDP actuel s'il n'existe pas) l'auto TDP et la puissance tenue (`power`), ou les courbes et la limite de FPS (`hardware`) ; le reste du profil est gardé. Erreur sans jeu au premier plan. Utilisé par le widget. |
@@ -564,6 +565,7 @@ Exemples :
 | `power_watts` | `f32 \| null` | Ce que l'APU consomme réellement, en watts (`tdp_watts` n'en est que la limite). Tracé face à la limite dans les graphes du shell et du widget. Facultatif en entrée. |
 | `cpu_temp_c` | `f32 \| null` | Température CPU en °C. |
 | `battery_percent` | `u8 \| null` | Charge de la batterie. |
+| `conflicts` | `[string]` | Noms des autres programmes trouvés en train de piloter le matériel (voir la table `KNOWN` de `canape-core/src/conflicts.rs`). |
 | `foreground` | `string \| null` | Programme au premier plan signalé par le shell. |
 | `active_profile` | `string \| null` | `exe` du profil appliqué. |
 | `on_battery` | `bool \| null` | `true` sur batterie, `false` sur secteur. |
@@ -606,6 +608,7 @@ Exemples :
 
 **`FanCurve`** : huit paires `[température °C, rapport cyclique %]`, pour le ventilateur CPU comme pour le GPU. Les règles (`FanCurve::validate` dans `canape-core/src/fan.rs`, vérifiées aussi par le backend Ally avant l'écriture) :
 
+- températures strictement croissantes, chacune entre 20 et 110 °C ;
 - rapports de 0 à 100 %, jamais décroissants ;
 - **plancher de sécurité** : le rapport du dernier point à 80 °C ou en dessous doit valoir au moins 25 %, à 90 °C au moins 30 %, à 100 °C au moins 40 % ; s'il n'y a aucun point à ou sous l'une de ces températures, il compte pour 0 %. Cette borne basse tient que le firmware interpole ou procède par paliers entre les points. Les valeurs sont juste sous les courbes Silencieux d'ASUS (28 / 34 / 41 % pour le ventilateur CPU) : une courbe peut être aussi discrète que le mode Silencieux d'usine, jamais plus quand il fait chaud. 0 % à 90 °C est donc impossible.
 
@@ -822,6 +825,7 @@ Profil release (`Cargo.toml`) : `opt-level = "s"`, LTO, `codegen-units = 1`, `pa
 
 ## Empaquetage
 
+Le FSE ne propose comme accueil que des apps **empaquetées** qui déclarent l'extension `windows.gamingApp` et la capacité `gamingHome`. Canapé reste un exécutable Win32 classique dans `C:\Program Files\Canape`, auquel un **paquet MSIX « sparse »** (paquet avec emplacement externe) donne une identité. Le FSE active l'app d'accueil en **medium IL** : `canape-shell.exe` reste donc `asInvoker`, et seul le paquet d'identité (sans exécutable) est enregistré avec des droits administrateur. La capacité `gamingHome` est débloquée par un catalogue de test, ce qui exige le **mode développeur**.
 
 | Fichier | Rôle |
 |---|---|
@@ -893,6 +897,7 @@ done
 ## Notes sur le matériel
 
 > [!IMPORTANT]
+> Le matériel ne se touche que via le trait `canape_hw::Device`. **Toute valeur écrite dans le firmware ASUS doit être vérifiée contre une implémentation de référence pour le modèle concerné.** On réimplémente les faits, on ne copie pas de code.
 
 ### ATKACPI
 
@@ -905,6 +910,7 @@ Le firmware ASUS s'atteint par `\\.\ATKACPI` (ouverture en lecture / écriture, 
 
 | ID | Nom | Usage dans Canapé |
 |---|---|---|
+| `0x00120075` | Mode de performance | `0` équilibré (Performance), `1` Turbo, `2` Silencieux, `4` Manuel. Le mode `3` (*FullSpeed*) n'est pas modélisé. |
 | `0x001200A0` | sPPT (PL2, boost lent) | TDP, écrit en premier |
 | `0x001200A3` | SPL (PL1, soutenu) | TDP, écrit en second |
 | `0x001200C1` | fPPT (boost rapide) | TDP, écrit en dernier, seulement si `DSTS` le dit présent |
@@ -914,6 +920,7 @@ Le firmware ASUS s'atteint par `\\.\ATKACPI` (ouverture en lecture / écriture, 
 | `0x00110031` | Vitesse ventilateur central | Lecture ; sert aussi de test de présence |
 | `0x00110024` / `0x00110025` / `0x00110032` | Courbe CPU / GPU / centrale | Écriture et lecture sur 16 octets, voir [Courbes de ventilateurs](#courbes-de-ventilateurs) |
 
+Ces IDs et valeurs ont été vérifiés en M2 sur la RC71L ([m2-report.md](m2-report.md)). Le firmware **ne relit rien d'utile** : `DSTS` sur le mode renvoie toujours 3, et 0 sur les limites. D'où `state.json` et l'affichage « Auto » en mode firmware.
 
 ### Modèles
 
@@ -926,7 +933,9 @@ Le modèle est lu dans `HKLM\HARDWARE\DESCRIPTION\System\BIOS\SystemProductName`
 | `RC73YA` | ROG Xbox Ally (Z2 A) | 5 à 35 W |
 | `RC73XA` | ROG Xbox Ally X (Z2 Extreme) | 5 à 35 W |
 
+Plancher de 5 W ; le firmware autorise jusqu'à 50 W sur l'Ally, mais 30 W est plus prudent. Les valeurs RC73 ne sont pas confirmées par ASUS. Seule la RC71L a été testée.
 
+Pas de SMU Ryzen : sur l'Ally, il ne servirait au TDP que si l'ID sPPT est absent.
 
 ### ADL depuis la session 0
 
@@ -944,26 +953,40 @@ D'où la solution : au démarrage, le shell appelle `canape_hw::FrameMetrics::ar
 **Limite connue** (M5, partie 2) : un jeu en plein écran exclusif réduit, puis resté caché derrière le shell une quarantaine de secondes, n'est plus compté quand il revient (FPS absents, donc ni auto TDP ni banc d'essai) jusqu'au prochain démarrage du jeu. Relancer `FrameMetrics_Start`, depuis le shell ou depuis un processus à part, n'y change rien.
 
 > [!WARNING]
+> **Non testé sur l'appareil** (écrit dans la session cloud, vérifié seulement par `cargo check` pour Windows) : courbes et vitesses des ventilateurs, plafond de FPS, mode de la manette, ACL du pipe restreinte au widget. Avant de s'y fier, tester chacun sur l'Ally et le consigner dans un rapport d'étape.
 
 ### Courbes de ventilateurs
 
+Faits réimplémentés dans `crates/canape-hw/src/atk.rs` et `crates/canape-core/src/fan.rs` ; le code énonce les faits sans citer de source.
 
 | Sujet | Fait |
 |---|---|
+| Écriture | `DEVS` avec une charge en octets : `[DEVS][longueur = 4 + 16 = 20][ID][8 températures][8 rapports]`, 28 octets en tout. Succès = 1. |
+| Lecture | `DSTS` avec `[ID][mode]` : les 16 octets de sortie sont la courbe. L'argument de mode inverse silencieux et turbo : Turbo (1) lit 2, Silencieux (2) lit 1, tout le reste 0. Tout à zéro = pas de courbe. |
+| Correction | Une température lue qui ne dépasse pas la précédente devient précédente + 6, plafonnée à 100 ; appliqué aux courbes lues dans le firmware. |
+| Changement de mode | Le firmware réinitialise les courbes à chaque changement de mode : il faut écrire le mode de performance, attendre 100 ms, puis réécrire les courbes. Canapé le fait (le backend attend les 100 ms). |
+| Échec | Une alternative serait d'essayer les IDs « fan range » (`0x00110022/23`) puis de réécrire le mode pour retrouver les courbes d'usine. Canapé réécrit directement le mode : les IDs de plage servent aux portables sans courbes. |
+| Réinitialisation | Réécrire le mode courant. Cela rétablit aussi les limites de puissance du mode : le service réécrit ensuite le TDP manuel. |
+| Vitesses | Résultat de `DSTS` moins `0x10000`, 16 bits de poids faible, en unités de 100 tr/min ; au-delà de 120, ou 0 sans le bit de présence : pas de lecture. |
 | Ventilateur central | Seulement si `DSTS 0x00110031` répond (`IsMidFanSupported`). |
 
+Les rapports peuvent aller jusqu'à 100 % ; certains vieux BIOS réagiraient mal à 100 %, ce que Canapé n'a pas observé. Au démarrage, le service journalise les IDs de courbes qui répondent et les vitesses (`atk: fan curves …`).
 
 > [!CAUTION]
 > Écrire une courbe retire les ventilateurs du contrôle d'ASUS. Le plancher de sécurité interdit une courbe muette quand il fait chaud, et l'APU se bride toujours seul à sa limite de température, mais une courbe trop discrète rend l'appareil brûlant en main. En cas d'erreur du firmware, le service réécrit le mode pour retrouver les courbes d'usine.
 
 ### Plafond de FPS (ADL)
 
+`ADL2_FPS_Settings_Set(contexte, adaptateur, ADLFPSSettingsInput)`, la structure **par valeur** (40 octets : `ulSize`, `bGlobalSettings`, `ulACFPSCurrent`, `ulDCFPSCurrent`, `ulReserved[6]`). `bGlobalSettings = 1`, la même valeur sur secteur et batterie, `ulSize` laissé à 0. « Pas de plafond » écrit 240, la valeur « OFF » du pilote. `ADL2_FPS_Settings_Get` (structure de 36 octets) est journalisé au démarrage (`adl: FPS limit AC …`). Plage acceptée : 30 à 120 FPS.
 
+**Non testé depuis la session 0** : l'appel se fait normalement depuis la session utilisateur. Si le pilote refuse depuis le service, l'erreur porte le code ADL (`GPU driver refused: ADL2_FPS_Settings_Set(40) on adapter 0 returned -1 (session 0)`). Plan de repli : le shell, qui charge déjà ADL pour `arm_frame_metrics()`, fait le même appel à chaque changement de `status.fps_limit`.
 
 ### Manette (HID)
 
 | Sujet | Fait |
 |---|---|
+| Interface | VID `0x0B05`, PID `0x1ABE` (Ally) ou `0x1B4C` (Ally X), et un **rapport de fonctionnalité d'ID `0x5A`** dans son descripteur (trouvé par `HidP_GetValueCaps` / `HidP_GetButtonCaps`). Toutes les interfaces qui correspondent sont écrites. PID des RC73 inconnus : pas encore pris en charge. |
+| Longueur | Le `FeatureReportByteLength` de l'interface (64 en pratique), complété par des zéros, ID de rapport compris. |
 | Initialisation | `0x5A` + `ASUS Tech.Inc.` en ASCII, une fois avant la première commande (`InitInput`). |
 | Mode | `[0x5A, 0xD1, 0x01, 0x01, mode]`, `1` manette, `2` WASD, `3` souris, puis `HidD_SetFeature`. |
 | Association des boutons | `[0x5A, 0xD1, 0x02, paire, 0x2C]` puis 44 octets : quatre associations de 11 octets, le premier bouton de la paire, son association secondaire (bouton gauche sous l'écran maintenu), le second bouton, son association secondaire. Paires : `1` croix haut / bas, `2` croix gauche / droite, `3` clics des sticks, `4` gâchettes hautes, `5` A / B, `6` X / Y, `7` View / Menu, `8` **M2 / M1**, `9` gâchettes. |
@@ -976,8 +999,14 @@ D'où la solution : au démarrage, le shell appelle `canape_hw::FrameMetrics::ar
 | Mode WASD | Ses associations d'usine ne sont pas connues : `set_back_buttons` répond `Unsupported`, rien n'est écrit. |
 | Côtés | M1 est le bouton arrière droit, M2 le gauche ; la paire 8 donne M2 en premier. |
 
-**Non testé sur l'appareil.** D'où viennent ces faits (tous sous GPL ou LGPL, réimplémentés, pas copiés) :
+**Non testé sur l'appareil.** D'où viennent ces faits (réimplémentés, pas copiés) :
 
+- **Format des paquets et groupes** : le pilote Linux `hid-asus-ally` (tel que repris par des noyaux de distributions : `__btn_pair_to_pkt`, `__string_to_key_code`, `enum btn_pair`, `xpad_cmd_set_mapping = 0x02`, `xpad_cmd_len_mapping = 0x2c`) décrit l'en-tête, les associations de 11 octets et l'octet où va le code de chaque groupe.
+- **Codes** : chaque code ci-dessus a la même valeur dans les tables du pilote Linux. Là où des tables divergent, le code est écarté (F1 à F3, Alt gauche) ou pris dans les blocs que le pilote Linux a capturés sur l'appareil (`WASD_DEF1` / `WASD_DEF2` donnent les flèches `98` haut, `99` bas, `9A` gauche, `9B` droite ; la table du pilote inverse haut et bas et met gauche à `91`). Le bloc M1 / M2 d'usine est le `XPAD_DEF8` capturé du pilote (et `WASD_DEF8`).
+- **Pourquoi toute la table** : la première version écrivait le rapport de la paire 8 seul. Sur une RC71L en mode manette, la manette l'acceptait (`ok`) mais aucune palette n'envoyait A en XInput. Sur ce modèle, il faut écrire toute la table : mode, les neuf paires, turbo, comme le fait le `hid-asus-ally` de Luke Jones (`_gamepad_set_mode`, puis `_gamepad_apply_all` : neuf `_gamepad_apply_btn_pair`, `_gamepad_apply_turbo`, zones mortes). Le pilote `hid-asus` actuel de la série Ally (branche `ally` de NeroReflex, `button_remap_store`) le dit en toutes lettres : pour une Ally de première génération (pas `is_ally_x`), il écrit les neuf paires à chaque changement, et seule l'Ally X prend une paire seule. Ce pilote note aussi qu'un changement de mode remet toutes les associations à celles d'usine du mode : le mode passe donc en premier, jamais après les paires. Canapé envoie mode, neuf paires, turbo. Zones mortes et vibration sont laissées de côté (leurs valeurs varient, `00 64 00 64` ou `00 40 00 40`) et Canapé ne les gère pas. La requête « prêt » (`0xD1 0x0A`) n'est pas envoyée : certaines Ally répondent mal.
+- **Associations d'usine** : la table manette reprend octet pour octet les associations d'usine observées, dont la quatrième association de chaque paquet commence au bon octet (le décalage de 10 octets que la branche Linux a corrigé dans son propre code). Les premières associations sont aussi celles des pilotes Linux (`_gamepad_set_xpad_default`, `ally_set_default_gamepad_mapping`). La table souris a les mêmes premières associations que les valeurs `desktop`. Vérifié en vidant les rapports de Canapé et en les comparant à des paquets de référence : les neuf paires, le mode et le turbo sont identiques dans les deux modes.
+- **M2 d'abord, côtés** : la paire 8 donne M2 en premier (`8E` avant `8F`), comme le pilote Linux actuel (`get_button_pair_info` : M2 `is_first`). L'ancien pilote de Luke Jones mettait M1 en premier ; le nouveau, essayé sur l'appareil, non. Côtés : la branche Linux constate `btn_m1` sur la palette droite et `btn_m2` sur la gauche (essayé sur une Xbox Ally X), et les pièces détachées ASUS de la RC71L sont vendues comme « right macro M1 button » et « left macro M2 button ».
+- **Modèles** : le pilote Linux traite les RC71L et RC72LA (PID `0x1ABE`, `0x1B4C`) avec les mêmes paquets.
 
 **Éclairage des sticks**, sur la même interface et le même rapport :
 
@@ -993,6 +1022,10 @@ D'où la solution : au démarrage, le shell appelle `canape_hw::FrameMetrics::ar
 
 **Non testé sur l'appareil.** Sources :
 
+- **Luminosité** : le pilote Linux `hid-asus` officiel (`asus_kbd_set_brightness`, `FEATURE_KBD_REPORT_ID 0x5a` ; les PID de l'Ally portent `QUIRK_USE_KBD_BACKLIGHT`) et le pilote `hid-asus-ally` (`ally_led_do_brightness`, `max_brightness = 3`) l'envoient avec le rapport `0x5A`, `off` / `low` / `medium` / `high` pour 0 à 3. La même commande existe avec le rapport `0x5D`, sur l'autre interface (Aura) de la manette ; 0–100 % se ramène à 0–3.
+- **Couleur** : le pilote `hid-asus-ally` (`ally_led_do_rgb` : `xpad_cmd_set_leds = 0x08`, `xpad_cmd_len_leds = 0x0C`, quatre triplets RVB ; il note que la couleur posée ainsi tient « jusqu'au prochain démarrage » et la réécrit après chaque changement de luminosité). Un paquet observé sur l'appareil est `5ad1080cff0000ff0000ff0000ff0000` (quatre fois rouge).
+- **Effets** : modes `Static` 0, `Breathe` 1, `ColorCycle` 2, `Strobe` 10 (ceux que l'Ally propose) ; vitesse `0xE1` / `0xEB` / `0xF5` pour lente / normale / rapide ; octet 9 à 1 pour la respiration ; puis `MESSAGE_SET` `0xB5` et `MESSAGE_APPLY` `0xB4`, dans cet ordre. Variantes vues ailleurs : 3 pour l'arc-en-ciel (couleur à zéro) et l'ordre des vitesses inversé (`0xE1` rapide, `0xEB` lente) ; Canapé suit la première. Le pilote `hid-asus-ally` (`ally_rgb_set_static_from_multi` : `0xB3`, puis `EC_MODE_LED_APPLY` `0x5A 0xB4` et `EC_MODE_LED_SET` `0x5A 0xB5`) écrit les deux commandes pour que la manette garde une couleur fixe une fois le pilote parti : d'où « gardé par la manette ». La respiration vers le noir est le `pulse`. Le stroboscope n'a qu'une source.
+- **Rapport et transport, à vérifier sur l'Ally** : Canapé envoie l'effet avec le rapport `0x5A` en rapport de fonctionnalité sur l'interface où il écrit déjà (le pilote Linux envoie `0xB4` / `0xB5` avec `0x5A` en rapports de fonctionnalité). D'autres écrivent `0x5D` en rapports de sortie, et le pilote Linux `0xB3` avec `0x5D`. Si l'effet ne change pas sur l'Ally, essayer d'abord le rapport `0x5D`. Canapé envoie `0xB5` puis `0xB4` ; le pilote Linux envoie `0xB4` d'abord.
 
 ### Gyroscope
 
@@ -1028,6 +1061,8 @@ Tirées de [`CLAUDE.md`](../CLAUDE.md) :
 | Langues | Documentation et échanges en français (cette documentation existe aussi en anglais) ; code, commentaires et messages de commit en anglais. |
 | Légèreté d'abord | Pas de navigateur embarqué, pas de runtime async sans besoin mesuré, dépendances minimales. Objectifs : service < 10 Mo et ≈ 0 % de CPU au repos, shell < 80 Mo. Mesuré en release (M4) : service 1,3 à 1,4 Mo privés, shell 10,9 à 11,3 Mo privés et 0,31 % d'un cœur au premier plan. |
 | Privilèges | Seul `canape-service` a des droits élevés. `canape-shell` reste `asInvoker` : le FSE l'active en medium IL. |
+| Matériel | Uniquement via le trait `canape_hw::Device`. Toute valeur écrite dans le firmware est vérifiée contre une implémentation de référence pour le modèle concerné. |
+| Code tiers | Aucun binaire ni code tiers dans le dépôt. |
 | Avant de pousser | `cargo fmt --all --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, `cargo check --target x86_64-pc-windows-msvc --all-targets` depuis Linux. |
 | Secrets | Jamais de `.pfx` / `.cer` / `.msix` dans le dépôt (`.gitignore`). |
 
@@ -1056,3 +1091,4 @@ sequenceDiagram
 
 - **Ne jamais affirmer qu'un comportement Windows fonctionne sans l'avoir testé sur l'Ally.** Ce qui n'a été vérifié que sous Linux est marqué comme tel (voir l'[état d'avancement](../README.md#état-davancement)).
 - Les essais sur l'Ally donnent lieu à un **rapport d'étape** (`docs/m1-report.md` à `docs/m4-report.md`) : configuration testée et commit de départ, ce qui marche, ce qui a été corrigé, mesures de mémoire et de CPU, problèmes trouvés, ce qui reste ouvert. Les preuves sont datées et chiffrées.
+- Les changements d'état de l'Ally (mode développeur, Smart App Control, accueil du FSE, autre accueil ou outil mis en pause) se font avec l'accord du propriétaire et sont remis en place à la fin des essais.

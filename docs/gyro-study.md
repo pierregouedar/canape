@@ -1,5 +1,6 @@
 # Visée au gyroscope : étude
 
+Objectif : viser en bougeant l'Ally (« gyro aiming »), comme le proposent d'autres outils et Steam sur d'autres consoles portables, sans casser les règles du projet : pas de pilote tiers, service léger, shell `asInvoker`.
 
 Résumé : la seule voie qui tient sans pilote tiers est **gyro → souris** (`SendInput`), dans le **shell** (session de l'utilisateur), en lisant le capteur par l'**API capteurs de Windows** (`Windows.Devices.Sensors.Gyrometer`). L'émulation du stick droit demande un pilote de manette virtuelle (ViGEmBus, archivé) ou une commande du firmware de la manette qui n'est documentée nulle part. La voie souris est **codée** (voir [État](#état)) ; elle n'a **pas encore été essayée sur l'Ally**.
 
@@ -20,7 +21,7 @@ Résumé : la seule voie qui tient sans pilote tiers est **gyro → souris** (`S
 | Composant | IMU 6 axes **Bosch BMI323** (gyroscope + accéléromètre), dans le bloc de l'écran, relié au processeur et non au microcontrôleur de la manette. |
 | Sous Windows | Pilote Bosch (« Bosch Accelerometer », version 1.0.1.7 constatée par des utilisateurs) qui expose le capteur à la **pile capteurs de Windows** : un *Gyrometer* et un *Accelerometer*, visibles dans le Gestionnaire de périphériques sous « Capteurs ». |
 | Lecture | Deux API au-dessus de la même pile : l'ancienne API COM `ISensorManager` (Sensor API, `sensorsapi.h`), et l'API WinRT `Windows.Devices.Sensors.Gyrometer`, utilisable par une app de bureau Win32 sans identité de paquet ni capacité. Vitesses angulaires en **degrés par seconde** sur les trois axes. |
-| Fréquence | Environ **100 Hz** sous Windows d'après les relevés d'utilisateurs (le même composant monte à 800 Hz sous Linux) ; Armoury Crate ne sortirait que 75 à 80 mouvements de souris par seconde. À mesurer sur l'Ally (`MinimumReportInterval` est écrit dans `shell.log`). |
+| Fréquence | Environ **100 Hz** sous Windows d'après les relevés d'utilisateurs (le même composant monte à 800 Hz sous Linux) . À mesurer sur l'Ally (`MinimumReportInterval` est écrit dans `shell.log`). |
 | Repère | Celui de Windows pour l'orientation native de l'appareil (paysage pour l'Ally) : X vers la droite le long de l'écran, Y vers le haut de l'écran, Z sortant de l'écran vers le joueur. Les outils existants retournent X et Y et échangent Y et Z pour passer au repère d'une manette PlayStation à plat (lacet = rotation autour de Z), ce qui confirme que Windows rend les axes dans le repère de l'écran. |
 | HID de la manette | Le microcontrôleur de la manette (VID `0x0B05`, PID `0x1ABE`) ne voit pas l'IMU : ses rapports d'entrée `0x5A` ne portent que des codes de boutons (Command Center, Armoury, palettes). Aucune donnée de mouvement à y lire. |
 | Session 0 | Inutile : l'injection doit de toute façon se faire dans la session de l'utilisateur, donc la lecture aussi. |
@@ -55,8 +56,8 @@ Toutes ces voies ajoutent une installation lourde ou ne touchent presque aucun j
 ### c. Ce que propose le firmware de la manette
 
 - Les commandes connues du rapport `0x5A` (`0xD1` puis : mode `0x01`, affectations `0x02`, zones mortes `0x04` / `0x05`, vibrations `0x06`, LED `0x08`, prêt `0x0A`, calibration `0x0D`, turbo `0x0F`, courbes de réponse `0x13`, anti-zone morte `0x18`) ne comportent **aucune commande gyro**. Aucune implémentation de référence publique (pilote Linux `hid-asus-ally`, travaux en cours dans `hid-asus`) n'en décrit.
-- Armoury Crate SE propose le gyro depuis sa version 1.4.5 avec le firmware de manette 316 (fin 2023), par jeu, avec un comportement « comme une souris » ou « comme un joystick ». Comme l'IMU n'est pas reliée au microcontrôleur, Armoury Crate lit le capteur sous Windows et envoie à la manette des commandes d'émulation par l'interface constructeur (c'est ce que décrit le développeur de Handheld Daemon sur la liste du noyau Linux, août 2024) ; le format de ces commandes n'est pas publié.
-- Le retrouver demanderait d'analyser Armoury Crate, ce que les règles du projet écartent, et rien ne permettrait de le vérifier contre une implémentation de référence. **Écarté** tant qu'aucune source publique ne le documente. Si un jour une implémentation de référence décrit cette commande, ce serait la meilleure voie pour le stick droit : pas de pilote, le jeu voit la vraie manette.
+- Le firmware de manette 316 (fin 2023) permet un gyro par jeu, « comme une souris » ou « comme un joystick ». Comme l'IMU n'est pas reliée au microcontrôleur, le logiciel constructeur lit le capteur sous Windows et envoie à la manette des commandes d'émulation par l'interface constructeur (voir la liste du noyau Linux, août 2024) ; le format de ces commandes n'est pas publié.
+- Rien ne permettrait de vérifier ces commandes contre une implémentation de référence. **Écarté** tant qu'aucune source publique ne le documente. Si un jour une implémentation de référence décrit cette commande, ce serait la meilleure voie pour le stick droit : pas de pilote, le jeu voit la vraie manette.
 
 ## Recommandation
 
@@ -84,7 +85,7 @@ Toutes ces voies ajoutent une installation lourde ou ne touchent presque aucun j
 
 - [Forum Bosch Sensortec : « BMI323 Windows Driver only sampling 100hz? »](https://community.bosch-sensortec.com/mems-sensors-forum-jrmujtaw/post/bmi323-windows-driver-only-sampling-100hz-5HB2oMzlVvc2ZZS)
 - [hid-asus-ally](https://github.com/uejji/hid-asus-ally) (pilote Linux) : liste des commandes `0xD1` de la manette.
-- [Lowyat](https://lowyat.net/2023/312064/latest-asus-rog-ally-now-features-gyroscope-control), [Notebookcheck](https://www.notebookcheck.net/ASUS-ROG-Ally-gains-gyroscope-controls-and-other-new-features-with-new-updates.776656.0.html) : le gyro dans Armoury Crate SE 1.4.5 / firmware 316.
-- [Liste linux-input, « hid-asus-ally: Add full gamepad support », réponse d'Antheas Kapenekakis (août 2024)](https://lkml.iu.edu/hypermail/linux/kernel/2408.1/00923.html) : Armoury Crate émule le gyroscope en envoyant des commandes à la manette.
+- [Lowyat](https://lowyat.net/2023/312064/latest-asus-rog-ally-now-features-gyroscope-control), [Notebookcheck](https://www.notebookcheck.net/ASUS-ROG-Ally-gains-gyroscope-controls-and-other-new-features-with-new-updates.776656.0.html) : le gyro avec le firmware de manette 316.
+- [Liste linux-input, « hid-asus-ally: Add full gamepad support », réponse d'Antheas Kapenekakis (août 2024)](https://lkml.iu.edu/hypermail/linux/kernel/2408.1/00923.html) : le gyroscope est émulé en envoyant des commandes à la manette.
 - [ViGEmBus](https://github.com/nefarius/ViGEmBus) : archivé le 2 novembre 2023.
 - Microsoft : [`Windows.Devices.Sensors.Gyrometer`](https://learn.microsoft.com/uwp/api/windows.devices.sensors.gyrometer), [`SendInput`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-sendinput), [repère des capteurs](https://learn.microsoft.com/windows-hardware/design/whitepapers/integrating-motion-and-orientation-sensors).

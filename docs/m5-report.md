@@ -1,6 +1,6 @@
 # M5 report (part 1): the shell, the Hardware page and the library on the Ally
 
-Tested on the ROG Ally RC71L on 2026-10-22, from `7585214`, in a Remote Control session that ended before the last items (Pierre had to leave). This report was written afterwards from that session's transcript. **Release** build, installed with `install-dev.ps1 -BuildProfile release`. Winhanced was paused for the tests; it was left paused.
+Tested on the ROG Ally RC71L on 2026-10-22, from `6c22fc1`, in a Remote Control session that ended before the last items (Pierre had to leave). This report was written afterwards from that session's transcript. **Release** build, installed with `install-dev.ps1 -BuildProfile release`. The other tuning tool was paused for the tests; it was left paused.
 
 ## Results
 
@@ -9,7 +9,7 @@ Tested on the ROG Ally RC71L on 2026-10-22, from `7585214`, in a Remote Control 
 | Release build (shell, service, ctl) | OK | 1 min 44 s |
 | Widget, 13-language version (`build-widget.ps1`) | OK | First build of that version, no fix needed. Only a mangled "Canapé" in the script's last line under Windows PowerShell 5.1 (fixed: the scripts are ASCII only) |
 | Install | OK | `CanapeService installed and started`, `Registered Canape_84zrj1c9kn010!App`; `device = ROG Ally`, `conflicting programs: []` |
-| `cargo test` under Windows | OK after a fix | `steam::tests::scan_fixture` also found Pierre's real Steam games: the fixture pointed to `C:\Program Files (x86)\Steam` (fixed in `f54ded4`) |
+| `cargo test` under Windows | OK after a fix | `steam::tests::scan_fixture` also found Pierre's real Steam games: the fixture pointed to `C:\Program Files (x86)\Steam` (fixed in `1934b01`) |
 | Shell in use (pages, gamepad, power modes, launching a game) | OK, per Pierre | Pierre used it himself (Silent → Performance → Turbo → Silent, Sonic Mania launched twice from the library): "nothing to report". Not checked page by page |
 | Accent shared through the service | OK | `m5-check` reads back `#14b8a6`, then restores the original accent |
 | Fans | OK | Driven with `canape-ctl` under a heavy WebGL load. Automatic: 2900–3000 / 2700–2800 rpm (CPU / GPU). Silent: down to 0/0 within 15 s. Balanced: 3300/3300. Maximum: 4600–4700. Back to Automatic with `ResetFanCurves -> Ok`. Every `SetFanCurve -> Ok` |
@@ -21,7 +21,7 @@ Tested on the ROG Ally RC71L on 2026-10-22, from `7585214`, in a Remote Control 
 | Library: Epic, GOG | Nothing to find | No Epic manifest, no GOG game installed |
 | Launching from the library | OK | `library: launching steam:584400` (Sonic Mania) |
 | Frame rate limit | **Problem** | See below |
-| Auto TDP | **Problem, fixed** | See below; fixed and checked on the Ally in `01d79cf` |
+| Auto TDP | **Problem, fixed** | See below; fixed and checked on the Ally in `ed4e118` |
 
 ### Memory (`m5-check`, WebGL Aquarium in front)
 
@@ -83,4 +83,4 @@ Before part 2, install **Unigine Heaven** and **FurMark 2** on the Ally (free, f
 - Per-game refresh rate (applied and restored), starting as the FSE home, language switch, live graphs.
 - The frame rate limit again, with the fix above.
 
-State left on the Ally: Winhanced paused, Silent mode, auto TDP off, driver limiter at 1000 (enabled), screen at 120 Hz, fans on Automatic.
+State left on the Ally: other tool paused, Silent mode, auto TDP off, driver limiter at 1000 (enabled), screen at 120 Hz, fans on Automatic.

@@ -5,7 +5,7 @@
 Cette page explique comment Canapé règle tout seul la puissance de la ROG Ally : d'abord en quelques lignes pour les joueurs, puis précisément, avec les valeurs du code (`crates/canape-autotdp`, `crates/canape-service/src/handler.rs`, `crates/canape-core/src/bench.rs`).
 
 > [!IMPORTANT]
-> **Ce qui a été mesuré sur l'Ally** : l'auto TDP de la version `1268753` (voir [Résultats mesurés](#résultats-mesurés-sur-lally)). **Ce qui ne l'a pas encore été** : les optimisations suivantes (filtre de l'à-coup isolé, libération du plancher, plafond sur batterie, limite de température, watts appris), les profils par jeu (y compris leurs courbes de ventilateurs et leur limite de FPS) et le banc d'essai. Ils sont couverts par des tests unitaires et une simulation, pas par une mesure réelle.
+> **Ce qui a été mesuré sur l'Ally** : l'auto TDP de la version `13ee476` (voir [Résultats mesurés](#résultats-mesurés-sur-lally)). **Ce qui ne l'a pas encore été** : les optimisations suivantes (filtre de l'à-coup isolé, libération du plancher, plafond sur batterie, limite de température, watts appris), les profils par jeu (y compris leurs courbes de ventilateurs et leur limite de FPS) et le banc d'essai. Ils sont couverts par des tests unitaires et une simulation, pas par une mesure réelle.
 
 ## Sommaire
 
@@ -97,6 +97,7 @@ Les **constantes internes** de l'algorithme (`canape_autotdp::Config::default()`
 | `floor_hold_max_ticks` | 480 | Durée maximale d'un plancher : 8 min. |
 | `SETTLED_TICKS` | 30 | 30 s sans changement : la puissance est « stabilisée » (watts appris). |
 | `MIN_GAME_FPS` | 5 FPS | En dessous, aucun jeu ne tourne. |
+| `MIN_GAME_GPU` | 15 % | En dessous, aucun jeu ne tourne non plus. |
 
 ## D'où viennent les mesures
 
@@ -107,6 +108,7 @@ Les **constantes internes** de l'algorithme (`canape_autotdp::Config::default()`
 | Température CPU | Firmware ASUS, ATKACPI `0x00120094` | Valeurs hors 1 à 124 °C ignorées. |
 | Batterie, secteur | `GetSystemPowerStatus` | |
 
+Le service écrit la même valeur dans les trois limites du firmware, dans cet ordre : sPPT, SPL, puis fPPT si le firmware le connaît.
 
 ## Une seconde d'auto TDP
 
@@ -204,7 +206,7 @@ Pour éviter les dents de scie, une montée due à un **manque qui dure** (au mo
 Une seule seconde très basse (chargement, à-coup, sauvegarde) fait monter la puissance — le jeu en a peut-être besoin — mais **ne crée pas de plancher** : si les FPS reviennent à l'objectif, la puissance peut redescendre normalement.
 
 > [!NOTE]
-> Ce filtre corrige le problème vu lors du retest de `1268753` : un à-coup à 20,8 FPS avait fait monter la puissance à 24 W, et le plancher l'y avait gardée environ 4 minutes. Il n'a pas encore été mesuré sur l'Ally.
+> Ce filtre corrige le problème vu lors du retest de `13ee476` : un à-coup à 20,8 FPS avait fait monter la puissance à 24 W, et le plancher l'y avait gardée environ 4 minutes. Il n'a pas encore été mesuré sur l'Ally.
 
 ### Libération du plancher quand la charge baisse
 
@@ -441,7 +443,7 @@ Mesures du [rapport M4](m4-report.md), sur ROG Ally RC71L, avec WebGL Aquarium d
 
 ### Charge lourde (30 000 poissons, 5 min)
 
-| | Avant (`c9bceda`) | Après (`1268753`) |
+| | Avant (`94a4db0`) | Après (`13ee476`) |
 |---|---|---|
 | Après stabilisation | Dents de scie entre 16 et 24 W | **18 W 87 % du temps** (104 échantillons sur 120) ; 16–17 W ×5, 19–20 W ×5, 24 W ×6 |
 | Changements de puissance | ~30 en 80 s | **13 en 5 min** (dont 4 au démarrage : 12 → 19 W en 6 s) |
@@ -451,16 +453,16 @@ Le changement entre les deux versions : la baisse sous l'objectif n'a plus lieu 
 
 ### Charge légère
 
-| | Avant (`c9bceda`) | Après (`1268753`) |
+| | Avant (`94a4db0`) | Après (`13ee476`) |
 |---|---|---|
 | Descente de 12 W au minimum (7 W) | 16 s, puis stable à 120 FPS | 48 s (1 W toutes les 2 à 4 s) une fois le plancher libéré |
 | Après une charge lourde | — | **Bloqué à 24 W pendant ~4 min** à cause d'un plancher créé par un à-coup isolé |
 
-Les optimisations de `57e4a1c` visent ces deux défauts (à-coup isolé sans plancher, libération du plancher quand la charge baisse, baisse au plafond seulement si la mesure brute est aussi à l'objectif). Une simulation du cas M4 (`power_limited_game_settles_without_sawtooth`) vérifie qu'après stabilisation la puissance reste dans une plage de 3 W avec au plus 12 changements en 13 minutes, pour une moyenne d'au moins 57 FPS. **Ces optimisations n'ont pas encore été mesurées sur l'Ally.**
+Les optimisations de `00e3bb7` visent ces deux défauts (à-coup isolé sans plancher, libération du plancher quand la charge baisse, baisse au plafond seulement si la mesure brute est aussi à l'objectif). Une simulation du cas M4 (`power_limited_game_settles_without_sawtooth`) vérifie qu'après stabilisation la puissance reste dans une plage de 3 W avec au plus 12 changements en 13 minutes, pour une moyenne d'au moins 57 FPS. **Ces optimisations n'ont pas encore été mesurées sur l'Ally.**
 
 ### Banc d'essai M5 (WebGL Aquarium chargé)
 
-D'après le [rapport M5](m5-report.md), avec `m5-check` (paliers de 6 W, 3 s de stabilisation, 8 s de mesure) : 7 W 19 FPS (minimum 17), 13 W 43 (40), 19 W 61 (61), 25 W 69 (69) ; 47, 53 et 64 °C sur les trois premiers paliers. La même charge avec un objectif de 40 FPS se stabilise à 13 W et l'apprend en une minute depuis `01d79cf`.
+D'après le [rapport M5](m5-report.md), avec `m5-check` (paliers de 6 W, 3 s de stabilisation, 8 s de mesure) : 7 W 19 FPS (minimum 17), 13 W 43 (40), 19 W 61 (61), 25 W 69 (69) ; 47, 53 et 64 °C sur les trois premiers paliers. La même charge avec un objectif de 40 FPS se stabilise à 13 W et l'apprend en une minute depuis `ed4e118`.
 
 ## Conseils de réglage
 
@@ -475,10 +477,11 @@ D'après le [rapport M5](m5-report.md), avec `m5-check` (paliers de 6 W, 3 s de 
 - **Profils** : enregistrez le profil après une session où l'auto TDP s'est stabilisé ; la suivante démarrera aux watts appris.
 - **Banc d'essai** : dans une scène exigeante et stable (pas un menu ni une cinématique), ou avec Unigine Heaven (voir [Choisir une charge de test](#choisir-une-charge-de-test)). Prenez 30 s par palier pour les jeux dont les FPS varient beaucoup.
 - **Vérifiez les FPS** en haut à droite de l'écran (ou sur la page Performance) : s'ils restent à « — », l'auto TDP ne fait rien (voir le [dépannage](user-guide.fr.md#problèmes-courants)).
+- **Un seul pilote** : fermez tout autre outil qui pilote le matériel (Canapé indique lequel il a trouvé), sinon il réécrit les limites.
 
 ## Limites connues
 
-- Tout ce qui suit `1268753` (filtres, plafond sur batterie, limite de température, profils, watts appris, banc d'essai) n'a pas encore été mesuré sur l'Ally. Les courbes de ventilateurs et la limite de FPS du pilote n'ont même jamais été écrites sur une vraie Ally.
+- Tout ce qui suit `13ee476` (filtres, plafond sur batterie, limite de température, profils, watts appris, banc d'essai) n'a pas encore été mesuré sur l'Ally. Les courbes de ventilateurs et la limite de FPS du pilote n'ont même jamais été écrites sur une vraie Ally.
 - Les FPS sont ceux de l'écran rapportés par le pilote AMD, pas ceux d'un processus précis.
 - Un profil de jeu ne peut pas imposer « aucune limite de FPS » quand une limite globale est fixée : un profil enregistré avec Aucune suit la limite globale.
 - Le secours par ETW (principe de PresentMon) évoqué dans [`architecture.md`](architecture.md) n'est pas implémenté : sans ADL, pas de FPS, donc pas d'auto TDP.
