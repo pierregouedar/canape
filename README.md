@@ -85,6 +85,26 @@ Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas e
 | M5 | Profils par jeu, banc d'essai, shell en 13 langues ([rapport, 1ʳᵉ partie](docs/m5-report.md)) | 🚧 shell, ventilateurs, manette, écran, boutons, bibliothèque et bench essayés sur l'Ally ; auto TDP corrigé · 🧪 installations, widget, limite de FPS corrigée |
 | M6 | Bibliothèque de jeux, installation des jeux Steam et Epic, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | ✅ bibliothèque (Steam, Xbox), ventilateurs, manette, fréquence de l'écran, boutons Armoury / Command Center, essayés sur l'Ally ([M5](docs/m5-report.md)) · 🧪 installation des jeux Steam et Epic, limite de FPS corrigée, fréquence par jeu, boutons arrière M1 / M2, éclairage des sticks · ⏳ installation des jeux GOG ([étude](docs/game-install-study.md)) |
 
+### Utilisation de l'IA
+
+Canapé est développé avec l'aide de Claude Code, l'assistant de programmation d'Anthropic, dans un cadre technique que je définis et que je fais respecter.
+
+Le projet a deux buts : construire un logiciel réellement utilisable sur la ROG Ally, et mettre à l'épreuve les capacités d'une IA de programmation sur un projet complet, avec du matériel réel, un système imposé et des contraintes fortes de légèreté.
+
+- **Le cadrage technique** : je fixe l'architecture et ses contraintes, à savoir :
+  - le service Windows, seul à avoir des droits élevés, séparé de l'interface lancée sans droits par le FSE ;
+  - Rust et Slint, avec le rendu logiciel ;
+  - les objectifs de légèreté (mémoire, processeur, dépendances minimales) ;
+  - le passage obligé par une seule interface pour toucher au matériel ;
+  - l'intégration au FSE ;
+  - les règles du dépôt (`CLAUDE.md`).
+
+  Je définis aussi l'expérience : une interface pensée pour la manette, sans texte décoratif, des réglages par jeu, et les priorités de la feuille de route.
+- **Le travail de l'IA** : dans ce cadre, elle écrit du code, des tests et de la documentation à partir de mes demandes, puis les fait évoluer selon mes retours et mes arbitrages.
+- **La validation** : je fais les essais sur une vraie ROG Ally, je décide de ce qui est gardé, corrigé ou abandonné, et je tranche les choix techniques quand plusieurs approches existent. C'est par exemple le cas du rendu logiciel, gardé après mesure plutôt que le rendu par la carte graphique.
+- **Deux environnements** : une session dans le cloud, sous Linux et sans matériel, écrit et vérifie le code ; une session sur l'Ally, sous Windows, le compile, l'installe et l'essaie sur la console, toujours avec mon accord pour ce qui touche au matériel ou au système.
+- **Garde-fous** : avant chaque envoi, le code passe le formatage, l'analyse statique de Rust (`clippy`), les tests et une compilation pour Windows. Toute valeur écrite dans le firmware est vérifiée contre une implémentation de référence pour le modèle concerné. Ce qui n'a pas été essayé sur l'Ally est signalé comme tel dans la documentation.
+
 ### Organisation du dépôt
 
 | Dossier | Contenu |
@@ -181,6 +201,26 @@ Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, n
 | M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `13ee476` · 🧪 later optimizations |
 | M5 | Per-game profiles, bench, shell in 13 languages ([report, part 1](docs/m5-report.md)) | 🚧 shell, fans, controller, screen, buttons, library and bench tried on the Ally; auto TDP fixed · 🧪 installs, widget, fixed frame rate limit |
 | M6 | Game library, installing Steam and Epic games, fans, frame rate limit, controller mode, display refresh rate, special buttons | ✅ library (Steam, Xbox), fans, controller, screen refresh rate, Armoury / Command Center buttons, tried on the Ally ([M5](docs/m5-report.md)) · 🧪 installing Steam and Epic games, fixed frame rate limit, per-game refresh rate, M1 / M2 back buttons, stick lighting · ⏳ installing GOG games ([study](docs/game-install-study.md), in French) |
+
+### Use of AI
+
+Canapé is developed with the help of Claude Code, Anthropic's coding assistant, within a technical framework that I define and enforce.
+
+The project has two goals: to build software that is genuinely usable on the ROG Ally, and to put an AI coding assistant's abilities to the test on a complete project, with real hardware, an imposed platform and strict lightness constraints.
+
+- **Technical framework**: I set the architecture and its constraints, namely:
+  - a Windows service, the only part with elevated rights, separate from the interface the FSE starts without rights;
+  - Rust and Slint, with software rendering;
+  - the lightness targets (memory, CPU, minimal dependencies);
+  - a single interface as the only way to touch the hardware;
+  - the FSE integration;
+  - the repository rules (`CLAUDE.md`).
+
+  I also define the experience: a gamepad-first interface, no decorative text, per-game settings, and the roadmap priorities.
+- **The AI's work**: within that framework, it writes code, tests and documentation from my requests, then revises them based on my feedback and decisions.
+- **Validation**: I test on a real ROG Ally, decide what is kept, fixed or dropped, and settle technical choices when several approaches exist. One example is software rendering, kept over GPU rendering after measurement.
+- **Two environments**: a cloud session, on Linux with no hardware, writes and checks the code; a session on the Ally, on Windows, builds, installs and tries it on the device, always with my consent for anything touching the hardware or the system.
+- **Safeguards**: before every push, the code goes through formatting, Rust's linter (`clippy`), the tests and a Windows build. Every value written to the firmware is checked against a reference implementation for the model. Anything not yet tried on the Ally is marked as such in the documentation.
 
 ### Repository map
 
