@@ -1,13 +1,13 @@
 # M2.5 / M4 report: persistence, conflicts, ADL, auto TDP, light shell
 
-Tested on the ROG Ally RC71L on 2026-10-21. Starting commit: `c617cf3`. **Release** build compiled locally, after Pierre turned Smart App Control off (`VerifiedAndReputablePolicyState = 0`, no reboot needed).
+Tested on the ROG Ally RC71L on 2026-10-21. Starting commit: `c9bceda`. **Release** build compiled locally, after Pierre turned Smart App Control off (`VerifiedAndReputablePolicyState = 0`, no reboot needed).
 
 ## What works
 
 | Step | Result |
 |---|---|
 | `cargo test`, clippy, fmt under Windows | OK after one clippy fix (see below) |
-| GitHub Actions CI | Green on `a429a96` (linux 6 min, windows 20 min). Not used: the local release build was enough once SAC was off |
+| GitHub Actions CI | Green on `2e1761a` (linux 6 min, windows 20 min). Not used: the local release build was enough once SAC was off |
 | `install-dev.ps1` (release) | OK after two fixes to the script (see below) |
 | `service.log` | `device = ROG Ally`, `conflicting programs: ["Winhanced"]`; `[]` while Winhanced is paused, back to `["Winhanced"]` on restart |
 | Yellow warning in the shell | Visible (checked by Pierre) |
@@ -46,7 +46,7 @@ Suggestion for M4: the shell (session 1) calls `ADL2_Adapter_FrameMetrics_Start`
 
 ## What I fixed
 
-- **Clippy** (`canape-service/src/server.rs`): `for tick in 0u32..` is rejected ("for loop on unbounded range") by clippy 1.99, locally and in CI (which failed on `c617cf3`). Replaced with a wrapping counter; the first conflict scan still happens on the first tick. Commit `a429a96`.
+- **Clippy** (`canape-service/src/server.rs`): `for tick in 0u32..` is rejected ("for loop on unbounded range") by clippy 1.99, locally and in CI (which failed on `c9bceda`). Replaced with a wrapping counter; the first conflict scan still happens on the first tick. Commit `2e1761a`.
 - **ADL** (`canape-hw/src/adl.rs`, `windows.rs`, `lib.rs`, `canape-service/src/winsvc.rs`):
   - `Adl::open()` returns the failing step and its code. The new `Device::diagnostics()` (empty by default) lets the service log it at startup (`adl: …`).
   - The adapter is chosen among the integrated AMD adapters that `exist`, preferring a `present` one. In session 0 none is `present`, and the old filter rejected everything.
@@ -80,7 +80,7 @@ Targets: service < 10 MB, OK; shell < 80 MB, **OK** (115 MB in M2, debug + OpenG
 - The shell's idle CPU (0.94 % of one core).
 - FSE boot not retested (nothing changed on the startup side).
 
-## Retest 99cad07
+## Retest 1268753
 
 2026-10-21, local release build. `cargo test` (9 + 8 + … tests), clippy and fmt OK under Windows, no fix needed. Winhanced paused during the measurements and restarted at the end (Pierre's approval).
 
@@ -92,7 +92,7 @@ Targets: service < 10 MB, OK; shell < 80 MB, **OK** (115 MB in M2, debug + OpenG
 
 ### Auto TDP, heavy load (Aquarium 30,000 fish, target 60, 5 min)
 
-| | c617cf3 | 99cad07 |
+| | c9bceda | 1268753 |
 |---|---|---|
 | After stabilization (4 min) | sawtooth 16–24 W | **18 W for 87 % of the time** (104/120 samples); 16–17 W ×5, 19–20 W ×5, 24 W ×6 |
 | Changes | ~30 in 80 s | **13 in 5 min** (4 at startup: 12 → 19 W in 6 s) |

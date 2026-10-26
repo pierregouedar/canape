@@ -1,6 +1,6 @@
 # M3 report: Game Bar widget
 
-Tested on the ROG Ally RC71L on 2026-10-21. Starting commit: `c24e6e4`.
+Tested on the ROG Ally RC71L on 2026-10-21. Starting commit: `7c5de33`.
 
 ## Tooling
 

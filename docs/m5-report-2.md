@@ -1,6 +1,6 @@
 # M5 report (part 2): auto TDP, bench, limits and fans on real loads
 
-Tested on the ROG Ally RC71L on 2026-10-22, from `95a2912` up to `eb31756`, **release** builds installed with `install-dev.ps1` (widget rebuilt with `build-widget.ps1` at `7c2cf63`). Fixes found along the way were made in the cloud session and installed on the Ally between blocks; each result below names the build it was measured on. Winhanced was paused for the tests and left paused.
+Tested on the ROG Ally RC71L on 2026-10-22, from `27f2fa8` up to `f0b31e7`, **release** builds installed with `install-dev.ps1` (widget rebuilt with `build-widget.ps1` at `f80c5b9`). Fixes found along the way were made in the cloud session and installed on the Ally between blocks; each result below names the build it was measured on. Winhanced was paused for the tests and left paused.
 
 Loads: **Unigine Heaven 4.0** (Basic, from benchmark.unigine.com) and **FurMark 2.10.2** (portable zip from geeks3d.com, SHA256 checked). Neither is shipped with Canapé.
 
@@ -17,32 +17,32 @@ That gives 78 FPS at 25 W, within ±0.5 FPS from one second to the next. FurMark
 
 | Item | Build | Result | Detail |
 |---|---|---|---|
-| Auto TDP, target 60 | `95a2912` | OK | 25 → 16 W in 26 s, then 16 W for 150 s without a change or a probe. 64.5 FPS average (min 60.1), 15.5 W drawn, 69 °C max |
-| Auto TDP, target 40 | `95a2912` | **Problem, fixed** | 11 ↔ 13 W cycle, about one minute per period (see below) |
-| Auto TDP, target 40 | `7c2cf63` | OK | 11 W for 147 s at 40.1–41.4 FPS; a dip below the target only steps back by 1 W (12 W) |
-| Profile, learned watts | `95a2912` | **Problem, fixed** | X saved the power raised while the shell was in front (13 W instead of 11) |
-| Profile, learned watts | `7c2cf63` | OK | X saves 11 W, the last steady power, while the limit was 12 W at that moment |
-| Profile applied at launch | `95a2912` | OK | From manual 20 W, Heaven's profile applies within 1 s and starts at the learned 13 W |
-| Bench from the shell | `95a2912` | **Problem, fixed** | "no frame rate: start a game before the bench" (see below) |
-| Bench from the shell | `7c2cf63` | OK | "En attente du jeu"; the bench starts by itself 1 to 3 s after going back to Heaven |
-| Profile after a bench | `95a2912` | **Problem, fixed** | The active profile did not take over again |
-| Profile after a cancelled bench | `7c2cf63` | OK | Auto TDP, target 40, learned 11 W: the profile is back |
-| Cancelled bench keeps the complete report | `08f1a06` | OK | A complete run, then a run cancelled after 18 s: the complete report is still the one shown |
-| Recommendations, A and X | `95a2912` | OK | A on "Pour 60 FPS" sets manual 16 W; X saves the profile at 60 FPS, 7–16 W, learned 16 W |
-| Frame rate limit 40 | `7c2cf63` | OK | 39.9–40.0 FPS from the 3rd second, for 38 s |
-| Frame rate limit "Aucune" | `7c2cf63` | OK | Back to 78–79 FPS within 2 s |
-| Frame rate limit 120 | `7c2cf63` | OK | 78.5–79.6 FPS (Heaven's own rate) |
-| Fans, Automatique | `7c2cf63` | OK | Custom curves cleared, back to the firmware's 4100–4200 / 2800 rpm within 20–40 s |
-| Fans, Équilibré and Maximum | `7c2cf63` | OK | See the fan table |
-| Fans, Silencieux | `7c2cf63` | **Problem, preset removed** | Faster than Équilibré under load (see below); dropped in `eb31756` |
-| Hardware page with 3 fan tiles | `eb31756` | OK | Automatique, Équilibré, Maximum; ←/→ and A apply them |
-| Per-game refresh rate | `7c2cf63` | **Problem, fixed** | Picking 60 Hz during a game also changed the global rate |
-| Per-game refresh rate | `14c236b` | OK | 60 Hz while Heaven is in front, 120 Hz when it quits, with and without X |
-| Frame rate after leaving full screen | up to `1bfacb7` | **Known limit** | See below |
-| Language | `7c2cf63` | OK | English re-translates every page at once; back to Automatique gives French |
-| Frame rate after a fresh start | `bc32279` | OK | Heaven at 37–39 FPS right away |
+| Auto TDP, target 60 | `27f2fa8` | OK | 25 → 16 W in 26 s, then 16 W for 150 s without a change or a probe. 64.5 FPS average (min 60.1), 15.5 W drawn, 69 °C max |
+| Auto TDP, target 40 | `27f2fa8` | **Problem, fixed** | 11 ↔ 13 W cycle, about one minute per period (see below) |
+| Auto TDP, target 40 | `f80c5b9` | OK | 11 W for 147 s at 40.1–41.4 FPS; a dip below the target only steps back by 1 W (12 W) |
+| Profile, learned watts | `27f2fa8` | **Problem, fixed** | X saved the power raised while the shell was in front (13 W instead of 11) |
+| Profile, learned watts | `f80c5b9` | OK | X saves 11 W, the last steady power, while the limit was 12 W at that moment |
+| Profile applied at launch | `27f2fa8` | OK | From manual 20 W, Heaven's profile applies within 1 s and starts at the learned 13 W |
+| Bench from the shell | `27f2fa8` | **Problem, fixed** | "no frame rate: start a game before the bench" (see below) |
+| Bench from the shell | `f80c5b9` | OK | "En attente du jeu"; the bench starts by itself 1 to 3 s after going back to Heaven |
+| Profile after a bench | `27f2fa8` | **Problem, fixed** | The active profile did not take over again |
+| Profile after a cancelled bench | `f80c5b9` | OK | Auto TDP, target 40, learned 11 W: the profile is back |
+| Cancelled bench keeps the complete report | `f1ba19c` | OK | A complete run, then a run cancelled after 18 s: the complete report is still the one shown |
+| Recommendations, A and X | `27f2fa8` | OK | A on "Pour 60 FPS" sets manual 16 W; X saves the profile at 60 FPS, 7–16 W, learned 16 W |
+| Frame rate limit 40 | `f80c5b9` | OK | 39.9–40.0 FPS from the 3rd second, for 38 s |
+| Frame rate limit "Aucune" | `f80c5b9` | OK | Back to 78–79 FPS within 2 s |
+| Frame rate limit 120 | `f80c5b9` | OK | 78.5–79.6 FPS (Heaven's own rate) |
+| Fans, Automatique | `f80c5b9` | OK | Custom curves cleared, back to the firmware's 4100–4200 / 2800 rpm within 20–40 s |
+| Fans, Équilibré and Maximum | `f80c5b9` | OK | See the fan table |
+| Fans, Silencieux | `f80c5b9` | **Problem, preset removed** | Faster than Équilibré under load (see below); dropped in `f0b31e7` |
+| Hardware page with 3 fan tiles | `f0b31e7` | OK | Automatique, Équilibré, Maximum; ←/→ and A apply them |
+| Per-game refresh rate | `f80c5b9` | **Problem, fixed** | Picking 60 Hz during a game also changed the global rate |
+| Per-game refresh rate | `0446633` | OK | 60 Hz while Heaven is in front, 120 Hz when it quits, with and without X |
+| Frame rate after leaving full screen | up to `0e57169` | **Known limit** | See below |
+| Language | `f80c5b9` | OK | English re-translates every page at once; back to Automatique gives French |
+| Frame rate after a fresh start | `ab6b5ee` | OK | Heaven at 37–39 FPS right away |
 
-### Bench (Heaven, steps of 3 W, 15 s per step, `95a2912`)
+### Bench (Heaven, steps of 3 W, 15 s per step, `27f2fa8`)
 
 | Limit | Average FPS | Low FPS | FPS per watt | Max temperature |
 |---|---|---|---|---|
@@ -58,7 +58,7 @@ Recommendations: best compromise 22 W · 79 FPS, for 60 FPS 16 W · 69 FPS, most
 
 ![Bench results for Heaven in the shell](images/ally/bench-heaven.png)
 
-### Fans (FurMark, about 20 W, 2 minutes per preset, `7c2cf63`)
+### Fans (FurMark, about 20 W, 2 minutes per preset, `f80c5b9`)
 
 | Preset | CPU rpm | GPU rpm | CPU temperature at the end |
 |---|---|---|---|
@@ -71,7 +71,7 @@ Maximum easing to 5800 rpm at 56 °C follows its own curve (55 % at 50 °C, 65 %
 
 ![Hardware page with the three fan tiles](images/ally/hardware-fans.png)
 
-### Memory (Heaven in full screen, widget opened in Game Bar, `7c2cf63`)
+### Memory (Heaven in full screen, widget opened in Game Bar, `f80c5b9`)
 
 | Process | Private working set | Private bytes | Working set |
 |---|---|---|---|
@@ -87,25 +87,25 @@ Language → English → A: every page and the button hints re-translate at once
 
 ## Problems
 
-### Auto TDP cycling 11 ↔ 13 W at target 40 (fixed in `e85ed02`)
+### Auto TDP cycling 11 ↔ 13 W at target 40 (fixed in `16b9aae`)
 
-At 11 W Heaven sits right on 40 FPS (39.2–41). A dip to 36.6 FPS made auto TDP raise by 2 W to 13 W, hold that for about a minute, then probe down to 11 W again. A probe that just misses the target now steps back by 1 W. Measured on `7c2cf63`: 11 W for 147 s out of 180, with two one-second dips that each brought only 12 W.
+At 11 W Heaven sits right on 40 FPS (39.2–41). A dip to 36.6 FPS made auto TDP raise by 2 W to 13 W, hold that for about a minute, then probe down to 11 W again. A probe that just misses the target now steps back by 1 W. Measured on `f80c5b9`: 11 W for 147 s out of 180, with two one-second dips that each brought only 12 W.
 
-### Learned watts taken while the shell was in front (fixed in `e85ed02`)
+### Learned watts taken while the shell was in front (fixed in `16b9aae`)
 
 While the shell is in front, the game behind it has no frame rate and auto TDP raises the power (11 → 13 W). X then saved 13 W. A profile now learns the last power that held for 30 s. Measured: 11 W saved while the limit was at 12 W.
 
-### Bench impossible to start from the shell with a full-screen game (fixed in `7c2cf63`)
+### Bench impossible to start from the shell with a full-screen game (fixed in `f80c5b9`)
 
 The shell is in front, the full-screen game behind it is minimised and has no frame rate, so the service refused the bench with an English error left on screen. The service now waits up to 2 minutes for the game to have frames for 3 s ("En attente du jeu", Cancel works meanwhile), and error lines fade after 10 s.
 
 ![The bench waiting for the game](images/ally/bench-waiting.png)
 
-### Profile not given back after a bench (fixed in `7c2cf63`)
+### Profile not given back after a bench (fixed in `f80c5b9`)
 
-After a run, the global state before the bench (manual 20 W, auto off) came back but the active profile (auto, target 40) did not, so the shell offered "Pour 60 FPS" from the global target. The profile now takes over again. Related, fixed in `9d5f6ff`: a cancelled run replaced the last complete report, and with only 19–25 W measured it still recommended 19 W "for 40 FPS".
+After a run, the global state before the bench (manual 20 W, auto off) came back but the active profile (auto, target 40) did not, so the shell offered "Pour 60 FPS" from the global target. The profile now takes over again. Related, fixed in `2eaf433`: a cancelled run replaced the last complete report, and with only 19–25 W measured it still recommended 19 W "for 40 FPS".
 
-### Silencieux fan preset faster than Équilibré (preset removed in `eb31756`)
+### Silencieux fan preset faster than Équilibré (preset removed in `f0b31e7`)
 
 Under FurMark at about 60 °C, the Silent preset gave about 5300 rpm while Balanced held 4200. Custom curves written with `canape-ctl` (both fans, read back identical) at about 20 W:
 
@@ -123,9 +123,9 @@ Under FurMark at about 60 °C, the Silent preset gave about 5300 rpm while Balan
 
 No single trait of the curve (zeros, first temperature, a flat start, duties below 10 %) explains the override: it looks like firmware behaviour. The firmware's own Silent curves (`get_fan_curves` defaults in Silent mode: CPU `(40,4) (45,8) (55,26) … (85,26)`, GPU 1 % everywhere) cannot be written as custom curves: our validation refuses them (26 % at 90 °C under the 30 % floor, 1 % at 80 °C under the 25 % floor). Meanwhile the firmware's Silent power mode with no custom curve kept 3200 / 2800 rpm at 61–70 °C under the same load. The preset was dropped; for quiet, use fans on Automatique with the Silencieux power mode.
 
-### Per-game refresh rate changed the global rate (fixed in `14c236b`)
+### Per-game refresh rate changed the global rate (fixed in `0446633`)
 
-Picking 60 Hz on the Hardware page during a game (to save it with X) also set the global rate: after quitting Heaven the screen stayed at 60 Hz. A rate picked during a game now lasts only for that game. Measured on `14c236b`: 60 Hz with Heaven in front, 120 Hz after quitting it, both with X (profile `refresh_hz` 60) and without.
+Picking 60 Hz on the Hardware page during a game (to save it with X) also set the global rate: after quitting Heaven the screen stayed at 60 Hz. A rate picked during a game now lasts only for that game. Measured on `0446633`: 60 Hz with Heaven in front, 120 Hz after quitting it, both with X (profile `refresh_hz` 60) and without.
 
 ### Frame rate lost after leaving full screen (known limit)
 
@@ -135,11 +135,11 @@ Tried and not enough:
 
 | Build | Attempt | Result |
 |---|---|---|
-| `14c236b` | Shell restarts frame metrics on a fresh handle after 6 s without a rate | Restarts logged every 30 s, rate stays null |
-| `08f1a06` | A short-lived copy of the shell starts them again | Logged, rate stays null |
-| `1bfacb7` | The main shell never owns them; only short-lived copies start them | Rate fine after a fresh start, still null after the repro |
+| `0446633` | Shell restarts frame metrics on a fresh handle after 6 s without a rate | Restarts logged every 30 s, rate stays null |
+| `f1ba19c` | A short-lived copy of the shell starts them again | Logged, rate stays null |
+| `0e57169` | The main shell never owns them; only short-lived copies start them | Rate fine after a fresh start, still null after the repro |
 
-Killing the shell, starting it again and bringing Heaven back to the front did restore the rate once, but the attempts above show the cause was not the process that owns the frame metrics. `bc32279` goes back to starting them once at startup. Workaround for the user: quit and restart the game.
+Killing the shell, starting it again and bringing Heaven back to the front did restore the rate once, but the attempts above show the cause was not the process that owns the frame metrics. `ab6b5ee` goes back to starting them once at startup. Workaround for the user: quit and restart the game.
 
 ### Other notes
 
@@ -148,7 +148,7 @@ Killing the shell, starting it again and bringing Heaven back to the front did r
 
 ## Steam install
 
-On `eb31756`, with a Steam Web API key added to `shell.json` (not in the repository):
+On `f0b31e7`, with a Steam Web API key added to `shell.json` (not in the repository):
 
 - The shell fetched the owned games on start (`owned.json`, 62 games) and downloaded 58 covers. Games → Down shows **"À installer · 58"**, every tile with its cover.
 - The shelf is sorted by last played, then title, like Récents. Among Us (1.07 GB on disk, 693 MB to download) was the smallest known game in it.
@@ -158,7 +158,7 @@ On `eb31756`, with a Steam Web API key added to `shell.json` (not in the reposit
 - The progress on the cover and in the header ("Installation… 0 %", a bar on the cover) was seen only on a second, accidental install (below). Among Us's own download was over before the shell was back in front.
 - **Problem: the focus jumps to the to-install shelf.** After a library refresh (`8 games found`), the focus went back to the first tile of "À installer" (Wallpaper Engine, A = Installer). A press meant for Among Us in Récents therefore started a Wallpaper Engine install. It was cancelled in Steam's dialog before any download.
 - **Problem: a cancelled install keeps showing.** After that cancel, the shell still showed "Installation… 0 %" for Wallpaper Engine.
-- Both fixed in `40ec6cc`, checked on the Ally: one A on a game to install only turns the button into "Confirmer" with "Appuyez de nouveau sur A pour installer" (no log line, no Steam dialog); moving to another tile and back gives "Installer" again. Among Us launched again from Récents with a single A (`steam://rungameid/945360`, 60 FPS in front). The hint at the bottom right still reads "Installer" while the button reads "Confirmer".
+- Both fixed in `34f6aad`, checked on the Ally: one A on a game to install only turns the button into "Confirmer" with "Appuyez de nouveau sur A pour installer" (no log line, no Steam dialog); moving to another tile and back gives "Installer" again. Among Us launched again from Récents with a single A (`steam://rungameid/945360`, 60 FPS in front). The hint at the bottom right still reads "Installer" while the button reads "Confirmer".
 
 ![Install asks for a second A](images/ally/install-confirm.png)
 - To consider: on a handheld, the Steam desktop window and its mouse-sized dialog are awkward with the gamepad. Steam's Big Picture would suit the shell better.
@@ -167,4 +167,4 @@ On `eb31756`, with a Steam Web API key added to `shell.json` (not in the reposit
 
 ## State left on the Ally
 
-Canapé `eb31756` installed (service, shell, ctl; widget from `7c2cf63`, unchanged since). Silent mode, auto TDP off (target 60, 7–25 W), fans on Automatique (no custom curve), frame rate limit 120, screen at 120 Hz, language Automatique, accent `#ff3d5e`. Profiles: `WindowsTerminal.exe` (left as found) and `Heaven.exe` (auto TDP, target 40, learned 11 W) from these tests. Heaven and FurMark stay installed (FurMark in `C:\Users\White\dev\furmark2`). Winhanced still paused.
+Canapé `f0b31e7` installed (service, shell, ctl; widget from `f80c5b9`, unchanged since). Silent mode, auto TDP off (target 60, 7–25 W), fans on Automatique (no custom curve), frame rate limit 120, screen at 120 Hz, language Automatique, accent `#ff3d5e`. Profiles: `WindowsTerminal.exe` (left as found) and `Heaven.exe` (auto TDP, target 40, learned 11 W) from these tests. Heaven and FurMark stay installed (FurMark in `C:\Users\White\dev\furmark2`). Winhanced still paused.

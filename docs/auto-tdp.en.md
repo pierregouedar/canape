@@ -5,7 +5,7 @@
 This page explains how Canapé sets the ROG Ally's power on its own: first in a few lines for players, then precisely, with the values from the code (`crates/canape-autotdp`, `crates/canape-service/src/handler.rs`, `crates/canape-core/src/bench.rs`).
 
 > [!IMPORTANT]
-> **Measured on the Ally**: auto TDP as of version `99cad07` (see [Measured results](#measured-results-on-the-ally)). **Not measured yet**: the later optimizations (single-stall filter, floor release, battery ceiling, temperature limit, learned watts), per-game profiles (including their fan curves and frame rate limit) and the bench. They are covered by unit tests and a simulation, not by a real measurement.
+> **Measured on the Ally**: auto TDP as of version `1268753` (see [Measured results](#measured-results-on-the-ally)). **Not measured yet**: the later optimizations (single-stall filter, floor release, battery ceiling, temperature limit, learned watts), per-game profiles (including their fan curves and frame rate limit) and the bench. They are covered by unit tests and a simulation, not by a real measurement.
 
 ## Contents
 
@@ -204,7 +204,7 @@ To avoid a sawtooth, a raise caused by a **lasting deficit** (at least two secon
 A single very low second (loading, hitch, autosave) raises power — the game may need it — but **sets no floor**: if the frame rate comes back to the target, power can come down normally.
 
 > [!NOTE]
-> This filter fixes the problem seen in the `99cad07` retest: a stall at 20.8 FPS had raised power to 24 W, and the floor kept it there for about 4 minutes. It has not been measured on the Ally yet.
+> This filter fixes the problem seen in the `1268753` retest: a stall at 20.8 FPS had raised power to 24 W, and the floor kept it there for about 4 minutes. It has not been measured on the Ally yet.
 
 ### Floor release when the load drops
 
@@ -441,7 +441,7 @@ Measurements from the [M4 report](m4-report.md), on a ROG Ally RC71L, with WebGL
 
 ### Heavy load (30,000 fish, 5 min)
 
-| | Before (`c617cf3`) | After (`99cad07`) |
+| | Before (`c9bceda`) | After (`1268753`) |
 |---|---|---|
 | After settling | Sawtooth between 16 and 24 W | **18 W 87 % of the time** (104 samples out of 120); 16–17 W ×5, 19–20 W ×5, 24 W ×6 |
 | Power changes | ~30 in 80 s | **13 in 5 min** (4 of them at startup: 12 → 19 W in 6 s) |
@@ -451,16 +451,16 @@ What changed between the two versions: lowering below the target only happens at
 
 ### Light load
 
-| | Before (`c617cf3`) | After (`99cad07`) |
+| | Before (`c9bceda`) | After (`1268753`) |
 |---|---|---|
 | From 12 W down to the minimum (7 W) | 16 s, then steady at 120 FPS | 48 s (1 W every 2 to 4 s) once the floor was released |
 | After a heavy load | — | **Stuck at 24 W for ~4 min** because of a floor set by a single stall |
 
-The optimizations in `fceaf22` target these two defects (a single stall sets no floor, floor release when the load drops, lowering at the cap only when the raw sample is at the target too). A simulation of the M4 case (`power_limited_game_settles_without_sawtooth`) checks that after settling the power stays within a 3 W range with at most 12 changes in 13 minutes, for an average of at least 57 FPS. **These optimizations have not been measured on the Ally yet.**
+The optimizations in `57e4a1c` target these two defects (a single stall sets no floor, floor release when the load drops, lowering at the cap only when the raw sample is at the target too). A simulation of the M4 case (`power_limited_game_settles_without_sawtooth`) checks that after settling the power stays within a 3 W range with at most 12 changes in 13 minutes, for an average of at least 57 FPS. **These optimizations have not been measured on the Ally yet.**
 
 ### M5 bench (heavy WebGL Aquarium)
 
-From the [M5 report](m5-report.md), with `m5-check` (steps of 6 W, 3 s settling, 8 s measuring): 7 W 19 FPS (low 17), 13 W 43 (40), 19 W 61 (61), 25 W 69 (69); 47, 53 and 64 °C on the first three steps. The same load with a 40 FPS target settles at 13 W and learns it within a minute since `d65b0fa`.
+From the [M5 report](m5-report.md), with `m5-check` (steps of 6 W, 3 s settling, 8 s measuring): 7 W 19 FPS (low 17), 13 W 43 (40), 19 W 61 (61), 25 W 69 (69); 47, 53 and 64 °C on the first three steps. The same load with a 40 FPS target settles at 13 W and learns it within a minute since `01d79cf`.
 
 ## Tuning tips
 
@@ -478,7 +478,7 @@ From the [M5 report](m5-report.md), with `m5-check` (steps of 6 W, 3 s settling,
 
 ## Known limits
 
-- Everything after `99cad07` (filters, battery ceiling, temperature limit, profiles, learned watts, bench) has not been measured on the Ally yet. The fan curves and the driver frame rate limit have not even been written to a real Ally yet.
+- Everything after `1268753` (filters, battery ceiling, temperature limit, profiles, learned watts, bench) has not been measured on the Ally yet. The fan curves and the driver frame rate limit have not even been written to a real Ally yet.
 - The frame rate is the screen's as reported by the AMD driver, not a specific process's.
 - A game profile cannot force "no frame rate limit" while a global limit is set: a profile saved with None follows the global limit.
 - The ETW fallback (PresentMon's approach) mentioned in [`architecture.md`](architecture.md) is not implemented: without ADL there is no frame rate, so no auto TDP.

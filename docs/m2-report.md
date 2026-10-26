@@ -1,6 +1,6 @@
 # M2 report: service, ATKACPI backend, Slint shell
 
-Tested on the ROG Ally on 2026-10-21 (Windows 11 10.0.26200, Rust 1.99.1 MSVC). Starting commit: `5775fb4`.
+Tested on the ROG Ally on 2026-10-21 (Windows 11 10.0.26200, Rust 1.99.1 MSVC). Starting commit: `b0c4e79`.
 
 ## Model
 
