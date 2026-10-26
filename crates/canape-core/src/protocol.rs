@@ -16,6 +16,9 @@ use crate::tweaks::{TweakId, TweakState};
 pub const PIPE_NAME: &str = r"\\.\pipe\canape";
 pub const PROTOCOL_VERSION: u32 = 1;
 
+/// A [`Request::UiForeground`] report older than this no longer counts.
+pub const UI_FOREGROUND_TIMEOUT_SECS: u64 = 4;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Request {
@@ -124,6 +127,17 @@ pub enum Request {
     },
     /// Reverts every tweak Canapé applied (before uninstalling).
     RevertTweaks,
+    /// Sent by the shell about once a second: whether its window is the
+    /// foreground one. The service gives the interface full power while it
+    /// is, and stops after [`UI_FOREGROUND_TIMEOUT_SECS`] without a report
+    /// (the shell closed, hung or lost its connection).
+    UiForeground {
+        front: bool,
+    },
+    /// Turns "full power in Canapé" on or off.
+    SetUiPower {
+        enabled: bool,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -227,6 +241,17 @@ pub struct Status {
     /// Light of the stick rings set through Canape, if any.
     #[serde(default)]
     pub lighting: Option<Lighting>,
+    /// "Full power in Canapé" is on.
+    #[serde(default = "default_true")]
+    pub ui_power_enabled: bool,
+    /// The interface power level is in effect right now: the performance
+    /// mode's limits are written, whatever the mode and limits shown above.
+    #[serde(default)]
+    pub ui_power: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 /// What [`Request::SaveForegroundProfile`] saves.
@@ -322,6 +347,18 @@ mod tests {
     }
 
     #[test]
+    fn ui_power_requests_and_status() {
+        assert_eq!(
+            encode(&Request::UiForeground { front: true }).unwrap(),
+            "{\"type\":\"ui_foreground\",\"front\":true}\n"
+        );
+        assert_eq!(
+            decode::<Request>(r#"{"type":"set_ui_power","enabled":false}"#).unwrap(),
+            Request::SetUiPower { enabled: false }
+        );
+    }
+
+    #[test]
     fn hex_colors() {
         assert!(is_hex_color("#2563eb"));
         assert!(!is_hex_color("2563eb"));
@@ -402,6 +439,7 @@ mod tests {
         assert_eq!(status.gyro, GyroSettings::default());
         assert!(status.back_buttons.is_default());
         assert_eq!(status.lighting, None);
+        assert!(status.ui_power_enabled && !status.ui_power);
     }
 
     #[test]

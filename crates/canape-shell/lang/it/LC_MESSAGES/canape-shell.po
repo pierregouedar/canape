@@ -1021,6 +1021,9 @@ msgstr "Incolla"
 msgid "Welcome tour"
 msgstr "Tour di benvenuto"
 
+msgid "Full power in Canapé"
+msgstr "Piena potenza in Canapé"
+
 msgid "System"
 msgstr "Sistema"
 

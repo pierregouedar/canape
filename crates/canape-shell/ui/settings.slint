@@ -7,7 +7,7 @@
 //   profiles;
 //   shelf 2, accounts: Steam, Epic Games, GOG, time to beat (IGDB);
 //   shelf 3, system: Windows tweaks (a page of its own), the welcome tour
-//   again.
+//   again, full power while Canapé is in front.
 // In the language drawer the arrows move over the languages and A applies
 // one; in the accent drawer, up and down go from the presets (A applies
 // one) to the hue, saturation and brightness tracks, which left and right
@@ -107,7 +107,7 @@ export component SettingsPage inherits Rectangle {
         move2: @tr("Value"),
         a: root.accent-row == 0 ? @tr("Apply") : "",
         b: @tr("Close"),
-    } : root.drawer == "ally" || root.drawer == "covers" ? {
+    } : root.drawer == "ally" || root.drawer == "covers" || root.drawer == "uipower" ? {
         move-glyph: "leftright",
         move: @tr("Choose"),
         a: @tr("Apply"),
@@ -130,10 +130,14 @@ export component SettingsPage inherits Rectangle {
     }
 
     pure function key(s: int, c: int) -> string {
-        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : s == 2 ? ["steam", "epic", "gog", "igdb"][c] : ["tweaks", "tour"][c]
+        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : s == 2 ? ["steam", "epic", "gog", "igdb"][c] : ["tweaks", "tour", "uipower"][c]
     }
     pure function cards(s: int) -> int {
-        s == 0 ? 3 : s == 3 ? 2 : 4
+        s == 0 || s == 3 ? 3 : 4
+    }
+    // The setting behind an On / Off drawer.
+    pure function toggle-value(key: string) -> bool {
+        key == "ally" ? App.ally-buttons : key == "covers" ? App.online-covers : App.status.ui-power-enabled
     }
     function activate() {
         if root.focused-key == "add" {
@@ -147,7 +151,7 @@ export component SettingsPage inherits Rectangle {
         } else {
             root.language-pick = root.language-index;
             root.accent-row = 0;
-            root.toggle-col = (root.focused-key == "ally" ? App.ally-buttons : App.online-covers) ? 0 : 1;
+            root.toggle-col = root.toggle-value(root.focused-key) ? 0 : 1;
             root.sheet = root.focused-key;
             root.drawer = root.focused-key;
         }
@@ -176,7 +180,7 @@ export component SettingsPage inherits Rectangle {
             } else {
                 root.brightness(d);
             }
-        } else if root.drawer == "ally" || root.drawer == "covers" {
+        } else if root.drawer == "ally" || root.drawer == "covers" || root.drawer == "uipower" {
             root.toggle-col = clamp(root.toggle-col + d, 0, 1);
         } else if root.drawer == "folder" {
             Library.games-folder-step(d);
@@ -207,6 +211,10 @@ export component SettingsPage inherits Rectangle {
         } else if root.drawer == "covers" {
             if App.online-covers != (root.toggle-col == 0) {
                 App.toggle-online-covers();
+            }
+        } else if root.drawer == "uipower" {
+            if App.status.ui-power-enabled != (root.toggle-col == 0) {
+                App.set-ui-power(root.toggle-col == 0);
             }
         } else if root.drawer == "epic" {
             if !Library.epic-busy {
@@ -324,7 +332,7 @@ export component SettingsPage inherits Rectangle {
     ShelfPane {
         x: 0;
         y: 256px - root.lift;
-        animate y { duration: 200ms; easing: cubic-bezier(0.16, 1, 0.3, 1); }
+        animate y { duration: Theme.motion(200ms); easing: cubic-bezier(0.16, 1, 0.3, 1); }
         width: parent.width;
         height: 330px;
         front: root.shelf;
@@ -526,6 +534,19 @@ export component SettingsPage inherits Rectangle {
                     fs.focus();
                 }
             }
+
+            ShelfCard {
+                label: @tr("Full power in Canapé");
+                icon: "gauge";
+                value: App.status.ui-power-enabled ? @tr("On") : @tr("Off");
+                focused: root.active && root.shelf == 3 && root.card == 2;
+                clicked => {
+                    root.shelf = 3;
+                    root.card = 2;
+                    root.activate();
+                    fs.focus();
+                }
+            }
         }
     }
 
@@ -534,7 +555,7 @@ export component SettingsPage inherits Rectangle {
         page-height: parent.height;
         open: root.open;
         sheet-height: root.sheet-height;
-        title: root.sheet == "language" ? @tr("Language") : root.sheet == "accent" ? @tr("Accent colour") : root.sheet == "ally" ? @tr("Use the Ally's buttons") : root.sheet == "folder" ? @tr("Games folder") : root.sheet == "covers" ? @tr("Download missing covers") : root.sheet == "steam" ? "Steam" : root.sheet == "epic" ? @tr("Epic Games account") : root.sheet == "gog" ? @tr("GOG account") : @tr("Time to beat");
+        title: root.sheet == "language" ? @tr("Language") : root.sheet == "accent" ? @tr("Accent colour") : root.sheet == "ally" ? @tr("Use the Ally's buttons") : root.sheet == "folder" ? @tr("Games folder") : root.sheet == "covers" ? @tr("Download missing covers") : root.sheet == "steam" ? "Steam" : root.sheet == "epic" ? @tr("Epic Games account") : root.sheet == "gog" ? @tr("GOG account") : root.sheet == "uipower" ? @tr("Full power in Canapé") : @tr("Time to beat");
         note: root.sheet == "folder" && Library.games-free-tenths >= 0 ? @tr("{} GB free", App.tenths(Library.games-free-tenths))
             : root.sheet == "accent" ? Theme.accent-hex.to-uppercase()
             : root.sheet == "steam" ? (Library.steam-key ? @tr("Steam API key set") : @tr("No Steam API key"))
@@ -635,13 +656,13 @@ export component SettingsPage inherits Rectangle {
             }
         }
 
-        if root.sheet == "ally" || root.sheet == "covers": HorizontalLayout {
+        if root.sheet == "ally" || root.sheet == "covers" || root.sheet == "uipower": HorizontalLayout {
             spacing: 12px;
             alignment: start;
             for i in 2: ChoiceTile {
                 width: 180px;
                 label: i == 0 ? @tr("On") : @tr("Off");
-                selected: (root.sheet == "ally" ? App.ally-buttons : App.online-covers) == (i == 0);
+                selected: root.toggle-value(root.sheet) == (i == 0);
                 focused: root.active && root.toggle-col == i;
                 clicked => {
                     root.toggle-col = i;

@@ -17,9 +17,24 @@ use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
 
 use crate::history::History;
 use crate::report::{self, Recommendation};
-use crate::{App, AppWindow, BenchRow, BenchView, Notice, ProfileView, RecView, StatusView};
+use crate::{App, AppWindow, BenchRow, BenchView, Notice, ProfileView, RecView, StatusView, Theme};
 
 const RETRY: Duration = Duration::from_secs(2);
+
+/// At or under this power limit, in watts, the interface is slow enough for
+/// its costly animations to be skipped (see [`reduced_motion`]).
+pub const REDUCED_MOTION_WATTS: u32 = 12;
+
+/// True when the power is low and the interface does not run at full power
+/// (it does while "full power in Canapé" is in effect): silent mode, or a
+/// power limit of [`REDUCED_MOTION_WATTS`] or less.
+pub fn reduced_motion(status: &Status) -> bool {
+    !status.ui_power
+        && (status.performance_mode == Some(PerformanceMode::Silent)
+            || status
+                .tdp_watts
+                .is_some_and(|watts| watts <= REDUCED_MOTION_WATTS))
+}
 
 #[derive(Default)]
 struct Shared {
@@ -70,6 +85,7 @@ fn is_background(request: &Request) -> bool {
     matches!(
         request,
         Request::ForegroundApp { .. }
+            | Request::UiForeground { .. }
             | Request::ListProfiles
             | Request::GetBenchReport
             | Request::ListTweaks
@@ -334,12 +350,14 @@ pub fn show_screen(ui: &Weak<AppWindow>) {
 
 fn show_status(ui: &Weak<AppWindow>, shared: &Shared, status: Option<Status>) {
     let view = status_view(status.as_ref());
+    let reduced = status.as_ref().is_some_and(reduced_motion);
     let graphs = {
         let mut history = shared.history.lock().unwrap();
         history.push(status.as_ref(), Instant::now());
         history.view()
     };
     let _ = ui.upgrade_in_event_loop(move |ui| {
+        ui.global::<Theme>().set_reduced_motion(reduced);
         let app = ui.global::<App>();
         let learned = app
             .get_profiles()
@@ -408,6 +426,8 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
         .unwrap_or_default();
     StatusView {
         connected: true,
+        ui_power_enabled: s.ui_power_enabled,
+        ui_power: s.ui_power,
         tdp: s.tdp_watts.map_or(-1, |w| w as i32),
         mode: mode_name(s.performance_mode).into(),
         power_tenths: known(s.power_watts.map(|w| w * 10.0)),
@@ -576,6 +596,34 @@ pub fn bench_view(report: Option<&BenchReport>, target_fps: u32) -> (BenchView, 
 mod tests {
     use super::*;
     use canape_core::{AutoTdpSettings, BenchPlan, BenchPoint, BenchProgress};
+
+    #[test]
+    fn motion_is_reduced_on_a_low_limit_unless_the_ui_has_full_power() {
+        let status = |mode, tdp_watts, ui_power| Status {
+            performance_mode: mode,
+            tdp_watts,
+            ui_power,
+            ..Status::default()
+        };
+        let manual = Some(PerformanceMode::Manual);
+        assert!(reduced_motion(&status(
+            Some(PerformanceMode::Silent),
+            None,
+            false
+        )));
+        assert!(reduced_motion(&status(manual, Some(12), false)));
+        assert!(!reduced_motion(&status(manual, Some(13), false)));
+        assert!(!reduced_motion(&status(
+            Some(PerformanceMode::Performance),
+            None,
+            false
+        )));
+        assert!(!reduced_motion(&status(
+            Some(PerformanceMode::Silent),
+            None,
+            true
+        )));
+    }
 
     #[test]
     fn disconnected_status_is_all_unknown() {

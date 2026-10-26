@@ -1018,6 +1018,9 @@ msgstr "Вставить"
 msgid "Welcome tour"
 msgstr "Приветственный тур"
 
+msgid "Full power in Canapé"
+msgstr "Полная мощность в Canapé"
+
 msgid "System"
 msgstr "Система"
 

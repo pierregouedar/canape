@@ -15,6 +15,7 @@ This guide describes Canapé's architecture, the protocol between its components
   - [The first-run tour](#the-first-run-tour)
   - [The Hardware page](#the-hardware-page)
   - [Inside the service](#inside-the-service)
+  - [Full power in Canapé](#full-power-in-canapé)
   - [Windows tweaks](#windows-tweaks)
 - [IPC protocol](#ipc-protocol)
   - [Transport](#transport)
@@ -322,6 +323,20 @@ flowchart TB
 | `--stdio` | Reads JSON requests on stdin and answers on stdout, without the tick thread (no auto TDP, no status pushes). For quick checks. |
 | `install` / `uninstall` | Windows, elevated: registers (and starts) or removes the `CanapeService` service. |
 
+### Full power in Canapé
+
+Not tried on the Ally yet. The shell draws with Slint's software renderer (see `gpu-renderer-test.md`): in Silent mode or with a low limit, navigation stutters. While Canapé is in front, the service therefore writes the Performance mode's limits.
+
+- **Signal**: the shell's `foreground::report_front` thread sends `ui_foreground { front }` every second (`instance::is_foreground`). The service dates the last report; past 4 s, or when the shell disconnects, it counts as `front: false`.
+- **Decision**: `ui_power::decide` (`ui_power.rs`, a pure, tested function) takes the setting, the shell's report, "a game is running" (`foreground` is set, even behind the shell), "a bench is running or waiting", and the user's mode and limit, and returns `Boost`, `Release` or `Keep`. It is one more input to the decision of what applies, not a second writer: `Handler::update_ui_power` calls it at the end of every request and on every tick.
+- **Level**: `Device::set_performance_mode(Performance)`, the only write; no new value is written to the firmware. A level is "below" in Silent mode or in manual (auto TDP included) under `UI_LEVEL_WATTS` (15 W, only compared with). An unknown mode is left alone: it could not be put back.
+- **User state**: `mode`, `tdp_watts`, auto TDP and the profile are not modified; `saved()` sees nothing. Giving the state back means writing `set_tdp` (manual) or `set_performance_mode` (other modes) with those values, then the custom fan curves (a mode write resets them). Auto TDP waits during the level.
+- **Anti-flapping**: moving to the level is immediate; going back waits `RELEASE_AFTER` (1.5 s) when only Canapé's foreground is lost. A game, a bench or the setting turned off give the state back at once. A user power request (`set_performance_mode`, `set_tdp`, `set_auto_tdp`) during the level is written, then the level is written again without a log line.
+- **Log**: `ui power: on (shell in front, was silent)`, `ui power: off (game running, back to silent)`; the reasons for leaving: `game running`, `bench`, `setting off`, `power level changed`, `shell stopped reporting`, `shell left the foreground`. The `Handler` keeps them as notes that the server writes to `service.log`.
+- **Known limit**: on Windows `set_tdp` does not write the firmware mode, so after a level a manual TDP is given back with the firmware's Performance mode (and its fan curve if none is custom).
+
+**Lighter animations**: `link.rs::reduced_motion` sets `Theme.reduced-motion` (`theme.slint`) when the status is Silent or a limit of 12 W or less (`REDUCED_MOTION_WATTS`) without `ui_power`. `Theme.motion(duration)` is `0ms` then, and is used by the backdrop fades (`app.slint`), the shelves and drawers sliding (`kit.slint`, `library.slint`, `settings.slint`) and `Reveal`.
+
 ### Windows tweaks
 
 Sub-page 8 (`ui/tweaks.slint`, `canape-shell/src/tweaks.rs`), opened from Settings. **Not yet tried on the Ally**: tested with the simulator only.
@@ -431,6 +446,8 @@ sequenceDiagram
 | `list_tweaks` | — | `tweaks` | Every [Windows tweak](#windows-tweaks) of the catalogue, in display order, with its state. Read only. |
 | `set_tweak` | `id: TweakId`, `on: bool` | `ok` / `error` | Applies or reverts one tweak of the fixed catalogue; an unknown `id` does not decode. Records what it replaced in `state.json`. **Untested on the device.** |
 | `revert_tweaks` | — | `ok` / `error` | Reverts every tweak Canapé applied (uninstall). |
+| `ui_foreground` | `front: bool` | `ok` | Sent by the shell every second: is its window in front. With no report for 4 s (`UI_FOREGROUND_TIMEOUT_SECS`) the service treats Canapé as not in front. Neither logged nor saved. See [Full power in Canapé](#full-power-in-canapé). |
+| `set_ui_power` | `enabled: bool` | `ok` | Turns "Full power in Canapé" on or off (on by default). Saved in `state.json` (`ui_power_off`). |
 
 Examples:
 
@@ -524,6 +541,8 @@ Examples:
 | `gyro` | `GyroSettings` | Gyro aiming in effect: global, or the active profile's. Defaults when missing. |
 | `back_buttons` | `BackButtons` | What M1 and M2 send; `default` for both until Canapé changes them. Optional on input. |
 | `lighting` | `Lighting \| null` | Stick rings set through Canapé, `null` when left to the controller. Optional on input. |
+| `ui_power_enabled` | `bool` | "Full power in Canapé" is on (`true` when absent). |
+| `ui_power` | `bool` | The interface level is in effect: the firmware holds the Performance mode's limits, while `performance_mode` and `tdp_watts` still show the user's state. |
 
 ### Nested types
 

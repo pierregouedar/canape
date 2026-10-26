@@ -88,6 +88,7 @@ pub fn spawn(
             thread::sleep(TICK);
             let mut handler = ticker.handler.lock().unwrap();
             handler.tick();
+            let notes = handler.take_notes();
             if tick % CONFLICT_SCAN_TICKS == 0 {
                 let found = conflicts::detect();
                 let message = format!("conflicting programs: {found:?}");
@@ -98,6 +99,9 @@ pub fn spawn(
             tick = tick.wrapping_add(1);
             let dirty = handler.take_dirty();
             drop(handler);
+            for note in notes {
+                (ticker.log)(&note);
+            }
             if dirty {
                 ticker.save();
             }
@@ -139,12 +143,20 @@ fn serve(mut conn: Connection, shared: &Shared) -> io::Result<()> {
                 | Request::GetBenchReport
                 | Request::GetFanCurves
                 | Request::ListTweaks
+                | Request::UiForeground { .. }
         );
         let subscribe = request == Request::Subscribe;
         // A tweak that failed halfway still records what it replaced.
         let tweak = matches!(request, Request::SetTweak { .. } | Request::RevertTweaks);
         let described = changes_state.then(|| format!("{request:?}"));
-        let response = shared.handler.lock().unwrap().handle(request);
+        let (response, notes) = {
+            let mut handler = shared.handler.lock().unwrap();
+            let response = handler.handle(request);
+            (response, handler.take_notes())
+        };
+        for note in notes {
+            (shared.log)(&note);
+        }
         conn.send(&response)?;
         if subscribe {
             // Windows serializes I/O on a synchronous pipe handle: a pending

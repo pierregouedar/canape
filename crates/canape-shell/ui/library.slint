@@ -625,7 +625,7 @@ component GamePage inherits Rectangle {
             y: root.lower ? -root.fold : 0;
             width: root.width;
             height: root.fold + root.height;
-            animate y { duration: 260ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+            animate y { duration: Theme.motion(260ms); easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
 
             cover := Rectangle {
                 x: 0;
@@ -958,7 +958,7 @@ component GamePage inherits Rectangle {
                             y: 4px - root.first-row * root.pitch;
                             width: root.width;
                             height: root.total-rows * root.pitch;
-                            animate y { duration: 200ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+                            animate y { duration: Theme.motion(200ms); easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
 
                             for item[i] in Library.achievements: AchievementTile {
                                 property <int> tile-row: Math.floor(i / root.columns);
@@ -1623,7 +1623,7 @@ export component LibraryPage inherits Rectangle {
             width: parent.width - root.margin;
             y: -Library.shelf * root.shelf-pitch;
             height: Library.shelves.length * root.shelf-pitch;
-            animate y { duration: 200ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+            animate y { duration: Theme.motion(200ms); easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
 
             for shelf[si] in Library.shelves: Rectangle {
                 property <bool> in-front: si == Library.shelf;
@@ -1660,7 +1660,7 @@ export component LibraryPage inherits Rectangle {
                     focused: fs.has-focus;
                     launching: Library.launching == game.id;
                     visible: self.x > -root.pitch && self.x < root.width + 48px;
-                    animate x { duration: 160ms; easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
+                    animate x { duration: Theme.motion(160ms); easing: cubic-bezier(0.2, 0.8, 0.2, 1); }
                     clicked => {
                         if !parent.in-front {
                             root.go-shelf(si);

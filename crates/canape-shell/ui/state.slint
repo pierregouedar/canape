@@ -3,6 +3,9 @@
 
 export struct StatusView {
     connected: bool,
+    // "Full power in Canapé" is on, and in effect right now.
+    ui-power-enabled: bool,
+    ui-power: bool,
     // Watts, -1 while a firmware mode picks the limits.
     tdp: int,
     // What the APU draws, in tenths of a watt.
@@ -220,6 +223,8 @@ export global App {
     // focus: the gamepad sends arrows instead of Tab while it has it.
     callback arrow-focus(bool);
     callback toggle-ally-buttons();
+    // "Full power in Canapé": on (true) or off.
+    callback set-ui-power(bool);
 
     // Shared formatting, translated.
     public pure function watts(w: int) -> string {

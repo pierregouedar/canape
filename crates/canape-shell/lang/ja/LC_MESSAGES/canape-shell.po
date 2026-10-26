@@ -1018,6 +1018,9 @@ msgstr "貼り付け"
 msgid "Welcome tour"
 msgstr "ようこそツアー"
 
+msgid "Full power in Canapé"
+msgstr "Canapé では最大性能"
+
 msgid "System"
 msgstr "システム"
 

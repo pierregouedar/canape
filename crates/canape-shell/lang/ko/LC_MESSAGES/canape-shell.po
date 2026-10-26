@@ -1018,6 +1018,9 @@ msgstr "붙여넣기"
 msgid "Welcome tour"
 msgstr "환영 투어"
 
+msgid "Full power in Canapé"
+msgstr "Canapé에서 최대 성능"
+
 msgid "System"
 msgstr "시스템"
 
