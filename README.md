@@ -105,6 +105,14 @@ Le projet a deux buts : construire un logiciel réellement utilisable sur la ROG
 - **Deux environnements** : une session dans le cloud, sous Linux et sans matériel, écrit et vérifie le code ; une session sur l'Ally, sous Windows, le compile, l'installe et l'essaie sur la console, toujours avec mon accord pour ce qui touche au matériel ou au système.
 - **Garde-fous** : avant chaque envoi, le code passe le formatage, l'analyse statique de Rust (`clippy`), les tests et une compilation pour Windows. Toute valeur écrite dans le firmware est vérifiée contre une implémentation de référence pour le modèle concerné. Ce qui n'a pas été essayé sur l'Ally est signalé comme tel dans la documentation.
 
+### Avertissement
+
+Canapé est un projet personnel et non officiel. Il n'est ni affilié à ASUS, Microsoft, Valve, Epic Games ou GOG, ni approuvé par eux. ROG, ROG Ally, Windows, Xbox, Steam, Epic Games et GOG sont des marques de leurs propriétaires respectifs.
+
+- **Utilisation à vos risques** : Canapé règle le matériel de la console (puissance, ventilateurs, manette) et peut modifier des réglages de Windows. Il est fourni tel quel, sans garantie, sous licence MIT (voir [`LICENSE`](LICENSE)). Les fonctions marquées « pas encore essayé sur l'Ally » n'ont été testées qu'avec le simulateur.
+- **Boutiques** : l'installation des jeux Epic Games et GOG passe par des clients libres et non officiels (Legendary, gogdl). Leur usage relève des conditions de chaque boutique et de votre compte.
+- **Contenus tiers** : les jaquettes, bannières, succès et durées de jeu affichés viennent de Steam et d'IGDB ; ils appartiennent à leurs éditeurs et ne sont pas inclus dans ce dépôt.
+
 ### Organisation du dépôt
 
 | Dossier | Contenu |
@@ -221,6 +229,14 @@ The project has two goals: to build software that is genuinely usable on the ROG
 - **Validation**: I test on a real ROG Ally, decide what is kept, fixed or dropped, and settle technical choices when several approaches exist. One example is software rendering, kept over GPU rendering after measurement.
 - **Two environments**: a cloud session, on Linux with no hardware, writes and checks the code; a session on the Ally, on Windows, builds, installs and tries it on the device, always with my consent for anything touching the hardware or the system.
 - **Safeguards**: before every push, the code goes through formatting, Rust's linter (`clippy`), the tests and a Windows build. Every value written to the firmware is checked against a reference implementation for the model. Anything not yet tried on the Ally is marked as such in the documentation.
+
+### Disclaimer
+
+Canapé is an unofficial personal project. It is not affiliated with or endorsed by ASUS, Microsoft, Valve, Epic Games or GOG. ROG, ROG Ally, Windows, Xbox, Steam, Epic Games and GOG are trademarks of their respective owners.
+
+- **Use at your own risk**: Canapé controls the handheld's hardware (power, fans, controller) and can change Windows settings. It is provided as is, without warranty, under the MIT license (see [`LICENSE`](LICENSE)). Features marked "not yet tried on the Ally" have only been tested with the simulator.
+- **Stores**: Epic Games and GOG games are installed through open-source, unofficial clients (Legendary, gogdl). Their use falls under each store's terms and your account.
+- **Third-party content**: the covers, banners, achievements and play times shown come from Steam and IGDB; they belong to their publishers and are not included in this repository.
 
 ### Repository map
 
