@@ -111,7 +111,7 @@ Canapé est un projet personnel et non officiel. Il n'est ni affilié à ASUS, M
 
 - **Utilisation à vos risques** : Canapé règle le matériel de la console (puissance, ventilateurs, manette) et peut modifier des réglages de Windows. Il est fourni tel quel, sans garantie, sous licence MIT (voir [`LICENSE`](LICENSE)). Les fonctions marquées « pas encore essayé sur l'Ally » n'ont été testées qu'avec le simulateur.
 - **Boutiques** : l'installation des jeux Epic Games et GOG passe par des clients libres et non officiels (Legendary, gogdl). Leur usage relève des conditions de chaque boutique et de votre compte.
-- **Contenus tiers** : les jaquettes, bannières, succès et durées de jeu affichés viennent de Steam et d'IGDB ; ils appartiennent à leurs éditeurs et ne sont pas inclus dans ce dépôt.
+- **Contenus tiers** : les jaquettes, bannières, succès et durées de jeu affichés viennent de Steam et d'IGDB ; ils appartiennent à leurs éditeurs et ne sont pas inclus dans ce dépôt. Canapé n'embarque aucune clé : les durées de jeu viennent de l'API d'IGDB.com, avec les identifiants Twitch que chaque utilisateur crée et utilise sous les conditions de Twitch.
 
 ### Organisation du dépôt
 
@@ -236,7 +236,7 @@ Canapé is an unofficial personal project. It is not affiliated with or endorsed
 
 - **Use at your own risk**: Canapé controls the handheld's hardware (power, fans, controller) and can change Windows settings. It is provided as is, without warranty, under the MIT license (see [`LICENSE`](LICENSE)). Features marked "not yet tried on the Ally" have only been tested with the simulator.
 - **Stores**: Epic Games and GOG games are installed through open-source, unofficial clients (Legendary, gogdl). Their use falls under each store's terms and your account.
-- **Third-party content**: the covers, banners, achievements and play times shown come from Steam and IGDB; they belong to their publishers and are not included in this repository.
+- **Third-party content**: the covers, banners, achievements and play times shown come from Steam and IGDB; they belong to their publishers and are not included in this repository. Canapé ships no keys: play times come from the IGDB.com API, with Twitch credentials that each user creates and uses under Twitch's terms.
 
 ### Repository map
 
