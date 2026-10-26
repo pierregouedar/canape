@@ -770,9 +770,6 @@ msgstr "Levetta premuta"
 msgid "Paddle toggles"
 msgstr "Levetta alterna"
 
-msgid "Screen and battery"
-msgstr "Schermo e batteria"
-
 msgid "API key"
 msgstr "Chiave API"
 
@@ -1239,3 +1236,36 @@ msgstr "Disattiva Copilot, pubblicità, suggerimenti e la registrazione dei gioc
 
 msgid "{} could not be applied"
 msgstr "Non applicate: {}"
+
+msgid "Image"
+msgstr "Immagine"
+
+msgid "Battery"
+msgstr "Batteria"
+
+msgid "Resolution"
+msgstr "Risoluzione"
+
+msgid "Refresh rate"
+msgstr "Frequenza di aggiornamento"
+
+msgid "Upscaling"
+msgstr "Upscaling"
+
+msgid "Frame generation"
+msgstr "Generazione di frame"
+
+msgid "Not applied yet"
+msgstr "Non ancora applicato"
+
+msgid "Method"
+msgstr "Metodo"
+
+msgid "Sharpness"
+msgstr "Nitidezza"
+
+msgid "Multiplier"
+msgstr "Moltiplicatore"
+
+msgid "Adaptive"
+msgstr "Adattivo"

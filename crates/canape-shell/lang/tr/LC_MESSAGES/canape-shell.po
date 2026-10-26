@@ -770,9 +770,6 @@ msgstr "Kol basılıyken"
 msgid "Paddle toggles"
 msgstr "Kol açar/kapatır"
 
-msgid "Screen and battery"
-msgstr "Ekran ve pil"
-
 msgid "API key"
 msgstr "API anahtarı"
 
@@ -1236,3 +1233,36 @@ msgstr "Copilot'u, reklamları, ipuçlarını ve arka planda oyun kaydını kapa
 
 msgid "{} could not be applied"
 msgstr "Uygulanamayanlar: {}"
+
+msgid "Image"
+msgstr "Görüntü"
+
+msgid "Battery"
+msgstr "Pil"
+
+msgid "Resolution"
+msgstr "Çözünürlük"
+
+msgid "Refresh rate"
+msgstr "Yenileme hızı"
+
+msgid "Upscaling"
+msgstr "Yükseltme"
+
+msgid "Frame generation"
+msgstr "Kare üretimi"
+
+msgid "Not applied yet"
+msgstr "Henüz uygulanmıyor"
+
+msgid "Method"
+msgstr "Yöntem"
+
+msgid "Sharpness"
+msgstr "Keskinlik"
+
+msgid "Multiplier"
+msgstr "Çarpan"
+
+msgid "Adaptive"
+msgstr "Uyarlanabilir"

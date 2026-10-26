@@ -14,7 +14,8 @@ pub use fan::{Fan, FanCurve, FanCurves, FanPreset};
 pub use protocol::{ProfilePart, Request, Response, Status};
 pub use settings::{
     AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, CpuBoost, CpuPower,
-    GyroActivation, GyroAxis, GyroSettings, Lighting, LightingEffect, LightingSpeed,
-    PerformanceMode, Profile,
+    FrameGenMethod, FrameGenRate, FrameGenSettings, GyroActivation, GyroAxis, GyroSettings,
+    Lighting, LightingEffect, LightingSpeed, PerformanceMode, Profile, Resolution, UpscalingMethod,
+    UpscalingSettings,
 };
 pub use tweaks::{TweakGroup, TweakId, TweakState, Unavailable};

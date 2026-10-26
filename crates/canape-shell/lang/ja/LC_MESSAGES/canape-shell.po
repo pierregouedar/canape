@@ -770,9 +770,6 @@ msgstr "パドル押下中"
 msgid "Paddle toggles"
 msgstr "パドルで切替"
 
-msgid "Screen and battery"
-msgstr "画面とバッテリー"
-
 msgid "API key"
 msgstr "API キー"
 
@@ -1236,3 +1233,36 @@ msgstr "Copilot、広告、ヒント、バックグラウンドのゲーム録�
 
 msgid "{} could not be applied"
 msgstr "適用できなかった項目: {}"
+
+msgid "Image"
+msgstr "画質"
+
+msgid "Battery"
+msgstr "バッテリー"
+
+msgid "Resolution"
+msgstr "解像度"
+
+msgid "Refresh rate"
+msgstr "リフレッシュレート"
+
+msgid "Upscaling"
+msgstr "アップスケーリング"
+
+msgid "Frame generation"
+msgstr "フレーム生成"
+
+msgid "Not applied yet"
+msgstr "まだ適用されません"
+
+msgid "Method"
+msgstr "方式"
+
+msgid "Sharpness"
+msgstr "シャープネス"
+
+msgid "Multiplier"
+msgstr "倍率"
+
+msgid "Adaptive"
+msgstr "アダプティブ"

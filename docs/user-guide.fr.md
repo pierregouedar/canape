@@ -467,13 +467,14 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 
 **En haut**, en direct : le jeu au premier plan, la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU, un trait en pointillés marquant la température du moment. « — » quand le firmware ne donne pas de mesure.
 
-En dessous, trois étagères de cartes, parcourues comme la page [Performance](#performance) : **A** ouvre le tiroir d'une carte, **B** le ferme, **X** enregistre les ventilateurs, la limite de FPS, la fréquence de l'écran et la visée au gyroscope pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)).
+En dessous, quatre étagères de cartes, parcourues comme la page [Performance](#performance) : **A** ouvre le tiroir d'une carte, **B** le ferme, **X** enregistre les ventilateurs, le mode de l'écran (résolution et fréquence), la limite de FPS, les réglages d'image et la visée au gyroscope pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)).
 
 | Étagère | Cartes |
 |---|---|
-| **Refroidissement** | Ventilateurs, Limite de FPS |
+| **Refroidissement** | Ventilateurs |
 | **Manette** | Mode, Boutons arrière, Éclairage des sticks, Visée au gyroscope |
-| **Écran et batterie** | Écran (fréquence), Limite de charge |
+| **Image** | Résolution, Fréquence, Limite de FPS, Mise à l'échelle, Génération d'images |
+| **Batterie** | Limite de charge |
 
 **Ventilateurs**
 
@@ -499,7 +500,7 @@ Une réglette : Aucune, 30, 40, 45, 60, 90 ou 120. Le pilote graphique AMD maint
 
 #### Ce jeu
 
-Le haut de la page nomme le jeu au premier plan. **X**, tiroir ouvert ou non, enregistre les courbes, la limite de FPS et la fréquence de l'écran en cours dans le profil de ce jeu (rien ne se passe sans jeu au premier plan) :
+Le haut de la page nomme le jeu au premier plan. **X**, tiroir ouvert ou non, enregistre les courbes, la résolution et la fréquence de l'écran, la limite de FPS et les réglages d'image en cours dans le profil de ce jeu (rien ne se passe sans jeu au premier plan) :
 
 - Les autres réglages du profil (auto TDP, watts appris) sont conservés. S'il n'y a pas de profil, il est créé avec les réglages d'auto TDP en cours.
 - **Automatique** s'enregistre aussi : ce jeu tournera alors sur les courbes du firmware, même si un préréglage est utilisé le reste du temps.
@@ -527,16 +528,28 @@ Trois tuiles : 60, 80 et 100 %. La batterie s'arrête de charger à ce niveau, m
 > [!NOTE]
 > Pas encore essayé sur l'Ally : l'écriture dans le firmware (`set_battery_charge_limit`) n'a été testée qu'avec le simulateur.
 
-**Écran**
+**Image**
 
-Une tuile par fréquence que l'écran intégré propose à sa résolution actuelle (60 et 120 Hz sur la ROG Ally) ; A applique celle qui a le focus. Une fréquence plus basse économise la batterie dans les jeux limités à 30, 40 ou 60 FPS. Le choix s'applique tout de suite. Sans jeu au premier plan, il devient la fréquence générale, mémorisée comme un réglage fait dans les paramètres de Windows. Avec un jeu au premier plan, il ne vaut que pour cette partie : **X** le garde dans le profil du jeu, et l'écran revient à la fréquence générale quand le jeu se ferme.
+Une étagère qui regroupe ce qui touche à l'image d'un jeu : la résolution, la fréquence de l'écran, la limite de FPS (décrite plus haut), la mise à l'échelle et la génération d'images. Tout s'enregistre avec **X** dans le profil du jeu.
+
+*Résolution.* Une tuile par résolution que l'écran intégré propose avec le **même format** que la dalle (16:9 sur la ROG Ally : 1920×1080, 1600×900, 1280×720…) ; A applique celle qui a le focus. Elle ne se change que **pendant qu'un jeu tourne** (la carte est grisée sinon) : le choix ne vaut que pour cette partie, **X** le garde dans le profil du jeu, et l'écran revient à la résolution d'avant quand le jeu se ferme. Comme pour la fréquence, Canapé ne change la résolution qu'au changement de profil, et remet la fréquence en place si Windows l'a modifiée avec la résolution.
+
+> [!NOTE]
+> Changer la résolution pendant que Canapé est à l'écran redessine Canapé à la nouvelle taille.
+
+*Fréquence.* Une tuile par fréquence que l'écran intégré propose à sa résolution actuelle (60 et 120 Hz sur la ROG Ally) ; A applique celle qui a le focus. Une fréquence plus basse économise la batterie dans les jeux limités à 30, 40 ou 60 FPS. Le choix s'applique tout de suite. Sans jeu au premier plan, il devient la fréquence générale, mémorisée comme un réglage fait dans les paramètres de Windows. Avec un jeu au premier plan, il ne vaut que pour cette partie : **X** le garde dans le profil du jeu, et l'écran revient à la fréquence générale quand le jeu se ferme.
 
 - Un profil de jeu peut avoir sa propre fréquence (**X** sur cette page) : elle s'applique quand le jeu passe au premier plan ; quand il le quitte, l'écran revient à la fréquence choisie ici, ou à celle que le profil avait remplacée.
 - Canapé ne change la fréquence qu'au changement de profil : une fréquence choisie entre-temps dans les paramètres de Windows est respectée.
-- Seul l'écran intégré est concerné, jamais une télé ou un moniteur branché. Sans écran intégré (ou hors Windows), la carte Écran est grisée.
+- Seul l'écran intégré est concerné, jamais une télé ou un moniteur branché. Sans écran intégré (ou hors Windows), les cartes Résolution et Fréquence sont grisées.
+
+*Mise à l'échelle.* Trois choix : Aucune, AMD (RSR) ou Lossless Scaling, avec une netteté de 0 à 100 %. *Génération d'images.* Aucune, AMD (AFMF) ou Lossless Scaling ; avec Lossless Scaling, un multiplicateur ×2, ×3 ou ×4, ou « Adaptatif » avec une cadence cible. Le choix de **Lossless Scaling** n'apparaît que si l'application est installée (Steam, app 993090).
+
+> [!WARNING]
+> **Pas encore appliqué.** La mise à l'échelle et la génération d'images sont seulement **enregistrées** dans le profil du jeu : rien ne les active encore, les tiroirs l'indiquent par « Pas encore appliqué » et le service écrit dans son journal `image: upscaling … not applied yet` quand le profil s'applique.
 
 > [!NOTE]
-> Pas encore essayé sur l'Ally (`ChangeDisplaySettingsEx` sur l'écran interne, depuis le shell).
+> Pas encore essayé sur l'Ally : `ChangeDisplaySettingsEx` sur l'écran interne (fréquence et résolution, depuis le shell), le filtrage des résolutions d'après `EnumDisplaySettings`, et la détection de Lossless Scaling.
 
 #### Visée au gyroscope
 
@@ -626,7 +639,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 
 <img src="images/fr/profiles.png" alt="Sous-page Profils de jeu" width="720">
 
-Ouverte depuis la carte **Profils de jeu**, dans la page Performance ou Réglages ; **B** y revient. Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages d'auto TDP et, si vous les avez enregistrés depuis la page [Matériel](#matériel), à des courbes de ventilateurs, une limite de FPS et une fréquence d'écran, et, si vous les avez enregistrés avec **X** sur la page Performance, à des [réglages du processeur](#performance) (affichés « Réglages du processeur » dans la liste). Quand ce programme passe au premier plan, le service applique le profil ; quand il le quitte, les réglages généraux reviennent.
+Ouverte depuis la carte **Profils de jeu**, dans la page Performance ou Réglages ; **B** y revient. Un profil associe un exécutable (par exemple `eldenring.exe`) à des réglages d'auto TDP et, si vous les avez enregistrés depuis la page [Matériel](#matériel), à des courbes de ventilateurs, une limite de FPS, une résolution et une fréquence d'écran, une mise à l'échelle et une génération d'images et, si vous les avez enregistrés avec **X** sur la page Performance, à des [réglages du processeur](#performance) (affichés « Réglages du processeur » dans la liste). Quand ce programme passe au premier plan, le service applique le profil ; quand il le quitte, les réglages généraux reviennent.
 
 - **Première ligne** : « Enregistrer un profil pour <jeu> » (ou « Mettre à jour le profil de <jeu> ») ; **A** enregistre les réglages d'auto TDP en cours (objectif, puissance, maximum sur batterie, limite de température). Grisée tant qu'aucun jeu n'est au premier plan.
   - Si l'auto TDP est actif, la puissance actuelle est aussi enregistrée comme **watts appris** : la prochaine session du jeu démarre directement à cette valeur.

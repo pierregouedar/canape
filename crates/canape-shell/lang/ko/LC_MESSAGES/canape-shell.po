@@ -770,9 +770,6 @@ msgstr "패들 누름"
 msgid "Paddle toggles"
 msgstr "패들로 전환"
 
-msgid "Screen and battery"
-msgstr "화면 및 배터리"
-
 msgid "API key"
 msgstr "API 키"
 
@@ -1236,3 +1233,36 @@ msgstr "Copilot, 광고, 팁, 백그라운드 게임 녹화를 끄고 게임 폴
 
 msgid "{} could not be applied"
 msgstr "적용하지 못한 항목: {}"
+
+msgid "Image"
+msgstr "화면 품질"
+
+msgid "Battery"
+msgstr "배터리"
+
+msgid "Resolution"
+msgstr "해상도"
+
+msgid "Refresh rate"
+msgstr "주사율"
+
+msgid "Upscaling"
+msgstr "업스케일링"
+
+msgid "Frame generation"
+msgstr "프레임 생성"
+
+msgid "Not applied yet"
+msgstr "아직 적용되지 않음"
+
+msgid "Method"
+msgstr "방식"
+
+msgid "Sharpness"
+msgstr "선명도"
+
+msgid "Multiplier"
+msgstr "배수"
+
+msgid "Adaptive"
+msgstr "적응형"

@@ -1,4 +1,4 @@
-//! Refresh rate of the built-in screen. Display modes belong to the user's
+//! Refresh rate and resolution of the built-in screen. Display modes belong to the user's
 //! session, so the shell changes them itself; no rights are needed.
 //!
 //! The built-in panel is the active display path whose output technology
@@ -32,12 +32,39 @@ pub fn rates_for(modes: &[Mode], current: Mode) -> Vec<u32> {
     rates
 }
 
+/// The resolutions offered at the current colour depth, largest first,
+/// as `(width, height)`. Only those with the panel's aspect ratio are
+/// kept: the panel's own is that of the largest mode it reports, so a
+/// 16:9 panel is never offered 4:3 modes that would stretch the image.
+pub fn resolutions_for(modes: &[Mode], current: Mode) -> Vec<(u32, u32)> {
+    let usable = || {
+        modes
+            .iter()
+            .filter(|m| m.bits == current.bits && m.hz > 1 && m.width > 0 && m.height > 0)
+    };
+    let Some(native) = usable().max_by_key(|m| u64::from(m.width) * u64::from(m.height)) else {
+        return Vec::new();
+    };
+    let (nw, nh) = (u64::from(native.width), u64::from(native.height));
+    let mut sizes: Vec<(u32, u32)> = usable()
+        .filter(|m| {
+            // Equal ratios within 1 %: 1366x768 counts as 16:9.
+            let (w, h) = (u64::from(m.width), u64::from(m.height));
+            (w * nh).abs_diff(h * nw) * 100 <= h * nw
+        })
+        .map(|m| (m.width, m.height))
+        .collect();
+    sizes.sort_unstable_by(|a, b| b.cmp(a));
+    sizes.dedup();
+    sizes
+}
+
 #[cfg(windows)]
 pub use sys::*;
 
 #[cfg(windows)]
 mod sys {
-    use super::{Mode, rates_for};
+    use super::{Mode, rates_for, resolutions_for};
     use crate::{HwError, Result};
 
     use windows_sys::Win32::Devices::Display::{
@@ -50,7 +77,8 @@ mod sys {
     use windows_sys::Win32::Foundation::ERROR_SUCCESS;
     use windows_sys::Win32::Graphics::Gdi::{
         CDS_UPDATEREGISTRY, ChangeDisplaySettingsExW, DEVMODEW, DISP_CHANGE_SUCCESSFUL,
-        DM_DISPLAYFREQUENCY, ENUM_CURRENT_SETTINGS, EnumDisplaySettingsExW,
+        DM_DISPLAYFREQUENCY, DM_PELSHEIGHT, DM_PELSWIDTH, ENUM_CURRENT_SETTINGS,
+        EnumDisplaySettingsExW,
     };
 
     /// GDI name of the built-in screen (`\\.\DISPLAY1`), NUL-terminated.
@@ -132,6 +160,52 @@ mod sys {
             rates_for(&modes, current)
         }
 
+        /// The current resolution.
+        pub fn resolution(&self) -> Option<(u32, u32)> {
+            self.mode(ENUM_CURRENT_SETTINGS)
+                .map(|(m, _)| (m.width, m.height))
+        }
+
+        /// Resolutions offered with the panel's aspect ratio, largest first.
+        pub fn resolutions(&self) -> Vec<(u32, u32)> {
+            let Some((current, _)) = self.mode(ENUM_CURRENT_SETTINGS) else {
+                return Vec::new();
+            };
+            let modes: Vec<Mode> = (0..).map_while(|i| self.mode(i)).map(|(m, _)| m).collect();
+            resolutions_for(&modes, current)
+        }
+
+        /// Switches to `width` x `height`, keeping the colour depth; Windows
+        /// picks the refresh rate, so set it afterwards. Saved for the
+        /// next sign-in like a change made in Windows settings.
+        pub fn set_resolution(&self, width: u32, height: u32) -> Result<()> {
+            let (current, mut dm) = self
+                .mode(ENUM_CURRENT_SETTINGS)
+                .ok_or(HwError::Unsupported("screen mode unreadable"))?;
+            if (current.width, current.height) == (width, height) {
+                return Ok(());
+            }
+            dm.dmPelsWidth = width;
+            dm.dmPelsHeight = height;
+            dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+            let result = unsafe {
+                ChangeDisplaySettingsExW(
+                    self.0.as_ptr(),
+                    &dm,
+                    std::ptr::null_mut(),
+                    CDS_UPDATEREGISTRY,
+                    std::ptr::null(),
+                )
+            };
+            if result == DISP_CHANGE_SUCCESSFUL {
+                Ok(())
+            } else {
+                Err(HwError::Driver(format!(
+                    "ChangeDisplaySettingsEx({width}x{height}) returned {result}"
+                )))
+            }
+        }
+
         /// Switches to `hz` at the current resolution, saved for the next
         /// sign-in like a change made in Windows settings.
         pub fn set_refresh(&self, hz: u32) -> Result<()> {
@@ -192,5 +266,43 @@ mod tests {
         assert_eq!(rates_for(&modes, mode(1920, 1080, 120)), [60, 120]);
         assert_eq!(rates_for(&modes, mode(1280, 720, 48)), [48]);
         assert!(rates_for(&[], mode(1920, 1080, 120)).is_empty());
+    }
+
+    #[test]
+    fn resolutions_keep_the_panel_aspect_ratio() {
+        let modes = [
+            mode(1920, 1080, 120),
+            mode(1920, 1080, 60),
+            mode(1600, 900, 60),
+            mode(1280, 720, 60),
+            mode(1366, 768, 60),
+            // 4:3 and 16:10, not the panel's shape.
+            mode(1024, 768, 60),
+            mode(1280, 800, 60),
+            // Hardware default rate, other depth.
+            mode(800, 450, 1),
+            Mode {
+                bits: 16,
+                ..mode(960, 540, 60)
+            },
+        ];
+        assert_eq!(
+            resolutions_for(&modes, mode(1920, 1080, 120)),
+            [(1920, 1080), (1600, 900), (1366, 768), (1280, 720)]
+        );
+        assert!(resolutions_for(&[], mode(1920, 1080, 120)).is_empty());
+    }
+
+    #[test]
+    fn a_portrait_or_small_panel_follows_its_own_largest_mode() {
+        let modes = [
+            mode(1080, 1920, 60),
+            mode(720, 1280, 60),
+            mode(1280, 720, 60),
+        ];
+        assert_eq!(
+            resolutions_for(&modes, mode(1080, 1920, 60)),
+            [(1080, 1920), (720, 1280)]
+        );
     }
 }

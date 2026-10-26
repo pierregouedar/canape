@@ -770,9 +770,6 @@ msgstr "Łopatka trzymana"
 msgid "Paddle toggles"
 msgstr "Łopatka przełącza"
 
-msgid "Screen and battery"
-msgstr "Ekran i bateria"
-
 msgid "API key"
 msgstr "Klucz API"
 
@@ -1236,3 +1233,36 @@ msgstr "Wyłącza Copilota, reklamy, porady i nagrywanie gier w tle oraz wyklucz
 
 msgid "{} could not be applied"
 msgstr "Nie zastosowano: {}"
+
+msgid "Image"
+msgstr "Obraz"
+
+msgid "Battery"
+msgstr "Bateria"
+
+msgid "Resolution"
+msgstr "Rozdzielczość"
+
+msgid "Refresh rate"
+msgstr "Częstotliwość odświeżania"
+
+msgid "Upscaling"
+msgstr "Skalowanie"
+
+msgid "Frame generation"
+msgstr "Generowanie klatek"
+
+msgid "Not applied yet"
+msgstr "Jeszcze nie zastosowano"
+
+msgid "Method"
+msgstr "Metoda"
+
+msgid "Sharpness"
+msgstr "Ostrość"
+
+msgid "Multiplier"
+msgstr "Mnożnik"
+
+msgid "Adaptive"
+msgstr "Adaptacyjny"

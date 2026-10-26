@@ -770,9 +770,6 @@ msgstr "Кнопка зажата"
 msgid "Paddle toggles"
 msgstr "Кнопка переключает"
 
-msgid "Screen and battery"
-msgstr "Экран и батарея"
-
 msgid "API key"
 msgstr "Ключ API"
 
@@ -1236,3 +1233,36 @@ msgstr "Отключает Copilot, рекламу, советы и фонову
 
 msgid "{} could not be applied"
 msgstr "Не применено: {}"
+
+msgid "Image"
+msgstr "Изображение"
+
+msgid "Battery"
+msgstr "Батарея"
+
+msgid "Resolution"
+msgstr "Разрешение"
+
+msgid "Refresh rate"
+msgstr "Частота обновления"
+
+msgid "Upscaling"
+msgstr "Масштабирование"
+
+msgid "Frame generation"
+msgstr "Генерация кадров"
+
+msgid "Not applied yet"
+msgstr "Пока не применяется"
+
+msgid "Method"
+msgstr "Метод"
+
+msgid "Sharpness"
+msgstr "Резкость"
+
+msgid "Multiplier"
+msgstr "Множитель"
+
+msgid "Adaptive"
+msgstr "Адаптивный"

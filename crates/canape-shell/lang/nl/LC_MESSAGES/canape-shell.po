@@ -770,9 +770,6 @@ msgstr "Peddel ingedrukt"
 msgid "Paddle toggles"
 msgstr "Peddel schakelt"
 
-msgid "Screen and battery"
-msgstr "Scherm en accu"
-
 msgid "API key"
 msgstr "API-sleutel"
 
@@ -1239,3 +1236,36 @@ msgstr "Schakelt Copilot, advertenties, tips en het opnemen van games op de acht
 
 msgid "{} could not be applied"
 msgstr "Niet toegepast: {}"
+
+msgid "Image"
+msgstr "Beeld"
+
+msgid "Battery"
+msgstr "Batterij"
+
+msgid "Resolution"
+msgstr "Resolutie"
+
+msgid "Refresh rate"
+msgstr "Vernieuwingsfrequentie"
+
+msgid "Upscaling"
+msgstr "Opschaling"
+
+msgid "Frame generation"
+msgstr "Framegeneratie"
+
+msgid "Not applied yet"
+msgstr "Nog niet toegepast"
+
+msgid "Method"
+msgstr "Methode"
+
+msgid "Sharpness"
+msgstr "Scherpte"
+
+msgid "Multiplier"
+msgstr "Vermenigvuldiger"
+
+msgid "Adaptive"
+msgstr "Adaptief"

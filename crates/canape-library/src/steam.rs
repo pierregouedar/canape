@@ -36,7 +36,41 @@ const NOT_GAMES: &[u32] = &[
     1826330, // Proton EasyAntiCheat Runtime
     1161040, // Proton BattlEye Runtime
     2180100, // Proton Hotfix
+    LOSSLESS_SCALING_APPID,
 ];
+
+/// Steam app id of Lossless Scaling, a utility rather than a game.
+pub const LOSSLESS_SCALING_APPID: u32 = 993090;
+
+/// The executable of an installed Lossless Scaling: found through its
+/// manifest in any library folder of `steam`, under
+/// `steamapps\common\<installdir>`. `None` when it is not installed, or
+/// its files are missing.
+pub fn lossless_scaling(steam: &Path) -> Option<PathBuf> {
+    let vdf_text = read(&steam.join("steamapps").join("libraryfolders.vdf"));
+    library_folders(steam, vdf_text.as_deref())
+        .iter()
+        .find_map(|folder| {
+            let steamapps = folder.join("steamapps");
+            let text = read(&steamapps.join(format!("appmanifest_{LOSSLESS_SCALING_APPID}.acf")))?;
+            let vdf = vdf::parse(&text);
+            let app = vdf.get("AppState")?;
+            let flags: u32 = app.str("StateFlags")?.trim().parse().ok()?;
+            if flags & 4 == 0 {
+                return None;
+            }
+            let installdir = app
+                .str("installdir")
+                .map(str::trim)
+                .filter(|dir| !dir.is_empty())
+                .unwrap_or("Lossless Scaling");
+            let exe = steamapps
+                .join("common")
+                .join(installdir)
+                .join("LosslessScaling.exe");
+            exe.is_file().then_some(exe)
+        })
+}
 
 fn is_tool(appid: u32, name: &str) -> bool {
     NOT_GAMES.contains(&appid)
@@ -493,6 +527,27 @@ mod tests {
             }
         );
         std::fs::remove_dir_all(&steam).unwrap();
+    }
+
+    #[test]
+    fn lossless_scaling_is_found_through_its_manifest() {
+        let steam = fixture("steam");
+        let exe = lossless_scaling(&steam).unwrap();
+        assert_eq!(
+            exe,
+            steam
+                .join("steamapps")
+                .join("common")
+                .join("Lossless Scaling")
+                .join("LosslessScaling.exe")
+        );
+        // Not a game in the library.
+        assert!(scan(&steam).iter().all(|g| g.id != "steam:993090"));
+        // A Steam folder without the app.
+        let empty = std::env::temp_dir().join(format!("canape-ls-{}", std::process::id()));
+        std::fs::create_dir_all(empty.join("steamapps")).unwrap();
+        assert_eq!(lossless_scaling(&empty), None);
+        std::fs::remove_dir_all(&empty).unwrap();
     }
 
     #[test]

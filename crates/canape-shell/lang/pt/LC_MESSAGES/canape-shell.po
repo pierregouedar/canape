@@ -770,9 +770,6 @@ msgstr "Alavanca pressionada"
 msgid "Paddle toggles"
 msgstr "Alavanca alterna"
 
-msgid "Screen and battery"
-msgstr "Tela e bateria"
-
 msgid "API key"
 msgstr "Chave de API"
 
@@ -1239,3 +1236,36 @@ msgstr "Desativa o Copilot, os anúncios, as dicas e a gravação de jogos em se
 
 msgid "{} could not be applied"
 msgstr "Não aplicadas: {}"
+
+msgid "Image"
+msgstr "Imagem"
+
+msgid "Battery"
+msgstr "Bateria"
+
+msgid "Resolution"
+msgstr "Resolução"
+
+msgid "Refresh rate"
+msgstr "Taxa de atualização"
+
+msgid "Upscaling"
+msgstr "Upscaling"
+
+msgid "Frame generation"
+msgstr "Geração de quadros"
+
+msgid "Not applied yet"
+msgstr "Ainda não aplicado"
+
+msgid "Method"
+msgstr "Método"
+
+msgid "Sharpness"
+msgstr "Nitidez"
+
+msgid "Multiplier"
+msgstr "Multiplicador"
+
+msgid "Adaptive"
+msgstr "Adaptável"

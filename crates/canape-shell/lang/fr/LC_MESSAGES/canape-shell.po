@@ -770,9 +770,6 @@ msgstr "Palette tenue"
 msgid "Paddle toggles"
 msgstr "Palette bascule"
 
-msgid "Screen and battery"
-msgstr "Écran et batterie"
-
 msgid "API key"
 msgstr "Clé API"
 
@@ -1239,3 +1236,36 @@ msgstr "Désactive Copilot, les publicités, les astuces et l'enregistrement des
 
 msgid "{} could not be applied"
 msgstr "Non appliqués : {}"
+
+msgid "Image"
+msgstr "Image"
+
+msgid "Battery"
+msgstr "Batterie"
+
+msgid "Resolution"
+msgstr "Résolution"
+
+msgid "Refresh rate"
+msgstr "Taux de rafraîchissement"
+
+msgid "Upscaling"
+msgstr "Mise à l'échelle"
+
+msgid "Frame generation"
+msgstr "Génération d'images"
+
+msgid "Not applied yet"
+msgstr "Pas encore appliqué"
+
+msgid "Method"
+msgstr "Méthode"
+
+msgid "Sharpness"
+msgstr "Netteté"
+
+msgid "Multiplier"
+msgstr "Multiplicateur"
+
+msgid "Adaptive"
+msgstr "Adaptatif"

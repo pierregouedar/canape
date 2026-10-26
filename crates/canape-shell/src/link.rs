@@ -13,7 +13,7 @@ use canape_core::{
     LightingSpeed, PerformanceMode, Profile, Request, Response, Status, protocol,
 };
 use canape_ipc::Connection;
-use slint::{ComponentHandle, Model, ModelRc, VecModel, Weak};
+use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel, Weak};
 
 use crate::history::History;
 use crate::report::{self, Recommendation};
@@ -270,16 +270,29 @@ fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> 
             if first || previous.accent != status.accent {
                 follow_accent(ui, shared, commands, status.accent.as_deref(), first);
             }
-            let profile_hz = status.active_profile.as_deref().and_then(|exe| {
+            let active = status.active_profile.as_deref().and_then(|exe| {
                 let profiles = shared.profiles.lock().unwrap();
-                profiles.iter().find(|p| p.matches(exe))?.refresh_hz
+                profiles.iter().find(|p| p.matches(exe)).cloned()
             });
-            crate::screen::follow(status.foreground.as_deref(), profile_hz);
+            let profile_size = active
+                .as_ref()
+                .and_then(|p| p.resolution)
+                .map(|r| (r.width, r.height));
+            crate::screen::follow(
+                status.foreground.as_deref(),
+                active.as_ref().and_then(|p| p.refresh_hz),
+                profile_size,
+            );
+            crate::image::follow(
+                status.active_profile.as_deref(),
+                active.as_ref().map(|p| (p.upscaling, p.frame_gen)),
+            );
             #[cfg(windows)]
             crate::gyro::follow(status.gyro, status.foreground.is_some());
             if first || pushes % SCREEN_REFRESH_PUSHES == 0 {
                 show_screen(ui);
             }
+            show_image(ui);
             first = false;
             show_status(ui, shared, Some(status));
         }
@@ -329,6 +342,45 @@ pub fn show_screen(ui: &Weak<AppWindow>) {
         let app = ui.global::<App>();
         app.set_refresh_hz(current as i32);
         app.set_refresh_rates(ModelRc::new(VecModel::from(rates)));
+    });
+    show_resolutions(ui);
+}
+
+/// Shows the screen's current resolution and the ones it offers.
+pub fn show_resolutions(ui: &Weak<AppWindow>) {
+    let (current, sizes) = crate::screen::resolution_state();
+    let index = sizes
+        .iter()
+        .position(|&size| size == current)
+        .map_or(-1, |i| i as i32);
+    let label = |(w, h): (u32, u32)| SharedString::from(format!("{w}×{h}"));
+    let current = if current.0 > 0 {
+        label(current)
+    } else {
+        SharedString::new()
+    };
+    let labels: Vec<SharedString> = sizes.into_iter().map(label).collect();
+    let _ = ui.upgrade_in_event_loop(move |ui| {
+        let app = ui.global::<App>();
+        app.set_resolution(current);
+        app.set_resolutions(ModelRc::new(VecModel::from(labels)));
+        app.set_resolution_index(index);
+    });
+}
+
+/// Shows the upscaling and frame generation choices, and whether Lossless
+/// Scaling can be chosen.
+pub fn show_image(ui: &Weak<AppWindow>) {
+    let (upscaling, frame_gen) = crate::image::current();
+    let lossless = crate::image::lossless_installed();
+    let _ = ui.upgrade_in_event_loop(move |ui| {
+        let app = ui.global::<App>();
+        app.set_image_upscaling(crate::image::upscaling_index(upscaling.method));
+        app.set_image_sharpness(upscaling.sharpness as i32);
+        app.set_image_frame_gen(crate::image::frame_gen_index(frame_gen.method));
+        app.set_image_rate(crate::image::rate_index(frame_gen.rate));
+        app.set_image_target_fps(frame_gen.target_fps as i32);
+        app.set_lossless_scaling(lossless);
     });
 }
 

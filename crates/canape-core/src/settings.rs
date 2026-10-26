@@ -83,6 +83,150 @@ pub struct Profile {
     /// Processor power settings for this game; `None` keeps the global ones.
     #[serde(default)]
     pub cpu_power: Option<CpuPower>,
+    /// Resolution of the built-in screen for this game; `None` keeps the
+    /// current one. Applied by the shell, like the refresh rate.
+    #[serde(default)]
+    pub resolution: Option<Resolution>,
+    /// Upscaling for this game. Stored only: nothing applies it yet.
+    #[serde(default)]
+    pub upscaling: UpscalingSettings,
+    /// Frame generation for this game. Stored only: nothing applies it yet.
+    #[serde(default)]
+    pub frame_gen: FrameGenSettings,
+}
+
+/// A screen resolution in pixels.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Resolution {
+    pub width: u32,
+    pub height: u32,
+}
+
+impl std::fmt::Display for Resolution {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}×{}", self.width, self.height)
+    }
+}
+
+/// What scales the game's image up from a lower resolution.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UpscalingMethod {
+    #[default]
+    None,
+    /// The graphics driver's Radeon Super Resolution.
+    AmdRsr,
+    LosslessScaling,
+}
+
+impl UpscalingMethod {
+    /// Name used in the log.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::AmdRsr => "AMD (RSR)",
+            Self::LosslessScaling => "Lossless Scaling",
+        }
+    }
+}
+
+/// Sharpness range of upscaling, in percent.
+pub const SHARPNESS_RANGE: (u32, u32) = (0, 100);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct UpscalingSettings {
+    pub method: UpscalingMethod,
+    /// Within [`SHARPNESS_RANGE`].
+    pub sharpness: u32,
+}
+
+impl Default for UpscalingSettings {
+    fn default() -> Self {
+        Self {
+            method: UpscalingMethod::None,
+            sharpness: 50,
+        }
+    }
+}
+
+/// What inserts generated frames between the game's own.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FrameGenMethod {
+    #[default]
+    None,
+    /// The graphics driver's Fluid Motion Frames.
+    AmdAfmf,
+    LosslessScaling,
+}
+
+impl FrameGenMethod {
+    /// Name used in the log.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::AmdAfmf => "AMD (AFMF)",
+            Self::LosslessScaling => "Lossless Scaling",
+        }
+    }
+}
+
+/// How many frames Lossless Scaling generates.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FrameGenRate {
+    /// Twice the game's frame rate.
+    #[default]
+    X2,
+    X3,
+    X4,
+    /// Whatever reaches [`FrameGenSettings::target_fps`].
+    Adaptive,
+}
+
+/// Frame rates accepted as the target of adaptive frame generation.
+pub const FRAME_GEN_TARGET_RANGE: (u32, u32) = (30, 240);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FrameGenSettings {
+    pub method: FrameGenMethod,
+    /// Only Lossless Scaling has a choice of rate.
+    pub rate: FrameGenRate,
+    /// For [`FrameGenRate::Adaptive`], within [`FRAME_GEN_TARGET_RANGE`].
+    pub target_fps: u32,
+}
+
+impl Default for FrameGenSettings {
+    fn default() -> Self {
+        Self {
+            method: FrameGenMethod::None,
+            rate: FrameGenRate::X2,
+            target_fps: 60,
+        }
+    }
+}
+
+impl Profile {
+    /// What the image settings of this profile ask for that nothing applies
+    /// yet, one line each, for the log.
+    pub fn unapplied_image(&self) -> Vec<String> {
+        let mut lines = Vec::new();
+        if self.upscaling.method != UpscalingMethod::None {
+            lines.push(format!(
+                "image: upscaling {} not applied yet",
+                self.upscaling.method.name()
+            ));
+        }
+        if self.frame_gen.method != FrameGenMethod::None {
+            lines.push(format!(
+                "image: frame generation {} not applied yet",
+                self.frame_gen.method.name()
+            ));
+        }
+        lines
+    }
 }
 
 impl Profile {
@@ -574,6 +718,51 @@ mod tests {
         assert_eq!(profile.fan_curves, None);
         assert_eq!(profile.fps_limit, None);
         assert_eq!(profile.gyro, None);
+    }
+
+    #[test]
+    fn older_profiles_have_no_image_settings() {
+        let json = r#"{"exe":"game.exe","auto_tdp":{"enabled":true,"target_fps":40,"min_watts":7,"max_watts":20},"refresh_hz":60}"#;
+        let profile: Profile = serde_json::from_str(json).unwrap();
+        assert_eq!(profile.resolution, None);
+        assert_eq!(profile.upscaling, UpscalingSettings::default());
+        assert_eq!(profile.frame_gen, FrameGenSettings::default());
+        assert!(profile.unapplied_image().is_empty());
+    }
+
+    #[test]
+    fn image_settings_round_trip() {
+        let profile = Profile {
+            exe: "game.exe".into(),
+            resolution: Some(Resolution {
+                width: 1600,
+                height: 900,
+            }),
+            upscaling: UpscalingSettings {
+                method: UpscalingMethod::AmdRsr,
+                sharpness: 70,
+            },
+            frame_gen: FrameGenSettings {
+                method: FrameGenMethod::LosslessScaling,
+                rate: FrameGenRate::Adaptive,
+                target_fps: 90,
+            },
+            ..Profile::default()
+        };
+        let json = serde_json::to_string(&profile).unwrap();
+        assert!(json.contains(r#""method":"amd_rsr""#));
+        assert_eq!(serde_json::from_str::<Profile>(&json).unwrap(), profile);
+        assert_eq!(
+            profile.unapplied_image(),
+            [
+                "image: upscaling AMD (RSR) not applied yet",
+                "image: frame generation Lossless Scaling not applied yet"
+            ]
+        );
+        assert_eq!(profile.resolution.unwrap().to_string(), "1600×900");
+        // Partial image blocks take their defaults.
+        let partial: UpscalingSettings = serde_json::from_str(r#"{"method":"amd_rsr"}"#).unwrap();
+        assert_eq!(partial.sharpness, 50);
     }
 
     #[test]
