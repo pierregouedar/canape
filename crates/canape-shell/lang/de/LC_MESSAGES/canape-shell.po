@@ -770,9 +770,6 @@ msgstr "Taste gehalten"
 msgid "Paddle toggles"
 msgstr "Taste schaltet"
 
-msgid "Screen and battery"
-msgstr "Bildschirm und Akku"
-
 msgid "API key"
 msgstr "API-Schlüssel"
 
@@ -1191,3 +1188,36 @@ msgstr "Nochmals A drücken"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Lässt sich im Microsoft Store neu installieren."
+
+msgid "Image"
+msgstr "Bild"
+
+msgid "Battery"
+msgstr "Akku"
+
+msgid "Resolution"
+msgstr "Auflösung"
+
+msgid "Refresh rate"
+msgstr "Bildwiederholrate"
+
+msgid "Upscaling"
+msgstr "Hochskalierung"
+
+msgid "Frame generation"
+msgstr "Bildgenerierung"
+
+msgid "Not applied yet"
+msgstr "Noch nicht angewendet"
+
+msgid "Method"
+msgstr "Verfahren"
+
+msgid "Sharpness"
+msgstr "Schärfe"
+
+msgid "Multiplier"
+msgstr "Faktor"
+
+msgid "Adaptive"
+msgstr "Adaptiv"

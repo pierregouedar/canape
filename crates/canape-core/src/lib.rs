@@ -13,7 +13,9 @@ pub use bench::{BenchPlan, BenchPoint, BenchProgress, BenchReport};
 pub use fan::{Fan, FanCurve, FanCurves, FanPreset};
 pub use protocol::{ProfilePart, Request, Response, Status};
 pub use settings::{
-    AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, GyroActivation,
-    GyroAxis, GyroSettings, Lighting, LightingEffect, LightingSpeed, PerformanceMode, Profile,
+    AutoTdpSettings, BackButton, BackButtons, ButtonTarget, ControllerMode, FrameGenMethod,
+    FrameGenRate, FrameGenSettings, GyroActivation, GyroAxis, GyroSettings, Lighting,
+    LightingEffect, LightingSpeed, PerformanceMode, Profile, Resolution, UpscalingMethod,
+    UpscalingSettings,
 };
 pub use tweaks::{TweakGroup, TweakId, TweakState, Unavailable};

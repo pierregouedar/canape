@@ -770,9 +770,6 @@ msgstr "Kol basılıyken"
 msgid "Paddle toggles"
 msgstr "Kol açar/kapatır"
 
-msgid "Screen and battery"
-msgstr "Ekran ve pil"
-
 msgid "API key"
 msgstr "API anahtarı"
 
@@ -1188,3 +1185,36 @@ msgstr "Tekrar A'ya basın"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Microsoft Store'dan yeniden yüklenebilir."
+
+msgid "Image"
+msgstr "Görüntü"
+
+msgid "Battery"
+msgstr "Pil"
+
+msgid "Resolution"
+msgstr "Çözünürlük"
+
+msgid "Refresh rate"
+msgstr "Yenileme hızı"
+
+msgid "Upscaling"
+msgstr "Yükseltme"
+
+msgid "Frame generation"
+msgstr "Kare üretimi"
+
+msgid "Not applied yet"
+msgstr "Henüz uygulanmıyor"
+
+msgid "Method"
+msgstr "Yöntem"
+
+msgid "Sharpness"
+msgstr "Keskinlik"
+
+msgid "Multiplier"
+msgstr "Çarpan"
+
+msgid "Adaptive"
+msgstr "Uyarlanabilir"

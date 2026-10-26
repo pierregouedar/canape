@@ -27,6 +27,7 @@ mod gyro;
 mod hardware;
 mod history;
 mod i18n;
+mod image;
 mod instance;
 mod keys;
 mod library;
@@ -350,6 +351,9 @@ fn connect(ui: &AppWindow, link: &Link) {
                 fps_limit: link.profile(&exe).and_then(|p| p.fps_limit),
                 refresh_hz: link.profile(&exe).and_then(|p| p.refresh_hz),
                 gyro: link.profile(&exe).and_then(|p| p.gyro),
+                resolution: link.profile(&exe).and_then(|p| p.resolution),
+                upscaling: link.profile(&exe).map(|p| p.upscaling).unwrap_or_default(),
+                frame_gen: link.profile(&exe).map(|p| p.frame_gen).unwrap_or_default(),
                 ..report::profile_for(&report, rec, &exe, status.auto_tdp)
             };
             link.send(Request::SaveProfile { profile });
@@ -444,6 +448,11 @@ fn connect(ui: &AppWindow, link: &Link) {
                     fps_limit: status.fps_limit,
                     refresh_hz: Some(screen::state().0).filter(|&hz| hz > 0),
                     gyro: Some(status.gyro),
+                    resolution: Some(screen::resolution_state().0)
+                        .filter(|&(w, h)| w > 0 && h > 0)
+                        .map(|(width, height)| canape_core::Resolution { width, height }),
+                    upscaling: image::current().0,
+                    frame_gen: image::current().1,
                     ..existing
                 },
             });
@@ -525,6 +534,30 @@ fn connect(ui: &AppWindow, link: &Link) {
         move |hz| {
             screen::pick(hz.max(0) as u32, link.status().foreground.is_some());
             link::show_screen(&ui);
+        }
+    });
+    app.on_set_resolution({
+        let ui = ui.as_weak();
+        move |index| {
+            let (_, sizes) = screen::resolution_state();
+            if let Some(&(width, height)) = usize::try_from(index).ok().and_then(|i| sizes.get(i)) {
+                screen::pick_resolution(width, height);
+                link::show_resolutions(&ui);
+            }
+        }
+    });
+    app.on_set_upscaling({
+        let ui = ui.as_weak();
+        move |method, sharpness| {
+            image::set_upscaling(method, sharpness);
+            link::show_image(&ui);
+        }
+    });
+    app.on_set_frame_gen({
+        let ui = ui.as_weak();
+        move |method, rate, target_fps| {
+            image::set_frame_gen(method, rate, target_fps);
+            link::show_image(&ui);
         }
     });
     app.on_toggle_ally_buttons({

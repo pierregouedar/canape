@@ -461,13 +461,14 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 
 **At the top**, live: the game in the foreground, the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve, a dashed line marking the temperature now. "—" when the firmware gives no reading.
 
-Below, three shelves of cards, used like the [Performance](#performance) page: **A** opens a card's drawer, **B** closes it, **X** saves the fans, the frame rate limit, the screen refresh rate and gyro aiming for the game in the foreground (see [This game](#this-game)).
+Below, four shelves of cards, used like the [Performance](#performance) page: **A** opens a card's drawer, **B** closes it, **X** saves the fans, the screen mode (resolution and refresh rate), the frame rate limit, the image settings and gyro aiming for the game in the foreground (see [This game](#this-game)).
 
 | Shelf | Cards |
 |---|---|
-| **Cooling** | Fans, Frame rate limit |
+| **Cooling** | Fans |
 | **Controller** | Mode, Back buttons, Stick lighting, Gyro aiming |
-| **Screen and battery** | Screen (refresh rate), Charge limit |
+| **Image** | Resolution, Refresh rate, Frame rate limit, Upscaling, Frame generation |
+| **Battery** | Charge limit |
 
 **Fans**
 
@@ -493,7 +494,7 @@ A ruler: None, 30, 40, 45, 60, 90 or 120. The AMD graphics driver holds every ga
 
 #### This game
 
-The top of the page names the game in the foreground. **X**, drawer open or not, saves the current fan curves, frame rate limit and screen refresh rate in that game's profile (nothing happens without a game in the foreground):
+The top of the page names the game in the foreground. **X**, drawer open or not, saves the current fan curves, screen resolution and refresh rate, frame rate limit and image settings in that game's profile (nothing happens without a game in the foreground):
 
 - The other settings of the profile (auto TDP, learned watts) are kept. Without a profile, one is created with the current auto TDP settings.
 - **Automatic** is saved too: that game will then run on the firmware's curves even if a preset is in use the rest of the time.
@@ -521,16 +522,28 @@ Three tiles: 60, 80 and 100 %. The battery stops charging at that level, even pl
 > [!NOTE]
 > Not tried on the Ally yet: the firmware write (`set_battery_charge_limit`) has only been tested with the simulator.
 
-**Screen**
+**Image**
 
-One tile per refresh rate the built-in screen offers at its current resolution (60 and 120 Hz on the ROG Ally); A applies the focused one. A lower rate saves battery in games capped at 30, 40 or 60 FPS. The choice is applied at once. Without a game in the foreground it becomes the general rate, remembered like a change made in Windows settings. With a game in the foreground it only lasts for that session: **X** keeps it in the game's profile, and the screen goes back to the general rate when the game closes.
+A shelf that gathers what shapes a game's picture: resolution, refresh rate, the frame rate limit (described above), upscaling and frame generation. All of it is saved with **X** in the game's profile.
+
+*Resolution.* One tile per resolution the built-in screen offers with the **same aspect ratio** as the panel (16:9 on the ROG Ally: 1920×1080, 1600×900, 1280×720…); A applies the focused one. It can only be changed **while a game is running** (the card is greyed out otherwise): the choice only lasts for that session, **X** keeps it in the game's profile, and the screen goes back to the previous resolution when the game closes. As with the refresh rate, Canapé only switches when the profile changes, and puts the refresh rate back if Windows changed it along with the resolution.
+
+> [!NOTE]
+> Changing the resolution while Canapé is on screen redraws Canapé at the new size.
+
+*Refresh rate.* One tile per refresh rate the built-in screen offers at its current resolution (60 and 120 Hz on the ROG Ally); A applies the focused one. A lower rate saves battery in games capped at 30, 40 or 60 FPS. The choice is applied at once. Without a game in the foreground it becomes the general rate, remembered like a change made in Windows settings. With a game in the foreground it only lasts for that session: **X** keeps it in the game's profile, and the screen goes back to the general rate when the game closes.
 
 - A game profile can hold its own rate (**X** on this page): it applies when the game comes to the foreground; when the game leaves, the screen goes back to the rate picked here, or to the one the profile replaced.
 - Canapé only switches when the profile changes: a rate picked in Windows settings meanwhile is left alone.
-- Only the built-in screen is touched, never a TV or monitor plugged in. Without a built-in screen (or off Windows) the Screen card is greyed out.
+- Only the built-in screen is touched, never a TV or monitor plugged in. Without a built-in screen (or off Windows) the Resolution and Refresh rate cards are greyed out.
+
+*Upscaling.* Three choices: None, AMD (RSR) or Lossless Scaling, with a sharpness from 0 to 100 %. *Frame generation.* None, AMD (AFMF) or Lossless Scaling; with Lossless Scaling, a multiplier of ×2, ×3 or ×4, or "Adaptive" with a target frame rate. The **Lossless Scaling** choice only appears when the application is installed (Steam, app 993090).
+
+> [!WARNING]
+> **Not applied yet.** Upscaling and frame generation are only **stored** in the game's profile: nothing switches them on yet, the drawers say "Not applied yet", and the service writes `image: upscaling … not applied yet` to its log when the profile applies.
 
 > [!NOTE]
-> Not tried on the Ally yet (`ChangeDisplaySettingsEx` on the internal display, from the shell).
+> Not tried on the Ally yet: `ChangeDisplaySettingsEx` on the internal display (refresh rate and resolution, from the shell), the resolution filtering from `EnumDisplaySettings`, and the Lossless Scaling detection.
 
 #### Gyro aiming
 
@@ -620,7 +633,7 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 
 <img src="images/en/profiles.png" alt="Game profiles sub-page" width="720">
 
-Opened from the **Game profiles** card, on the Performance or the Settings page; **B** goes back. A profile ties an executable (for example `eldenring.exe`) to auto TDP settings and, if you saved them from the [Hardware](#hardware) page, to fan curves, a frame rate limit and a screen refresh rate. When that program comes to the foreground the service applies the profile; when it leaves, the global settings come back.
+Opened from the **Game profiles** card, on the Performance or the Settings page; **B** goes back. A profile ties an executable (for example `eldenring.exe`) to auto TDP settings and, if you saved them from the [Hardware](#hardware) page, to fan curves, a frame rate limit, a screen resolution and refresh rate, upscaling and frame generation. When that program comes to the foreground the service applies the profile; when it leaves, the global settings come back.
 
 - **First line**: "Save a profile for <game>" (or "Update the profile of <game>"); **A** saves the current auto TDP settings (target, power, maximum on battery, temperature limit). Greyed out while no game is in the foreground.
   - With auto TDP on, the current power is saved too as **learned watts**: the game's next session starts right there.

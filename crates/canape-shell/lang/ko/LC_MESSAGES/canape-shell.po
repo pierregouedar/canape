@@ -770,9 +770,6 @@ msgstr "패들 누름"
 msgid "Paddle toggles"
 msgstr "패들로 전환"
 
-msgid "Screen and battery"
-msgstr "화면 및 배터리"
-
 msgid "API key"
 msgstr "API 키"
 
@@ -1188,3 +1185,36 @@ msgstr "A를 다시 누르세요"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Microsoft Store에서 다시 설치할 수 있습니다."
+
+msgid "Image"
+msgstr "화면 품질"
+
+msgid "Battery"
+msgstr "배터리"
+
+msgid "Resolution"
+msgstr "해상도"
+
+msgid "Refresh rate"
+msgstr "주사율"
+
+msgid "Upscaling"
+msgstr "업스케일링"
+
+msgid "Frame generation"
+msgstr "프레임 생성"
+
+msgid "Not applied yet"
+msgstr "아직 적용되지 않음"
+
+msgid "Method"
+msgstr "방식"
+
+msgid "Sharpness"
+msgstr "선명도"
+
+msgid "Multiplier"
+msgstr "배수"
+
+msgid "Adaptive"
+msgstr "적응형"

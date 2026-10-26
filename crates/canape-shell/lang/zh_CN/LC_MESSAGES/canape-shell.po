@@ -770,9 +770,6 @@ msgstr "按住背键"
 msgid "Paddle toggles"
 msgstr "背键切换"
 
-msgid "Screen and battery"
-msgstr "屏幕与电池"
-
 msgid "API key"
 msgstr "API 密钥"
 
@@ -1188,3 +1185,36 @@ msgstr "再按一次 A"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "可以从 Microsoft Store 重新安装。"
+
+msgid "Image"
+msgstr "画面"
+
+msgid "Battery"
+msgstr "电池"
+
+msgid "Resolution"
+msgstr "分辨率"
+
+msgid "Refresh rate"
+msgstr "刷新率"
+
+msgid "Upscaling"
+msgstr "超分辨率"
+
+msgid "Frame generation"
+msgstr "帧生成"
+
+msgid "Not applied yet"
+msgstr "尚未生效"
+
+msgid "Method"
+msgstr "方式"
+
+msgid "Sharpness"
+msgstr "锐度"
+
+msgid "Multiplier"
+msgstr "倍数"
+
+msgid "Adaptive"
+msgstr "自适应"

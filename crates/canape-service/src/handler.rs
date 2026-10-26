@@ -720,6 +720,9 @@ impl Handler {
                 if self.bench.is_none() {
                     let _ = self.set_auto_tdp(profile.auto_tdp, profile.learned_watts);
                 }
+                for line in profile.unapplied_image() {
+                    crate::log(&line);
+                }
                 // What the profile leaves unset follows the global state.
                 let global = self.before_profile.as_ref().expect("set above");
                 let curves = profile

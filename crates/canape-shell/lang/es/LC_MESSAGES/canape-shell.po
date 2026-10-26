@@ -770,9 +770,6 @@ msgstr "Paleta pulsada"
 msgid "Paddle toggles"
 msgstr "Paleta alterna"
 
-msgid "Screen and battery"
-msgstr "Pantalla y batería"
-
 msgid "API key"
 msgstr "Clave API"
 
@@ -1191,3 +1188,36 @@ msgstr "Pulsa A otra vez"
 
 msgid "Can be installed again from the Microsoft Store."
 msgstr "Se puede reinstalar desde Microsoft Store."
+
+msgid "Image"
+msgstr "Imagen"
+
+msgid "Battery"
+msgstr "Batería"
+
+msgid "Resolution"
+msgstr "Resolución"
+
+msgid "Refresh rate"
+msgstr "Frecuencia de actualización"
+
+msgid "Upscaling"
+msgstr "Escalado"
+
+msgid "Frame generation"
+msgstr "Generación de fotogramas"
+
+msgid "Not applied yet"
+msgstr "Aún no se aplica"
+
+msgid "Method"
+msgstr "Método"
+
+msgid "Sharpness"
+msgstr "Nitidez"
+
+msgid "Multiplier"
+msgstr "Multiplicador"
+
+msgid "Adaptive"
+msgstr "Adaptativo"
