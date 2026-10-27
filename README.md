@@ -105,7 +105,15 @@ Les builds Windows de la CI sont disponibles dans les artefacts du workflow. Le 
 - [Guide d'utilisation](docs/user-guide.fr.md) · [Auto TDP et banc d'essai](docs/auto-tdp.fr.md) · [Guide du développeur](docs/developer-guide.fr.md)
 - [Index complet et rapports d'essai](docs/README.md)
 
-Canapé est un projet non officiel, développé avec l'aide d'outils d'IA sous la direction et avec les essais matériels de son propriétaire. Legendary et gogdl sont téléchargés à la demande pour les jeux Epic et GOG ; les durées de jeu viennent de l'API d'[IGDB.com](https://www.igdb.com/) avec vos identifiants Twitch.
+### Usage de l'IA
+
+Canapé est développé avec l'aide d'assistants de programmation, sous la direction de son propriétaire. Le projet sert à la fois à créer un logiciel utilisable sur la ROG Ally et à éprouver l'IA sur un projet complet, avec un système imposé, du matériel réel et des contraintes de légèreté.
+
+- **Direction** : le propriétaire définit l'architecture, les règles du dépôt, l'expérience à construire et les priorités. L'interface doit notamment se piloter à la manette ; le service Windows est séparé de l'interface et seul à accéder aux opérations privilégiées.
+- **Contribution** : l'assistant écrit et fait évoluer le code, les tests et la documentation à partir des demandes et retours du propriétaire.
+- **Validation** : le propriétaire arbitre les choix techniques et vérifie le comportement sur l'Ally. La compilation et les tests automatisés aident à vérifier le code, mais ne remplacent pas ces essais ; les fonctions non validées sur la console sont signalées dans la documentation.
+
+Canapé est un projet non officiel, sans affiliation avec les fabricants ou les boutiques. Legendary et gogdl sont téléchargés à la demande pour les jeux Epic et GOG ; les durées de jeu viennent de l'API d'[IGDB.com](https://www.igdb.com/) avec vos identifiants Twitch.
 
 ---
 
@@ -203,4 +211,12 @@ Windows CI builds are available as workflow artifacts. The [developer guide](doc
 - [User guide](docs/user-guide.en.md) · [Auto TDP and bench](docs/auto-tdp.en.md) · [Developer guide](docs/developer-guide.en.md)
 - [Full index and test reports](docs/README.md)
 
-Canapé is an unofficial project, developed with AI tools under its owner's direction and with hardware testing by the owner. Legendary and gogdl are downloaded on demand for Epic and GOG games; game times use the [IGDB.com](https://www.igdb.com/) API with your Twitch credentials.
+### Use of AI
+
+Canapé is developed with the help of coding assistants, under its owner's direction. The project aims both to build software for the ROG Ally and to put AI to the test on a complete project, with a fixed platform, real hardware and strict size constraints.
+
+- **Direction**: the owner sets the architecture, repository rules, user experience and priorities. The interface is designed for a gamepad; the Windows service is separate from the interface and is the only part that handles privileged operations.
+- **Contribution**: the assistant writes and revises code, tests and documentation in response to the owner's requests and feedback.
+- **Validation**: the owner makes technical decisions and checks behaviour on the Ally. Builds and automated tests help verify the code, but do not replace hardware testing; features not validated on the console are marked in the documentation.
+
+Canapé is an unofficial project, not affiliated with the manufacturers or stores. Legendary and gogdl are downloaded on demand for Epic and GOG. Game times use the [IGDB.com](https://www.igdb.com/) API with your Twitch credentials.
