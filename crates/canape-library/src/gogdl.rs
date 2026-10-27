@@ -602,7 +602,7 @@ mod tests {
 
     #[test]
     fn installs_are_recorded() {
-        let dir = std::env::temp_dir().join(format!("canape-gog-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("canape-gogdl-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         let record = dir.join("installed.json");
         let game = dir.join("Games").join("UT");

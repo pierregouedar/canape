@@ -1287,3 +1287,22 @@ msgstr "Vloeiend gebruikt ongeveer 300 MB meer geheugen, ook tijdens games. Cana
 
 msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
 msgstr "Vloeiend gebruikt ongeveer 300 MB meer geheugen, ook tijdens games. Canapé start opnieuw."
+
+
+msgid "Restore my changes"
+msgstr "Mijn wijzigingen herstellen"
+
+msgid "Removed apps are not reinstalled."
+msgstr "Verwijderde apps worden niet opnieuw geïnstalleerd."
+
+
+msgid "Recommended"
+msgstr "Aanbevolen"
+
+
+msgid "Restore"
+msgstr "Herstellen"
+
+
+msgid "Applications"
+msgstr "Apps"

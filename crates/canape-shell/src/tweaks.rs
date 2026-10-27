@@ -39,6 +39,14 @@ fn with_state<R>(f: impl FnOnce(&mut State) -> R) -> R {
 
 const RECOMMENDED: &str = "recommended";
 
+fn owned(tweaks: &[TweakState]) -> Vec<TweakId> {
+    tweaks
+        .iter()
+        .filter(|t| t.by_canape)
+        .map(|t| t.id)
+        .collect()
+}
+
 fn group_name(group: TweakGroup) -> &'static str {
     match group {
         TweakGroup::Clutter => "clutter",
@@ -135,23 +143,82 @@ fn rows(
 
 /// Redraws the page from the state.
 fn refresh(ui: &Weak<AppWindow>) {
-    let (rows, busy, error) = with_state(|s| {
+    let (rows, busy, error, groups, recommended, owned_rows, apps) = with_state(|s| {
         let rows = rows(s.tweaks.as_deref(), &s.apps, &s.removed);
-        let busy = s
-            .busy
-            .as_ref()
-            .and_then(|key| {
+        let busy = s.busy.as_ref().map_or(-1, |key| {
+            if key == "restore" {
+                0
+            } else {
                 rows.iter()
                     .position(|r| r.kind != 0 && r.id == key.as_str())
+                    .map_or(-1, |i| i as i32)
+            }
+        });
+        let groups: Vec<Vec<TweakRow>> = TweakGroup::ALL
+            .iter()
+            .map(|group| {
+                let ids: Vec<String> = s
+                    .tweaks
+                    .as_deref()
+                    .unwrap_or_default()
+                    .iter()
+                    .filter(|t| t.id.info().group == *group)
+                    .map(|t| t.id.name())
+                    .collect();
+                rows.iter()
+                    .filter(|r| r.kind == 2 && ids.iter().any(|id| id == r.id.as_str()))
+                    .cloned()
+                    .collect()
             })
-            .map_or(-1, |i| i as i32);
-        (rows, busy, s.error.clone())
+            .collect();
+        let left = s
+            .tweaks
+            .as_deref()
+            .map(recommended_left)
+            .unwrap_or_default();
+        let recommended: Vec<TweakRow> = rows
+            .iter()
+            .filter(|r| r.kind == 2 && left.iter().any(|id| id.name() == r.id.as_str()))
+            .cloned()
+            .collect();
+        let owned_ids = s.tweaks.as_deref().map(owned).unwrap_or_default();
+        let owned_rows: Vec<TweakRow> = rows
+            .iter()
+            .filter(|r| r.kind == 2 && owned_ids.iter().any(|id| id.name() == r.id.as_str()))
+            .cloned()
+            .collect();
+        let apps = rows
+            .iter()
+            .filter(|r| r.kind == 3)
+            .cloned()
+            .collect::<Vec<_>>();
+        (
+            rows,
+            busy,
+            s.error.clone(),
+            groups,
+            recommended,
+            owned_rows,
+            apps,
+        )
     });
     let _ = ui.upgrade_in_event_loop(move |ui| {
         let tweaks = ui.global::<Tweaks>();
         tweaks.set_rows(ModelRc::new(VecModel::from(rows)));
         tweaks.set_busy(busy);
         tweaks.set_error(error.into());
+        tweaks.set_clutter(ModelRc::new(VecModel::from(groups[0].clone())));
+        tweaks.set_privacy(ModelRc::new(VecModel::from(groups[1].clone())));
+        tweaks.set_games(ModelRc::new(VecModel::from(groups[2].clone())));
+        tweaks.set_security(ModelRc::new(VecModel::from(groups[3].clone())));
+        tweaks.set_recommended_exclusions(
+            recommended
+                .iter()
+                .any(|row| row.id == "defender_exclusions"),
+        );
+        tweaks.set_recommended(ModelRc::new(VecModel::from(recommended)));
+        tweaks.set_owned(ModelRc::new(VecModel::from(owned_rows)));
+        tweaks.set_apps(ModelRc::new(VecModel::from(apps)));
     });
 }
 
@@ -234,6 +301,9 @@ pub fn connect(ui: &AppWindow, link: &Link) {
         let (ui, link) = (ui.as_weak(), link.clone());
         move || {
             let left = with_state(|s| {
+                if s.busy.is_some() {
+                    return Vec::new();
+                }
                 let left = s
                     .tweaks
                     .as_deref()
@@ -247,6 +317,25 @@ pub fn connect(ui: &AppWindow, link: &Link) {
             refresh(&ui);
             for id in left {
                 link.send(Request::SetTweak { id, on: true });
+            }
+        }
+    });
+    tweaks.on_revert_owned({
+        let (ui, link) = (ui.as_weak(), link.clone());
+        move || {
+            let ids = with_state(|s| {
+                if s.busy.is_some() {
+                    return Vec::new();
+                }
+                let ids = s.tweaks.as_deref().map(owned).unwrap_or_default();
+                if !ids.is_empty() {
+                    s.busy = Some("restore".into());
+                }
+                ids
+            });
+            refresh(&ui);
+            for id in ids {
+                link.send(Request::SetTweak { id, on: false });
             }
         }
     });
@@ -435,6 +524,14 @@ mod tests {
         let rows = rows(None, &[(&REMOVABLE_APPS[0], true)], &[]);
         assert_eq!(rows.iter().map(|r| r.kind).collect::<Vec<_>>(), [1, 0, 3]);
         assert!(!rows[0].applied);
+    }
+
+    #[test]
+    fn restore_only_includes_settings_changed_by_canape() {
+        let mut external = state(TweakId::GameModeOn, true);
+        external.by_canape = false;
+        let changed = state(TweakId::CopilotOff, true);
+        assert_eq!(owned(&[external, changed]), [TweakId::CopilotOff]);
     }
 
     #[test]

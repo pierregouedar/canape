@@ -697,13 +697,13 @@ Sur une recommandation, **A** règle le TDP (limite manuelle à cette valeur, au
 
 <img src="images/fr/tweaks.png" alt="Sous-page Optimisations Windows" width="720">
 
-Ouverte depuis **Réglages → Optimisations Windows** ; **B** y revient. Une liste de réglages de Windows 11 utiles sur une console portable, groupés par thème. Haut et bas changent de ligne, **A** active ou rétablit le réglage. La valeur à droite est l'état de la fonction de Windows (« Copilot : Désactivé », « Mode Jeu : Activé ») ; l'écran se met à jour après chaque changement.
+Ouverte depuis **Réglages → Optimisations Windows** ; **B** y revient. Haut et bas changent d'étagère, gauche et droite choisissent une tuile, **A** ouvre son tiroir et **B** le ferme. Les tuiles indiquent l'état de la fonction Windows (« Copilot : Désactivé », « Mode Jeu : Activé »). Les applications préinstallées s'ouvrent dans une liste séparée.
 
 > [!WARNING]
 > **Pas encore essayé sur l'Ally.** Tout a été testé avec le simulateur seulement. Les réglages touchent Windows lui-même : essayez-les d'abord un par un.
 
 - **Appliquer les réglages recommandés** : applique d'un coup ceux marqués « oui » dans la colonne *Recommandé* ci-dessous (jamais la protection en temps réel, l'intégrité de la mémoire ni les applis en arrière-plan). Un second **A** confirme, car l'ensemble comprend les exclusions Defender.
-- Les lignes qui baissent la protection de l'appareil, et le retrait d'une application, demandent **un second A** : la valeur devient « Appuyez encore sur A » et la conséquence s'affiche en jaune ; changer de ligne annule.
+- Les réglages qui baissent la protection et le retrait d'une application demandent **un second A** ; changer de choix annule la confirmation. **Rétablir mes changements** liste puis rétablit uniquement les optimisations appliquées par Canapé ; les applications supprimées restent à réinstaller séparément.
 - **Tout est réversible** : Canapé note ce que chaque valeur valait avant de la changer (dans `%ProgramData%\Canape\state.json`) et la remet telle quelle quand vous rétablissez le réglage. Un réglage déjà en place avant Canapé s'affiche comme appliqué ; le rétablir remet la valeur par défaut de Windows.
 - Les réglages par utilisateur s'appliquent au compte connecté à l'écran.
 

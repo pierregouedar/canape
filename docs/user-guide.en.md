@@ -698,13 +698,13 @@ On a recommendation, **A** sets the TDP (manual limit at that value, auto TDP of
 
 <img src="images/en/tweaks.png" alt="Windows tweaks sub-page" width="720">
 
-Opened from **Settings → Windows tweaks**; **B** goes back. A list of Windows 11 settings that help on a handheld, grouped by theme. Up and down change line, **A** applies the tweak or reverts it. The value on the right is the state of the Windows feature ("Copilot: Off", "Game Mode: On"); the page refreshes after every change.
+Opened from **Settings → Windows tweaks**; **B** goes back. Up and down change shelf, left and right select a card, **A** opens its drawer and **B** closes it. Cards show the state of the Windows feature ("Copilot: Off", "Game Mode: On"). Preinstalled apps open in a separate list.
 
 > [!WARNING]
 > **Not yet tried on the Ally.** Everything was tested with the simulator only. These settings change Windows itself: try them one at a time first.
 
 - **Apply the recommended settings** applies at once those marked "yes" in the *Recommended* column below (never real-time protection, memory integrity or background apps). A second **A** confirms, since the set includes the Defender exclusions.
-- Lines that lower the device's protection, and removing an app, ask for **a second A**: the value becomes "Press A again" and the consequence turns yellow; moving to another line cancels.
+- Changes that lower protection and app removal ask for **a second A**; changing the selection cancels. **Restore my changes** lists and restores only tweaks applied by Canapé; removed apps must be reinstalled separately.
 - **Everything is reversible**: Canapé records what each value held before changing it (in `%ProgramData%\Canape\state.json`) and puts it back as it was when you revert the tweak. A tweak already in place before Canapé shows as applied; reverting it restores the Windows default.
 - Per-user settings apply to the account signed in on the screen.
 

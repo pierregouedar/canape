@@ -1287,3 +1287,22 @@ msgstr "Fluido usa circa 300 MB di memoria in più, anche durante i giochi. Cana
 
 msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
 msgstr "Fluido usa circa 300 MB di memoria in più, anche durante i giochi. Canapé si riavvia."
+
+
+msgid "Restore my changes"
+msgstr "Ripristina le mie modifiche"
+
+msgid "Removed apps are not reinstalled."
+msgstr "Le app rimosse non vengono reinstallate."
+
+
+msgid "Recommended"
+msgstr "Consigliati"
+
+
+msgid "Restore"
+msgstr "Ripristina"
+
+
+msgid "Applications"
+msgstr "Applicazioni"

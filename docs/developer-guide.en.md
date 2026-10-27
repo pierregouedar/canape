@@ -354,7 +354,7 @@ Not tried on the Ally yet. The shell draws with Slint's software renderer (see `
 
 ### Windows tweaks
 
-Sub-page 8 (`ui/tweaks.slint`, `canape-shell/src/tweaks.rs`), opened from Settings. **Not yet tried on the Ally**: tested with the simulator only.
+Sub-page 8 (`ui/tweaks.slint`, `canape-shell/src/tweaks.rs`), opened from Settings. **Not yet tried on the Ally**: tested with the simulator only. Tweaks are grouped into shelves with drawers and a separate app list. Bulk restore sends `set_tweak` only for settings whose `by_canape` is true; it does not touch processor settings or removed apps.
 
 **Security model.** No client ever sends a key, a path or a command. The shell names a tweak (`TweakId`, an enum: an unknown name fails to decode and the connection closes), the service holds the fixed catalogue (`canape-service/src/tweaks/mod.rs`, `CATALOGUE`) and does the writing. The only exception is removing preinstalled apps: packages belong to the signed-in user, so the shell removes them itself, at medium integrity, from the fixed list `canape_core::tweaks::REMOVABLE_APPS` (never a package of `PROTECTED_PACKAGES`: Xbox apps, Game Bar and its dependencies, Gaming Services, Store, Edge, WebView2, Windows Security, runtimes, Canapé).
 

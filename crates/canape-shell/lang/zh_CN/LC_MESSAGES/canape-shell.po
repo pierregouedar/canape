@@ -1284,3 +1284,22 @@ msgstr "流畅模式约多占用 300 MB 内存，游戏时也一样。导览结�
 
 msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
 msgstr "流畅模式约多占用 300 MB 内存，游戏时也一样。Canapé 会重启。"
+
+
+msgid "Restore my changes"
+msgstr "还原我的更改"
+
+msgid "Removed apps are not reinstalled."
+msgstr "已删除的应用不会重新安装。"
+
+
+msgid "Recommended"
+msgstr "推荐设置"
+
+
+msgid "Restore"
+msgstr "还原"
+
+
+msgid "Applications"
+msgstr "应用"

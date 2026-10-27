@@ -1284,3 +1284,22 @@ msgstr "부드럽게는 게임 중에도 메모리를 약 300 MB 더 사용합�
 
 msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
 msgstr "부드럽게는 게임 중에도 메모리를 약 300 MB 더 사용합니다. Canapé가 다시 시작됩니다."
+
+
+msgid "Restore my changes"
+msgstr "내 변경 사항 되돌리기"
+
+msgid "Removed apps are not reinstalled."
+msgstr "제거한 앱은 다시 설치되지 않습니다."
+
+
+msgid "Recommended"
+msgstr "권장 설정"
+
+
+msgid "Restore"
+msgstr "복원"
+
+
+msgid "Applications"
+msgstr "앱"

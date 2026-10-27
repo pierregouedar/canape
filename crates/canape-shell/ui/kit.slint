@@ -719,6 +719,7 @@ export global Shelves {
 // in the accent colour.
 export component ShelfCard inherits Rectangle {
     in property <string> label;
+    in property <bool> wrap-label: false;
     in property <string> value;
     in property <string> icon;
     // A store's logo instead of the icon ("Steam", "Epic", "GOG").
@@ -749,9 +750,11 @@ export component ShelfCard inherits Rectangle {
             x: 16px;
             y: 14px;
             width: parent.width - 32px - 24px;
+            height: root.wrap-label ? 38px : 18px;
             text: root.label;
             color: Theme.dim;
             font-size: 13px;
+            wrap: root.wrap-label ? word-wrap : no-wrap;
             overflow: elide;
         }
 

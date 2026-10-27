@@ -5,262 +5,102 @@
 **Un accueil léger, façon console, pour la ROG Ally.**<br>
 **A light, console-style home for the ROG Ally.**
 
-[🇫🇷 Français](#français) · [🇬🇧 English](#english) · [📚 Documentation](docs/README.md)
+[Français](#français) · [English](#english) · [Documentation](docs/README.md)
 
-<img src="docs/images/fr/home.png" alt="Écran d'accueil de Canapé" width="720">
+<img src="docs/images/fr/library.png" alt="Bibliothèque de jeux Canapé" width="800">
 
 </div>
 
----
-
 ## Français
 
-Canapé est une app d'accueil écrite en Rust pour la ROG Ally. Elle démarre dans l'**expérience plein écran (FSE)** de Windows à la place de l'accueil Xbox, se pilote entièrement à la manette, règle le matériel de la console à travers un **service Windows privilégié** et ajuste le **TDP automatiquement** pour tenir un objectif d'images par seconde avec le moins de watts possible.
+Canapé remplace l'accueil Xbox dans l'expérience plein écran de Windows. Sa bibliothèque réunit vos jeux et son interface se pilote à la manette. Un service Windows séparé gère le matériel et ajuste la puissance selon votre objectif de FPS.
 
-Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué, pas de runtime async, rendu logiciel. Mesuré sur l'Ally en release : 1,4 Mo de mémoire privée pour le service, 11 Mo pour l'interface.
+### Vos jeux, votre console
 
-> [!NOTE]
-> Canapé est un projet personnel en développement. Il s'installe en **mode développeur** avec un certificat auto-signé ; il n'existe pas d'installateur grand public. Voir l'[état d'avancement](#état-davancement).
+- **Bibliothèque** : jeux Steam, Epic, GOG et Xbox au même endroit, avec jaquettes et lancement à la manette. Les jeux Steam, Epic et GOG possédés peuvent aussi être installés depuis Canapé.
+- **Performance** : modes ASUS, TDP manuel ou automatique, limite de FPS, ventilateurs et profils par jeu. Un banc d'essai compare plusieurs limites de puissance.
+- **En jeu** : le widget Xbox Game Bar donne accès aux réglages et aux mesures sans quitter la partie.
+- **À votre main** : réglages de la manette, gyroscope, éclairage, couleur d'accent et interface en 13 langues.
 
-### Fonctionnalités
-
-| | |
+| Performance | Matériel |
 |---|---|
-| 🎮 **Accueil du FSE** | Choisi dans Paramètres → Jeux → Expérience plein écran ; lancé par Windows au démarrage. Une seule instance, plein écran immédiat. |
-| 🕹️ **100 % manette** | LB / RB pour changer de page, croix ou stick pour se déplacer, A pour valider, B pour revenir à la bibliothèque. |
-| 📚 **Bibliothèque de jeux** | Les jeux installés avec Steam, Epic Games, GOG et l'app Xbox, en jaquettes, les derniers joués en premier ; A pour lancer. Jaquettes manquantes téléchargées depuis Steam, ou SteamGridDB avec une clé gratuite. |
-| 📥 **Installer ses jeux** | Les jeux Steam, Epic et GOG possédés mais pas installés, dans le mode « À installer » de la bibliothèque, avec la progression sur la jaquette. Steam peut afficher sa fenêtre d'installation ; Epic et GOG utilisent Legendary et gogdl, téléchargés à la demande. |
-| ⚡ **Modes et TDP** | Modes firmware ASUS (Silencieux, Performance, Turbo) ou limite manuelle en watts (sPPT, SPL, fPPT écrits ensemble). |
-| 🤖 **Auto TDP** | Tient l'objectif FPS (30 à 120) avec le moins de watts possible : FPS et charge GPU lus dans le pilote AMD, plafond sur batterie, limite de température, anti-oscillation. |
-| 🌀 **Ventilateurs, limite de FPS, manette** | Préréglages de ventilateurs (Automatique, Équilibré, Maximum) avec un plancher de sécurité à chaud, limite de FPS du pilote AMD, mode de la manette (manette de jeu, clavier, souris), boutons arrière M1 et M2, couleur et effets des anneaux des sticks. |
-| 🎯 **Visée au gyroscope** | Tourner l'Ally déplace la souris pendant qu'un jeu est devant : en tenant une palette arrière, en bascule ou tout le temps, avec sensibilité, axe et inversion, par jeu si on veut. Sans pilote. Pas encore essayée sur l'Ally ([étude](docs/gyro-study.md)). |
-| 🎯 **Profils par jeu** | Le profil du jeu au premier plan s'applique tout seul, puis rend la main aux réglages généraux. Canapé retient les watts où l'auto TDP se stabilise ; un profil peut aussi garder ses ventilateurs et sa limite de FPS. |
-| 📊 **Banc d'essai** | Balaye plusieurs limites de puissance sur le jeu en cours et propose trois recommandations : meilleur compromis, puissance pour l'objectif, le plus efficace. |
-| 🪟 **Widget Xbox Game Bar** | Réglages rapides en jeu : mode, ±1 W, auto TDP et objectif, FPS, température, batterie, progression du banc d'essai. |
-| 📈 **Graphes en direct** | Consommation réelle de l'APU face à la limite de puissance, et activité GPU, sur la dernière minute. |
-| 🎨 **Couleur d'accent** | Sélecteur teinte / saturation / luminosité et préréglages ; le widget de la Game Bar suit la couleur d'accent. |
-| 🌍 **13 langues** | English, Français, Español, Deutsch, Italiano, Português, Nederlands, Polski, Русский, Türkçe, 日本語, 한국어, 简体中文. Langue de Windows par défaut, ou choix manuel. |
-| 💾 **Réglages persistants** | Le service réapplique au démarrage le dernier état (le firmware ne sait pas le relire). |
-| ⚠️ **Détection des conflits** | Avertit si un autre programme pilote aussi le matériel. |
+| <img src="docs/images/fr/performance.png" alt="Auto TDP et mesures de performance" width="400"> | <img src="docs/images/fr/hardware.png" alt="Réglages matériels" width="400"> |
 
-### Captures
+<sub>Captures réalisées avec le simulateur, à partir de valeurs fictives. [Voir les autres captures](docs/user-guide.fr.md).</sub>
 
-| Jeux : Steam, Epic, GOG et Xbox | Jeux : étagère À installer |
-|---|---|
-| <img src="docs/images/fr/library.png" alt="Jeux" width="400"> | <img src="docs/images/fr/library-install.png" alt="Jeux, étagère À installer" width="400"> |
-| **Performance : auto TDP et graphe** | **Matériel : ventilateurs, limite de FPS, manette, écran** |
-| <img src="docs/images/fr/performance.png" alt="Performance" width="400"> | <img src="docs/images/fr/hardware.png" alt="Matériel" width="400"> |
-| **Réglages : langue, boutons, jaquettes, Epic, couleur d'accent** | **Profils de jeu** |
-| <img src="docs/images/fr/settings.png" alt="Réglages" width="400"> | <img src="docs/images/fr/profiles.png" alt="Profils de jeu" width="400"> |
-| **Banc d'essai : résultats et recommandations** | **Banc d'essai en cours** |
-| <img src="docs/images/fr/bench-results.png" alt="Résultats du banc d'essai" width="400"> | <img src="docs/images/fr/bench-running.png" alt="Banc d'essai en cours" width="400"> |
-| **Accent sarcelle** | **Accent orange** |
-| <img src="docs/images/accent-teal.png" alt="Performance avec l'accent sarcelle" width="400"> | <img src="docs/images/accent-amber.png" alt="Performance avec l'accent orange" width="400"> |
+### Installer
 
-<sub>Captures du shell rendues sous Linux avec le simulateur matériel (valeurs fictives). D'autres captures dans le [guide d'utilisation](docs/user-guide.fr.md).</sub>
+Canapé est un **projet personnel en développement** : l'installation demande le mode développeur de Windows et un certificat auto-signé. Il n'y a pas encore d'installateur grand public.
 
-### Démarrage rapide
+1. Activez le **mode développeur** sur l'Ally.
+2. Dans un terminal **administrateur**, à la racine du dépôt :
 
-1. Activer le **mode développeur** de Windows sur l'Ally.
-2. Dans un Terminal **administrateur**, à la racine du dépôt :
    ```powershell
    powershell -ExecutionPolicy Bypass -File packaging\install-dev.ps1
    ```
-3. Choisir **Canapé** dans Paramètres → Jeux → Expérience plein écran, puis redémarrer.
 
-Tout le détail (binaires de la CI, widget, retour à l'accueil Xbox, dépannage) est dans le **[guide d'utilisation](docs/user-guide.fr.md)**.
+3. Choisissez **Canapé** dans Paramètres → Jeux → Expérience plein écran, puis redémarrez.
 
-### État d'avancement
+Le [guide d'utilisation](docs/user-guide.fr.md) couvre l'installation, le widget, le dépannage et la désinstallation.
 
-Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas encore essayé sur l'Ally · ⏳ à faire
+### État d’avancement
 
-| Étape | Contenu | État |
-|---|---|---|
-| M0 | Squelette du dépôt, protocole, algorithme d'auto TDP testé | ✅ |
-| M1 | `canape-shell.exe` démarre comme accueil du FSE ([rapport](docs/m1-report.md)) | ✅ |
-| M2 | Service Windows + named pipe, backend ATKACPI, shell Slint à la manette, instance unique ([rapport](docs/m2-report.md)) | ✅ |
-| M2.5 | État persistant, journal des écritures, détection des conflits, rendu logiciel, XInput direct, CI | ✅ ([rapport](docs/m4-report.md)) |
-| M3 | Widget Game Bar relié au service ([rapport](docs/m3-report.md)) | ✅ widget reconstruit et ouvert sur l'Ally à `8f3861d` ([rapport](docs/m5-report-2.md)) ; les changements ultérieurs restent à vérifier |
-| M4 | Auto TDP réel : FPS et charge GPU via AMD ADL ([rapport](docs/m4-report.md)) | ✅ jusqu'à `13ee476` · 🧪 optimisations suivantes |
-| M5 | Profils par jeu, banc d'essai, shell en 13 langues | ✅ profils, auto TDP et banc essayés sur l'Ally aux versions indiquées dans les [rapports](docs/m5-report-2.md) ; les changements ultérieurs restent à vérifier |
-| M6 | Bibliothèque, installation des jeux, ventilateurs, limite de FPS, manette, écran et boutons | ✅ bibliothèque Steam et Xbox, ventilateurs, manette et boutons essayés ; limite de FPS, fréquence par jeu et repli d'installation Steam essayés aux versions du [rapport](docs/m5-report-2.md) · 🧪 installation Steam sans fenêtre, Epic et GOG, boutons arrière M1 / M2 et éclairage des sticks à essayer ([étude](docs/game-install-study.md)) |
+Le démarrage FSE, le service, la bibliothèque Steam et Xbox, les profils, l'auto TDP, le banc et plusieurs réglages matériels ont été essayés sur une **ROG Ally RC71L**, aux versions indiquées dans les [rapports](docs/m5-report.md) et [essais détaillés](docs/m5-report-2.md). Les versions ultérieures et les autres modèles ne sont pas nécessairement validés.
 
-### Utilisation de l'IA
+L'installation Steam sans fenêtre, les installations Epic et GOG, la visée au gyroscope et plusieurs réglages récents restent à essayer sur l'Ally. Les choix de mise à l'échelle et de génération d'images sont enregistrés, mais pas encore appliqués. Consultez les [guides](docs/README.md) pour les limites de chaque fonction.
 
-Canapé est développé avec l'aide de Claude Code, l'assistant de programmation d'Anthropic, dans un cadre technique que je définis et que je fais respecter.
+### Sous le capot
 
-Le projet a deux buts : construire un logiciel réellement utilisable sur la ROG Ally, et mettre à l'épreuve les capacités d'une IA de programmation sur un projet complet, avec du matériel réel, un système imposé et des contraintes fortes de légèreté.
+Canapé privilégie la légèreté : Rust, interface Slint avec rendu logiciel par défaut, sans navigateur embarqué. L'interface fonctionne sans droits élevés ; seul le service accède aux réglages privilégiés. Une version release a été mesurée à **1,4 Mo** de mémoire privée pour le service et **11 Mo** pour l'interface ([mesures et version](docs/m4-report.md)).
 
-- **Le cadrage technique** : je fixe l'architecture et ses contraintes, à savoir :
-  - le service Windows, seul à avoir des droits élevés, séparé de l'interface lancée sans droits par le FSE ;
-  - Rust et Slint, avec le rendu logiciel ;
-  - les objectifs de légèreté (mémoire, processeur, dépendances minimales) ;
-  - le passage obligé par une seule interface pour toucher au matériel ;
-  - l'intégration au FSE ;
-  - les règles du dépôt (`CLAUDE.md`).
-
-  Je définis aussi l'expérience : une interface pensée pour la manette, sans texte décoratif, des réglages par jeu, et les priorités de la feuille de route.
-- **Le travail de l'IA** : dans ce cadre, elle écrit du code, des tests et de la documentation à partir de mes demandes, puis les fait évoluer selon mes retours et mes arbitrages.
-- **La validation** : je fais les essais sur une vraie ROG Ally, je décide de ce qui est gardé, corrigé ou abandonné, et je tranche les choix techniques quand plusieurs approches existent. C'est par exemple le cas du rendu logiciel, gardé après mesure plutôt que le rendu par la carte graphique.
-- **Deux environnements** : une session dans le cloud, sous Linux et sans matériel, écrit et vérifie le code ; une session sur l'Ally, sous Windows, le compile, l'installe et l'essaie sur la console, toujours avec mon accord pour ce qui touche au matériel ou au système.
-- **Garde-fous** : avant chaque envoi, le code passe le formatage, l'analyse statique de Rust (`clippy`), les tests et une compilation pour Windows. Toute valeur écrite dans le firmware est vérifiée contre une implémentation de référence pour le modèle concerné. Ce qui n'a pas été essayé sur l'Ally est signalé comme tel dans la documentation.
-
-### Avertissement
-
-Canapé est un projet personnel et non officiel. Il n'est ni affilié à ASUS, Microsoft, Valve, Epic Games ou GOG, ni approuvé par eux. ROG, ROG Ally, Windows, Xbox, Steam, Epic Games et GOG sont des marques de leurs propriétaires respectifs.
-
-- **Utilisation à vos risques** : Canapé règle le matériel de la console (puissance, ventilateurs, manette) et peut modifier des réglages de Windows. Il est fourni tel quel, sans garantie, sous licence MIT (voir [`LICENSE`](LICENSE)). Les fonctions marquées « pas encore essayé sur l'Ally » n'ont été testées qu'avec le simulateur.
-- **Boutiques** : l'installation des jeux Epic Games et GOG passe par des clients libres et non officiels (Legendary, gogdl). Leur usage relève des conditions de chaque boutique et de votre compte.
-- **Contenus tiers** : les jaquettes, bannières, succès et durées de jeu affichés viennent de Steam et d'IGDB ; ils appartiennent à leurs éditeurs et ne sont pas inclus dans ce dépôt. Canapé n'embarque aucune clé : les durées de jeu viennent de l'API d'IGDB.com, avec les identifiants Twitch que chaque utilisateur crée et utilise sous les conditions de Twitch.
-
-### Organisation du dépôt
-
-| Dossier | Contenu |
-|---|---|
-| [`crates/canape-core`](crates/canape-core) | Protocole IPC, réglages, profils, courbes de ventilateurs, banc d'essai (types partagés) |
-| [`crates/canape-autotdp`](crates/canape-autotdp) | Algorithme d'auto TDP, fonction pure testée sans matériel |
-| [`crates/canape-hw`](crates/canape-hw) | Trait `Device` : backend Ally (ATKACPI + ADL + HID de la manette) et simulateur |
-| [`crates/canape-ipc`](crates/canape-ipc) | Transport : named pipe sous Windows, socket Unix ailleurs |
-| [`crates/canape-service`](crates/canape-service) | Service privilégié : matériel, auto TDP, profils, banc d'essai, serveur IPC |
-| [`crates/canape-library`](crates/canape-library) | Bibliothèque de jeux : Steam, Epic, GOG, app Xbox, jaquettes, lancement, installation des jeux possédés |
-| [`crates/canape-shell`](crates/canape-shell) | App d'accueil du FSE (Slint, rendu logiciel) |
-| [`crates/canape-ctl`](crates/canape-ctl) | Client en ligne de commande du service |
-| [`widget/`](widget) | Widget Xbox Game Bar (C# UWP) |
-| [`packaging/`](packaging) | Paquet d'identité MSIX « sparse », scripts d'installation |
-| [`docs/`](docs/README.md) | Documentation, rapports d'étape, captures |
-
-### Documentation
-
-- 📖 [Guide d'utilisation](docs/user-guide.fr.md) : installer, utiliser, dépanner, désinstaller
-- 🤖 [Auto TDP et banc d'essai](docs/auto-tdp.fr.md) : fonctionnement détaillé et réglages
-- 🛠️ [Guide du développeur](docs/developer-guide.fr.md) : architecture, protocole, compilation, traductions
-- 📚 [Index de toute la documentation](docs/README.md)
+- [Guide du développeur](docs/developer-guide.fr.md) · [Auto TDP et banc d'essai](docs/auto-tdp.fr.md) · [Documentation complète](docs/README.md)
+- Projet développé avec l'aide d'outils d'IA, sous la direction et avec les essais matériels du propriétaire.
+- Projet non officiel, sans affiliation avec les fabricants ou les boutiques. Les outils Legendary et gogdl sont téléchargés à la demande pour Epic et GOG. Les durées de jeu viennent de l’API d’[IGDB.com](https://www.igdb.com/) avec vos identifiants Twitch. Licence [MIT](LICENSE).
 
 ---
 
 ## English
 
-Canapé is a Rust home app for the ROG Ally. It boots in Windows' **full-screen experience (FSE)** in place of the Xbox home, is driven entirely with the gamepad, controls the handheld's hardware through a **privileged Windows service**, and **adjusts the TDP automatically** to hold a frame-rate target with as few watts as possible.
+Canapé replaces the Xbox home in the Windows full-screen experience. Its gamepad-friendly library brings your games together, while a separate Windows service controls the hardware and adjusts power to meet your FPS target.
 
-Goal number one: **stay as light as possible.** No embedded browser, no async runtime, software rendering. Measured on the Ally in release: 1.4 MB of private memory for the service, 11 MB for the UI.
+### Your games, your handheld
 
-> [!NOTE]
-> Canapé is a personal project under development. It installs in **Developer Mode** with a self-signed certificate; there is no consumer installer. See the [project status](#project-status).
+- **Library**: Steam, Epic, GOG and Xbox games in one place, with covers and gamepad launch. Owned Steam, Epic and GOG games can also be installed from Canapé.
+- **Performance**: ASUS modes, manual or automatic TDP, frame-rate limit, fans and per-game profiles. A bench compares power limits.
+- **In game**: the Xbox Game Bar widget puts settings and readings within reach without leaving the game.
+- **Make it yours**: controller settings, gyro aiming, lighting, accent colour and an interface in 13 languages.
 
-### Features
-
-| | |
+| Performance | Hardware |
 |---|---|
-| 🎮 **FSE home app** | Picked in Settings → Gaming → Full screen experience; launched by Windows at boot. Single instance, full screen right away. |
-| 🕹️ **Gamepad first** | LB / RB to change page, D-pad or stick to move, A to select, B to go back to the library. |
-| 📚 **Game library** | The games installed with Steam, Epic Games, GOG and the Xbox app, as covers, most recently played first; A to launch. Missing covers downloaded from Steam, or SteamGridDB with a free key. |
-| 📥 **Installing games** | Owned Steam, Epic and GOG games in the library's "To install" mode, with progress on the cover. Steam may show its install window; Epic and GOG use Legendary and gogdl, downloaded on demand. |
-| ⚡ **Modes and TDP** | ASUS firmware modes (Silent, Performance, Turbo) or a manual limit in watts (sPPT, SPL and fPPT written together). |
-| 🤖 **Auto TDP** | Holds the FPS target (30 to 120) with the fewest watts: frame rate and GPU load read from the AMD driver, battery ceiling, temperature limit, anti-oscillation. |
-| 🌀 **Fans, frame rate limit, controller** | Fan presets (Automatic, Balanced, Maximum) with a safety floor when hot, AMD driver frame rate limit, controller mode (gamepad, keyboard, mouse), M1 and M2 back buttons, stick ring colour and effects. |
-| 🎯 **Gyro aiming** | Turning the Ally moves the mouse while a game is in front: while holding a back paddle, toggled or all the time, with sensitivity, axis and inversion, per game if you like. No driver. Not tried on the Ally yet ([study](docs/gyro-study.md), French). |
-| 🎯 **Per-game profiles** | The profile of the game in front applies by itself, then hands back to the global settings. Canapé remembers the wattage auto TDP settles on; a profile can also keep its fans and frame rate limit. |
-| 📊 **Bench** | Sweeps several power limits on the running game and gives three recommendations: sweet spot, power for the target, most efficient. |
-| 🪟 **Xbox Game Bar widget** | Quick in-game settings: mode, ±1 W, auto TDP and target, FPS, temperature, battery, bench progress. |
-| 📈 **Live graphs** | Actual APU power draw against the power limit, and GPU activity, over the last minute. |
-| 🎨 **Accent colour** | Hue / saturation / brightness picker and presets; the widget follows the accent colour. |
-| 🌍 **13 languages** | English, Français, Español, Deutsch, Italiano, Português, Nederlands, Polski, Русский, Türkçe, 日本語, 한국어, 简体中文. Windows language by default, or a manual choice. |
-| 💾 **Persistent settings** | The service re-applies the last state at startup (the firmware cannot report it back). |
-| ⚠️ **Conflict detection** | Warns when another program also drives the hardware. |
+| <img src="docs/images/en/performance.png" alt="Auto TDP and performance readings" width="400"> | <img src="docs/images/en/hardware.png" alt="Hardware settings" width="400"> |
 
-### Screenshots
+<sub>Screenshots use the hardware simulator and made-up values. [More screenshots](docs/user-guide.en.md).</sub>
 
-| Games: Steam, Epic, GOG and Xbox | Games: To install shelf |
-|---|---|
-| <img src="docs/images/en/library.png" alt="Games" width="400"> | <img src="docs/images/en/library-install.png" alt="Games, To install shelf" width="400"> |
-| **Performance: auto TDP and graph** | **Hardware: fans, frame rate limit, controller, screen** |
-| <img src="docs/images/en/performance.png" alt="Performance" width="400"> | <img src="docs/images/en/hardware.png" alt="Hardware" width="400"> |
-| **Settings: language, buttons, covers, Epic, accent colour** | **Game profiles** |
-| <img src="docs/images/en/settings.png" alt="Settings" width="400"> | <img src="docs/images/en/profiles.png" alt="Game profiles" width="400"> |
-| **Bench: results and recommendations** | **Bench running** |
-| <img src="docs/images/en/bench-results.png" alt="Bench results" width="400"> | <img src="docs/images/en/bench-running.png" alt="Bench running" width="400"> |
-| **Teal accent** | **Orange accent** |
-| <img src="docs/images/accent-teal.png" alt="Performance with the teal accent" width="400"> | <img src="docs/images/accent-amber.png" alt="Performance with the orange accent" width="400"> |
+### Install
 
-<sub>Shell screenshots rendered on Linux with the hardware simulator (made-up values). More in the [user guide](docs/user-guide.en.md).</sub>
+Canapé is a **personal project under development**. Installation requires Windows Developer Mode and a self-signed certificate; there is no consumer installer yet.
 
-### Quick start
+1. Enable **Developer Mode** on the Ally.
+2. In an **administrator** terminal at the repository root:
 
-1. Turn on Windows **Developer Mode** on the Ally.
-2. In an **elevated** Terminal, at the repository root:
    ```powershell
    powershell -ExecutionPolicy Bypass -File packaging\install-dev.ps1
    ```
-3. Pick **Canapé** in Settings → Gaming → Full screen experience, then reboot.
 
-All the details (CI binaries, the widget, going back to the Xbox home, troubleshooting) are in the **[user guide](docs/user-guide.en.md)**.
+3. Choose **Canapé** in Settings → Gaming → Full screen experience, then restart.
+
+The [user guide](docs/user-guide.en.md) covers installation, the widget, troubleshooting and uninstalling.
 
 ### Project status
 
-Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, not tried on the Ally yet · ⏳ planned
+FSE startup, the service, Steam and Xbox library, profiles, auto TDP, the bench and several hardware controls have been tried on a **ROG Ally RC71L** at the versions listed in the [reports](docs/m5-report.md) and [detailed tests](docs/m5-report-2.md). Later versions and other models are not necessarily validated.
 
-| Milestone | Scope | Status |
-|---|---|---|
-| M0 | Repository skeleton, protocol, tested auto TDP algorithm | ✅ |
-| M1 | `canape-shell.exe` boots as the FSE home app ([report](docs/m1-report.md)) | ✅ |
-| M2 | Windows service + named pipe, ATKACPI backend, gamepad Slint shell, single instance ([report](docs/m2-report.md)) | ✅ |
-| M2.5 | Persistent state, write log, conflict detection, software rendering, direct XInput, CI | ✅ ([report](docs/m4-report.md)) |
-| M3 | Game Bar widget talking to the service ([report](docs/m3-report.md)) | ✅ widget rebuilt and opened on the Ally at `8f3861d` ([report](docs/m5-report-2.md)); later changes remain to be checked |
-| M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `13ee476` · 🧪 later optimizations |
-| M5 | Per-game profiles, bench, shell in 13 languages | ✅ profiles, auto TDP and bench tried on the Ally at the versions in the [report](docs/m5-report-2.md); later changes remain to be checked |
-| M6 | Game library, game installs, fans, frame rate limit, controller, screen and buttons | ✅ Steam and Xbox library, fans, controller and buttons tried; frame rate limit, per-game refresh and Steam install fallback tried at the versions in the [report](docs/m5-report-2.md) · 🧪 windowless Steam, Epic and GOG installs, M1 / M2 back buttons and stick lighting remain to be tried ([study](docs/game-install-study.md), in French) |
+Windowless Steam installation, Epic and GOG installation, gyro aiming and several recent settings remain to be tried on the Ally. Upscaling and frame-generation choices are saved but not applied yet. See the [guides](docs/README.md) for each feature's limits.
 
-### Use of AI
+### Under the hood
 
-Canapé is developed with the help of Claude Code, Anthropic's coding assistant, within a technical framework that I define and enforce.
+Canapé is built for a small footprint: Rust, a Slint interface with software rendering by default, and no embedded browser. The interface runs without elevated privileges; only the service accesses privileged settings. One release measured **1.4 MB** of private memory for the service and **11 MB** for the interface ([measurements and version](docs/m4-report.md)).
 
-The project has two goals: to build software that is genuinely usable on the ROG Ally, and to put an AI coding assistant's abilities to the test on a complete project, with real hardware, an imposed platform and strict lightness constraints.
-
-- **Technical framework**: I set the architecture and its constraints, namely:
-  - a Windows service, the only part with elevated rights, separate from the interface the FSE starts without rights;
-  - Rust and Slint, with software rendering;
-  - the lightness targets (memory, CPU, minimal dependencies);
-  - a single interface as the only way to touch the hardware;
-  - the FSE integration;
-  - the repository rules (`CLAUDE.md`).
-
-  I also define the experience: a gamepad-first interface, no decorative text, per-game settings, and the roadmap priorities.
-- **The AI's work**: within that framework, it writes code, tests and documentation from my requests, then revises them based on my feedback and decisions.
-- **Validation**: I test on a real ROG Ally, decide what is kept, fixed or dropped, and settle technical choices when several approaches exist. One example is software rendering, kept over GPU rendering after measurement.
-- **Two environments**: a cloud session, on Linux with no hardware, writes and checks the code; a session on the Ally, on Windows, builds, installs and tries it on the device, always with my consent for anything touching the hardware or the system.
-- **Safeguards**: before every push, the code goes through formatting, Rust's linter (`clippy`), the tests and a Windows build. Every value written to the firmware is checked against a reference implementation for the model. Anything not yet tried on the Ally is marked as such in the documentation.
-
-### Disclaimer
-
-Canapé is an unofficial personal project. It is not affiliated with or endorsed by ASUS, Microsoft, Valve, Epic Games or GOG. ROG, ROG Ally, Windows, Xbox, Steam, Epic Games and GOG are trademarks of their respective owners.
-
-- **Use at your own risk**: Canapé controls the handheld's hardware (power, fans, controller) and can change Windows settings. It is provided as is, without warranty, under the MIT license (see [`LICENSE`](LICENSE)). Features marked "not yet tried on the Ally" have only been tested with the simulator.
-- **Stores**: Epic Games and GOG games are installed through open-source, unofficial clients (Legendary, gogdl). Their use falls under each store's terms and your account.
-- **Third-party content**: the covers, banners, achievements and play times shown come from Steam and IGDB; they belong to their publishers and are not included in this repository. Canapé ships no keys: play times come from the IGDB.com API, with Twitch credentials that each user creates and uses under Twitch's terms.
-
-### Repository map
-
-| Folder | Contents |
-|---|---|
-| [`crates/canape-core`](crates/canape-core) | IPC protocol, settings, profiles, fan curves, bench (shared types) |
-| [`crates/canape-autotdp`](crates/canape-autotdp) | Auto TDP algorithm, a pure function tested without hardware |
-| [`crates/canape-hw`](crates/canape-hw) | `Device` trait: Ally backend (ATKACPI + ADL + controller HID) and simulator |
-| [`crates/canape-ipc`](crates/canape-ipc) | Transport: named pipe on Windows, Unix socket elsewhere |
-| [`crates/canape-service`](crates/canape-service) | Privileged service: hardware, auto TDP, profiles, bench, IPC server |
-| [`crates/canape-library`](crates/canape-library) | Game library: Steam, Epic, GOG, Xbox app, covers, launching, installing owned games |
-| [`crates/canape-shell`](crates/canape-shell) | FSE home app (Slint, software rendering) |
-| [`crates/canape-ctl`](crates/canape-ctl) | Command-line client for the service |
-| [`widget/`](widget) | Xbox Game Bar widget (C# UWP) |
-| [`packaging/`](packaging) | Sparse MSIX identity package, install scripts |
-| [`docs/`](docs/README.md) | Documentation, milestone reports, screenshots |
-
-### Documentation
-
-- 📖 [User guide](docs/user-guide.en.md): install, use, troubleshoot, uninstall
-- 🤖 [Auto TDP and bench](docs/auto-tdp.en.md): how it works in detail, and how to tune it
-- 🛠️ [Developer guide](docs/developer-guide.en.md): architecture, protocol, building, translations
-- 📚 [Index of all documentation](docs/README.md)
-
----
-
-<div align="center"><sub>MIT · Canapé n'est affilié ni à ASUS, ni à Microsoft, ni à AMD · Canapé is not affiliated with ASUS, Microsoft or AMD.</sub></div>
+- [Developer guide](docs/developer-guide.en.md) · [Auto TDP and bench](docs/auto-tdp.en.md) · [All documentation](docs/README.md)
+- Developed with AI tools, under the owner's direction and with hardware testing by the owner.
+- An unofficial project, not affiliated with the manufacturers or stores. Legendary and gogdl are downloaded on demand for Epic and GOG. Game times use the [IGDB.com](https://www.igdb.com/) API with your Twitch credentials. [MIT license](LICENSE).

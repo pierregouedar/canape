@@ -1287,3 +1287,22 @@ msgstr "Flüssig braucht etwa 300 MB mehr Speicher, auch während Spielen. Canap
 
 msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
 msgstr "Flüssig braucht etwa 300 MB mehr Speicher, auch während Spielen. Canapé startet neu."
+
+
+msgid "Restore my changes"
+msgstr "Meine Änderungen zurücksetzen"
+
+msgid "Removed apps are not reinstalled."
+msgstr "Entfernte Apps werden nicht neu installiert."
+
+
+msgid "Recommended"
+msgstr "Empfehlungen"
+
+
+msgid "Restore"
+msgstr "Zurücksetzen"
+
+
+msgid "Applications"
+msgstr "Apps"

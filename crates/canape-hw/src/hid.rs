@@ -239,8 +239,7 @@ pub fn write_input(reports: impl Fn(usize) -> Vec<Vec<u8>>) -> Result<usize> {
 pub fn listen(mut on_button: impl FnMut(pad::Button)) -> Result<()> {
     let interface = interface_paths()
         .iter()
-        .find_map(|path| Interface::open(path))
-        .filter(|i| i.input_len > 0)
+        .find_map(|path| Interface::open(path).filter(|i| i.input_len > 0))
         .ok_or(HwError::Unsupported(
             "no Ally controller HID interface with input reports",
         ))?;

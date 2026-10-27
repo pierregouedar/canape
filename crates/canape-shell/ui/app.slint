@@ -120,7 +120,7 @@ export component AppWindow inherits Window {
     property <int> profiles-from: 3;
     // Sections 1 to 3 are shelves of setting cards: their hints come from
     // the page (PageHints).
-    property <bool> shelf-page: root.page >= 1 && root.page <= 3;
+    property <bool> shelf-page: (root.page >= 1 && root.page <= 3) || root.page == 8;
     pure function section-of(page: int) -> int {
         page == 4 ? root.profiles-from : page == 6 || page == 7 || page == 8 ? 3 : page == 5 ? 1 : page
     }
@@ -469,7 +469,7 @@ export component AppWindow inherits Window {
                     glyph: "B";
                     text: PageHints.current.b;
                 }
-                if root.page >= 4: Hint {
+                if root.page >= 4 && !root.shelf-page: Hint {
                     glyph: "updown";
                     text: @tr("Setting");
                 }

@@ -1284,3 +1284,22 @@ msgstr "Płynny zużywa około 300 MB więcej pamięci, także podczas gier. Can
 
 msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
 msgstr "Płynny zużywa około 300 MB więcej pamięci, także podczas gier. Canapé uruchomi się ponownie."
+
+
+msgid "Restore my changes"
+msgstr "Przywróć moje zmiany"
+
+msgid "Removed apps are not reinstalled."
+msgstr "Usunięte aplikacje nie zostaną zainstalowane ponownie."
+
+
+msgid "Recommended"
+msgstr "Zalecane"
+
+
+msgid "Restore"
+msgstr "Przywróć"
+
+
+msgid "Applications"
+msgstr "Aplikacje"

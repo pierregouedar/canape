@@ -354,7 +354,7 @@ Pas encore essayé sur l'Ally. Le shell dessine avec le moteur logiciel de Slint
 
 ### Optimisations Windows
 
-Sous-page 8 (`ui/tweaks.slint`, `canape-shell/src/tweaks.rs`), ouverte depuis Réglages. **Pas encore essayé sur l'Ally** : testé avec le simulateur seulement.
+Sous-page 8 (`ui/tweaks.slint`, `canape-shell/src/tweaks.rs`), ouverte depuis Réglages. **Pas encore essayé sur l'Ally** : testé avec le simulateur seulement. Les optimisations sont regroupées en étagères, avec des tiroirs et une liste séparée pour les applications. Le rétablissement groupé envoie `set_tweak` uniquement pour les réglages dont `by_canape` est vrai ; il ne touche ni aux paramètres processeur ni aux applications supprimées.
 
 **Modèle de sécurité.** Aucun client n'envoie de clé, de chemin ni de commande. Le shell nomme une optimisation (`TweakId`, une énumération : un nom inconnu échoue au décodage et la connexion se ferme), le service détient le catalogue fixe (`canape-service/src/tweaks/mod.rs`, `CATALOGUE`) et fait les écritures. Seule exception, le retrait des applications préinstallées : les paquets appartiennent à l'utilisateur connecté, donc le shell les retire lui-même, en intégrité moyenne, depuis la liste fixe `canape_core::tweaks::REMOVABLE_APPS` (jamais un paquet de `PROTECTED_PACKAGES` : applis Xbox, Game Bar et ses dépendances, Gaming Services, Store, Edge, WebView2, Sécurité Windows, runtimes, Canapé).
 

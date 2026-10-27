@@ -1284,3 +1284,22 @@ msgstr "スムーズはメモリを約300 MB多く使います（ゲーム中も
 
 msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
 msgstr "スムーズはメモリを約300 MB多く使います（ゲーム中も）。Canapéが再起動します。"
+
+
+msgid "Restore my changes"
+msgstr "変更を元に戻す"
+
+msgid "Removed apps are not reinstalled."
+msgstr "削除したアプリは再インストールされません。"
+
+
+msgid "Recommended"
+msgstr "おすすめ"
+
+
+msgid "Restore"
+msgstr "元に戻す"
+
+
+msgid "Applications"
+msgstr "アプリ"

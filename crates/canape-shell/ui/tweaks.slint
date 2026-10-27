@@ -7,7 +7,7 @@
 
 import { Theme } from "theme.slint";
 import { App } from "state.slint";
-import { SectionTitle } from "kit.slint";
+import { ChoiceTile, Drawer, HintSet, PageHints, Shelf, ShelfCard, ShelfPane, Shelves } from "kit.slint";
 
 // One line of the page, built by tweaks.rs.
 export struct TweakRow {
@@ -33,6 +33,14 @@ export struct TweakRow {
 
 export global Tweaks {
     in property <[TweakRow]> rows;
+    in property <[TweakRow]> clutter;
+    in property <[TweakRow]> privacy;
+    in property <[TweakRow]> games;
+    in property <[TweakRow]> security;
+    in property <[TweakRow]> recommended;
+    in property <bool> recommended-exclusions;
+    in property <[TweakRow]> owned;
+    in property <[TweakRow]> apps;
     // Row waiting for its outcome (a removal, a change), -1 when none.
     in property <int> busy: -1;
     // Last failure of an app removal, untranslated.
@@ -41,6 +49,7 @@ export global Tweaks {
     // Applies (true) or reverts one tweak, by protocol name.
     callback set(string, bool);
     callback apply-recommended();
+    callback revert-owned();
     callback remove-app(string);
     // Opens the app's Microsoft Store page.
     callback reinstall-app(string);
@@ -79,6 +88,12 @@ export global Tweaks {
         }
         // The *_off tweaks turn a feature off; the others turn one on.
         (row.applied != (row.id == "copilot_off" || row.id == "widgets_off" || row.id == "web_search_off" || row.id == "suggestions_off" || row.id == "lock_screen_tips_off" || row.id == "tips_off" || row.id == "background_apps_off" || row.id == "game_dvr_off" || row.id == "asus_services_off" || row.id == "defender_realtime_off" || row.id == "memory_integrity_off")) ? @tr("On") : @tr("Off")
+    }
+
+    public pure function desired(row: TweakRow, applied: bool) -> string {
+        if row.id == "telemetry_min" { return applied ? @tr("Minimum") : @tr("Default"); }
+        let on-when-applied = (root.value(row) == @tr("On")) == row.applied;
+        (on-when-applied == applied) ? @tr("On") : @tr("Off")
     }
 
     // A consequence that is not obvious, "" when there is none.
@@ -175,147 +190,218 @@ component TweakLine inherits Rectangle {
     }
 }
 
-export component TweaksPage inherits Rectangle {
-    in-out property <int> focus-row: 0;
-    // Row waiting for a second A, -1 when none.
-    in-out property <int> armed: -1;
-    property <bool> active: fs.has-focus;
-    property <length> pitch: 58px;
-    property <int> count: Tweaks.rows.length;
-    init => {
-        Tweaks.open();
+// A shelf with horizontal scrolling when a group has more than five cards.
+component TweakShelf inherits Rectangle {
+    in property <[TweakRow]> rows;
+    in property <int> index;
+    in property <int> front;
+    in property <int> selected;
+    in property <bool> active;
+    in property <string> title;
+    callback pick(int);
+    y: root.index * Shelves.pitch;
+    height: Shelves.pitch;
+    visible: root.index >= root.front - 1 && root.index <= root.front + 1;
+    Text {
+        x: 48px;
+        y: 0;
+        height: 20px;
+        text: root.title;
+        color: Theme.text.mix(Theme.dim, 0.6);
+        font-size: 15px;
+        font-weight: 600;
+        vertical-alignment: center;
     }
-    changed focus-row => {
-        root.armed = -1;
-        // Keep the focused line in view, its heading too: the gamepad
-        // cannot scroll.
-        let top = (root.focus-row - (root.focus-row > 0 && Tweaks.rows[root.focus-row - 1].kind == 0 ? 1 : 0)) * root.pitch;
-        let y = root.focus-row * root.pitch;
-        if top + list.content-y < 0 {
-            list.content-y = -top;
-        }
-        if y + root.pitch + list.content-y > list.height {
-            // Whole lines only: no heading cut in half at the top.
-            list.content-y = -Math.ceil((y + root.pitch - list.height) / root.pitch) * root.pitch;
+    Rectangle {
+        x: 38px;
+        y: Shelves.cards-top - 8px;
+        width: parent.width - 38px;
+        height: Shelves.card-height + 16px;
+        clip: true;
+        HorizontalLayout {
+            x: 10px - max(0, root.selected - 4) * (Shelves.card-width + Shelves.card-gap);
+            y: 8px;
+            height: Shelves.card-height;
+            spacing: Shelves.card-gap;
+            alignment: start;
+            for row[i] in root.rows: ShelfCard {
+                label: Tweaks.label(row);
+                wrap-label: true;
+                value: Tweaks.value(row);
+                icon: "range";
+                enabled: App.status.connected && row.unavailable == "";
+                focused: root.active && root.front == root.index && root.selected == i;
+                clicked => { root.pick(i); }
+            }
         }
     }
+    Rectangle {
+        background: Theme.background.with-alpha(root.index == root.front ? 0 : 0.6);
+    }
+}
 
-    // Up (-1) or down (1), over the headings.
-    function move(d: int) {
-        let n = root.focus-row + d;
-        let m = n >= 0 && n < root.count && Tweaks.rows[n].kind == 0 ? n + d : n;
-        if m >= 0 && m < root.count && Tweaks.rows[m].kind != 0 {
-            root.focus-row = m;
-        }
-    }
-    function confirms(row: TweakRow) -> bool {
-        row.kind == 1 ? !row.applied : row.kind == 3 ? !row.applied : row.security && !row.applied
-    }
+export component TweaksPage inherits Rectangle {
+    property <int> shelf: 0;
+    property <int> card: 0;
+    property <bool> open: false;
+    property <bool> app-list: false;
+    property <int> app-row: 0;
+    property <int> choice: 0;
+    property <bool> armed: false;
+    property <bool> active: fs.has-focus;
+    property <TweakRow> current-row: root.shelf == 1 ? Tweaks.clutter[root.card] : root.shelf == 2 ? Tweaks.privacy[root.card] : root.shelf == 3 ? Tweaks.games[root.card] : Tweaks.security[root.card];
+    property <int> count: root.shelf == 0 ? 3 : root.shelf == 1 ? Tweaks.clutter.length : root.shelf == 2 ? Tweaks.privacy.length : root.shelf == 3 ? Tweaks.games.length : Tweaks.security.length;
+    property <bool> busy: Tweaks.busy >= 0;
+    property <HintSet> hints: root.app-list ? { move-glyph: "updown", move: @tr("Choose"), a: @tr("Apply"), b: @tr("Back") }
+        : root.open ? { move-glyph: "leftright", move: @tr("Choose"), a: @tr("Apply"), b: @tr("Close") }
+        : { move-glyph: "dpad", move: @tr("Shelves"), a: @tr("Open"), b: @tr("Back") };
+    init => { Tweaks.open(); PageHints.current = root.hints; }
+    changed hints => { PageHints.current = root.hints; }
+    changed shelf => { root.card = 0; root.armed = false; }
+    changed card => { root.armed = false; }
+    changed app-row => { root.armed = false; }
+
     function activate() {
-        if root.focus-row >= root.count || Tweaks.busy >= 0 {
+        if root.app-list {
+            if root.app-row >= Tweaks.apps.length || root.busy { return; }
+            let app = Tweaks.apps[root.app-row];
+            if !app.applied && !root.armed { root.armed = true; return; }
+            root.armed = false;
+            if app.applied { Tweaks.reinstall-app(app.id); } else { Tweaks.remove-app(app.id); }
             return;
         }
-        let row = Tweaks.rows[root.focus-row];
-        if row.kind == 0 || (row.kind != 3 && !App.status.connected) || (row.kind == 2 && row.unavailable != "") || (row.kind == 1 && row.applied) {
-            return;
-        }
-        if root.confirms(row) && root.armed != root.focus-row {
-            root.armed = root.focus-row;
-            return;
-        }
-        root.armed = -1;
-        if row.kind == 1 {
-            Tweaks.apply-recommended();
-        } else if row.kind == 2 {
-            Tweaks.set(row.id, !row.applied);
-        } else if row.applied {
-            Tweaks.reinstall-app(row.id);
+        if root.open { root.apply(); return; }
+        if root.shelf == 0 && root.card == 2 { root.app-list = true; root.app-row = 0; return; }
+        if !App.status.connected || root.busy || (root.shelf > 0 && root.count == 0) { return; }
+        root.open = true;
+        root.armed = false;
+        root.choice = root.shelf > 0 && !root.current-row.applied ? 1 : 0;
+    }
+    function apply() {
+        if root.busy || !App.status.connected || (root.shelf > 0 && root.current-row.unavailable != "") { return; }
+        if root.shelf == 0 {
+            if (root.card == 0 && Tweaks.recommended.length == 0) || (root.card == 1 && Tweaks.owned.length == 0) { return; }
+            if !root.armed { root.armed = true; return; }
+            root.armed = false;
+            if root.card == 0 { Tweaks.apply-recommended(); } else { Tweaks.revert-owned(); }
+            root.open = false;
         } else {
-            Tweaks.remove-app(row.id);
+            let applied = root.choice == 0;
+            if applied == root.current-row.applied { root.open = false; return; }
+            if applied && root.current-row.security && !root.armed { root.armed = true; return; }
+            root.armed = false;
+            Tweaks.set(root.current-row.id, applied);
+            root.open = false;
         }
     }
+    function select(s: int, c: int) { root.shelf = s; root.card = c; root.activate(); fs.focus(); }
 
     fs := FocusScope {
-        init => {
-            self.focus();
-        }
+        init => { self.focus(); }
         key-pressed(event) => {
-            if event.text == Key.UpArrow {
-                root.move(-1);
-                return accept;
+            if event.text == Key.Escape && (root.open || root.app-list) {
+                root.open = false; root.app-list = false; root.armed = false; return accept;
             }
-            if event.text == Key.DownArrow {
-                root.move(1);
-                return accept;
+            if root.app-list {
+                if event.text == Key.UpArrow || event.text == Key.DownArrow {
+                    root.app-row = clamp(root.app-row + (event.text == Key.UpArrow ? -1 : 1), 0, max(0, Tweaks.apps.length - 1));
+                    return accept;
+                }
+            } else if root.open {
+                if event.text == Key.LeftArrow || event.text == Key.RightArrow {
+                    root.choice = event.text == Key.LeftArrow ? 0 : 1; root.armed = false; return accept;
+                }
+            } else {
+                if event.text == Key.UpArrow || event.text == Key.DownArrow {
+                    root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 4); return accept;
+                }
+                if event.text == Key.LeftArrow || event.text == Key.RightArrow {
+                    root.card = clamp(root.card + (event.text == Key.LeftArrow ? -1 : 1), 0, max(0, root.count - 1)); return accept;
+                }
             }
-            if event.text == Key.Return || event.text == " " {
-                root.activate();
-                return accept;
-            }
+            if event.text == Key.Return || event.text == " " { root.activate(); return accept; }
             return reject;
         }
     }
-
-    VerticalLayout {
-        x: 0;
-        width: 860px;
-        height: parent.height;
-        spacing: 2px;
-
-        SectionTitle {
-            height: 36px;
-            x: 16px;
-            text: @tr("Windows tweaks");
+    if !root.app-list: Text {
+        x: 48px; y: 36px; width: parent.width - 96px;
+        text: @tr("Windows tweaks"); color: Theme.text; font-size: 38px; font-weight: 700;
+    }
+    if Tweaks.error != "": Text {
+        x: 48px; y: 90px; width: parent.width - 96px;
+        text: Tweaks.error; color: Theme.warn; font-size: 14px; overflow: elide;
+    }
+    if !root.app-list: ShelfPane {
+        y: 160px; width: parent.width; height: 330px; front: root.shelf;
+        Shelf {
+            x: 48px; width: parent.width - 48px; index: 0; front: root.shelf; icon: "range"; title: @tr("Windows tweaks");
+            ShelfCard {
+                label: @tr("Recommended"); value: Tweaks.rows.length > 0 ? Tweaks.value(Tweaks.rows[0]) : "…"; icon: "target";
+                enabled: App.status.connected; focused: root.active && root.shelf == 0 && root.card == 0;
+                clicked => { root.select(0, 0); }
+            }
+            ShelfCard {
+                label: @tr("Restore"); value: Tweaks.owned.length; icon: "cycle";
+                enabled: App.status.connected; focused: root.active && root.shelf == 0 && root.card == 1;
+                clicked => { root.select(0, 1); }
+            }
+            ShelfCard {
+                label: @tr("Applications"); value: Tweaks.apps.length; icon: "library";
+                focused: root.active && root.shelf == 0 && root.card == 2;
+                clicked => { root.select(0, 2); }
+            }
         }
-
-        if Tweaks.error != "": Text {
-            x: 16px;
-            text: Tweaks.error;
-            color: Theme.warn;
-            font-size: 13px;
-            wrap: word-wrap;
-        }
-
+        TweakShelf { width: parent.width; index: 1; front: root.shelf; selected: root.card; active: root.active; rows: Tweaks.clutter; title: @tr("Copilot and ads"); pick(i) => { root.select(1, i); } }
+        TweakShelf { width: parent.width; index: 2; front: root.shelf; selected: root.card; active: root.active; rows: Tweaks.privacy; title: @tr("Privacy"); pick(i) => { root.select(2, i); } }
+        TweakShelf { width: parent.width; index: 3; front: root.shelf; selected: root.card; active: root.active; rows: Tweaks.games; title: @tr("Games"); pick(i) => { root.select(3, i); } }
+        TweakShelf { width: parent.width; index: 4; front: root.shelf; selected: root.card; active: root.active; rows: Tweaks.security; title: @tr("Security"); pick(i) => { root.select(4, i); } }
+    }
+    if root.app-list: Rectangle {
+        x: 48px; y: 30px; width: parent.width - 96px; height: parent.height - 40px;
+        Text { x: 0; y: 0; width: parent.width; height: 36px; text: @tr("Preinstalled apps"); color: Theme.text; font-size: 24px; font-weight: 700; }
         list := Flickable {
-            vertical-stretch: 1;
-            content-height: root.count * root.pitch;
-            animate content-y { duration: 160ms; easing: ease-out; }
-            for row[i] in Tweaks.rows: Rectangle {
-                y: i * root.pitch;
-                width: list.width;
-                height: root.pitch - 4px;
-
-                if row.kind == 0: VerticalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    padding-bottom: 4px;
-                    alignment: end;
-                    spacing: 2px;
-                    SectionTitle {
-                        text: Tweaks.label(row);
-                    }
-
-                    if Tweaks.note(row, false) != "": Text {
-                        text: Tweaks.note(row, false);
-                        color: Theme.dim;
-                        font-size: 13px;
-                        overflow: elide;
-                    }
+            y: 50px; width: parent.width; height: parent.height - 50px; content-height: Tweaks.apps.length * 58px;
+            content-y: -min(max(0px, root.app-row * 58px - self.height + 58px), max(0px, self.content-height - self.height));
+            for app[i] in Tweaks.apps: TweakLine {
+                y: i * 58px; width: list.width; height: 54px;
+                label: Tweaks.label(app); value: Tweaks.value(app); note: Tweaks.note(app, root.armed && root.app-row == i);
+                focused: root.active && root.app-row == i; armed: root.armed && root.app-row == i;
+                clicked => { root.app-row = i; root.activate(); fs.focus(); }
+            }
+        }
+    }
+    Drawer {
+        width: parent.width; page-height: parent.height; open: root.open;
+        sheet-height: root.shelf == 0 ? 480px : 220px;
+        title: root.shelf == 0 ? (root.card == 0 ? @tr("Apply the recommended settings") : @tr("Restore my changes")) : Tweaks.label(root.current-row);
+        note: root.armed ? @tr("Press A again") : "";
+        if root.shelf == 0: Rectangle {
+            for row[i] in root.card == 0 ? Tweaks.recommended : Tweaks.owned: Text {
+                x: Math.mod(i, 2) * (parent.width / 2); y: Math.floor(i / 2) * 38px;
+                width: parent.width / 2 - 16px; height: 36px;
+                text: Tweaks.label(row) + (root.card == 0 ? " · " + Tweaks.desired(row, true) : ""); color: row.security ? Theme.warn : Theme.text; font-size: 14px; wrap: word-wrap; overflow: elide;
+            }
+            Text {
+                y: parent.height - 28px; width: parent.width; height: 28px;
+                text: root.card == 0 ? (Tweaks.recommended-exclusions ? @tr("Also excludes the game folders from Defender scans.") : "") : @tr("Removed apps are not reinstalled.");
+                color: Theme.warn; font-size: 13px; overflow: elide;
+            }
+        }
+        if root.shelf > 0: VerticalLayout {
+            spacing: 8px; alignment: start;
+            if root.current-row.unavailable == "": HorizontalLayout {
+                spacing: 12px; alignment: start;
+                for i in 2: ChoiceTile {
+                width: 180px;
+                label: Tweaks.desired(root.current-row, i == 0);
+                selected: (i == 0) == root.current-row.applied;
+                focused: root.active && root.choice == i;
+                    clicked => { root.choice = i; root.apply(); fs.focus(); }
                 }
-                if row.kind != 0: TweakLine {
-                    label: Tweaks.label(row);
-                    note: Tweaks.note(row, root.armed == i);
-                    value: Tweaks.busy == i ? "…" : Tweaks.value(row);
-                    focused: root.active && root.focus-row == i;
-                    enabled: row.kind == 3 || App.status.connected;
-                    armed: root.armed == i;
-                    warn-note: row.kind == 2 && row.security && row.id != "defender_exclusions" && (row.applied || root.armed == i);
-                    clicked => {
-                        root.focus-row = i;
-                        root.activate();
-                        fs.focus();
-                    }
-                }
+            }
+            if Tweaks.note(root.current-row, true) != "": Text {
+                text: Tweaks.note(root.current-row, true); color: root.current-row.security ? Theme.warn : Theme.dim;
+                font-size: 14px; wrap: word-wrap;
             }
         }
     }

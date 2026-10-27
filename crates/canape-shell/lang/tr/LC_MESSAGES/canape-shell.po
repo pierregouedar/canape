@@ -1284,3 +1284,22 @@ msgstr "Akıcı yaklaşık 300 MB daha fazla bellek kullanır, oyunlar sırasın
 
 msgid "Smooth uses about 300 MB more memory, also during games. Canapé restarts."
 msgstr "Akıcı yaklaşık 300 MB daha fazla bellek kullanır, oyunlar sırasında da. Canapé yeniden başlar."
+
+
+msgid "Restore my changes"
+msgstr "Değişikliklerimi geri al"
+
+msgid "Removed apps are not reinstalled."
+msgstr "Kaldırılan uygulamalar yeniden yüklenmez."
+
+
+msgid "Recommended"
+msgstr "Önerilenler"
+
+
+msgid "Restore"
+msgstr "Geri al"
+
+
+msgid "Applications"
+msgstr "Uygulamalar"
