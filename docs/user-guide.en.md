@@ -5,7 +5,7 @@
 This guide explains how to install Canapé on a ROG Ally, make it the home app of the full-screen experience (FSE), use it with the gamepad, add the Xbox Game Bar widget, and then troubleshoot and uninstall it.
 
 > [!IMPORTANT]
-> Canapé is a personal project under development. **Validated on the Ally**: installation, FSE boot, the service, modes, manual TDP, auto TDP (version `13ee476`) and the first version of the widget. **Written and tested without hardware, but not tried on the Ally yet**: the shell in 13 languages (four sections, arrow navigation), the game library and installing Steam and Epic games, the Hardware page (fans, frame rate limit, controller mode), per-game profiles, the bench, the latest auto TDP optimizations and the new version of the widget. The sections concerned say so.
+> Canapé is a personal project under development. Installation, FSE boot, the service, shell, Steam and Xbox library, profiles, auto TDP and the bench have been tried on the Ally RC71L at different versions. The [M5 reports](m5-report.md) and [part 2](m5-report-2.md) give the tests and versions; later changes and other models are not necessarily validated. Sections identify features still to be tried.
 
 ## Contents
 
@@ -180,7 +180,7 @@ An installation that already had a `shell.json` from an earlier version also get
 ## Using Canapé with the gamepad
 
 > [!NOTE]
-> The interface described here (four sections, arrow navigation everywhere) has not been tried on the Ally yet: only an earlier version and gamepad navigation were validated there. The game library in particular was only tested on Linux, with a fake library: finding the games, their covers and launching them on Windows are still to be checked. The same goes for the Hardware page, whose writes to the fans, the graphics driver and the controller have never reached a real Ally (see [Hardware](#hardware)). Screenshots are rendered on Linux with the hardware simulator and made-up values.
+> The shell, Steam and Xbox library and Hardware page have been tried on the Ally; see the [M5 reports](m5-report.md) and [part 2](m5-report-2.md) for versions and limits. The screenshots below were rendered on Linux with the hardware simulator and made-up values.
 
 ### Controls
 
@@ -377,9 +377,9 @@ A game no store knows (a standalone `.exe`, an itch.io game, an emulator…) can
 <sub>Made-up owned games (`tools/fake-library.py`); the install of Mosaic Run is simulated.</sub>
 
 > [!NOTE]
-> **Nothing in this part has been tried on the Ally yet**: not the Steam owned list through the Web API, not installing through Steam, not the Legendary or gogdl download, not the Epic and GOG sign-ins, not installing and launching Epic and GOG games. Only the UI (on Linux, with the fake library and a simulated install) and the reading of Steam's, Epic's, GOG's and GitHub's answers were tested (against recorded answers for Steam, Epic and GitHub; for GOG, against answers written from gogdl's source code, as GOG's servers cannot be reached from the cloud session).
+> The Steam owned list and the Steam install-window fallback were tried on the Ally ([M5 report](m5-report-2.md#steam-install)). Windowless Steam installs, Epic and GOG sign-ins and installs remain to be tried on the Ally; GOG test answers were written from gogdl's source code.
 
-The **To install** shelf lists the games you own on Steam, Epic or GOG but have not installed on the console (the last shelf: down until you reach it). **A** opens the game's page, then **A** on the page ("Install") installs it without opening Steam's interface, the Epic launcher or GOG Galaxy: a single press on the shelf never starts a download. A game already installed, from any store (same id or same title), does not show in this list. GOG and Xbox app games are never in it: Canapé gets no list of the games owned there (the Xbox app offers none to other programs), so they only show once installed with GOG Galaxy or the Xbox app, and then launch like the others.
+The **To install** shelf lists owned Steam, Epic and GOG games that are not installed. **A** opens the game page; confirm the install there. A game already installed from another store does not appear in this list. Xbox games are absent because Canapé cannot obtain the list of owned Xbox games.
 
 **Steam: set up once**
 
@@ -467,7 +467,7 @@ How it works in detail: [Auto TDP and bench](auto-tdp.en.md).
 <img src="images/en/hardware.png" alt="Hardware page" width="720">
 
 > [!NOTE]
-> The fan, frame rate limit and controller writes have **not been tried on the Ally yet**: they were only tested with the hardware simulator. Before trying them, stop every other program that drives the same settings (see [Living with…](#living-with-other-tools)). If something looks wrong, **Automatic** gives the fans back to the firmware and **None** removes the frame rate limit.
+> Fan, frame rate limit and controller writes were tried on the Ally at the versions in the [M5 reports](m5-report.md) and [part 2](m5-report-2.md). Stop other programs that drive the same settings (see [Living with…](#living-with-other-tools)). **Automatic** gives the fans back to the firmware and **None** removes the frame rate limit.
 
 **At the top**, live: the game in the foreground, the CPU fan speed (and the GPU fan's below it), in rpm, the CPU temperature (with the temperature limit when set) and the CPU fan's curve, a dashed line marking the temperature now. "—" when the firmware gives no reading.
 
@@ -553,7 +553,7 @@ A shelf that gathers what shapes a game's picture: resolution, refresh rate, the
 > **Not applied yet.** Upscaling and frame generation are only **stored** in the game's profile: nothing switches them on yet, the drawers say "Not applied yet", and the service writes `image: upscaling … not applied yet` to its log when the profile applies.
 
 > [!NOTE]
-> Not tried on the Ally yet: `ChangeDisplaySettingsEx` on the internal display (refresh rate and resolution, from the shell), the resolution filtering from `EnumDisplaySettings`, and the Lossless Scaling detection.
+> Display refresh, including per-game refresh, was tried on the Ally ([report](m5-report-2.md)). Resolution, resolution filtering and Lossless Scaling detection remain to be checked.
 
 #### Gyro aiming
 
@@ -621,7 +621,7 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 |---|---|
 | **Appearance → Language** | "Automatic" (the Windows language) and the 13 languages, as tiles on two rows: the arrows move, **A** applies the focused language; the choice is remembered. See [Languages](#languages). |
 | **Appearance → Accent colour** | The card shows the colour's code. Eight ready-made swatches (left and right, **A** picks) and three lines **Hue**, **Saturation** and **Brightness** that left and right move, up and down going from one to the next. The whole interface follows live; the colour is saved in `shell.json` and sent to the service once you stop adjusting, and **the Game Bar widget follows the accent colour**. |
-| **Appearance → The Ally's buttons** | On or Off (**A** applies). The **Armoury** button (right, under the screen) brings Canapé to the front from a game, or goes back to Games when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget lives. Turn it off if another tool should handle them (otherwise both react). Not tried on the Ally yet. |
+| **Appearance → The Ally's buttons** | On or Off (**A** applies). The **Armoury** button (right, under the screen) brings Canapé to the front from a game, or goes back to Games when Canapé is already in front; the **Command Center** button (left) opens the Xbox Game Bar, where the Canapé widget lives. Turn it off if another tool should handle them (otherwise both react). Tried on the Ally ([M5 report](m5-report.md)). |
 | **Library → Games folder** | Where Epic and GOG games are installed; its free space beside the drawer's title. By default, the folder that already holds most of the games installed by Canapé or the Epic launcher, else `Games` on the drive with the most free space. Left and right go through the folders that already hold games and `Games` on each internal drive; the choice is saved in `shell.json` (`games_folder`). Not tried on the Ally yet. |
 | **Library → Missing covers** | On or Off: download the covers of games that have none, see [Games](#games). |
 | **Library → Add a game** | The number of games in `games.json`; opens the list of games to add (see [Adding other games](#adding-other-games)). With games hidden from the library, its first line **Hidden games · N** opens their list: **A** shows the game again (see [Game options](#game-options)). Not tried on the Ally yet. |
@@ -692,7 +692,7 @@ While the bench runs, the mode, TDP and auto TDP are locked ("a bench is running
 On a recommendation, **A** sets the TDP (manual limit at that value, auto TDP off) and **X** saves it in the game's profile (creates or replaces the profile: auto TDP on, target and ceiling taken from the measure). The exact computation is in [Auto TDP and bench](auto-tdp.en.md#the-bench).
 
 > [!NOTE]
-> The bench has not been tried on the Ally yet.
+> The bench was tried on the Ally with Unigine Heaven at the versions in the [M5 report, part 2](m5-report-2.md).
 
 ### Windows tweaks
 
@@ -825,7 +825,7 @@ Other ASUS services (ASUS Optimization, System Analysis, ROG Live Service) and R
 | `%LOCALAPPDATA%\Canape\overrides.json` | Your changes to games, by game id: titles, categories, hidden games (see [Game options](#game-options)). Deleting it takes them all back. |
 | `%LOCALAPPDATA%\Canape\igdb.json` | Times to beat asked of IGDB, per game, with their date. `igdb-token.json` next to it: the current Twitch token. Both can be deleted. |
 | `%LOCALAPPDATA%\Canape\achievements.json` | Steam achievements per game, with their date and language; `achievement-icons\` next to it: their downloaded icons. Both can be deleted. |
-| `%LOCALAPPDATA%\Canape\owned.json` | The owned games from the last request to Steam and Epic, shown at once in To install mode. Can be deleted: the next request writes it again. |
+| `%LOCALAPPDATA%\Canape\owned.json` | The owned games from the last request to Steam, Epic and GOG, shown at once in To install mode. Can be deleted: the next request writes it again. |
 | `%LOCALAPPDATA%\Canape\tools\` | `legendary.exe`, downloaded at the first Epic sign-in. Without it, Canapé no longer lists owned Epic games nor the ones Legendary installed; the next Epic sign-in downloads it again. |
 | `%USERPROFILE%\.config\legendary\` | Legendary's configuration, written by Legendary itself: Epic sign-in, games it installed (`installed.json`). |
 

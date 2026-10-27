@@ -29,10 +29,10 @@ Objectif n° 1 : **rester le plus léger possible.** Pas de navigateur embarqué
 | 🎮 **Accueil du FSE** | Choisi dans Paramètres → Jeux → Expérience plein écran ; lancé par Windows au démarrage. Une seule instance, plein écran immédiat. |
 | 🕹️ **100 % manette** | LB / RB pour changer de page, croix ou stick pour se déplacer, A pour valider, B pour revenir à la bibliothèque. |
 | 📚 **Bibliothèque de jeux** | Les jeux installés avec Steam, Epic Games, GOG et l'app Xbox, en jaquettes, les derniers joués en premier ; A pour lancer. Jaquettes manquantes téléchargées depuis Steam, ou SteamGridDB avec une clé gratuite. |
-| 📥 **Installer ses jeux** | Les jeux Steam et Epic possédés mais pas installés, dans le mode « À installer » de la bibliothèque ; A les installe sans ouvrir l'interface de Steam ni le lanceur Epic (Epic par Legendary, téléchargé à la demande), avec la progression sur la jaquette. |
+| 📥 **Installer ses jeux** | Les jeux Steam, Epic et GOG possédés mais pas installés, dans le mode « À installer » de la bibliothèque, avec la progression sur la jaquette. Steam peut afficher sa fenêtre d'installation ; Epic et GOG utilisent Legendary et gogdl, téléchargés à la demande. |
 | ⚡ **Modes et TDP** | Modes firmware ASUS (Silencieux, Performance, Turbo) ou limite manuelle en watts (sPPT, SPL, fPPT écrits ensemble). |
 | 🤖 **Auto TDP** | Tient l'objectif FPS (30 à 120) avec le moins de watts possible : FPS et charge GPU lus dans le pilote AMD, plafond sur batterie, limite de température, anti-oscillation. |
-| 🌀 **Ventilateurs, limite de FPS, manette** | Préréglages de ventilateurs (Automatique, Silencieux, Équilibré, Maximum) avec un plancher de sécurité à chaud, limite de FPS du pilote AMD, mode de la manette (manette de jeu, clavier, souris), boutons arrière M1 et M2, couleur et effets des anneaux des sticks. |
+| 🌀 **Ventilateurs, limite de FPS, manette** | Préréglages de ventilateurs (Automatique, Équilibré, Maximum) avec un plancher de sécurité à chaud, limite de FPS du pilote AMD, mode de la manette (manette de jeu, clavier, souris), boutons arrière M1 et M2, couleur et effets des anneaux des sticks. |
 | 🎯 **Visée au gyroscope** | Tourner l'Ally déplace la souris pendant qu'un jeu est devant : en tenant une palette arrière, en bascule ou tout le temps, avec sensibilité, axe et inversion, par jeu si on veut. Sans pilote. Pas encore essayée sur l'Ally ([étude](docs/gyro-study.md)). |
 | 🎯 **Profils par jeu** | Le profil du jeu au premier plan s'applique tout seul, puis rend la main aux réglages généraux. Canapé retient les watts où l'auto TDP se stabilise ; un profil peut aussi garder ses ventilateurs et sa limite de FPS. |
 | 📊 **Banc d'essai** | Balaye plusieurs limites de puissance sur le jeu en cours et propose trois recommandations : meilleur compromis, puissance pour l'objectif, le plus efficace. |
@@ -80,10 +80,10 @@ Légende : ✅ validé sur l'Ally · 🧪 écrit et testé sans matériel, pas e
 | M1 | `canape-shell.exe` démarre comme accueil du FSE ([rapport](docs/m1-report.md)) | ✅ |
 | M2 | Service Windows + named pipe, backend ATKACPI, shell Slint à la manette, instance unique ([rapport](docs/m2-report.md)) | ✅ |
 | M2.5 | État persistant, journal des écritures, détection des conflits, rendu logiciel, XInput direct, CI | ✅ ([rapport](docs/m4-report.md)) |
-| M3 | Widget Game Bar relié au service ([rapport](docs/m3-report.md)) | ✅ première version · 🧪 nouvelle version 13 langues pas encore compilée |
+| M3 | Widget Game Bar relié au service ([rapport](docs/m3-report.md)) | ✅ widget reconstruit et ouvert sur l'Ally à `8f3861d` ([rapport](docs/m5-report-2.md)) ; les changements ultérieurs restent à vérifier |
 | M4 | Auto TDP réel : FPS et charge GPU via AMD ADL ([rapport](docs/m4-report.md)) | ✅ jusqu'à `13ee476` · 🧪 optimisations suivantes |
-| M5 | Profils par jeu, banc d'essai, shell en 13 langues ([rapport, 1ʳᵉ partie](docs/m5-report.md)) | 🚧 shell, ventilateurs, manette, écran, boutons, bibliothèque et bench essayés sur l'Ally ; auto TDP corrigé · 🧪 installations, widget, limite de FPS corrigée |
-| M6 | Bibliothèque de jeux, installation des jeux Steam et Epic, ventilateurs, limite de FPS, mode de la manette, fréquence de l'écran, boutons spéciaux | ✅ bibliothèque (Steam, Xbox), ventilateurs, manette, fréquence de l'écran, boutons Armoury / Command Center, essayés sur l'Ally ([M5](docs/m5-report.md)) · 🧪 installation des jeux Steam et Epic, limite de FPS corrigée, fréquence par jeu, boutons arrière M1 / M2, éclairage des sticks · ⏳ installation des jeux GOG ([étude](docs/game-install-study.md)) |
+| M5 | Profils par jeu, banc d'essai, shell en 13 langues | ✅ profils, auto TDP et banc essayés sur l'Ally aux versions indiquées dans les [rapports](docs/m5-report-2.md) ; les changements ultérieurs restent à vérifier |
+| M6 | Bibliothèque, installation des jeux, ventilateurs, limite de FPS, manette, écran et boutons | ✅ bibliothèque Steam et Xbox, ventilateurs, manette et boutons essayés ; limite de FPS, fréquence par jeu et repli d'installation Steam essayés aux versions du [rapport](docs/m5-report-2.md) · 🧪 installation Steam sans fenêtre, Epic et GOG, boutons arrière M1 / M2 et éclairage des sticks à essayer ([étude](docs/game-install-study.md)) |
 
 ### Utilisation de l'IA
 
@@ -154,10 +154,10 @@ Goal number one: **stay as light as possible.** No embedded browser, no async ru
 | 🎮 **FSE home app** | Picked in Settings → Gaming → Full screen experience; launched by Windows at boot. Single instance, full screen right away. |
 | 🕹️ **Gamepad first** | LB / RB to change page, D-pad or stick to move, A to select, B to go back to the library. |
 | 📚 **Game library** | The games installed with Steam, Epic Games, GOG and the Xbox app, as covers, most recently played first; A to launch. Missing covers downloaded from Steam, or SteamGridDB with a free key. |
-| 📥 **Installing games** | The Steam and Epic games you own but have not installed, in the library's "To install" mode; A installs them without opening Steam's interface or the Epic launcher (Epic through Legendary, downloaded on demand), with the progress on the cover. |
+| 📥 **Installing games** | Owned Steam, Epic and GOG games in the library's "To install" mode, with progress on the cover. Steam may show its install window; Epic and GOG use Legendary and gogdl, downloaded on demand. |
 | ⚡ **Modes and TDP** | ASUS firmware modes (Silent, Performance, Turbo) or a manual limit in watts (sPPT, SPL and fPPT written together). |
 | 🤖 **Auto TDP** | Holds the FPS target (30 to 120) with the fewest watts: frame rate and GPU load read from the AMD driver, battery ceiling, temperature limit, anti-oscillation. |
-| 🌀 **Fans, frame rate limit, controller** | Fan presets (Automatic, Silent, Balanced, Maximum) with a safety floor when hot, AMD driver frame rate limit, controller mode (gamepad, keyboard, mouse), M1 and M2 back buttons, stick ring colour and effects. |
+| 🌀 **Fans, frame rate limit, controller** | Fan presets (Automatic, Balanced, Maximum) with a safety floor when hot, AMD driver frame rate limit, controller mode (gamepad, keyboard, mouse), M1 and M2 back buttons, stick ring colour and effects. |
 | 🎯 **Gyro aiming** | Turning the Ally moves the mouse while a game is in front: while holding a back paddle, toggled or all the time, with sensitivity, axis and inversion, per game if you like. No driver. Not tried on the Ally yet ([study](docs/gyro-study.md), French). |
 | 🎯 **Per-game profiles** | The profile of the game in front applies by itself, then hands back to the global settings. Canapé remembers the wattage auto TDP settles on; a profile can also keep its fans and frame rate limit. |
 | 📊 **Bench** | Sweeps several power limits on the running game and gives three recommendations: sweet spot, power for the target, most efficient. |
@@ -205,10 +205,10 @@ Legend: ✅ validated on the Ally · 🧪 written and tested without hardware, n
 | M1 | `canape-shell.exe` boots as the FSE home app ([report](docs/m1-report.md)) | ✅ |
 | M2 | Windows service + named pipe, ATKACPI backend, gamepad Slint shell, single instance ([report](docs/m2-report.md)) | ✅ |
 | M2.5 | Persistent state, write log, conflict detection, software rendering, direct XInput, CI | ✅ ([report](docs/m4-report.md)) |
-| M3 | Game Bar widget talking to the service ([report](docs/m3-report.md)) | ✅ first version · 🧪 new 13-language version not built yet |
+| M3 | Game Bar widget talking to the service ([report](docs/m3-report.md)) | ✅ widget rebuilt and opened on the Ally at `8f3861d` ([report](docs/m5-report-2.md)); later changes remain to be checked |
 | M4 | Real auto TDP: FPS and GPU load through AMD ADL ([report](docs/m4-report.md)) | ✅ up to `13ee476` · 🧪 later optimizations |
-| M5 | Per-game profiles, bench, shell in 13 languages ([report, part 1](docs/m5-report.md)) | 🚧 shell, fans, controller, screen, buttons, library and bench tried on the Ally; auto TDP fixed · 🧪 installs, widget, fixed frame rate limit |
-| M6 | Game library, installing Steam and Epic games, fans, frame rate limit, controller mode, display refresh rate, special buttons | ✅ library (Steam, Xbox), fans, controller, screen refresh rate, Armoury / Command Center buttons, tried on the Ally ([M5](docs/m5-report.md)) · 🧪 installing Steam and Epic games, fixed frame rate limit, per-game refresh rate, M1 / M2 back buttons, stick lighting · ⏳ installing GOG games ([study](docs/game-install-study.md), in French) |
+| M5 | Per-game profiles, bench, shell in 13 languages | ✅ profiles, auto TDP and bench tried on the Ally at the versions in the [report](docs/m5-report-2.md); later changes remain to be checked |
+| M6 | Game library, game installs, fans, frame rate limit, controller, screen and buttons | ✅ Steam and Xbox library, fans, controller and buttons tried; frame rate limit, per-game refresh and Steam install fallback tried at the versions in the [report](docs/m5-report-2.md) · 🧪 windowless Steam, Epic and GOG installs, M1 / M2 back buttons and stick lighting remain to be tried ([study](docs/game-install-study.md), in French) |
 
 ### Use of AI
 

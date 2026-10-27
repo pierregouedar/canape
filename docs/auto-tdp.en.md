@@ -5,7 +5,7 @@
 This page explains how Canapé sets the ROG Ally's power on its own: first in a few lines for players, then precisely, with the values from the code (`crates/canape-autotdp`, `crates/canape-service/src/handler.rs`, `crates/canape-core/src/bench.rs`).
 
 > [!IMPORTANT]
-> **Measured on the Ally**: auto TDP as of version `13ee476` (see [Measured results](#measured-results-on-the-ally)). **Not measured yet**: the later optimizations (single-stall filter, floor release, battery ceiling, temperature limit, learned watts), per-game profiles (including their fan curves and frame rate limit) and the bench. They are covered by unit tests and a simulation, not by a real measurement.
+> Auto TDP was measured on the Ally at `13ee476` and later versions. Profiles, learned watts and the bench were also tried; see versions and results in the [M5 report, part 2](m5-report-2.md). Later changes and individual settings are not necessarily validated.
 
 ## Contents
 
@@ -206,7 +206,7 @@ To avoid a sawtooth, a raise caused by a **lasting deficit** (at least two secon
 A single very low second (loading, hitch, autosave) raises power — the game may need it — but **sets no floor**: if the frame rate comes back to the target, power can come down normally.
 
 > [!NOTE]
-> This filter fixes the problem seen in the `13ee476` retest: a stall at 20.8 FPS had raised power to 24 W, and the floor kept it there for about 4 minutes. It has not been measured on the Ally yet.
+> This filter fixes the problem seen in the `13ee476` retest: a stall at 20.8 FPS had raised power to 24 W, and the floor kept it there for about 4 minutes. This specific case has not been measured separately on the Ally.
 
 ### Floor release when the load drops
 
@@ -458,7 +458,7 @@ What changed between the two versions: lowering below the target only happens at
 | From 12 W down to the minimum (7 W) | 16 s, then steady at 120 FPS | 48 s (1 W every 2 to 4 s) once the floor was released |
 | After a heavy load | — | **Stuck at 24 W for ~4 min** because of a floor set by a single stall |
 
-The optimizations in `00e3bb7` target these two defects (a single stall sets no floor, floor release when the load drops, lowering at the cap only when the raw sample is at the target too). A simulation of the M4 case (`power_limited_game_settles_without_sawtooth`) checks that after settling the power stays within a 3 W range with at most 12 changes in 13 minutes, for an average of at least 57 FPS. **These optimizations have not been measured on the Ally yet.**
+The optimizations in `00e3bb7` target these two defects (a single stall sets no floor, floor release when the load drops, lowering at the cap only when the raw sample is at the target too). A simulation of the M4 case (`power_limited_game_settles_without_sawtooth`) checks that after settling the power stays within a 3 W range with at most 12 changes in 13 minutes, for an average of at least 57 FPS. Later tests are described in the [M5 report, part 2](m5-report-2.md); each case was not measured separately.
 
 ### M5 bench (heavy WebGL Aquarium)
 
@@ -481,7 +481,7 @@ From the [M5 report](m5-report.md), with `m5-check` (steps of 6 W, 3 s settling,
 
 ## Known limits
 
-- Everything after `13ee476` (filters, battery ceiling, temperature limit, profiles, learned watts, bench) has not been measured on the Ally yet. The fan curves and the driver frame rate limit have not even been written to a real Ally yet.
+- Profiles, learned watts, the bench, fan curves and frame rate limit were tried on the Ally at versions after `13ee476`; see results and versions in the [M5 report, part 2](m5-report-2.md). Later changes and other settings are not necessarily validated.
 - The frame rate is the screen's as reported by the AMD driver, not a specific process's.
 - A game profile cannot force "no frame rate limit" while a global limit is set: a profile saved with None follows the global limit.
 - The ETW fallback (PresentMon's approach) mentioned in [`architecture.md`](architecture.md) is not implemented: without ADL there is no frame rate, so no auto TDP.

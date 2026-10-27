@@ -5,7 +5,7 @@
 Ce guide explique comment installer Canapé sur une ROG Ally, en faire l'accueil de l'expérience plein écran (FSE), l'utiliser à la manette, ajouter le widget Xbox Game Bar, puis dépanner et désinstaller.
 
 > [!IMPORTANT]
-> Canapé est un projet personnel en cours de développement. Ce qui a été **validé sur l'Ally** : l'installation, le démarrage en FSE, le service, les modes, le TDP manuel, l'auto TDP (version `13ee476`) et la première version du widget. Ce qui est **écrit et testé sans matériel, mais pas encore essayé sur l'Ally** : le shell en 13 langues (quatre sections, navigation aux flèches), la bibliothèque de jeux et l'installation des jeux Steam et Epic, la page Matériel (ventilateurs, limite de FPS, mode de la manette), les profils par jeu, le banc d'essai, les dernières optimisations de l'auto TDP et la nouvelle version du widget. Les sections concernées le signalent.
+> Canapé est un projet personnel en développement. L'installation, le FSE, le service, le shell, la bibliothèque Steam et Xbox, les profils, l'auto TDP et le banc ont été essayés sur l'Ally RC71L à différentes versions. Les [rapports M5](m5-report.md) et [M5, partie 2](m5-report-2.md) précisent les essais et leurs versions ; les changements ultérieurs et les autres modèles ne sont pas nécessairement validés. Les sections signalent les fonctions encore à essayer.
 
 ## Sommaire
 
@@ -179,7 +179,7 @@ Une installation qui avait déjà un `shell.json` d'une version précédente voi
 ## Utiliser Canapé à la manette
 
 > [!NOTE]
-> L'interface décrite ici (quatre sections, navigation aux flèches partout) n'a pas encore été essayée sur l'Ally : seules une version précédente et la navigation à la manette y ont été validées. La bibliothèque de jeux, en particulier, n'a été testée que sous Linux, avec une fausse bibliothèque : la recherche des jeux, leurs jaquettes et leur lancement sous Windows restent à vérifier. Même chose pour la page Matériel, dont les écritures vers les ventilateurs, le pilote graphique et la manette n'ont jamais atteint une vraie Ally (voir [Matériel](#matériel)). Les captures sont rendues sous Linux avec le simulateur matériel et des valeurs fictives.
+> Le shell, la bibliothèque Steam et Xbox et la page Matériel ont été essayés sur l'Ally ; voir les [rapports M5](m5-report.md) et [M5, partie 2](m5-report-2.md) pour les versions et les limites. Les captures ci-dessous sont rendues sous Linux avec le simulateur matériel et des valeurs fictives.
 
 ### Commandes
 
@@ -376,9 +376,9 @@ Un jeu qu'aucune boutique ne connaît (un `.exe` autonome, un jeu itch.io, un é
 <sub>Des jeux possédés inventés (`tools/fake-library.py`) ; l'installation de Mosaic Run est simulée.</sub>
 
 > [!NOTE]
-> **Rien de cette partie n'a encore été essayé sur l'Ally** : ni la liste des jeux Steam par l'API Web, ni l'installation par Steam, ni le téléchargement de Legendary ou de gogdl, ni les connexions Epic et GOG, ni l'installation et le lancement des jeux Epic et GOG. Seuls l'interface (sous Linux, avec la fausse bibliothèque et une installation simulée) et la lecture des réponses de Steam, d'Epic, de GOG et de GitHub ont été testées (sur des réponses enregistrées pour Steam, Epic et GitHub ; pour GOG, sur des réponses écrites d'après le code source de gogdl, les serveurs de GOG n'étant pas joignables depuis la session cloud).
+> La liste des jeux Steam et le repli par la fenêtre d'installation Steam ont été essayés sur l'Ally ([rapport M5](m5-report-2.md#steam-install)). L'installation Steam sans fenêtre, les connexions et installations Epic et GOG restent à essayer sur l'Ally ; pour GOG, les réponses de test ont été écrites d'après le code de gogdl.
 
-L'étagère **À installer** liste les jeux que vous possédez sur Steam, Epic ou GOG sans les avoir installés sur la console (la dernière étagère : bas jusqu'à elle). **A** ouvre la fiche du jeu, puis **A** dans la fiche (« Installer ») l'installe sans ouvrir l'interface de Steam, le lanceur Epic ni GOG Galaxy : un appui isolé sur l'étagère ne lance jamais de téléchargement. Un jeu déjà installé, depuis n'importe quelle boutique (même identifiant ou même titre), n'apparaît pas dans cette liste. Les jeux GOG et de l'app Xbox n'y sont jamais : Canapé n'obtient pas la liste des jeux possédés là-bas (l'app Xbox n'en donne aucune aux autres programmes), ils n'apparaissent donc qu'une fois installés avec GOG Galaxy ou l'app Xbox, et se lancent ensuite comme les autres.
+L'étagère **À installer** liste les jeux Steam, Epic ou GOG possédés mais non installés. **A** ouvre la fiche du jeu ; l'installation se confirme depuis cette fiche. Un jeu déjà installé depuis une autre boutique n'apparaît pas dans cette liste. Les jeux Xbox n'y figurent pas : leur liste de jeux possédés n'est pas accessible à Canapé.
 
 **Steam : préparer une fois**
 
@@ -466,7 +466,7 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 <img src="images/fr/hardware.png" alt="Page Matériel" width="720">
 
 > [!NOTE]
-> Les écritures des ventilateurs, de la limite de FPS et du mode de la manette n'ont **pas encore été essayées sur l'Ally** : elles n'ont été testées qu'avec le simulateur matériel. Avant de les essayer, arrêtez tout autre programme qui pilote les mêmes réglages (voir [Cohabiter avec…](#cohabiter-avec-dautres-outils)). Au moindre doute, **Automatique** rend les ventilateurs au firmware et **Aucune** retire la limite de FPS.
+> Les ventilateurs, la limite de FPS et le mode de la manette ont été essayés sur l'Ally aux versions indiquées dans les [rapports M5](m5-report.md) et [M5, partie 2](m5-report-2.md). Arrêtez les autres programmes qui pilotent ces réglages (voir [Cohabiter avec…](#cohabiter-avec-dautres-outils)). **Automatique** rend les ventilateurs au firmware et **Aucune** retire la limite de FPS.
 
 **En haut**, en direct : le jeu au premier plan, la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU, un trait en pointillés marquant la température du moment. « — » quand le firmware ne donne pas de mesure.
 
@@ -552,7 +552,7 @@ Une étagère qui regroupe ce qui touche à l'image d'un jeu : la résolution, l
 > **Pas encore appliqué.** La mise à l'échelle et la génération d'images sont seulement **enregistrées** dans le profil du jeu : rien ne les active encore, les tiroirs l'indiquent par « Pas encore appliqué » et le service écrit dans son journal `image: upscaling … not applied yet` quand le profil s'applique.
 
 > [!NOTE]
-> Pas encore essayé sur l'Ally : `ChangeDisplaySettingsEx` sur l'écran interne (fréquence et résolution, depuis le shell), le filtrage des résolutions d'après `EnumDisplaySettings`, et la détection de Lossless Scaling.
+> La fréquence de l'écran, y compris par jeu, a été essayée sur l'Ally ([rapport](m5-report-2.md)). La résolution, son filtrage et la détection de Lossless Scaling restent à vérifier.
 
 #### Visée au gyroscope
 
@@ -620,7 +620,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 |---|---|
 | **Apparence → Langue** | « Automatique » (langue de Windows) et les 13 langues, en tuiles sur deux rangées : les flèches se déplacent, **A** applique la langue qui a le focus ; le choix est mémorisé. Voir [Langues](#langues). |
 | **Apparence → Couleur d'accent** | La carte montre le code de la couleur. Huit pastilles prêtes (gauche et droite, **A** choisit) et trois lignes **Teinte**, **Saturation** et **Luminosité** que gauche et droite déplacent, haut et bas passant de l'une à l'autre. Toute l'interface suit en direct ; la couleur est enregistrée dans `shell.json` et envoyée au service une fois le réglage terminé, et **le widget de la Game Bar suit la couleur d'accent**. |
-| **Apparence → Boutons de l'Ally** | Activé ou Désactivé (**A** applique). Le bouton **Armoury** (à droite, sous l'écran) ramène Canapé au premier plan depuis un jeu, ou revient à Jeux si Canapé est déjà devant ; le bouton **Command Center** (à gauche) ouvre la Xbox Game Bar, où se trouve le widget Canapé. Désactivez-le si un autre outil doit les gérer (sinon les deux réagissent). Pas encore essayé sur l'Ally. |
+| **Apparence → Boutons de l'Ally** | Activé ou Désactivé (**A** applique). Le bouton **Armoury** (à droite, sous l'écran) ramène Canapé au premier plan depuis un jeu, ou revient à Jeux si Canapé est déjà devant ; le bouton **Command Center** (à gauche) ouvre la Xbox Game Bar, où se trouve le widget Canapé. Désactivez-le si un autre outil doit les gérer (sinon les deux réagissent). Essayé sur l'Ally ([rapport M5](m5-report.md)). |
 | **Bibliothèque → Dossier des jeux** | Où s'installent les jeux Epic et GOG ; sa place libre à côté du titre du tiroir. Par défaut, le dossier qui contient déjà le plus de jeux installés par Canapé ou par le lanceur Epic, sinon `Games` sur le lecteur qui a le plus de place libre. Gauche et droite parcourent les dossiers qui contiennent déjà des jeux et `Games` sur chaque lecteur interne ; le choix est enregistré dans `shell.json` (`games_folder`). Pas encore essayé sur l'Ally. |
 | **Bibliothèque → Jaquettes manquantes** | Activé ou Désactivé : télécharger les jaquettes des jeux qui n'en ont pas, voir [Jeux](#jeux). |
 | **Bibliothèque → Ajouter un jeu** | Le nombre de jeux de `games.json` ; ouvre la liste des jeux à ajouter (voir [Ajouter d'autres jeux](#ajouter-dautres-jeux)). S'il y a des jeux masqués, sa première ligne **Jeux masqués · N** ouvre leur liste : **A** réaffiche le jeu (voir [Options d'un jeu](#options-dun-jeu)). Pas encore essayé sur l'Ally. |
@@ -691,7 +691,7 @@ Pendant le banc d'essai, le mode, le TDP et l'auto TDP sont verrouillés (« a b
 Sur une recommandation, **A** règle le TDP (limite manuelle à cette valeur, auto TDP désactivé) et **X** l'enregistre dans le profil du jeu (crée ou remplace le profil : auto TDP activé, objectif et plafond tirés de la mesure). Le calcul exact est dans [Auto TDP et banc d'essai](auto-tdp.fr.md#le-banc-dessai).
 
 > [!NOTE]
-> Le banc d'essai n'a pas encore été essayé sur l'Ally.
+> Le banc d'essai a été essayé sur l'Ally avec Unigine Heaven aux versions indiquées dans le [rapport M5, partie 2](m5-report-2.md).
 
 ### Optimisations Windows
 

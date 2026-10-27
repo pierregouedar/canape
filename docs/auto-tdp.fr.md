@@ -5,7 +5,7 @@
 Cette page explique comment Canapé règle tout seul la puissance de la ROG Ally : d'abord en quelques lignes pour les joueurs, puis précisément, avec les valeurs du code (`crates/canape-autotdp`, `crates/canape-service/src/handler.rs`, `crates/canape-core/src/bench.rs`).
 
 > [!IMPORTANT]
-> **Ce qui a été mesuré sur l'Ally** : l'auto TDP de la version `13ee476` (voir [Résultats mesurés](#résultats-mesurés-sur-lally)). **Ce qui ne l'a pas encore été** : les optimisations suivantes (filtre de l'à-coup isolé, libération du plancher, plafond sur batterie, limite de température, watts appris), les profils par jeu (y compris leurs courbes de ventilateurs et leur limite de FPS) et le banc d'essai. Ils sont couverts par des tests unitaires et une simulation, pas par une mesure réelle.
+> L'auto TDP a été mesuré sur l'Ally à `13ee476` et à des versions ultérieures. Les profils, watts appris et le banc ont également été essayés ; voir les versions et résultats dans le [rapport M5, partie 2](m5-report-2.md). Les changements ultérieurs et chaque option ne sont pas nécessairement validés.
 
 ## Sommaire
 
@@ -206,7 +206,7 @@ Pour éviter les dents de scie, une montée due à un **manque qui dure** (au mo
 Une seule seconde très basse (chargement, à-coup, sauvegarde) fait monter la puissance — le jeu en a peut-être besoin — mais **ne crée pas de plancher** : si les FPS reviennent à l'objectif, la puissance peut redescendre normalement.
 
 > [!NOTE]
-> Ce filtre corrige le problème vu lors du retest de `13ee476` : un à-coup à 20,8 FPS avait fait monter la puissance à 24 W, et le plancher l'y avait gardée environ 4 minutes. Il n'a pas encore été mesuré sur l'Ally.
+> Ce filtre corrige le problème vu lors du retest de `13ee476` : un à-coup à 20,8 FPS avait fait monter la puissance à 24 W, et le plancher l'y avait gardée environ 4 minutes. Ce cas précis n'a pas été mesuré isolément sur l'Ally.
 
 ### Libération du plancher quand la charge baisse
 
@@ -458,7 +458,7 @@ Le changement entre les deux versions : la baisse sous l'objectif n'a plus lieu 
 | Descente de 12 W au minimum (7 W) | 16 s, puis stable à 120 FPS | 48 s (1 W toutes les 2 à 4 s) une fois le plancher libéré |
 | Après une charge lourde | — | **Bloqué à 24 W pendant ~4 min** à cause d'un plancher créé par un à-coup isolé |
 
-Les optimisations de `00e3bb7` visent ces deux défauts (à-coup isolé sans plancher, libération du plancher quand la charge baisse, baisse au plafond seulement si la mesure brute est aussi à l'objectif). Une simulation du cas M4 (`power_limited_game_settles_without_sawtooth`) vérifie qu'après stabilisation la puissance reste dans une plage de 3 W avec au plus 12 changements en 13 minutes, pour une moyenne d'au moins 57 FPS. **Ces optimisations n'ont pas encore été mesurées sur l'Ally.**
+Les optimisations de `00e3bb7` visent ces deux défauts (à-coup isolé sans plancher, libération du plancher quand la charge baisse, baisse au plafond seulement si la mesure brute est aussi à l'objectif). Une simulation du cas M4 (`power_limited_game_settles_without_sawtooth`) vérifie qu'après stabilisation la puissance reste dans une plage de 3 W avec au plus 12 changements en 13 minutes, pour une moyenne d'au moins 57 FPS. Les essais ultérieurs sont décrits dans le [rapport M5, partie 2](m5-report-2.md) ; chaque cas n'a pas été mesuré isolément.
 
 ### Banc d'essai M5 (WebGL Aquarium chargé)
 
@@ -481,7 +481,7 @@ D'après le [rapport M5](m5-report.md), avec `m5-check` (paliers de 6 W, 3 s de 
 
 ## Limites connues
 
-- Tout ce qui suit `13ee476` (filtres, plafond sur batterie, limite de température, profils, watts appris, banc d'essai) n'a pas encore été mesuré sur l'Ally. Les courbes de ventilateurs et la limite de FPS du pilote n'ont même jamais été écrites sur une vraie Ally.
+- Les profils, watts appris, banc, courbes de ventilateurs et limite de FPS ont été essayés sur l'Ally à des versions postérieures à `13ee476` ; voir les résultats et versions dans le [rapport M5, partie 2](m5-report-2.md). Les changements ultérieurs et les autres réglages ne sont pas nécessairement validés.
 - Les FPS sont ceux de l'écran rapportés par le pilote AMD, pas ceux d'un processus précis.
 - Un profil de jeu ne peut pas imposer « aucune limite de FPS » quand une limite globale est fixée : un profil enregistré avec Aucune suit la limite globale.
 - Le secours par ETW (principe de PresentMon) évoqué dans [`architecture.md`](architecture.md) n'est pas implémenté : sans ADL, pas de FPS, donc pas d'auto TDP.

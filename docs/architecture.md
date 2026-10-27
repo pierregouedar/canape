@@ -59,7 +59,7 @@ Le FSE active l'app d'accueil **sans droits administrateur** (medium IL). `canap
 
 - **Canal** : named pipe `\\.\pipe\canape`, ouvert par le service.
 - **Format** : JSON, un message par ligne, défini dans `canape-core::protocol`. Chaque client commence par `Hello { protocol_version }`.
-- **Sécurité** : la DACL du pipe autorise SYSTEM, les administrateurs, l'utilisateur interactif et toutes les apps AppContainer (`ALL APPLICATION PACKAGES`, pour le widget), avec un label d'intégrité basse. À durcir : n'autoriser que le SID du paquet du widget.
+- **Sécurité** : la DACL du pipe autorise SYSTEM, les administrateurs, l'utilisateur interactif et le SID AppContainer du widget, avec un label d'intégrité basse. Si le SID ne peut pas être calculé, elle autorise tous les AppContainers en repli ; le service journalise le choix.
 - **Notifications** : le service pousse un `Status` (TDP, FPS, températures, batterie) environ une fois par seconde aux clients abonnés.
 
 ## Matériel (`canape-hw`)
@@ -71,12 +71,12 @@ Les faits (identifiants, formats, ordre d'écriture) du backend Windows sont imp
 | Mode de performance, limites de puissance (sPPT, SPL, fPPT), limite de charge, température CPU | Firmware ASUS via `\\.\ATKACPI` (IOCTL `0x0022240C`, méthodes DEVS/DSTS) | M2 |
 | Batterie (pourcentage) | `GetSystemPowerStatus` | M2 |
 | FPS et charge GPU | AMD ADL (`ADL2_Adapter_FrameMetrics_*`, PMLog activité GFX) | M4 |
-| Courbes et vitesses des ventilateurs | ATKACPI `0x00110024`/`0x00110025` (8 températures + 8 % de PWM, `0x00110032` pour un ventilateur central), vitesses `0x00110013`/`0x00110014` | M6 : code écrit (service et page Matériel), à valider sur l'Ally |
-| Limite de FPS | AMD ADL (`ADL2_FPS_Settings_Set`), depuis le service | M6 : code écrit, à valider sur l'Ally (session 0 non essayée) |
-| Mode de la manette | HID ASUS (VID `0x0B05`, rapport `0x5A`, commande `0xD1 0x01`) | M6 : code écrit, à valider sur l'Ally |
-| Fréquence de l'écran | `QueryDisplayConfig` (chemin interne ou eDP) puis `ChangeDisplaySettingsEx`, depuis le shell (session de l'utilisateur), par jeu via les profils | M6 : code écrit (page Matériel), à valider sur l'Ally |
+| Courbes et vitesses des ventilateurs | ATKACPI `0x00110024`/`0x00110025` (8 températures + 8 % de PWM, `0x00110032` pour un ventilateur central), vitesses `0x00110013`/`0x00110014` | Essayées sur l'Ally ([M5, partie 2](m5-report-2.md)) |
+| Limite de FPS | AMD ADL (`ADL2_FPS_Settings_Set`), depuis le service | Essayée sur l'Ally à `8f3861d` ([M5, partie 2](m5-report-2.md)) |
+| Mode de la manette | HID ASUS (VID `0x0B05`, rapport `0x5A`, commande `0xD1 0x01`) | Essayé sur l'Ally ([M5](m5-report.md)) |
+| Fréquence de l'écran | `QueryDisplayConfig` (chemin interne ou eDP) puis `ChangeDisplaySettingsEx`, depuis le shell (session de l'utilisateur), par jeu via les profils | Fréquence par jeu essayée à `dc23673` ([M5, partie 2](m5-report-2.md)) |
 | Gyroscope (visée) | Capteurs Windows (`Windows.Devices.Sensors.Gyrometer`), lus par le shell, qui déplace la souris par `SendInput` pendant qu'un jeu est devant (voir `gyro-study.md`) | Code écrit, à valider sur l'Ally |
-| Boutons spéciaux | HID ASUS (VID `0x0B05`, rapports d'entrée `0x5A` : 166 Command Center, 56/147 Armoury, 165/0 palettes arrière), lus par le shell | M6 : code écrit (Armoury → Canapé, Command Center → Game Bar), à valider sur l'Ally |
+| Boutons spéciaux | HID ASUS (VID `0x0B05`, rapports d'entrée `0x5A` : 166 Command Center, 56/147 Armoury, 165/0 palettes arrière), lus par le shell | Armoury et Command Center essayés sur l'Ally ; affectation des palettes à valider |
 
 Le SMU du Ryzen n'est pas nécessaire : sur l'Ally, il ne servirait au TDP que si l'ID sPPT est absent.
 
@@ -119,8 +119,8 @@ Le service mémorise les derniers réglages appliqués (`%ProgramData%\Canape\st
 | M2.5 ✅ | État persistant et réappliqué au démarrage, journal des écritures, détection des programmes concurrents, rendu logiciel, manette en XInput direct, CI Windows |
 | M3 ✅ | Widget Game Bar (C# UWP) relié au service par le pipe (voir `m3-report.md`) |
 | M4 ✅ | Auto TDP en conditions réelles : FPS et charge GPU via AMD ADL (voir `m4-report.md`) |
-| M5 🚧 | Interface en quatre sections et 13 langues, profils par jeu, TDP appris, bench, plafond batterie, limite de température : code écrit, essais sur l'Ally à faire (vérifications automatisées : `packaging/m5-check.ps1`) |
-| M6 🚧 | Bibliothèque de jeux, ventilateurs, limite de FPS et mode de la manette (HID) : code écrit dans le service et le shell (page Matériel, profils par jeu), testé seulement avec le simulateur, à valider sur l'Ally avec les essais M5. Fréquence de l'écran (globale et par jeu) et boutons Armoury / Command Center : code écrit, à valider aussi. Installation des jeux Steam et Epic possédés depuis la bibliothèque (voir `game-install-study.md`) : code écrit, à valider sur l'Ally |
+| M5 🚧 | Profils, TDP appris et banc essayés sur l'Ally ; voir les versions et limites dans [le rapport](m5-report-2.md). |
+| M6 🚧 | Bibliothèque et réglages matériels partiellement essayés sur l'Ally ; installation Steam, Epic et GOG codée. Voir [l'état d'avancement](../README.md#état-davancement) et [l'étude](game-install-study.md). |
 
 ## Questions ouvertes
 

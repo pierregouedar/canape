@@ -2,18 +2,18 @@
 
 Objectif : depuis la bibliothèque de Canapé, voir les jeux **possédés mais pas installés** et les installer à la manette, sans passer par l'interface de Steam, d'Epic, de GOG Galaxy ou de l'app Xbox.
 
-Résumé : c'est **possible pour Steam et Epic**, partiellement pour GOG, et **pas pour le Game Pass / l'app Xbox**.
+Résumé : l'installation Steam, Epic et GOG est codée ; le repli Steam par sa fenêtre a été essayé sur l'Ally. L'installation sans fenêtre, Epic et GOG restent à essayer sur l'Ally. L'installation Game Pass / Xbox reste ouverte.
 
 ## État
 
 | Étape | État |
 |---|---|
-| 1. Steam | 🧪 Code écrit (`778a222`) : mode **À installer** dans la bibliothèque, liste par l'API Web (clé `steam_api_key` dans `shell.json`), installation par `steam.exe -silent steam://install/<appid>`, progression lue dans le manifeste. Testé sous Linux seulement, **pas encore essayé sur l'Ally**. |
+| 1. Steam | Code écrit : liste par l'API Web (clé `steam_api_key`), ajout à la file Steam sans fenêtre avec repli sur `steam://install/<appid>`, progression lue dans le manifeste. Le repli et la liste ont été essayés sur l'Ally ([rapport](m5-report-2.md#steam-install)) ; l'installation sans fenêtre reste à essayer. |
 | 2. Epic | 🧪 Code écrit (`778a222`) : Legendary téléchargé à la demande dans `%LOCALAPPDATA%\Canape\tools` (vérifié contre le SHA-256 publié par GitHub), connexion depuis la bibliothèque ou les Réglages, liste, installation avec progression, lancement par `legendary launch`. **Pas encore essayé sur l'Ally.** |
 | 3. GOG | 🧪 Code écrit : gogdl (heroic-gogdl 1.3.1, version fixée, SHA-256 vérifié) téléchargé à la demande dans `%LOCALAPPDATA%\Canape\tools` ; connexion par la page GOG ouverte dans le navigateur, dont Canapé lit l'adresse d'arrivée dans le presse-papiers ; liste par l'API web de GOG avec le jeton de gogdl ; installation par `gogdl download` avec progression ; lancement direct par l'exécutable du jeu (`goggame-<id>.info`). Les réponses de GOG n'ont pas pu être enregistrées (serveurs injoignables depuis la session cloud) : fixtures écrites d'après le code de gogdl. **Pas encore essayé sur l'Ally.** |
 | 4. Xbox | ⏳ Ouvert. |
 
-Dossier d'installation et place libre (🧪 code écrit, **pas encore essayé sur l'Ally**) : Steam propose le dossier et montre la place dans sa propre fenêtre. Pour Epic et GOG, un **dossier des jeux** (réglage `games_folder` de `shell.json`, choisi dans les Réglages ; par défaut le dossier qui contient déjà le plus de jeux installés par Canapé ou le lanceur Epic, sinon `Games` sur le lecteur le plus libre) reçoit Legendary (`--base-path`) et gogdl (`--path`). La fiche d'un jeu à installer montre sa taille (`legendary info --json`, `gogdl info`) et la place libre du dossier ; A refuse quand il ne rentre pas, avec un message, et l'installation revérifie juste avant de télécharger.
+Dossier d'installation et place libre (code écrit, à vérifier sur l'Ally) : Steam choisit la bibliothèque ayant le plus de place, ou propose le dossier dans sa fenêtre de repli. Pour Epic et GOG, un **dossier des jeux** (réglage `games_folder` dans `shell.json`, choisi dans les Réglages) reçoit Legendary et gogdl. La fiche montre la taille et la place libre ; l'installation refuse si le jeu ne rentre pas et revérifie avant téléchargement.
 
 Les deux choix laissés au propriétaire du projet ont été tranchés ainsi : une clé d'API Steam personnelle, renseignée à la main dans `shell.json` ; Legendary téléchargé à la demande, jamais embarqué. Le fonctionnement est décrit dans le [guide d'utilisation](user-guide.fr.md#installer-des-jeux-possédés) et le [guide du développeur](developer-guide.fr.md#installer-les-jeux-possédés). Le reste de ce document est l'analyse de départ.
 
