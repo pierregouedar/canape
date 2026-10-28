@@ -304,13 +304,14 @@ mod tests {
         std::fs::write(eac.join("EasyAntiCheat_EOS_Setup.exe"), b"MZ").unwrap();
         assert_eq!(find(&dir), None, "no Settings.json yet");
         std::fs::write(eac.join("settings.json"), br#"{"productid":"p1"}"#).unwrap();
+        let setup = find(&dir).unwrap();
         assert_eq!(
-            find(&dir),
-            Some(Setup {
-                exe: eac.join("EasyAntiCheat_EOS_Setup.exe"),
-                product_id: "p1".into()
-            })
+            setup.exe.canonicalize().unwrap(),
+            eac.join("EasyAntiCheat_EOS_Setup.exe")
+                .canonicalize()
+                .unwrap()
         );
+        assert_eq!(setup.product_id, "p1");
 
         // A Legendary install is found through its installed.json.
         let config = dir.join("legendary");
