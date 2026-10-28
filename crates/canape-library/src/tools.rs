@@ -230,7 +230,7 @@ mod tests {
             "https://github.com/Heroic-Games-Launcher/heroic-gogdl/releases/download/"
         ));
         assert_eq!(GOGDL_SHA256.len(), 64);
-        let dir = std::env::temp_dir().join(format!("canape-gogdl-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("canape-gogdl-tool-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         // Any other file than the pinned one is refused.
         let mut answers = HashMap::new();
