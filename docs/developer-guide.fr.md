@@ -812,14 +812,15 @@ Pour tester le shell **avec l'identité du paquet** (comme le FSE), passez par `
 
 ## Intégration continue
 
-[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) tourne à chaque push, pull request ou lancement manuel :
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) se lance manuellement depuis l'onglet Actions ou avec `gh workflow run ci.yml` :
 
 | Job | Étapes |
 |---|---|
 | `windows` (windows-latest) | `cargo fmt --all --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, `cargo build --release` des trois binaires, artefact **`canape-windows-x64`** (`canape-shell.exe`, `canape-service.exe`, `canape-ctl.exe`) |
+| `widget` (windows-2022) | Compilation du widget UWP x64 ; artefact non signé **`canape-widget-unsigned-x64`** |
 | `linux` (ubuntu-latest) | Dépendances X11 / fontconfig, `cargo clippy --all-targets -- -D warnings`, `cargo test` |
 
-L'artefact s'installe sur l'Ally avec `install-dev.ps1 -BinariesDir` : c'est le moyen de contourner Smart App Control. Le widget n'est pas compilé par la CI.
+L'artefact des exécutables s'installe sur l'Ally avec `install-dev.ps1 -BinariesDir` : c'est le moyen de contourner Smart App Control. Le paquet du widget doit être signé avec un certificat de test reconnu avant installation.
 
 Profil release (`Cargo.toml`) : `opt-level = "s"`, LTO, `codegen-units = 1`, `panic = "abort"`, symboles retirés.
 

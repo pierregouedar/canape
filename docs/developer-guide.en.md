@@ -812,14 +812,15 @@ To test the shell **with the package identity** (as the FSE runs it), go through
 
 ## Continuous integration
 
-[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on every push, pull request or manual dispatch:
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs manually from the Actions tab or with `gh workflow run ci.yml`:
 
 | Job | Steps |
 |---|---|
 | `windows` (windows-latest) | `cargo fmt --all --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, `cargo build --release` of the three binaries, **`canape-windows-x64`** artifact (`canape-shell.exe`, `canape-service.exe`, `canape-ctl.exe`) |
+| `widget` (windows-2022) | Build the x64 UWP widget; unsigned **`canape-widget-unsigned-x64`** artifact |
 | `linux` (ubuntu-latest) | X11 / fontconfig dependencies, `cargo clippy --all-targets -- -D warnings`, `cargo test` |
 
-The artifact installs on the Ally with `install-dev.ps1 -BinariesDir`: that is the way around Smart App Control. The widget is not built by CI.
+The executable artifact installs on the Ally with `install-dev.ps1 -BinariesDir`: that is the way around Smart App Control. The widget package must be signed with a trusted test certificate before installation.
 
 Release profile (`Cargo.toml`): `opt-level = "s"`, LTO, `codegen-units = 1`, `panic = "abort"`, stripped symbols.
 
