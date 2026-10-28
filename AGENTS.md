@@ -26,7 +26,9 @@ Add focused tests alongside changed code; use `canape-library/tests/fixtures/` f
 
 ## Commits and Pull Requests
 
-Use short, descriptive, imperative commit subjects (for example, “Refresh README for users and developers”). Keep pull requests focused; explain user-visible changes, report validation, link issues when applicable, include UI screenshots, and flag hardware behavior still needing tests.
+Follow Gitflow conventions for branch roles and integration while continuing work on the current branch; do not switch branches or rewrite history without explicit authorization. Write short, descriptive, imperative commit subjects in English. After completing and verifying each feature, commit only the changes belonging to that feature and push the current branch without asking again, if permissions allow. Never force-push. If checks fail or pushing is blocked, report the failure and do not claim the push succeeded.
+
+Keep pull requests focused; explain user-visible changes, report validation, link issues when applicable, include UI screenshots, and flag hardware behavior still needing tests.
 
 ## Security and Configuration
 
