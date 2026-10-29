@@ -141,6 +141,19 @@ Mode Silencieux réglé par `canape-ctl`, ventilateurs sur Équilibré (courbe p
 
 État remis : Turbo, ventilateurs automatiques, pleine puissance désactivée, Économe.
 
+### T2 Étagère Processeur
+
+Page Performance, étagère Processeur, chaque tiroir est un curseur appliqué par gauche/droite. Après chaque cran, la valeur du plan actif (« Utilisation normale ») a été relue avec `powercfg /qh` (secteur / batterie), en plus de l'état du service.
+
+| Réglage | Valeurs essayées → `powercfg` | Par défaut → `powercfg` |
+|---|---|---|
+| Boost (`PERFBOOSTMODE`) | Activé → 1/1, Désactivé → 0/0 | 2/2 |
+| Préférence énergétique (`PERFEPP`) | 25 % → 25/25, 50 % → 50/50, 0 % → 0/0 | 25/60 |
+| Fréquence maximale (`PROCFREQMAX`) | 2,8 GHz → 2800/2800, 3,6 GHz → 3600/3600, 2,0 GHz → 2000/2000 | 0/4000 |
+| Cœurs actifs (`CPMINCORES`) | 25 % → 25/25, 50 % → 50/50 | 100/25 |
+
+Les valeurs « Par défaut » sont celles que le service avait relevées avant son premier changement (boost 2/2, préférence 25/60, fréquence 0/4000) et, pour les cœurs, la valeur de départ du plan. Chaque changement est journalisé `SetCpuPower … -> Ok`. Les libellés du curseur sont tronqués (« Par déf… », « Désacti… »). Réglages de départ remis ensuite (boost agressif, préférence 0, 2000 MHz, cœurs par défaut) et revérifiés : 2/2, 0/0, 2000/2000, 100/25.
+
 ## À poursuivre
 
 Vérifier sur cette version les parcours FSE, manette, bibliothèque et lancement, puissance et retour à Windows. Tester les fonctions récentes documentées comme non validées, notamment les installations Steam, Epic et GOG, le gyroscope, les palettes, l'éclairage, la visite et le changement de rendu. Les gestes physiques et l'apparence à l'écran nécessitent une observation de la console ; ne pas déduire leur réussite des seules réponses IPC.
