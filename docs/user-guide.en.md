@@ -633,7 +633,7 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 | **System → Windows tweaks** | **A** opens the [Windows tweaks](#windows-tweaks) sub-page (Copilot, ads, preinstalled apps, Defender…). Not tried on the Ally yet. |
 | **System → Welcome tour** | **A** shows the [first-launch tour](#first-launch) again from the start. Not tried on the Ally yet. |
 | **System → Full power in Canapé** | On (the default) or Off. Canapé draws on the CPU, so in Silent mode or with a low limit the interface stutters. When on, while Canapé is the window in front and no game is running, the service writes the Performance mode's power limits; as soon as a game comes to the front or Canapé leaves the foreground (after 1.5 s, to avoid flapping), it puts your state back exactly (mode, manual TDP, game profile, auto TDP). Custom fan curves are kept. Nothing is written when your level is already the Performance mode's or above (manual TDP of 15 W and up, Performance, Turbo), during a bench, or when the mode is unknown. If Canapé stops reporting (closed, hung), the state is put back after 4 s. The `ui power: on (…)` and `ui power: off (…)` lines of `service.log` mark each change. Not tried on the Ally yet. |
-| **System → Display** | **Efficient** or **Smooth** (**A** applies); the drawer states the memory cost and that Canapé restarts. See [Display](#display-efficient-or-smooth). Not tried on the Ally yet. |
+| **System → Display** | **Efficient** or **Smooth** (**A** applies); the drawer states the memory cost and that Canapé restarts. See [Display](#display-efficient-or-smooth). Switching both ways was tried on the Ally RC71L. |
 
 | Teal accent | Orange accent |
 |---|---|
@@ -644,7 +644,7 @@ Below, three shelves of cards, used like the [Performance](#performance) page: *
 #### Display: Efficient or Smooth
 
 > [!NOTE]
-> **Not tried on the Ally yet.** The figures come from the test described in [gpu-renderer-test.md](gpu-renderer-test.md).
+> Switching both ways was tried on the Ally RC71L; smoothness during games and automatic FSE startup remain to be checked. See the [test report](ally-alpha-report.md#changement-de-rendu) and [earlier measurements](gpu-renderer-test.md).
 
 Canapé installs two executables: `canape-shell.exe`, which draws with the processor (**Efficient**, the default: about 28 MB of memory, the home page at 104 to 114 frames per second), and `canape-shell-gpu.exe`, which draws with the graphics card (**Smooth**: a smoother home page, but about 300 MB more memory, also during games). The full-screen experience always starts `canape-shell.exe`. With **Smooth**, it starts `canape-shell-gpu.exe`, waits up to 5 seconds for it to show its window, then exits. If the other executable is missing, exits, or shows nothing in time, Canapé stays on **Efficient** and sets the option back to Efficient. Changing the option in **Settings → System → Display** saves the choice, restarts Canapé on the Settings page and closes the previous executable. The setting is `renderer` in `shell.json` (`"software"` or `"gpu"`, missing: `"software"`). `shell.log` records `renderer: …` at startup, and whether the process has a package identity.
 
@@ -701,7 +701,7 @@ On a recommendation, **A** sets the TDP (manual limit at that value, auto TDP of
 Opened from **Settings → Windows tweaks**; **B** goes back. Up and down change shelf, left and right select a card, **A** opens its drawer and **B** closes it. Cards show the state of the Windows feature ("Copilot: Off", "Game Mode: On"). Preinstalled apps open in a separate list.
 
 > [!WARNING]
-> **Not yet tried on the Ally.** Everything was tested with the simulator only. These settings change Windows itself: try them one at a time first.
+> Most of these optimizations remain to be tried on the Ally. Writing and restoring the background recording values was checked in the registry ([report](ally-alpha-report.md#réglages-windows)), without testing recording itself. These settings change Windows: try them one at a time first.
 
 - **Apply the recommended settings** applies at once those marked "yes" in the *Recommended* column below (never real-time protection, memory integrity or background apps). A second **A** confirms, since the set includes the Defender exclusions.
 - Changes that lower protection and app removal ask for **a second A**; changing the selection cancels. **Restore my changes** lists and restores only tweaks applied by Canapé; removed apps must be reinstalled separately.

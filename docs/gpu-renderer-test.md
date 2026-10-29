@@ -4,7 +4,7 @@ Le shell dessine avec le rendu logiciel de Slint (voir [architecture.md](archite
 
 ## Deux exécutables
 
-> **Pas encore essayé sur l'Ally.**
+> La bascule Économe → Fluide → Économe a été essayée sur la RC71L le 29 octobre 2026, au commit `0f161d8` : les deux exécutables ont démarré avec l'identité du paquet et le réglage initial a été rétabli. Voir le [rapport](ally-alpha-report.md#changement-de-rendu). La fluidité en jeu et le démarrage automatique du FSE restent à vérifier.
 
 Décision suivante : le rendu GPU devient une option, sans coût quand elle est éteinte. Les 82 Mo de la version de test avec le rendu logiciel montrent que lier un rendu GPU coûte de la mémoire même quand il n'est pas choisi ; on ne lie donc jamais les deux dans un même exécutable. Deux exécutables, installés ensemble et construits depuis le même crate :
 
@@ -15,7 +15,7 @@ Décision suivante : le rendu GPU devient une option, sans coût quand elle est 
 
 `canape-shell.exe` reste celui du FSE (`AppxManifest.xml`). Le réglage `renderer` (`software` ou `gpu`) est dans `shell.json`, proposé dans Réglages → Système → Affichage (« Économe » / « Fluide ») et dans la visite de bienvenue. Au démarrage, `canape-shell.exe` le lit avant de créer sa fenêtre ; sur `gpu`, il lance `canape-shell-gpu.exe`, attend jusqu'à 5 s un événement nommé posé quand la fenêtre a dessiné sa première image, puis se ferme (`renderer::PARENT_STAYS_WAITING` le fait attendre sans fenêtre à la place). En cas d'échec, le réglage repasse sur `software` et le shell continue. Les deux exécutables écrivent `renderer: …` et l'identité du paquet dans `shell.log`. Détails dans le [guide du développeur](developer-guide.fr.md#deux-exécutables--rendu-logiciel-ou-carte-graphique).
 
-À vérifier sur l'Ally : mémoire privée de `canape-shell.exe` avec l'option éteinte (28 Mo attendus, plus les 82 Mo des bibliothèques liées en moins), fluidité avec l'option allumée, réaction du FSE quand `canape-shell.exe` se ferme au profit de l'autre, et identité du paquet de `canape-shell-gpu.exe` dans le journal.
+À vérifier sur l'Ally : fluidité et consommation en jeu avec l'option allumée, démarrage automatique du FSE et comportement de repli. Les mesures ponctuelles et l'identité des deux processus sont consignées dans le rapport.
 
 ## Ce qu'on sait avant l'essai
 

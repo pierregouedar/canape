@@ -44,6 +44,12 @@ Sur le plan d'alimentation actif, la préférence énergétique du processeur é
 
 Pour l'optimisation d'enregistrement en arrière-plan, `GameDVR_Enabled` valait 1 et `AppCaptureEnabled` était absent dans le registre de l'utilisateur console. L'activation a mis les deux à 0 ; la désactivation a remis la première à 1 et supprimé la seconde. Cette vérification porte sur l'écriture et la restitution du registre, pas sur l'enregistrement ni sur l'ouverture de la Game Bar.
 
+### Changement de rendu
+
+Le 29 octobre, depuis Réglages → Système → Affichage, le passage d'Économe à Fluide au clavier a redémarré le shell GPU dans la session console. Le journal confirme le rendu OpenGL, l'identité du paquet et la première image ; seul `canape-shell-gpu` était présent. Le retour à Économe a redémarré le shell logiciel, et le réglage enregistré est revenu à `software`. Mesures ponctuelles après démarrage : environ 238–248 Mo privés pour le GPU et 21 Mo pour le logiciel ; elles ne sont pas une comparaison stabilisée en jeu. Une erreur de navigation pendant l'essai a brièvement mis la limite de charge à 80 % ; elle a été remise à 100 % avant la fin.
+
+L'overlay Windows s'est ouvert au-dessus du shell avec Win+G. Le processus du widget était présent, mais son panneau et sa connexion au service n'ont pas été observés pendant ce passage : ils restent à vérifier.
+
 ## À poursuivre
 
 Vérifier sur cette version les parcours FSE, manette, bibliothèque et lancement, puissance et retour à Windows. Tester les fonctions récentes documentées comme non validées, notamment les installations Steam, Epic et GOG, le gyroscope, les palettes, l'éclairage, la visite et le changement de rendu. Les gestes physiques et l'apparence à l'écran nécessitent une observation de la console ; ne pas déduire leur réussite des seules réponses IPC.

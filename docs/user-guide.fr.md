@@ -632,7 +632,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 | **Système → Optimisations Windows** | **A** ouvre la sous-page [Optimisations Windows](#optimisations-windows) (Copilot, publicités, applications préinstallées, Defender…). Pas encore essayé sur l'Ally. |
 | **Système → Visite de bienvenue** | **A** relance la [visite du premier lancement](#premier-lancement) depuis le début. Pas encore essayé sur l'Ally. |
 | **Système → Pleine puissance dans Canapé** | Activé (par défaut) ou Désactivé. Canapé s'affiche avec le processeur : en mode Silencieux ou avec une limite basse, l'interface saccade. Activé, tant que Canapé est la fenêtre au premier plan et qu'aucun jeu ne tourne, le service écrit les limites de puissance du mode Performance ; dès qu'un jeu passe devant ou que Canapé perd le premier plan (après 1,5 s, pour ne pas osciller), il remet exactement votre état (mode, TDP manuel, profil de jeu, auto TDP). Les courbes de ventilateurs personnalisées sont gardées. Rien n'est écrit si votre niveau est déjà celui du mode Performance ou au-dessus (TDP manuel de 15 W et plus, Performance, Turbo), pendant un banc d'essai ni quand le mode est inconnu. Si Canapé cesse de se signaler (fermé, bloqué), l'état est remis après 4 s. Les lignes `ui power: on (…)` et `ui power: off (…)` de `service.log` marquent chaque passage. Pas encore essayé sur l'Ally. |
-| **Système → Affichage** | **Économe** ou **Fluide** (**A** applique) ; le tiroir rappelle le coût en mémoire et que Canapé redémarre. Voir [Affichage](#affichage--économe-ou-fluide). Pas encore essayé sur l'Ally. |
+| **Système → Affichage** | **Économe** ou **Fluide** (**A** applique) ; le tiroir rappelle le coût en mémoire et que Canapé redémarre. Voir [Affichage](#affichage--économe-ou-fluide). La bascule dans les deux sens a été essayée sur l'Ally RC71L. |
 
 | Accent sarcelle | Accent orange |
 |---|---|
@@ -643,7 +643,7 @@ En dessous, trois étagères de cartes, parcourues comme la page [Performance](#
 #### Affichage : Économe ou Fluide
 
 > [!NOTE]
-> **Pas encore essayé sur l'Ally.** Les mesures citées viennent de l'essai décrit dans [gpu-renderer-test.md](gpu-renderer-test.md).
+> La bascule dans les deux sens a été essayée sur l'Ally RC71L ; la fluidité en jeu et le démarrage automatique du FSE restent à vérifier. Voir le [rapport](ally-alpha-report.md#changement-de-rendu) et les [mesures précédentes](gpu-renderer-test.md).
 
 Canapé s'installe avec deux exécutables : `canape-shell.exe`, qui dessine avec le processeur (**Économe**, le défaut : environ 28 Mo de mémoire, accueil à 104 à 114 images par seconde), et `canape-shell-gpu.exe`, qui dessine avec la carte graphique (**Fluide** : accueil plus fluide, mais environ 300 Mo de mémoire en plus, aussi pendant les jeux). C'est toujours `canape-shell.exe` que l'expérience plein écran lance. Avec **Fluide**, il démarre `canape-shell-gpu.exe`, attend jusqu'à 5 secondes qu'il ait affiché sa fenêtre, puis se ferme. Si l'autre exécutable manque, se ferme ou n'affiche rien à temps, Canapé reste en **Économe** et remet le réglage sur Économe. Changer le réglage dans **Réglages → Système → Affichage** enregistre le choix, redémarre Canapé sur la page Réglages et ferme l'ancien exécutable. Le réglage est `renderer` dans `shell.json` (`"software"` ou `"gpu"`, absent : `"software"`). `shell.log` note au démarrage `renderer: …` et si le processus a une identité de paquet.
 
@@ -700,7 +700,7 @@ Sur une recommandation, **A** règle le TDP (limite manuelle à cette valeur, au
 Ouverte depuis **Réglages → Optimisations Windows** ; **B** y revient. Haut et bas changent d'étagère, gauche et droite choisissent une tuile, **A** ouvre son tiroir et **B** le ferme. Les tuiles indiquent l'état de la fonction Windows (« Copilot : Désactivé », « Mode Jeu : Activé »). Les applications préinstallées s'ouvrent dans une liste séparée.
 
 > [!WARNING]
-> **Pas encore essayé sur l'Ally.** Tout a été testé avec le simulateur seulement. Les réglages touchent Windows lui-même : essayez-les d'abord un par un.
+> La plupart de ces optimisations restent à essayer sur l'Ally. L'écriture et la restauration des valeurs d'enregistrement en arrière-plan ont été vérifiées dans le registre ([rapport](ally-alpha-report.md#réglages-windows)), sans essai d'enregistrement. Les réglages touchent Windows lui-même : essayez-les d'abord un par un.
 
 - **Appliquer les réglages recommandés** : applique d'un coup ceux marqués « oui » dans la colonne *Recommandé* ci-dessous (jamais la protection en temps réel, l'intégrité de la mémoire ni les applis en arrière-plan). Un second **A** confirme, car l'ensemble comprend les exclusions Defender.
 - Les réglages qui baissent la protection et le retrait d'une application demandent **un second A** ; changer de choix annule la confirmation. **Rétablir mes changements** liste puis rétablit uniquement les optimisations appliquées par Canapé ; les applications supprimées restent à réinstaller séparément.
