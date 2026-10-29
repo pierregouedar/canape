@@ -560,7 +560,7 @@ A shelf that gathers what shapes a game's picture: resolution, refresh rate, the
 The **Gyro aiming** card (Controller shelf) opens a drawer of five lines: up and down change line, left and right change its value (**A** also flips the last three); **B** closes it. The card shows the activation. While a game is in front, turning the Ally moves the **mouse**, as with a mouse in your other hand: handy for fine aiming in shooters. It never acts on Canapé itself.
 
 > [!WARNING]
-> **Not tried on the Ally yet**: written and tested on Linux with a simulated sensor only. The left / right and up / down directions in particular still have to be checked on the device; use **Invert up and down** if the vertical axis feels wrong.
+> **Tried on the Ally** in a game, with **Always** activation: the cursor follows the movements without drifting. The back-paddle modes were not tried separately. Windows caps the sensor's rate at 125 °/s, so very fast gestures are clipped. Use **Invert up and down** if the vertical axis feels wrong.
 
 | Line | Values |
 |---|---|
@@ -579,7 +579,7 @@ The **Gyro aiming** card (Controller shelf) opens a drawer of five lines: up and
 With **Motion for emulators** on, Canapé answers on UDP port **26760** of the local address `127.0.0.1` (never from another device) and publishes the gyroscope for programs that can read it, such as console emulators with motion controls. In the program, pick this motion server with that address and port. The sensor is read only while a program is connected. The setting is independent of mouse aiming and is also kept per game with **X**. The port is changed with `set_gyro` (`motion_port`, 1024 to 65535).
 
 > [!WARNING]
-> **Not tried on the Ally or with an emulator yet.** The accelerometer is not read: its three values are zero. The direction of the axes is still to check; most programs can invert an axis.
+> **Tried on the Ally with a local test client, not yet with an emulator.** The accelerometer is not read: its three values are zero. The direction of the axes is still to check; most programs can invert an axis.
 
 #### Back buttons and lighting
 

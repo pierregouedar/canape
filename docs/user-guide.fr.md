@@ -559,7 +559,7 @@ Une étagère qui regroupe ce qui touche à l'image d'un jeu : la résolution, l
 La carte **Visée au gyroscope** (étagère Manette) ouvre un tiroir de cinq lignes : haut et bas changent de ligne, gauche et droite sa valeur (**A** inverse aussi les trois dernières) ; **B** le ferme. La carte indique le mode d'activation. Pendant qu'un jeu est au premier plan, tourner l'Ally déplace la **souris**, comme une souris dans l'autre main : pratique pour viser finement dans les jeux de tir. Elle n'agit jamais sur Canapé lui-même.
 
 > [!WARNING]
-> **Pas encore essayé sur l'Ally** : écrit et testé sous Linux avec un capteur simulé seulement. Les sens gauche / droite et haut / bas, en particulier, restent à vérifier sur l'appareil ; **Inverser haut et bas** corrige l'axe vertical s'il semble à l'envers.
+> **Essayé sur l'Ally** dans un jeu, avec l'activation **Toujours** : le curseur suit les mouvements sans dérive. Les modes à palette arrière n'ont pas été essayés à part. Le capteur de Windows plafonne les vitesses à 125 °/s : les gestes très rapides sont écrêtés. **Inverser haut et bas** corrige l'axe vertical s'il semble à l'envers.
 
 | Ligne | Valeurs |
 |---|---|
@@ -579,7 +579,7 @@ La carte **Visée au gyroscope** (étagère Manette) ouvre un tiroir de cinq lig
 Avec **Mouvement pour émulateurs** activé, Canapé répond sur le port UDP **26760** de l'adresse locale `127.0.0.1` (jamais depuis un autre appareil) et publie le gyroscope pour les programmes qui savent le lire, comme les émulateurs de consoles à commandes de mouvement. Dans le programme, choisissez ce serveur de mouvement avec cette adresse et ce port. Le capteur n'est lu que tant qu'un programme est connecté. Ce réglage est indépendant de la visée à la souris et se garde aussi par jeu avec **X**. Le port se change avec `set_gyro` (`motion_port`, 1024 à 65535).
 
 > [!WARNING]
-> **Pas encore essayé sur l'Ally ni avec un émulateur.** L'accéléromètre n'est pas lu : ses trois valeurs sont à zéro. Le sens des axes reste à vérifier ; la plupart des programmes permettent d'inverser un axe.
+> **Essayé sur l'Ally avec un client de test local, pas encore avec un émulateur.** L'accéléromètre n'est pas lu : ses trois valeurs sont à zéro. Le sens des axes reste à vérifier ; la plupart des programmes permettent d'inverser un axe.
 
 #### Boutons arrière et éclairage
 

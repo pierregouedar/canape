@@ -92,7 +92,7 @@ Avec l'accord de Pierre, Cave Story+ (0,2 Go, compte Epic déjà connecté) a é
 
 ### Jeu GOG
 
-Non testé : aucun compte GOG n'est connecté sur l'Ally (`owned.json` ne contient aucun jeu GOG, pas de jeton gogdl). La connexion demande que Pierre se connecte lui-même dans le navigateur.
+Non testé : aucun compte GOG n'est connecté sur l'Ally (`owned.json` ne contient aucun jeu GOG, pas de jeton gogdl). La connexion demande que Pierre se connecte lui-même dans le navigateur. GOG est mis en pause : aucun essai prévu pour l'instant.
 
 ### Palettes M1 et M2
 

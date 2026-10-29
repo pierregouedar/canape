@@ -36,7 +36,7 @@ Canapé remplace l'accueil Xbox dans l'expérience plein écran de Windows. Il r
 > [!IMPORTANT]
 > Canapé est un projet personnel en développement. Le FSE, le service, la bibliothèque Steam et Xbox, les profils, l'auto TDP, le banc et plusieurs réglages matériels ont été essayés sur une **ROG Ally RC71L**, aux versions indiquées dans les [rapports d'essai](docs/m5-report.md) et [mesures détaillées](docs/m5-report-2.md). Les modifications ultérieures et les autres modèles ne sont pas nécessairement validés.
 
-L'installation Steam sans fenêtre, les installations Epic et GOG, la visée au gyroscope et plusieurs réglages récents restent à essayer sur l'Ally. Les choix de mise à l'échelle et de génération d'images sont enregistrés, mais **ne sont pas encore appliqués**. Les [guides](docs/README.md) précisent les limites de chaque fonction.
+L'installation Steam sans fenêtre et plusieurs réglages récents restent à essayer sur l'Ally ; l'installation GOG est en pause. Les choix de mise à l'échelle et de génération d'images sont enregistrés, mais **ne sont pas encore appliqués**. Les [guides](docs/README.md) précisent les limites de chaque fonction.
 
 ### Installer Canapé
 
@@ -142,7 +142,7 @@ Canapé replaces the Xbox home in the Windows full-screen experience. It brings 
 > [!IMPORTANT]
 > Canapé is a personal project under development. FSE startup, the service, Steam and Xbox library, profiles, auto TDP, the bench and several hardware controls have been tried on a **ROG Ally RC71L** at the versions listed in the [test reports](docs/m5-report.md) and [detailed measurements](docs/m5-report-2.md). Later changes and other models are not necessarily validated.
 
-Windowless Steam installs, Epic and GOG installs, gyro aiming and several recent settings remain to be tried on the Ally. Upscaling and frame-generation choices are saved but **not yet applied**. See the [guides](docs/README.md) for feature-specific limits.
+Windowless Steam installs and several recent settings remain to be tried on the Ally; GOG installs are on hold. Upscaling and frame-generation choices are saved but **not yet applied**. See the [guides](docs/README.md) for feature-specific limits.
 
 ### Install Canapé
 

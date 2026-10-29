@@ -3,7 +3,8 @@
 //! that no projection crate is needed. Usable from a desktop process at
 //! medium integrity, without package capabilities.
 //!
-//! UNTESTED on the device: checked only by `cargo check` for Windows.
+//! Validated on the device: mouse aiming in a game, steady at rest; Windows
+//! caps the reported rate at 125 degrees per second.
 
 use std::ffi::c_void;
 
