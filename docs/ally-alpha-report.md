@@ -67,12 +67,16 @@ Pierre a pressé les boutons de l'Ally, Canapé au premier plan sur la page Jeux
 - Croix directionnelle et joystick gauche : la sélection change de jaquette dans Récents et descend sur Installés. Observé à l'écran.
 - A ouvre la fiche du jeu sélectionné, B revient à la page Jeux. Le journal enregistre `keys: pad Return` puis `keys: pad Escape`.
 - LB et RB : pressés selon Pierre, mais aucune capture ne montre de changement de page ; Canapé reste sur Jeux. Le journal n'enregistre pas ces touches. À examiner.
-- Le bouton à gauche de l'écran a ouvert la Game Bar Windows par-dessus Canapé. Pierre n'a pas signalé d'effet visible pour le bouton de droite.
+- Le bouton à gauche de l'écran (Command Center) a ouvert la Game Bar Windows par-dessus Canapé, comme prévu. Pierre n'a pas signalé d'effet visible pour le bouton de droite (Armoury) ; Canapé était déjà sur Jeux, où ce bouton ne change rien. Son effet depuis un jeu reste à vérifier.
 - Depuis ce lancement, `buttons: not supported` n'apparaît plus dans le journal, alors qu'il suivait chaque démarrage précédent de 5 s environ.
 
 ### Éclairage
 
 Avec l'accord de Pierre, cinq états ont été envoyés par `canape-ctl`, à 8 s d'intervalle : rouge fixe au niveau 3, vert fixe au niveau 1, bleu en respiration rapide au niveau 3, niveau 0, puis éclairage rendu à la manette (`lighting: null`). Le service a répondu `Ok` à chaque requête et les a journalisées. Pierre, qui regardait les anneaux, confirme les cinq états dans l'ordre : rouge, vert faible, bleu qui pulse, éteint, puis l'éclairage habituel de la manette. Les réglages de l'interface (page Matériel, éclairage qui suit l'accent) n'ont pas été utilisés pour cet essai.
+
+### Visite de bienvenue
+
+Pierre a ouvert la visite à la manette depuis Réglages → Système, l'écran étant capturé toutes les 1,5 s. Pour s'y rendre, Canapé est passé à l'écran par Performance, Matériel puis Réglages ; la touche utilisée pour changer de page n'a pas été relevée. Le journal enregistre `onboarding: shown again from Settings`, cinq validations A, puis `onboarding: done` 15 s plus tard, et Canapé revient sur Jeux. Les captures montrent au passage les étapes Langue et Dossier des jeux ; les autres ont été franchies entre deux captures. Pierre n'a appliqué aucun réglage ni saisi aucune clé, et n'a constaté aucun problème. La lisibilité de chaque étape n'a pas été examinée image par image.
 
 ## À poursuivre
 
