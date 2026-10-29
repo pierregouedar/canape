@@ -56,6 +56,20 @@ Lors d'un lancement direct d'Among Us par Steam, le widget s'est également ouve
 
 La liste des profils étant initialement vide, le bouton d'enregistrement de l'onglet Puissance du widget a été utilisé sur l'écran des conditions d'Among Us. Le service a accepté `SaveForegroundProfile` et la liste a montré un profil `Among Us.exe` contenant notamment l'Auto TDP désactivé et la cible de 60 FPS. Au lancement suivant, l'état indiquait ce même exécutable comme profil actif. Le profil de test a ensuite été supprimé via `canape-ctl` et la liste était de nouveau vide ; le processus du jeu a été arrêté. L'application d'une valeur de profil différente des réglages courants n'a pas été mesurée.
 
+## Essais du 29 octobre sur `31d2f86`
+
+`main` a été remis sur `origin/main` (`31d2f86`) puis installé avec `install-dev.ps1` depuis la session console : le service a été réinstallé et redémarré, le paquet d'identité réenregistré. Le widget n'a pas changé depuis sa dernière compilation sur l'Ally et n'a pas été recompilé. Le shell a été relancé par l'identité du paquet.
+
+### Boutons physiques
+
+Pierre a pressé les boutons de l'Ally, Canapé au premier plan sur la page Jeux, pendant que l'écran était capturé toutes les 1,5 s et le journal du shell relu.
+
+- Croix directionnelle et joystick gauche : la sélection change de jaquette dans Récents et descend sur Installés. Observé à l'écran.
+- A ouvre la fiche du jeu sélectionné, B revient à la page Jeux. Le journal enregistre `keys: pad Return` puis `keys: pad Escape`.
+- LB et RB : pressés selon Pierre, mais aucune capture ne montre de changement de page ; Canapé reste sur Jeux. Le journal n'enregistre pas ces touches. À examiner.
+- Le bouton à gauche de l'écran a ouvert la Game Bar Windows par-dessus Canapé. Pierre n'a pas signalé d'effet visible pour le bouton de droite.
+- Depuis ce lancement, `buttons: not supported` n'apparaît plus dans le journal, alors qu'il suivait chaque démarrage précédent de 5 s environ.
+
 ## À poursuivre
 
 Vérifier sur cette version les parcours FSE, manette, bibliothèque et lancement, puissance et retour à Windows. Tester les fonctions récentes documentées comme non validées, notamment les installations Steam, Epic et GOG, le gyroscope, les palettes, l'éclairage, la visite et le changement de rendu. Les gestes physiques et l'apparence à l'écran nécessitent une observation de la console ; ne pas déduire leur réussite des seules réponses IPC.
