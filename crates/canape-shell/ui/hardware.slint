@@ -505,7 +505,7 @@ export component HardwarePage inherits Rectangle {
     }
 
     // A taller drawer lifts the shelves so the card stays in view.
-    property <length> sheet-height: root.sheet == "fans" ? 226px : root.sheet == "fps" ? 200px : root.sheet == "back" ? 252px : root.sheet == "lighting" ? 254px : root.sheet == "gyro" ? 346px : root.sheet == "upscaling" || root.sheet == "framegen" ? 252px : 186px;
+    property <length> sheet-height: root.sheet == "fans" ? 226px : root.sheet == "fps" ? 200px : root.sheet == "back" ? 252px : root.sheet == "lighting" ? 254px : root.sheet == "gyro" ? 306px : root.sheet == "upscaling" || root.sheet == "framegen" ? 252px : 186px;
     property <length> lift: root.open ? max(0px, 420px - (root.height - root.sheet-height)) : 0px;
 
     fs := FocusScope {
@@ -1121,7 +1121,7 @@ export component HardwarePage inherits Rectangle {
             spacing: 2px;
             alignment: start;
             SettingLine {
-                height: 44px;
+                height: 36px;
                 label: @tr("Active");
                 value: App.gyro-name(App.status.gyro-activation);
                 focused: root.active && root.gyro-row == 0;
@@ -1137,7 +1137,7 @@ export component HardwarePage inherits Rectangle {
             }
 
             SettingLine {
-                height: 44px;
+                height: 36px;
                 label: @tr("Sensitivity");
                 value: App.status.gyro-sensitivity;
                 focused: root.active && root.gyro-row == 1;
@@ -1153,7 +1153,7 @@ export component HardwarePage inherits Rectangle {
             }
 
             SettingLine {
-                height: 44px;
+                height: 36px;
                 label: @tr("Left and right");
                 value: App.status.gyro-roll ? @tr("Tilt like a wheel") : @tr("Turn the console");
                 focused: root.active && root.gyro-row == 2;
@@ -1170,7 +1170,7 @@ export component HardwarePage inherits Rectangle {
             }
 
             SettingLine {
-                height: 44px;
+                height: 36px;
                 label: @tr("Invert up and down");
                 value: App.status.gyro-invert ? @tr("On") : @tr("Off");
                 focused: root.active && root.gyro-row == 3;
@@ -1187,7 +1187,7 @@ export component HardwarePage inherits Rectangle {
             }
 
             SettingLine {
-                height: 44px;
+                height: 36px;
                 label: @tr("Motion for emulators");
                 value: App.status.gyro-server ? @tr("On") : @tr("Off");
                 focused: root.active && root.gyro-row == 4;

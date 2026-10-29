@@ -218,8 +218,12 @@ impl Clients {
     }
 }
 
-/// Longest wait for a request; also the pace of the readings sent out.
+/// Longest wait for a request.
 const TICK: Duration = Duration::from_millis(5);
+/// Shortest time between two readings sent out: a request arriving in
+/// between must not trigger one more, or clients that ask often would
+/// multiply the rate for everyone.
+const SEND_INTERVAL: Duration = Duration::from_millis(8);
 /// Wait before looking for a sensor again after a failure.
 const SENSOR_RETRY: Duration = Duration::from_secs(5);
 
@@ -237,6 +241,7 @@ fn serve(
     let mut clients = Clients::new(start_id());
     let mut sensor: Option<Box<dyn Gyro>> = None;
     let mut retry_at = start;
+    let mut last_send = start;
     let mut buffer = [0u8; 512];
     while keep() {
         match socket.recv_from(&mut buffer) {
@@ -278,6 +283,10 @@ fn serve(
         let Some(gyro) = sensor.as_mut() else {
             continue;
         };
+        if now.saturating_duration_since(last_send) < SEND_INTERVAL {
+            continue;
+        }
+        last_send = now;
         match gyro.read() {
             Ok(Some(rate)) => {
                 let data = clients.data(rate, now - start);
@@ -301,6 +310,7 @@ fn serve(
 fn release(sensor: &mut Option<Box<dyn Gyro>>) {
     if let Some(mut gyro) = sensor.take() {
         gyro.set_active(false);
+        crate::log("motion server: sensor released");
     }
 }
 
@@ -595,6 +605,25 @@ mod tests {
         assert_eq!(&buffer[..4], SERVER_MAGIC);
         let yaw = f32::from_le_bytes(buffer[92..96].try_into().unwrap());
         assert_eq!(yaw, 12.5);
+
+        // A burst of requests does not speed the stream up.
+        let request = client(MSG_DATA, &[0; 8]);
+        for _ in 0..100 {
+            client_socket.send_to(&request, server_addr).unwrap();
+        }
+        client_socket
+            .set_read_timeout(Some(Duration::from_millis(20)))
+            .unwrap();
+        let begin = Instant::now();
+        let mut received = 0;
+        while begin.elapsed() < Duration::from_millis(400) {
+            if client_socket.recv_from(&mut buffer).is_ok() {
+                received += 1;
+            }
+        }
+        // 400 ms at one reading per 8 ms is about 50; the old behaviour sent
+        // one per request on top, over a hundred more.
+        assert!((10..=70).contains(&received), "{received}");
 
         running.store(false, Ordering::Relaxed);
         server.join().unwrap().unwrap();
