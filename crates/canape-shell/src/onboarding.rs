@@ -282,8 +282,9 @@ pub fn start(ui: &AppWindow) {
     tour.on_replay({
         let (weak, refresh) = (ui.as_weak(), refresh.clone());
         move || {
+            // A replay leaves the tour marked as done: leaving it half way
+            // must not bring it back at the next start.
             let mut settings = ShellSettings::load();
-            settings.onboarded = false;
             settings.onboarding_step = 0;
             save(&settings);
             crate::log("onboarding: shown again from Settings");
@@ -309,6 +310,7 @@ pub fn start(ui: &AppWindow) {
         }
     });
     tour.on_show_keyboard(crate::touchkb::show);
+    tour.on_hide_keyboard(crate::touchkb::hide);
     tour.on_apply_tweaks({
         let weak = ui.as_weak();
         move || {

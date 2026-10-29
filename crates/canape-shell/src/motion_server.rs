@@ -336,8 +336,11 @@ mod engine {
 
     use super::serve;
 
-    /// Wait before binding again after a failure.
+    /// Wait before serving again after a failure.
     const RETRY: Duration = Duration::from_secs(30);
+    /// Wait before binding again when the port is taken: the previous shell
+    /// may still be leaving when the renderer is switched.
+    const BIND_RETRY: Duration = Duration::from_secs(2);
 
     /// The port to listen on, `None` while the server is off.
     static WANTED: Mutex<Option<u16>> = Mutex::new(None);
@@ -359,6 +362,7 @@ mod engine {
 
     pub fn spawn() {
         thread::spawn(|| {
+            let mut refused = None;
             loop {
                 let port = {
                     let mut current = WANTED.lock().unwrap();
@@ -369,6 +373,7 @@ mod engine {
                 };
                 match UdpSocket::bind((Ipv4Addr::LOCALHOST, port)) {
                     Ok(socket) => {
+                        refused = None;
                         crate::log(&format!("motion server: listening on 127.0.0.1:{port}"));
                         let result = serve(&socket, || wanted() == Some(port), motion::open);
                         if let Err(err) = result {
@@ -379,11 +384,15 @@ mod engine {
                         }
                     }
                     Err(err) => {
-                        crate::log(&format!("motion server: port {port}: {err}"));
-                        // Try again when the setting changes, or after a while.
+                        // Said once per port, not at every attempt.
+                        if refused != Some(port) {
+                            crate::log(&format!("motion server: port {port}: {err}"));
+                            refused = Some(port);
+                        }
+                        // Try again when the setting changes, or soon.
                         let current = WANTED.lock().unwrap();
                         let _ = CHANGED
-                            .wait_timeout_while(current, RETRY, |w| *w == Some(port))
+                            .wait_timeout_while(current, BIND_RETRY, |w| *w == Some(port))
                             .unwrap();
                     }
                 }

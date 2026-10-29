@@ -45,6 +45,8 @@ export global Onboarding {
     callback replay();
     // A key field took the focus.
     callback show-keyboard();
+    // The field was validated or left: the touch keyboard goes away.
+    callback hide-keyboard();
     // An entry ("steam", "igdb-id", "igdb-secret") typed, or to read from
     // the clipboard.
     callback save-entry(string, string);
@@ -420,6 +422,7 @@ export component OnboardingFlow inherits Rectangle {
     function done-editing(text: string) {
         Onboarding.save-entry(root.editing, text);
         root.editing = "";
+        Onboarding.hide-keyboard();
         fs.focus();
     }
 
@@ -445,6 +448,7 @@ export component OnboardingFlow inherits Rectangle {
                 // The field takes what it uses; B leaves it unchanged.
                 if event.text == Key.Escape {
                     root.editing = "";
+                    Onboarding.hide-keyboard();
                     fs.focus();
                 }
                 return accept;
