@@ -78,6 +78,10 @@ Avec l'accord de Pierre, cinq états ont été envoyés par `canape-ctl`, à 8 s
 
 Pierre a ouvert la visite à la manette depuis Réglages → Système, l'écran étant capturé toutes les 1,5 s. Pour s'y rendre, Canapé est passé à l'écran par Performance, Matériel puis Réglages ; la touche utilisée pour changer de page n'a pas été relevée. Le journal enregistre `onboarding: shown again from Settings`, cinq validations A, puis `onboarding: done` 15 s plus tard, et Canapé revient sur Jeux. Les captures montrent au passage les étapes Langue et Dossier des jeux ; les autres ont été franchies entre deux captures. Pierre n'a appliqué aucun réglage ni saisi aucune clé, et n'a constaté aucun problème. La lisibilité de chaque étape n'a pas été examinée image par image.
 
+### Fréquence d'écran par profil
+
+Avec l'accord de Pierre, un profil `Among Us.exe` avec `refresh_hz` à 60 a été créé par `canape-ctl`, l'écran étant à 120 Hz. Among Us a été lancé par `steam://rungameid/945360` (Steam déjà ouvert), et `Win32_VideoController.CurrentRefreshRate` relevé chaque seconde avec le premier plan déclaré par le service. Dès que le service a vu `Among Us.exe` au premier plan, environ 5 s après le lancement, l'écran est passé à 60 Hz et y est resté pendant les 50 s suivantes ; le shell a journalisé `screen: 60 Hz`. Le jeu a été fermé sur son écran de conditions, sans les accepter : moins de 2 s plus tard, le premier plan était vide et l'écran revenu à 120 Hz (`screen: 120 Hz`). Le profil de test a ensuite été supprimé. Le profil n'a pas été créé depuis l'interface et le jeu n'a pas été lancé depuis Canapé pour cet essai.
+
 ## À poursuivre
 
 Vérifier sur cette version les parcours FSE, manette, bibliothèque et lancement, puissance et retour à Windows. Tester les fonctions récentes documentées comme non validées, notamment les installations Steam, Epic et GOG, le gyroscope, les palettes, l'éclairage, la visite et le changement de rendu. Les gestes physiques et l'apparence à l'écran nécessitent une observation de la console ; ne pas déduire leur réussite des seules réponses IPC.
