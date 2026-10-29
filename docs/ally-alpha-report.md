@@ -94,6 +94,10 @@ Avec l'accord de Pierre, Cave Story+ (0,2 Go, compte Epic déjà connecté) a é
 
 Non testé : aucun compte GOG n'est connecté sur l'Ally (`owned.json` ne contient aucun jeu GOG, pas de jeton gogdl). La connexion demande que Pierre se connecte lui-même dans le navigateur.
 
+### Démarrage de Windows
+
+Pas de redémarrage pendant cette session. Pierre confirme, d'après son usage de l'Ally, que Windows démarre directement sur Canapé dans l'écran Xbox plein écran. Ce point n'a pas été observé ni journalisé ici. Le service `CanapeService` est en démarrage automatique et en cours d'exécution.
+
 ## À poursuivre
 
 Vérifier sur cette version les parcours FSE, manette, bibliothèque et lancement, puissance et retour à Windows. Tester les fonctions récentes documentées comme non validées, notamment les installations Steam, Epic et GOG, le gyroscope, les palettes, l'éclairage, la visite et le changement de rendu. Les gestes physiques et l'apparence à l'écran nécessitent une observation de la console ; ne pas déduire leur réussite des seules réponses IPC.
