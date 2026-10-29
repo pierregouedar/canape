@@ -106,6 +106,18 @@ Among Us a été lancé par Steam ; le service l'a vu au premier plan 5 s plus t
 
 Pas de redémarrage pendant cette session. Pierre confirme, d'après son usage de l'Ally, que Windows démarre directement sur Canapé dans l'écran Xbox plein écran. Ce point n'a pas été observé ni journalisé ici. Le service `CanapeService` est en démarrage automatique et en cours d'exécution.
 
+## Campagne 2 sur `238bb0a`
+
+`main` remis sur `origin/main` (`238bb0a`, GOG retiré de l'interface) et installé avec `install-dev.ps1` ; Réglages affiche `0.1.0 (238bb0a)`. État relevé avant la campagne : mode Turbo, réglages processeur personnalisés (boost agressif, préférence 0, 2000 MHz), éclairage arc-en-ciel, serveur de mouvement activé, `shell.json` sauvegardé hors dépôt.
+
+### GOG retiré de l'interface
+
+- Réglages → Comptes : trois cartes, Steam, Epic Games, Durée de jeu ; droite s'arrête sur la troisième. Observé à l'écran.
+- Visite, étape Boutiques : les lignes sont Clé Steam Web API, Compte Epic Games, puis Client ID et Client secret IGDB ; aucune ligne GOG. La navigation haut/bas d'Epic vers IGDB n'a pas été vérifiée séparément.
+- Étagère À installer vide : non vérifiée, l'étagère contient des jeux sur cet appareil.
+
+**Problème : une clé enregistrée vide efface la clé existante.** Dans l'étape Boutiques, A sur « Clé Steam Web API » ouvre un champ vide (et le clavier tactile Windows) ; un second A enregistre ce champ vide (`onboarding: steam saved`) et la clé Steam déjà enregistrée est remplacée par une chaîne vide, la ligne affichant ensuite « Non définie ». C'est arrivé pendant cet essai, par un appui de trop ; la clé a été remise depuis la sauvegarde de `shell.json`. Un enregistrement vide ne devrait pas effacer une clé existante, ou demander confirmation. Après l'arrêt du shell, le clavier tactile Windows est aussi resté ouvert par-dessus Canapé jusqu'à sa fermeture manuelle.
+
 ## À poursuivre
 
 Vérifier sur cette version les parcours FSE, manette, bibliothèque et lancement, puissance et retour à Windows. Tester les fonctions récentes documentées comme non validées, notamment les installations Steam, Epic et GOG, le gyroscope, les palettes, l'éclairage, la visite et le changement de rendu. Les gestes physiques et l'apparence à l'écran nécessitent une observation de la console ; ne pas déduire leur réussite des seules réponses IPC.
