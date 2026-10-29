@@ -204,7 +204,9 @@ export component Ruler inherits Rectangle {
     // The track is filled up to the selected stop.
     in property <bool> fill: true;
     callback pick(int);
-    property <length> pad: 30px;
+    // A label is as wide as a long one needs ("Default", "Aggressive").
+    property <length> slot: 84px;
+    property <length> pad: self.slot / 2;
     property <length> span: (self.width - 2 * self.pad) / max(1, self.labels.length - 1);
     height: 54px;
 
@@ -228,8 +230,8 @@ export component Ruler inherits Rectangle {
     }
 
     for label[i] in root.labels: Rectangle {
-        x: root.pad + i * root.span - 32px;
-        width: 64px;
+        x: root.pad + i * root.span - root.slot / 2;
+        width: root.slot;
         height: 54px;
         property <bool> on: i == root.selected;
 
