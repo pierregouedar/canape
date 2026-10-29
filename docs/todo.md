@@ -22,6 +22,7 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [ ] **10. Widget.** Onglet Matériel, application d'un profil différent des réglages courants, bouton Armoury depuis un jeu.
 - [ ] **11. Visite de bienvenue : étapes non vues.** Optimisations, affichage, clés, clavier tactile, presse-papiers.
 - [ ] **11 bis. Clavier tactile resté ouvert.** Toujours vrai sur `2ef4cb4` après A/A et après B : `visible()` lit `IPTip_Main_Window` (invisible) alors que le clavier affiché est la fenêtre XAML de `TabTip.exe` ; le titre de l'hôte de saisie est traduit. Détails dans le rapport.
+- [ ] **11 quater. Corrigé le 29 octobre, à revérifier sur l'Ally :** Widgets refusé par Windows (le tweak devient « verrouillé », la page ne reste plus bloquée), clavier tactile non détecté (fermeture forcée quand Canapé l'a ouvert), texte du dossier des jeux sans GOG. Reste : « 体中文 » et la police du chiffre « 1 à appliquer ».
 - [ ] **11 ter. Visite :** « 体中文 » au lieu de « 简体中文 » ; texte du dossier des jeux qui cite GOG ; chiffre de « 1 à appliquer » dans une autre police.
 - [ ] **12. Rendu Fluide en jeu.** Fluidité, consommation et repli. Démarrage dans l'écran Xbox plein écran avec le shell GPU.
 - [ ] **13. Redémarrage de Windows.** Démarrage automatique dans l'écran Xbox plein écran, observé et journalisé.

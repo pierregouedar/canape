@@ -907,8 +907,8 @@ msgstr "{} меняет те же настройки, что и Canapé (мощ�
 msgid "Installed games show up by themselves. Accounts add the games you own but have not installed."
 msgstr "Установленные игры появляются сами. Учётные записи добавляют игры, которые у вас есть, но не установлены."
 
-msgid "Where Epic and GOG games install. Steam keeps its own folders."
-msgstr "Сюда устанавливаются игры Epic и GOG. Steam использует свои папки."
+msgid "Where Epic games install. Steam keeps its own folders."
+msgstr "Сюда устанавливаются игры Epic. Steam использует свои папки."
 
 msgid "The Canapé service is not running: power, fans and controller settings are unavailable. Install it with packaging\\install-dev.ps1 in an administrator Terminal, or start CanapeService in Services. You can go on without it."
 msgstr "Служба Canapé не запущена: настройки мощности, вентиляторов и контроллера недоступны. Установите её через packaging\\install-dev.ps1 в Терминале от имени администратора или запустите CanapeService в Службах. Можно продолжить без неё."

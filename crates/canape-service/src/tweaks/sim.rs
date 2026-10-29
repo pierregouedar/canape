@@ -21,6 +21,8 @@ struct Inner {
     power: BTreeMap<(String, PowerSetting), (u32, u32)>,
     commits: u32,
     services: BTreeMap<String, ServiceState>,
+    /// Values Windows refuses to write (key, name).
+    denied: Vec<(String, String)>,
 }
 
 impl Default for Inner {
@@ -38,6 +40,7 @@ impl Default for Inner {
             scheme: "sim-balanced".into(),
             power: BTreeMap::new(),
             commits: 0,
+            denied: Vec::new(),
             // An Ally with the ASUS software installed.
             services: BTreeMap::from([
                 ("ArmouryCrateService".into(), service(2, false, true)),
@@ -68,6 +71,16 @@ impl SimSystem {
         let sim = Self::default();
         sim.set_tamper(tamper_protected);
         sim
+    }
+
+    /// Windows refuses to write this value, as it does for a protected policy.
+    #[cfg(test)]
+    pub fn deny(&self, key: &str, name: &str) {
+        self.0
+            .lock()
+            .unwrap()
+            .denied
+            .push((key.into(), name.into()));
     }
 
     /// Another power plan becomes the active one.
@@ -140,6 +153,14 @@ impl System for SimSystem {
         data: Option<&RegData>,
     ) -> Result<(), String> {
         let mut inner = self.0.lock().unwrap();
+        if data.is_some()
+            && inner
+                .denied
+                .iter()
+                .any(|(k, n)| k.eq_ignore_ascii_case(key) && n.eq_ignore_ascii_case(name))
+        {
+            return Err("error 5".into());
+        }
         let key = Self::key(scope, key, name);
         match data {
             Some(data) => inner.registry.insert(key, data.clone()),

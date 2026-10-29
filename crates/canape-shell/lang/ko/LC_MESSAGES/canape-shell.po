@@ -907,8 +907,8 @@ msgstr "{}이(가) Canapé와 같은 설정(전력, 팬, 컨트롤러)을 바꿔
 msgid "Installed games show up by themselves. Accounts add the games you own but have not installed."
 msgstr "설치된 게임은 자동으로 표시됩니다. 계정을 추가하면 보유했지만 설치하지 않은 게임도 표시됩니다."
 
-msgid "Where Epic and GOG games install. Steam keeps its own folders."
-msgstr "Epic 및 GOG 게임이 설치되는 위치입니다. Steam은 자체 폴더를 사용합니다."
+msgid "Where Epic games install. Steam keeps its own folders."
+msgstr "Epic 게임이 설치되는 위치입니다. Steam은 자체 폴더를 사용합니다."
 
 msgid "The Canapé service is not running: power, fans and controller settings are unavailable. Install it with packaging\\install-dev.ps1 in an administrator Terminal, or start CanapeService in Services. You can go on without it."
 msgstr "Canapé 서비스가 실행 중이 아닙니다. 전력, 팬, 컨트롤러 설정을 사용할 수 없습니다. 관리자 터미널에서 packaging\\install-dev.ps1로 설치하거나 서비스에서 CanapeService를 시작하세요. 서비스 없이 계속할 수 있습니다."

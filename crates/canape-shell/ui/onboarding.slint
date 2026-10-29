@@ -565,7 +565,7 @@ export component OnboardingFlow inherits Rectangle {
                     }
 
                     if s == 0 || s == 3 || s == 4 || s == 5 || s == 7 || s == 8: Text {
-                        text: s == 8 ? @tr("Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour.") : s == 0 ? @tr("A few choices to start with. Each stays in Settings.") : s == 7 ? @tr("Turns off Copilot, ads, tips and background game recording, and excludes the game folders from Defender scans. Each one can be undone in Settings.") : s == 3 ?@tr("{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it.", root.conflicts) : s == 4 ? @tr("Installed games show up by themselves. Accounts add the games you own but have not installed.") : @tr("Where Epic and GOG games install. Steam keeps its own folders.");
+                        text: s == 8 ? @tr("Smooth uses about 300 MB more memory, also during games. Canapé restarts at the end of the tour.") : s == 0 ? @tr("A few choices to start with. Each stays in Settings.") : s == 7 ? @tr("Turns off Copilot, ads, tips and background game recording, and excludes the game folders from Defender scans. Each one can be undone in Settings.") : s == 3 ?@tr("{} changes the same settings as Canapé (power, fans, controller): the two undo each other. Close it or uninstall it.", root.conflicts) : s == 4 ? @tr("Installed games show up by themselves. Accounts add the games you own but have not installed.") : @tr("Where Epic games install. Steam keeps its own folders.");
                         color: Theme.text.mix(Theme.dim, 0.6);
                         font-size: 16px;
                         wrap: word-wrap;

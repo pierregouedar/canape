@@ -11,7 +11,7 @@ mod sim;
 #[cfg(windows)]
 mod windows;
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::PathBuf;
 
 use canape_core::{TweakId, TweakState, Unavailable};
@@ -135,6 +135,9 @@ enum Action {
     DefenderRealtime,
     AsusServices,
 }
+
+/// What a refused registry write says (`ERROR_ACCESS_DENIED`).
+const ACCESS_DENIED: &str = "error 5";
 
 struct Def {
     id: TweakId,
@@ -456,6 +459,9 @@ pub struct Tweaks {
     applied: BTreeMap<TweakId, Applied>,
     at_start: HashMap<TweakId, bool>,
     widget_family: String,
+    /// Tweaks whose values Windows refused to write (access denied: a
+    /// protected policy); they are reported as locked from then on.
+    blocked: HashSet<TweakId>,
     /// What Canapé replaced in the power plan (CPU settings).
     power: PowerRecord,
 }
@@ -467,6 +473,7 @@ impl Tweaks {
             applied: BTreeMap::new(),
             at_start: HashMap::new(),
             widget_family: canape_ipc::widget_family_name(),
+            blocked: HashSet::new(),
             power: PowerRecord::default(),
         }
     }
@@ -548,6 +555,9 @@ impl Tweaks {
     }
 
     fn unavailable(&self, id: TweakId, folders: &[String]) -> Option<Unavailable> {
+        if self.blocked.contains(&id) {
+            return Some(Unavailable::Locked);
+        }
         match id {
             TweakId::DefenderRealtimeOff if self.system.tamper_protected() == Some(true) => {
                 Some(Unavailable::TamperProtection)
@@ -687,6 +697,9 @@ impl Tweaks {
                 .write(value.scope, value.key, value.name, Some(&data))
                 && value.checked
             {
+                if e == ACCESS_DENIED {
+                    self.blocked.insert(id);
+                }
                 error.get_or_insert(format!("writing {}\\{}: {e}", value.key, value.name));
             }
         }
@@ -1103,6 +1116,27 @@ mod tests {
             .unwrap();
         assert_eq!(state.unavailable, Some(Unavailable::NotSupported));
         assert!(tweaks.set(TweakId::AsusServicesOff, true).is_err());
+    }
+
+    #[test]
+    fn a_protected_policy_makes_the_tweak_locked_not_stuck() {
+        let (mut tweaks, sim) = engine();
+        sim.deny(r"SOFTWARE\Policies\Microsoft\Dsh", "AllowNewsAndInterests");
+        let error = tweaks.set(TweakId::WidgetsOff, true).unwrap_err();
+        assert!(error.contains("error 5"), "{error}");
+        let state = |tweaks: &mut Tweaks| {
+            tweaks
+                .list()
+                .into_iter()
+                .find(|s| s.id == TweakId::WidgetsOff)
+                .unwrap()
+        };
+        assert_eq!(state(&mut tweaks).unavailable, Some(Unavailable::Locked));
+        // Asked again, it says why at once instead of trying.
+        let again = tweaks.set(TweakId::WidgetsOff, true).unwrap_err();
+        assert!(again.contains("locked"), "{again}");
+        // The other tweaks are not affected.
+        assert!(tweaks.set(TweakId::GameDvrOff, true).is_ok());
     }
 
     #[test]

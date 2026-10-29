@@ -5,7 +5,8 @@
 //! running, then toggled through its COM interface (`ITipInvocation`). It
 //! is only hidden again when it is seen open (Windows 10's `IPTip_Main_Window`,
 //! Windows 11's text input host window not cloaked), or when Canapé opened
-//! it and cannot tell. Runs on a short-lived thread: never on the UI thread.
+//! it and cannot tell (the window of a localised Windows is not found by its
+//! title, and the old one can stay around invisible). Runs on a short-lived thread: never on the UI thread.
 
 #[cfg(windows)]
 mod imp {
@@ -56,7 +57,12 @@ mod imp {
             let hwnd = FindWindowW(class.as_ptr(), std::ptr::null());
             if !hwnd.is_null() {
                 let style = GetWindowLongW(hwnd, GWL_STYLE) as u32;
-                return Some(style & WS_VISIBLE != 0 && style & WS_DISABLED == 0);
+                // Windows 11 keeps this window around, invisible and
+                // disabled, while the keyboard shows in another one: only a
+                // visible one proves anything.
+                if style & WS_VISIBLE != 0 && style & WS_DISABLED == 0 {
+                    return Some(true);
+                }
             }
             let class = wide("Windows.UI.Core.CoreWindow");
             let title = wide("Microsoft Text Input Application");
@@ -132,7 +138,9 @@ mod imp {
     pub fn show() {
         std::thread::spawn(|| {
             with_com(|| {
-                if visible() == Some(true) {
+                // Opened by Canapé and not closed yet: a second toggle would
+                // close it.
+                if OPENED.load(Ordering::Relaxed) || visible() == Some(true) {
                     return;
                 }
                 let shown = toggle() || {

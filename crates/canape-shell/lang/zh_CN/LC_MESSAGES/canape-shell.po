@@ -907,8 +907,8 @@ msgstr "{} 会更改与 Canapé 相同的设置（功率、风扇、手柄），
 msgid "Installed games show up by themselves. Accounts add the games you own but have not installed."
 msgstr "已安装的游戏会自动显示。添加账户后，已拥有但未安装的游戏也会显示。"
 
-msgid "Where Epic and GOG games install. Steam keeps its own folders."
-msgstr "Epic 和 GOG 游戏的安装位置。Steam 使用自己的文件夹。"
+msgid "Where Epic games install. Steam keeps its own folders."
+msgstr "Epic 游戏的安装位置。Steam 使用自己的文件夹。"
 
 msgid "The Canapé service is not running: power, fans and controller settings are unavailable. Install it with packaging\\install-dev.ps1 in an administrator Terminal, or start CanapeService in Services. You can go on without it."
 msgstr "Canapé 服务未运行：功率、风扇和手柄设置不可用。请在管理员终端中用 packaging\\install-dev.ps1 安装，或在“服务”中启动 CanapeService。也可以不用它继续。"
