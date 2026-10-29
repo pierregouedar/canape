@@ -82,6 +82,18 @@ Pierre a ouvert la visite à la manette depuis Réglages → Système, l'écran 
 
 Avec l'accord de Pierre, un profil `Among Us.exe` avec `refresh_hz` à 60 a été créé par `canape-ctl`, l'écran étant à 120 Hz. Among Us a été lancé par `steam://rungameid/945360` (Steam déjà ouvert), et `Win32_VideoController.CurrentRefreshRate` relevé chaque seconde avec le premier plan déclaré par le service. Dès que le service a vu `Among Us.exe` au premier plan, environ 5 s après le lancement, l'écran est passé à 60 Hz et y est resté pendant les 50 s suivantes ; le shell a journalisé `screen: 60 Hz`. Le jeu a été fermé sur son écran de conditions, sans les accepter : moins de 2 s plus tard, le premier plan était vide et l'écran revenu à 120 Hz (`screen: 120 Hz`). Le profil de test a ensuite été supprimé. Le profil n'a pas été créé depuis l'interface et le jeu n'a pas été lancé depuis Canapé pour cet essai.
 
+### Jeu Epic : installation, lancement, désinstallation
+
+Avec l'accord de Pierre, Cave Story+ (0,2 Go, compte Epic déjà connecté) a été choisi dans l'étagère Epic. Sa fiche affichait « Non installé · 0,2 Go · 252,5 Go libres dans C:\Games ». Canapé a été piloté par des touches clavier envoyées à sa fenêtre, l'écran étant capturé toutes les 1,5 s.
+
+- **Installation :** A sur Installer. La fiche a affiché « En attente de la boutique… », puis la barre de progression jusqu'à 100 %, et le bouton est devenu Jouer. Le journal enregistre l'installation terminée 12 s après la demande ; le jeu est dans `C:\Games\CaveStoryPlus` et la bibliothèque passe à 19 jeux.
+- **Lancement :** A sur Jouer. Canapé lance le jeu par Legendary ; l'écran titre de Cave Story s'affiche 4 s plus tard, le service voit `CaveStory+.exe` au premier plan à 60 FPS. Le lanceur Epic était déjà ouvert depuis 20:08, avant l'essai : ce test ne montre donc pas un lancement sans lui. Aucune fenêtre du lanceur n'est apparue par-dessus le jeu sur la capture.
+- **Désinstallation :** le jeu fermé, Y sur la fiche ouvre les options (Renommer, Catégories, Retirer de la bibliothèque, Désinstaller). Désinstaller demande une confirmation, puis le journal enregistre `Game has been uninstalled` en 2 s ; Canapé revient sur Jeux et la bibliothèque repasse à 18 jeux. Le dossier ne contient plus que la sauvegarde `Profile.dat` (0,1 Mo).
+
+### Jeu GOG
+
+Non testé : aucun compte GOG n'est connecté sur l'Ally (`owned.json` ne contient aucun jeu GOG, pas de jeton gogdl). La connexion demande que Pierre se connecte lui-même dans le navigateur.
+
 ## À poursuivre
 
 Vérifier sur cette version les parcours FSE, manette, bibliothèque et lancement, puissance et retour à Windows. Tester les fonctions récentes documentées comme non validées, notamment les installations Steam, Epic et GOG, le gyroscope, les palettes, l'éclairage, la visite et le changement de rendu. Les gestes physiques et l'apparence à l'écran nécessitent une observation de la console ; ne pas déduire leur réussite des seules réponses IPC.
