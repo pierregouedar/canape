@@ -94,6 +94,14 @@ Avec l'accord de Pierre, Cave Story+ (0,2 Go, compte Epic déjà connecté) a é
 
 Non testé : aucun compte GOG n'est connecté sur l'Ally (`owned.json` ne contient aucun jeu GOG, pas de jeton gogdl). La connexion demande que Pierre se connecte lui-même dans le navigateur.
 
+### Palettes M1 et M2
+
+Avec l'accord de Pierre, M1 a été affectée à RB et M2 à LB par `canape-ctl` (état relu : `pad_rb`, `pad_lb`). Canapé au premier plan, Pierre a appuyé trois fois sur chaque palette : M1 avance d'une page, M2 recule d'une page, selon son observation. Les palettes ont ensuite été remises par défaut (`ResetBackButtons`, état relu `default`).
+
+### Gyroscope
+
+Among Us a été lancé par Steam ; le service l'a vu au premier plan 5 s plus tard. La visée au gyroscope a alors été activée en permanence (sensibilité 10, lacet horizontal) pendant 45 s, et la position du curseur relevée toutes les 0,5 s. Pierre a tourné et incliné l'Ally pendant les premières secondes : le curseur s'est déplacé sur toute la fenêtre pendant environ 8 s, puis il est resté immobile quand Pierre a cessé de bouger l'appareil, sans dérive pendant 36 s. Pierre décrit le mouvement comme fluide et contrôlable. La visée a ensuite été désactivée et le jeu fermé sans accepter ses conditions. Les modes « tant qu'une palette est tenue » et « bascule » n'ont pas été essayés.
+
 ### Démarrage de Windows
 
 Pas de redémarrage pendant cette session. Pierre confirme, d'après son usage de l'Ally, que Windows démarre directement sur Canapé dans l'écran Xbox plein écran. Ce point n'a pas été observé ni journalisé ici. Le service `CanapeService` est en démarrage automatique et en cours d'exécution.
