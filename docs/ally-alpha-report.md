@@ -66,7 +66,7 @@ Pierre a pressé les boutons de l'Ally, Canapé au premier plan sur la page Jeux
 
 - Croix directionnelle et joystick gauche : la sélection change de jaquette dans Récents et descend sur Installés. Observé à l'écran.
 - A ouvre la fiche du jeu sélectionné, B revient à la page Jeux. Le journal enregistre `keys: pad Return` puis `keys: pad Escape`.
-- LB et RB : pressés selon Pierre, mais aucune capture ne montre de changement de page ; Canapé reste sur Jeux. Le journal n'enregistre pas ces touches. À examiner.
+- LB et RB : aucune capture de ce premier essai ne montre de changement de page, mais Pierre confirme ensuite qu'ils changent bien de page ; pendant la visite, Canapé est passé de Jeux à Réglages par Performance et Matériel. Le journal n'enregistre pas ces touches (seuls A et B y figurent).
 - Le bouton à gauche de l'écran (Command Center) a ouvert la Game Bar Windows par-dessus Canapé, comme prévu. Pierre n'a pas signalé d'effet visible pour le bouton de droite (Armoury) ; Canapé était déjà sur Jeux, où ce bouton ne change rien. Son effet depuis un jeu reste à vérifier.
 - Depuis ce lancement, `buttons: not supported` n'apparaît plus dans le journal, alors qu'il suivait chaque démarrage précédent de 5 s environ.
 
