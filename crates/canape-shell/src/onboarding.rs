@@ -135,16 +135,38 @@ fn show_steam(ui: &AppWindow) {
     tour.set_steam_games(i32::try_from(games).unwrap_or(i32::MAX));
 }
 
+/// What typing `text` into an entry's field does.
+#[derive(Debug, PartialEq, Eq)]
+enum Typed {
+    /// Nothing was typed: the saved value stays (a field that opens empty
+    /// and is validated at once must not erase a key).
+    Keep,
+    Save(String),
+    Refuse,
+}
+
+fn typed(entry: Entry, text: &str) -> Typed {
+    if text.trim().is_empty() {
+        Typed::Keep
+    } else {
+        entry.read(text).map_or(Typed::Refuse, Typed::Save)
+    }
+}
+
 /// Saves `entry` from `text`; `pasted` says where the text came from, for
-/// the reason shown when it is refused. An empty entry removes the value.
+/// the reason shown when it is refused. An empty field changes nothing.
 fn save_entry(ui: &AppWindow, entry: Entry, text: Option<String>) {
     let tour = ui.global::<Onboarding>();
     let pasted = text.is_none();
     let text = text.or_else(crate::clipboard::text).unwrap_or_default();
-    let value = if text.trim().is_empty() && !pasted {
-        Some(String::new())
-    } else {
+    let value = if pasted {
         entry.read(&text)
+    } else {
+        match typed(entry, &text) {
+            Typed::Keep => return,
+            Typed::Save(value) => Some(value),
+            Typed::Refuse => None,
+        }
     };
     let Some(value) = value else {
         tour.set_refused(entry.name().into());
@@ -314,6 +336,15 @@ pub fn start(ui: &AppWindow) {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn an_empty_field_keeps_the_saved_value() {
+        assert_eq!(typed(Entry::SteamKey, ""), Typed::Keep);
+        assert_eq!(typed(Entry::IgdbId, "   "), Typed::Keep);
+        assert_eq!(typed(Entry::SteamKey, "nope"), Typed::Refuse);
+        let key = "0123456789ABCDEF0123456789ABCDEF";
+        assert_eq!(typed(Entry::SteamKey, key), Typed::Save(key.into()));
+    }
+
     use super::*;
 
     #[test]

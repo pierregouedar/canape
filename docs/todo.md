@@ -21,6 +21,7 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [ ] **9. Éclairage par l'interface** (page Matériel) et **gyroscope avec palette** (modes maintenir et basculer).
 - [ ] **10. Widget.** Onglet Matériel, application d'un profil différent des réglages courants, bouton Armoury depuis un jeu.
 - [ ] **11. Visite de bienvenue : étapes non vues.** Optimisations, affichage, clés, clavier tactile, presse-papiers.
+- [ ] **11 bis. Clavier tactile resté ouvert** quand le shell s'arrête ou redémarre (vu le 29 octobre pendant la campagne 2).
 - [ ] **12. Rendu Fluide en jeu.** Fluidité, consommation et repli. Démarrage dans l'écran Xbox plein écran avec le shell GPU.
 - [ ] **13. Redémarrage de Windows.** Démarrage automatique dans l'écran Xbox plein écran, observé et journalisé.
 - [ ] **14. Script de désinstallation** (`uninstall-dev.ps1`).
