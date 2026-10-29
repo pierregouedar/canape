@@ -70,6 +70,10 @@ Pierre a pressé les boutons de l'Ally, Canapé au premier plan sur la page Jeux
 - Le bouton à gauche de l'écran a ouvert la Game Bar Windows par-dessus Canapé. Pierre n'a pas signalé d'effet visible pour le bouton de droite.
 - Depuis ce lancement, `buttons: not supported` n'apparaît plus dans le journal, alors qu'il suivait chaque démarrage précédent de 5 s environ.
 
+### Éclairage
+
+Avec l'accord de Pierre, cinq états ont été envoyés par `canape-ctl`, à 8 s d'intervalle : rouge fixe au niveau 3, vert fixe au niveau 1, bleu en respiration rapide au niveau 3, niveau 0, puis éclairage rendu à la manette (`lighting: null`). Le service a répondu `Ok` à chaque requête et les a journalisées. Pierre, qui regardait les anneaux, confirme les cinq états dans l'ordre : rouge, vert faible, bleu qui pulse, éteint, puis l'éclairage habituel de la manette. Les réglages de l'interface (page Matériel, éclairage qui suit l'accent) n'ont pas été utilisés pour cet essai.
+
 ## À poursuivre
 
 Vérifier sur cette version les parcours FSE, manette, bibliothèque et lancement, puissance et retour à Windows. Tester les fonctions récentes documentées comme non validées, notamment les installations Steam, Epic et GOG, le gyroscope, les palettes, l'éclairage, la visite et le changement de rendu. Les gestes physiques et l'apparence à l'écran nécessitent une observation de la console ; ne pas déduire leur réussite des seules réponses IPC.
