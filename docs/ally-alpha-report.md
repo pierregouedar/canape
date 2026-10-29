@@ -116,7 +116,30 @@ Pas de redémarrage pendant cette session. Pierre confirme, d'après son usage d
 - Visite, étape Boutiques : les lignes sont Clé Steam Web API, Compte Epic Games, puis Client ID et Client secret IGDB ; aucune ligne GOG. La navigation haut/bas d'Epic vers IGDB n'a pas été vérifiée séparément.
 - Étagère À installer vide : non vérifiée, l'étagère contient des jeux sur cet appareil.
 
-**Problème : une clé enregistrée vide efface la clé existante.** Dans l'étape Boutiques, A sur « Clé Steam Web API » ouvre un champ vide (et le clavier tactile Windows) ; un second A enregistre ce champ vide (`onboarding: steam saved`) et la clé Steam déjà enregistrée est remplacée par une chaîne vide, la ligne affichant ensuite « Non définie ». C'est arrivé pendant cet essai, par un appui de trop ; la clé a été remise depuis la sauvegarde de `shell.json`. Un enregistrement vide ne devrait pas effacer une clé existante, ou demander confirmation. Après l'arrêt du shell, le clavier tactile Windows est aussi resté ouvert par-dessus Canapé jusqu'à sa fermeture manuelle.
+**Problème : une clé enregistrée vide efface la clé existante.** Dans l'étape Boutiques, A sur « Clé Steam Web API » ouvre un champ vide (et le clavier tactile Windows) ; un second A enregistre ce champ vide (`onboarding: steam saved`) et la clé Steam déjà enregistrée est remplacée par une chaîne vide, la ligne affichant ensuite « Non définie ». C'est arrivé pendant cet essai, par un appui de trop ; la clé a été remise depuis la sauvegarde de `shell.json`. Un enregistrement vide ne devrait pas effacer une clé existante, ou demander confirmation. Après l'arrêt du shell, le clavier tactile Windows est aussi resté ouvert par-dessus Canapé jusqu'à sa fermeture manuelle. Pour le reproduire : dans la visite, étape Boutiques, A sur « Clé Steam Web API » (le clavier tactile s'ouvre), puis arrêter le processus du shell et le relancer ; le clavier reste affiché par-dessus la page Jeux.
+
+Revérifié sur `235adb1` : dans la visite, A sur « Clé Steam Web API » ouvre le champ vide, A l'enregistre ; la ligne affiche toujours la clé masquée (quatre points et les quatre derniers caractères) et la longueur de la clé enregistrée est inchangée. Le clavier tactile reste affiché après cet enregistrement, jusqu'à B. Rejouer la visite depuis Réglages remet `onboarded` à false dans `shell.json` dès qu'on y avance ; la visite a été quittée en arrêtant le shell et le drapeau remis à true.
+
+### T1 Pleine puissance dans Canapé et animations allégées
+
+Mode Silencieux réglé par `canape-ctl`, ventilateurs sur Équilibré (courbe personnalisée CPU et GPU dans l'état). CPU du shell mesuré par son temps processeur pendant 15 s de navigation rapide (flèches, haut/bas, LB/RB toutes les 150 ms sur la page Jeux), puis 10 s au repos. Les mesures sont en pourcentage d'un cœur ; la fréquence du processeur change selon le mode, elles ne mesurent donc pas les images affichées.
+
+| Situation | Navigation | Repos |
+|---|---|---|
+| Silencieux, pleine puissance désactivée, Économe | 27,8 % | 3,0 % |
+| Silencieux, pleine puissance activée, Économe | 85,0 % | 4,4 % |
+| Limite manuelle 12 W, pleine puissance désactivée | 29,2 % | 1,9 % |
+| Limite manuelle 15 W, pleine puissance désactivée | 36,8 % | 5,2 % |
+| Silencieux, pleine puissance désactivée, Fluide (shell GPU) | 66,3 % | 3,4 % |
+
+- Réglages → Système → Pleine puissance → Activé (A) : le service journalise `SetUiPower { enabled: true }` puis `ui power: on (shell in front, was silent)` ; l'état passe à `ui_power: true`, le mode enregistré reste Silencieux et la courbe Équilibré reste dans l'état.
+- Among Us lancé par Steam : dès que le shell perd le premier plan, `ui power: off (shell left the foreground, back to silent)` ; jeu détecté, `ui_power: false`, mode Silencieux, courbe gardée. Jeu fermé et Canapé ramené devant : `ui power: on (shell in front, was silent)`.
+- La puissance réellement écrite dans le firmware n'est pas relisible sur ce modèle : l'effet est établi par le journal et l'état du service, pas par une mesure indépendante.
+- Fluidité : non jugée par Pierre pendant cet essai. L'écart de CPU entre pleine puissance désactivée et activée (28 % contre 85 %) est cohérent avec des animations coupées en Silencieux ; entre 12 W et 15 W l'écart est faible (29 % contre 37 %).
+- Affichage → Fluide : le shell redémarre en `canape-shell-gpu` (`renderer: restarting as femtovg (OpenGL)`), puis Économe le ramène au shell logiciel ; `renderer` revient à `software`.
+- **Problème : le serveur de mouvement ne reprend pas son port après un changement de rendu.** Activé dans les réglages, il journalise au redémarrage du shell `motion server: port 26760: … (os error 10048)` (port encore tenu par l'ancien processus) et n'écoute plus ensuite, ni en GPU ni après le retour au rendu logiciel.
+
+État remis : Turbo, ventilateurs automatiques, pleine puissance désactivée, Économe.
 
 ## À poursuivre
 
