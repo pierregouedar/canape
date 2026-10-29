@@ -10,9 +10,9 @@ Méthode : on développe, puis on teste simplement sur l'Ally. Sur l'Ally, deman
 
 Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-alpha-report.md`, `docs/m5-report*.md`, `docs/gpu-renderer-test.md`).
 
-- [ ] **1. Pleine puissance dans Canapé et animations allégées, en mode Silencieux.** C'est le problème de départ : l'interface saccade en Silencieux ou Éco. Comparer Économe et Fluide, avec et sans l'option. Jamais mesuré.
-- [ ] **2. Étagère Processeur depuis l'interface.** Boost, préférence énergétique, fréquence max, cœurs parqués. Seule la préférence énergétique a été vérifiée, par le service.
-- [ ] **3. Page Optimisations Windows refaite.** Appliquer, restaurer, vérifier l'effet réel (Copilot, publicités, Defender, services ASUS, applications). Seule l'écriture du registre Game DVR a été vérifiée.
+- [x] **1. Pleine puissance dans Canapé et animations allégées.** Éprouvé le 29 octobre (rapport, T1). Reste : la fluidité ressentie, à juger par Pierre.
+- [x] **2. Étagère Processeur depuis l'interface.** Éprouvé le 29 octobre (T2), libellés corrigés et revérifiés.
+- [ ] **3. Page Optimisations Windows refaite.** Partiel (T3 du rapport). À corriger d'abord : Widgets refusé par Windows (error 5 sur `Dsh\AllowNewsAndInterests`, même en administrateur) ; après un échec, la page reste bloquée (`busy` à `recommended`) et le reste de la sélection n'est pas appliqué. Puis éprouver Rétablir, la réapplication et la liste Applications.
 - [ ] **4. Limite de charge de la batterie.** Le service accepte 80 %, mais l'arrêt réel de la charge n'est pas mesuré (console branchée sous 80 %).
 - [ ] **5. Définition d'écran par profil et écran Image.** Seule la fréquence d'écran a été essayée. La résolution (720p) et les choix d'image ne sont pas vérifiés.
 - [ ] **6. Options d'un jeu.** Renommer, catégories, masquer, retirer, clavier tactile. Le menu s'ouvre et Désinstaller marche ; le reste non.
@@ -21,12 +21,13 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [ ] **9. Éclairage par l'interface** (page Matériel) et **gyroscope avec palette** (modes maintenir et basculer).
 - [ ] **10. Widget.** Onglet Matériel, application d'un profil différent des réglages courants, bouton Armoury depuis un jeu.
 - [ ] **11. Visite de bienvenue : étapes non vues.** Optimisations, affichage, clés, clavier tactile, presse-papiers.
-- [ ] **11 bis. Clavier tactile resté ouvert** quand le shell s'arrête ou redémarre (vu le 29 octobre pendant la campagne 2).
+- [ ] **11 bis. Clavier tactile resté ouvert.** Toujours vrai sur `2ef4cb4` après A/A et après B : `visible()` lit `IPTip_Main_Window` (invisible) alors que le clavier affiché est la fenêtre XAML de `TabTip.exe` ; le titre de l'hôte de saisie est traduit. Détails dans le rapport.
+- [ ] **11 ter. Visite :** « 体中文 » au lieu de « 简体中文 » ; texte du dossier des jeux qui cite GOG ; chiffre de « 1 à appliquer » dans une autre police.
 - [ ] **12. Rendu Fluide en jeu.** Fluidité, consommation et repli. Démarrage dans l'écran Xbox plein écran avec le shell GPU.
 - [ ] **13. Redémarrage de Windows.** Démarrage automatique dans l'écran Xbox plein écran, observé et journalisé.
 - [ ] **14. Script de désinstallation** (`uninstall-dev.ps1`).
 
-Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éclairage par commandes ; fréquence d'écran par profil ; Epic (installation, lancement, désinstallation) ; gyroscope et serveur de mouvement ; auto TDP, banc d'essai, limite de FPS, ventilateurs, mode manette ; bascule Économe/Fluide ; widget (modes de puissance, Auto TDP, profil du jeu) ; préférence énergétique ; Game DVR (registre).
+Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éclairage par commandes ; fréquence d'écran par profil ; Epic (installation, lancement, désinstallation) ; gyroscope et serveur de mouvement ; auto TDP, banc d'essai, limite de FPS, ventilateurs, mode manette ; bascule Économe/Fluide ; widget (modes de puissance, Auto TDP, profil du jeu) ; préférence énergétique ; Game DVR (registre) ; pleine puissance (T1) ; étagère Processeur (T2) ; serveur de mouvement après changement de rendu ; visite rejouée qui garde `onboarded`.
 
 ## A. Finir et stabiliser
 
@@ -47,7 +48,7 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [x] Couper les services ASUS (à éprouver : T3).
 - [x] Couper l'enregistrement en arrière-plan (Game DVR).
 - [x] CPU boost, EPP, fréquence max, cœurs parqués par profil (à éprouver : T2).
-- [x] Mouvement pour les émulateurs (serveur local) : validé avec un client local.
+- [x] Mouvement pour les émulateurs (serveur local) : validé avec un client local ; reprise du port après changement de rendu vérifiée.
 - [ ] **Affinité des cœurs sur le Z1 non Extreme.** Fil principal du jeu sur les cœurs Zen 4.
 - [ ] **Cache des shaders AMD au maximum.**
 - [ ] **Comprendre l'option « GPU boost » d'autres outils.** À faire sur l'Ally avant de décider. Notes dans `docs/` seulement, rien dans le code.

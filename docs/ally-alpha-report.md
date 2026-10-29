@@ -154,6 +154,32 @@ Page Performance, étagère Processeur, chaque tiroir est un curseur appliqué p
 
 Les valeurs « Par défaut » sont celles que le service avait relevées avant son premier changement (boost 2/2, préférence 25/60, fréquence 0/4000) et, pour les cœurs, la valeur de départ du plan. Chaque changement est journalisé `SetCpuPower … -> Ok`. Les libellés du curseur sont tronqués (« Par déf… », « Désacti… »). Réglages de départ remis ensuite (boost agressif, préférence 0, 2000 MHz, cœurs par défaut) et revérifiés : 2/2, 0/0, 2000/2000, 100/25.
 
+### T3 Optimisations Windows (partiel)
+
+État de départ relevé dans le registre, Defender et `Get-Service` (pas seulement `list_tweaks`) : 13 réglages déjà appliqués par Canapé et réellement en place (Copilot, recherche web, suggestions, astuces, télémétrie, applications en arrière-plan, mode jeu, planification GPU, fenêtré optimisé, exclusions Defender `C:\Games` et `steamapps\common`, temps réel Defender coupé, intégrité de la mémoire coupée). Widgets marqué « par Canapé » mais absent du registre ; Game DVR non appliqué ; services ASUS tous démarrés (non touchés).
+
+- **Recommandations** propose 2 réglages : Widgets et Enregistrement des jeux en arrière-plan. Après le second A (« Appuyez encore sur A »), le service répond `writing SOFTWARE\Policies\Microsoft\Dsh\AllowNewsAndInterests: error 5`, affiché en bas de page. La clé `Dsh` donne le contrôle total à Système et Administrateurs, mais même `reg add` lancé en administrateur est refusé : Windows protège cette valeur (le pilote UCPD tourne sur l'Ally). Widgets ne peut donc pas être appliqué ainsi.
+- Seule la requête Widgets apparaît dans le journal du service : Game DVR, second élément de la sélection, n'a pas été envoyé ou pas traité.
+- Ensuite la page reste bloquée : le compteur garde « 2 à appliquer », A sur **Rétablir** est reçu (journal `keys`) mais rien ne s'ouvre. Cause dans `tweaks.rs` : `busy` reste à `recommended` tant que `recommended_left` n'est pas vide, et un échec le laisse ainsi jusqu'au redémarrage du shell.
+- Game DVR appliqué seul (`set_tweak`) : `GameDVR_Enabled=0`, `AppCaptureEnabled=0` relus, puis retiré.
+- **Rétablir** n'a pas pu être essayé (page bloquée, puis arrêt de la campagne). Non essayé : les 14 réglages rétablis puis réappliqués, la liste Applications.
+- État final comparé à l'état de départ : aucune différence.
+
+### Vérification de `2ef4cb4`
+
+Réinstallé depuis `main` (`67533cd`, `2ef4cb4`).
+
+- **Libellés des curseurs Processeur** : « Par défaut », « Désactivé », « Activé », « Agressif », « 25 % »… entiers et lisibles.
+- **Serveur de mouvement au changement de rendu** : Économe → Fluide et Fluide → Économe, chaque fois un seul message `os error 10048` puis `listening on 127.0.0.1:26760` 2 s après. Corrigé.
+- **Visite rejouée puis quittée à mi-parcours** (shell arrêté à l'étape 7) : `onboarded` reste `true` pendant et après, la visite ne revient pas au relancement. Corrigé. La clé Steam garde ses 32 caractères.
+- **Clavier tactile** : **toujours ouvert** après B et après A/A sur le champ de la clé Steam (5 s d'attente, captures). Aucun journal de masquage. Cause relevée : sur l'Ally, `IPTip_Main_Window` existe avec un style invisible et désactivé, alors que le clavier affiché est une fenêtre XAML de `TabTip.exe` ; `visible()` répond donc `Some(false)` et `hide()` ne fait rien. La fenêtre de l'hôte de saisie a un titre traduit (« Expérience d'entrée Windows »), la recherche par « Microsoft Text Input Application » ne la trouve pas. Effet de bord : la réouverture d'un champ avec le clavier déjà affiché le referme (bascule).
+
+### Remarques en passant
+
+- Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
+- Visite, étape Dossier des jeux : le texte parle encore de GOG (« les jeux Epic et GOG »).
+- Visite, étape Optimisations : le chiffre de « 1 à appliquer » est dans une autre police.
+
 ## À poursuivre
 
 Vérifier sur cette version les parcours FSE, manette, bibliothèque et lancement, puissance et retour à Windows. Tester les fonctions récentes documentées comme non validées, notamment les installations Steam, Epic et GOG, le gyroscope, les palettes, l'éclairage, la visite et le changement de rendu. Les gestes physiques et l'apparence à l'écran nécessitent une observation de la console ; ne pas déduire leur réussite des seules réponses IPC.
