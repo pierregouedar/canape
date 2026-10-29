@@ -396,7 +396,7 @@ export component HardwarePage inherits Rectangle {
         } else if root.drawer == "lighting" {
             root.light-go(root.light-next(d));
         } else if root.drawer == "gyro" {
-            root.gyro-row = clamp(root.gyro-row + d, 0, 3);
+            root.gyro-row = clamp(root.gyro-row + d, 0, 4);
         } else if root.drawer == "upscaling" {
             root.upscaling-row = clamp(root.upscaling-row + d, 0, root.upscaling-rows - 1);
         } else if root.drawer == "framegen" {
@@ -497,13 +497,15 @@ export component HardwarePage inherits Rectangle {
             App.change-gyro-sensitivity(d);
         } else if root.gyro-row == 2 {
             App.toggle-gyro-roll();
-        } else {
+        } else if root.gyro-row == 3 {
             App.toggle-gyro-invert();
+        } else {
+            App.toggle-gyro-server();
         }
     }
 
     // A taller drawer lifts the shelves so the card stays in view.
-    property <length> sheet-height: root.sheet == "fans" ? 226px : root.sheet == "fps" ? 200px : root.sheet == "back" ? 252px : root.sheet == "lighting" ? 254px : root.sheet == "gyro" ? 300px : root.sheet == "upscaling" || root.sheet == "framegen" ? 252px : 186px;
+    property <length> sheet-height: root.sheet == "fans" ? 226px : root.sheet == "fps" ? 200px : root.sheet == "back" ? 252px : root.sheet == "lighting" ? 254px : root.sheet == "gyro" ? 346px : root.sheet == "upscaling" || root.sheet == "framegen" ? 252px : 186px;
     property <length> lift: root.open ? max(0px, 420px - (root.height - root.sheet-height)) : 0px;
 
     fs := FocusScope {
@@ -1179,6 +1181,23 @@ export component HardwarePage inherits Rectangle {
                 }
                 step(d) => {
                     root.gyro-row = 3;
+                    root.gyro-side(d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                height: 44px;
+                label: @tr("Motion for emulators");
+                value: App.status.gyro-server ? @tr("On") : @tr("Off");
+                focused: root.active && root.gyro-row == 4;
+                clicked => {
+                    root.gyro-row = 4;
+                    root.gyro-side(1);
+                    fs.focus();
+                }
+                step(d) => {
+                    root.gyro-row = 4;
                     root.gyro-side(d);
                     fs.focus();
                 }

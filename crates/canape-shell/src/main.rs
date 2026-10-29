@@ -33,6 +33,8 @@ mod keys;
 mod library;
 mod link;
 #[cfg(any(windows, test))]
+mod motion_server;
+#[cfg(any(windows, test))]
 mod nav;
 mod onboarding;
 mod renderer;
@@ -163,6 +165,7 @@ fn main() -> Result<(), slint::PlatformError> {
         gamepad::spawn(ui.as_weak());
         buttons::spawn(ui.as_weak());
         gyro::spawn();
+        motion_server::spawn();
         foreground::spawn(link.clone());
         foreground::report_front(link.clone());
         std::thread::spawn(|| match canape_hw::FrameMetrics::arm() {
@@ -542,6 +545,10 @@ fn connect(ui: &AppWindow, link: &Link) {
     app.on_toggle_gyro_invert({
         let link = link.clone();
         move || update_gyro(&link, |g| g.invert_y = !g.invert_y)
+    });
+    app.on_toggle_gyro_server({
+        let link = link.clone();
+        move || update_gyro(&link, |g| g.motion_server = !g.motion_server)
     });
 
     app.on_toggle_online_covers({

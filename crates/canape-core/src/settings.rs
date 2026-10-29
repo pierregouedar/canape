@@ -363,6 +363,11 @@ pub struct GyroSettings {
     pub horizontal: GyroAxis,
     /// Tilting the top away moves the mouse down instead of up.
     pub invert_y: bool,
+    /// Publishes the motion readings on a local UDP port, for programs that
+    /// read them (emulators). Independent of the activation above.
+    pub motion_server: bool,
+    /// Port of the motion server, within [`MOTION_PORT_RANGE`].
+    pub motion_port: u16,
 }
 
 impl Default for GyroSettings {
@@ -372,9 +377,16 @@ impl Default for GyroSettings {
             sensitivity: 10,
             horizontal: GyroAxis::Yaw,
             invert_y: false,
+            motion_server: false,
+            motion_port: MOTION_PORT_DEFAULT,
         }
     }
 }
+
+/// Port the motion server listens on unless told otherwise.
+pub const MOTION_PORT_DEFAULT: u16 = 26760;
+/// Ports accepted by `set_gyro` for the motion server.
+pub const MOTION_PORT_RANGE: (u16, u16) = (1024, 65535);
 
 /// Sensitivities accepted by `set_gyro`, in mouse counts per degree.
 pub const GYRO_SENSITIVITY_RANGE: (u32, u32) = (1, 50);
@@ -774,12 +786,14 @@ mod tests {
         let json = serde_json::to_string(&settings).unwrap();
         assert_eq!(
             json,
-            r#"{"activation":"hold","sensitivity":10,"horizontal":"yaw","invert_y":false}"#
+            r#"{"activation":"hold","sensitivity":10,"horizontal":"yaw","invert_y":false,"motion_server":false,"motion_port":26760}"#
         );
         // Missing fields take their defaults.
         let partial: GyroSettings = serde_json::from_str(r#"{"activation":"always"}"#).unwrap();
         assert_eq!(partial.activation, GyroActivation::Always);
         assert_eq!(partial.sensitivity, 10);
+        assert!(!partial.motion_server);
+        assert_eq!(partial.motion_port, MOTION_PORT_DEFAULT);
     }
 
     #[test]

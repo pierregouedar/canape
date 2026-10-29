@@ -108,7 +108,10 @@ impl Link {
                 show_status(&ui_status, &state, None);
                 // No settings without the service: gyro aiming stops.
                 #[cfg(windows)]
-                crate::gyro::follow(canape_core::GyroSettings::default(), false);
+                {
+                    crate::gyro::follow(canape_core::GyroSettings::default(), false);
+                    crate::motion_server::follow(canape_core::GyroSettings::default());
+                }
                 thread::sleep(RETRY);
             }
         });
@@ -304,7 +307,10 @@ fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> 
                 active.as_ref().map(|p| (p.upscaling, p.frame_gen)),
             );
             #[cfg(windows)]
-            crate::gyro::follow(status.gyro, status.foreground.is_some());
+            {
+                crate::gyro::follow(status.gyro, status.foreground.is_some());
+                crate::motion_server::follow(status.gyro);
+            }
             if first || pushes % SCREEN_REFRESH_PUSHES == 0 {
                 show_screen(ui);
             }
@@ -544,6 +550,7 @@ pub fn status_view(status: Option<&Status>) -> StatusView {
         gyro_sensitivity: s.gyro.sensitivity as i32,
         gyro_roll: s.gyro.horizontal == GyroAxis::Roll,
         gyro_invert: s.gyro.invert_y,
+        gyro_server: s.gyro.motion_server,
         m1: target_index(s.back_buttons.m1),
         m2: target_index(s.back_buttons.m2),
         lighting_level: s.lighting.as_ref().map_or(-1, |l| i32::from(l.level)),
@@ -729,7 +736,7 @@ mod tests {
         assert_eq!((view.bench_step, view.bench_steps), (2, 7));
         assert_eq!(view.gyro_activation, "off");
         assert_eq!(view.gyro_sensitivity, 10);
-        assert!(!view.gyro_roll && !view.gyro_invert);
+        assert!(!view.gyro_roll && !view.gyro_invert && !view.gyro_server);
     }
 
     #[test]

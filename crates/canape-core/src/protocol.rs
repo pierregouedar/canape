@@ -412,6 +412,7 @@ mod tests {
                     sensitivity: 20,
                     horizontal: crate::GyroAxis::Roll,
                     invert_y: true,
+                    ..GyroSettings::default()
                 }
             }
         );

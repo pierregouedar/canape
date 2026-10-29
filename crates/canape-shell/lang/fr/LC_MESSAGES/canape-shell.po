@@ -464,6 +464,9 @@ msgstr "Tourner la console"
 msgid "Invert up and down"
 msgstr "Inverser haut et bas"
 
+msgid "Motion for emulators"
+msgstr "Mouvement pour émulateurs"
+
 msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
 msgstr "Déplace la souris pendant qu'un jeu est au premier plan. Les jeux qui ne lisent que la manette l'ignorent."
 

@@ -464,6 +464,9 @@ msgstr "De console draaien"
 msgid "Invert up and down"
 msgstr "Boven en onder omkeren"
 
+msgid "Motion for emulators"
+msgstr "Beweging voor emulators"
+
 msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
 msgstr "Beweegt de muis terwijl een game op de voorgrond staat. Games die alleen de controller lezen, negeren het."
 

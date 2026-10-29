@@ -136,6 +136,8 @@ mod engine {
             sensitivity: 10,
             horizontal: canape_core::GyroAxis::Yaw,
             invert_y: false,
+            motion_server: false,
+            motion_port: canape_core::settings::MOTION_PORT_DEFAULT,
         },
         game: false,
         trigger: Trigger {

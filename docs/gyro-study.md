@@ -10,6 +10,7 @@ Résumé : la seule voie qui tient sans pilote tiers est **gyro → souris** (`S
 |---|---|
 | Étude | ✅ Ce document. |
 | Gyro → souris | 🧪 Code écrit : lecture du gyroscope dans `canape-hw` (`motion.rs`, `gyro.rs` sous Windows, simulateur), réglages dans le protocole, `state.json` et les profils par jeu, injection par le shell pendant qu'un jeu est devant, sous-page **Gyroscope** depuis la page Matériel. Testé sous Linux avec le simulateur seulement, **pas encore essayé sur l'Ally**. |
+| Serveur de mouvement (émulateurs) | 🧪 Code écrit : `motion_server.rs` dans le shell, réglage dans le tiroir du gyroscope, désactivé par défaut. Testé sous Linux (codage et aller-retour sur la boucle locale), **pas encore essayé sur l'Ally ni avec un émulateur** ; l'accéléromètre n'est pas lu. |
 | Gyro → stick droit | ⏳ Non retenu pour l'instant (voir [b](#b-émuler-le-stick-droit)). |
 
 À vérifier en premier sur l'Ally : que `Gyrometer::GetDefault` trouve bien le capteur, la fréquence réelle des lectures, le **sens des axes** (gauche / droite, haut / bas), et que les palettes arrière envoient bien leurs codes HID quand la manette est en mode manette.

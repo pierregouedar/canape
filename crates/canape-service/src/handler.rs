@@ -2,7 +2,9 @@ use std::collections::BTreeMap;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use canape_autotdp::{Config, Controller};
-use canape_core::settings::{DEFAULT_ACCENT, FPS_LIMIT_RANGE, GYRO_SENSITIVITY_RANGE};
+use canape_core::settings::{
+    DEFAULT_ACCENT, FPS_LIMIT_RANGE, GYRO_SENSITIVITY_RANGE, MOTION_PORT_RANGE,
+};
 use canape_core::{
     AutoTdpSettings, BackButtons, BenchPlan, BenchProgress, BenchReport, ControllerMode, CpuPower,
     Fan, FanCurve, FanCurves, FanPreset, GyroSettings, Lighting, PerformanceMode, Profile,
@@ -468,6 +470,12 @@ impl Handler {
                 if !(low..=high).contains(&settings.sensitivity) {
                     return Response::Error {
                         message: format!("gyro sensitivity not in {low}..={high}"),
+                    };
+                }
+                let (low, high) = MOTION_PORT_RANGE;
+                if !(low..=high).contains(&settings.motion_port) {
+                    return Response::Error {
+                        message: format!("motion port not in {low}..={high}"),
                     };
                 }
                 self.gyro = settings;
@@ -2090,6 +2098,17 @@ mod tests {
                 h.handle(Request::SetGyro {
                     settings: GyroSettings {
                         sensitivity,
+                        ..hold
+                    }
+                }),
+                Response::Error { .. }
+            ));
+        }
+        for motion_port in [0, 1023] {
+            assert!(matches!(
+                h.handle(Request::SetGyro {
+                    settings: GyroSettings {
+                        motion_port,
                         ..hold
                     }
                 }),

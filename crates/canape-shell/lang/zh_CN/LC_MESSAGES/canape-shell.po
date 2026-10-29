@@ -464,6 +464,9 @@ msgstr "转动主机"
 msgid "Invert up and down"
 msgstr "反转上下"
 
+msgid "Motion for emulators"
+msgstr "模拟器体感"
+
 msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
 msgstr "游戏在前台时移动鼠标。只读取手柄的游戏会忽略它。"
 

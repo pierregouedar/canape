@@ -464,6 +464,9 @@ msgstr "Konsolu döndür"
 msgid "Invert up and down"
 msgstr "Yukarı ve aşağıyı ters çevir"
 
+msgid "Motion for emulators"
+msgstr "Emülatörler için hareket"
+
 msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
 msgstr "Bir oyun öndeyken fareyi hareket ettirir. Yalnızca oyun kumandasını okuyan oyunlar bunu yok sayar."
 

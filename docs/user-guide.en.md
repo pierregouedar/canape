@@ -557,7 +557,7 @@ A shelf that gathers what shapes a game's picture: resolution, refresh rate, the
 
 #### Gyro aiming
 
-The **Gyro aiming** card (Controller shelf) opens a drawer of four lines: up and down change line, left and right change its value (**A** also flips the last two); **B** closes it. The card shows the activation. While a game is in front, turning the Ally moves the **mouse**, as with a mouse in your other hand: handy for fine aiming in shooters. It never acts on Canapé itself.
+The **Gyro aiming** card (Controller shelf) opens a drawer of five lines: up and down change line, left and right change its value (**A** also flips the last three); **B** closes it. The card shows the activation. While a game is in front, turning the Ally moves the **mouse**, as with a mouse in your other hand: handy for fine aiming in shooters. It never acts on Canapé itself.
 
 > [!WARNING]
 > **Not tried on the Ally yet**: written and tested on Linux with a simulated sensor only. The left / right and up / down directions in particular still have to be checked on the device; use **Invert up and down** if the vertical axis feels wrong.
@@ -573,6 +573,13 @@ The **Gyro aiming** card (Controller shelf) opens a drawer of four lines: up and
 - **Per game**: **X** keeps these settings in the profile of the game in the foreground, with the fans and the frame rate limit. A profile without its own gyro settings follows the global ones. While a game with its own settings is in front, a change goes into its profile.
 - The paddles go to gyro aiming even when **The Ally's buttons** is off. In **While held** mode, holding a paddle in a game that also uses it does both.
 - **Cost**: nothing while the gyro is off or the paddles are released; while aiming, the shell reads the sensor every 10 ms.
+
+##### Motion for emulators
+
+With **Motion for emulators** on, Canapé answers on UDP port **26760** of the local address `127.0.0.1` (never from another device) and publishes the gyroscope for programs that can read it, such as console emulators with motion controls. In the program, pick this motion server with that address and port. The sensor is read only while a program is connected. The setting is independent of mouse aiming and is also kept per game with **X**. The port is changed with `set_gyro` (`motion_port`, 1024 to 65535).
+
+> [!WARNING]
+> **Not tried on the Ally or with an emulator yet.** The accelerometer is not read: its three values are zero. The direction of the axes is still to check; most programs can invert an axis.
 
 #### Back buttons and lighting
 
@@ -858,7 +865,7 @@ Examples (written in readable form here; escape the quotes in PowerShell 5.1):
 | `{"type":"reset_fan_curves"}` | Fans back to the firmware's curves (Automatic) |
 | `{"type":"set_fps_limit","fps":null}` | Removes the frame rate limit (or `"fps":40` for a limit, 30 to 120) |
 | `{"type":"set_controller_mode","mode":"gamepad"}` | Controller back to gamepad mode (`wasd`, `mouse`) |
-| `{"type":"set_gyro","settings":{"activation":"off"}}` | Gyro aiming off (`hold`, `toggle`, `always`; other fields: `sensitivity`, `horizontal` `yaw` or `roll`, `invert_y`) |
+| `{"type":"set_gyro","settings":{"activation":"off"}}` | Gyro aiming off (`hold`, `toggle`, `always`; other fields: `sensitivity`, `horizontal` `yaw` or `roll`, `invert_y`, `motion_server`, `motion_port`) |
 | `{"type":"reset_back_buttons"}` | M1 and M2 back to their own keys |
 | `{"type":"set_lighting","lighting":null}` | Stick rings left to the controller (back at the next restart) |
 | `{"type":"list_profiles"}` | Saved profiles |

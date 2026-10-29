@@ -73,6 +73,8 @@ export struct StatusView {
     // Sideways from tilting like a wheel rather than turning.
     gyro-roll: bool,
     gyro-invert: bool,
+    // The motion server for emulators is on.
+    gyro-server: bool,
     // What the back buttons send: indexes in ButtonTarget::ALL, 0 for
     // their own keys.
     m1: int,
@@ -249,6 +251,7 @@ export global App {
     callback change-gyro-sensitivity(int);
     callback toggle-gyro-roll();
     callback toggle-gyro-invert();
+    callback toggle-gyro-server();
     callback toggle-online-covers();
     callback set-refresh(int);
     // An index in App.resolutions.

@@ -464,6 +464,9 @@ msgstr "本体を回す"
 msgid "Invert up and down"
 msgstr "上下を反転"
 
+msgid "Motion for emulators"
+msgstr "エミュレーター用モーション"
+
 msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
 msgstr "ゲームが前面にある間、マウスを動かします。ゲームパッドだけを読むゲームでは効きません。"
 

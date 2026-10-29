@@ -556,7 +556,7 @@ Une étagère qui regroupe ce qui touche à l'image d'un jeu : la résolution, l
 
 #### Visée au gyroscope
 
-La carte **Visée au gyroscope** (étagère Manette) ouvre un tiroir de quatre lignes : haut et bas changent de ligne, gauche et droite sa valeur (**A** inverse aussi les deux dernières) ; **B** le ferme. La carte indique le mode d'activation. Pendant qu'un jeu est au premier plan, tourner l'Ally déplace la **souris**, comme une souris dans l'autre main : pratique pour viser finement dans les jeux de tir. Elle n'agit jamais sur Canapé lui-même.
+La carte **Visée au gyroscope** (étagère Manette) ouvre un tiroir de cinq lignes : haut et bas changent de ligne, gauche et droite sa valeur (**A** inverse aussi les trois dernières) ; **B** le ferme. La carte indique le mode d'activation. Pendant qu'un jeu est au premier plan, tourner l'Ally déplace la **souris**, comme une souris dans l'autre main : pratique pour viser finement dans les jeux de tir. Elle n'agit jamais sur Canapé lui-même.
 
 > [!WARNING]
 > **Pas encore essayé sur l'Ally** : écrit et testé sous Linux avec un capteur simulé seulement. Les sens gauche / droite et haut / bas, en particulier, restent à vérifier sur l'appareil ; **Inverser haut et bas** corrige l'axe vertical s'il semble à l'envers.
@@ -567,11 +567,19 @@ La carte **Visée au gyroscope** (étagère Manette) ouvre un tiroir de quatre l
 | Sensibilité | 1 à 50 (mouvement de souris par degré tourné, 10 par défaut) ; la sensibilité de la souris dans le jeu s'y ajoute. |
 | Gauche et droite | **Tourner la console** (autour de son axe vertical, comme pour regarder autour de soi) ou **Incliner comme un volant** (confortable allongé). |
 | Inverser haut et bas | Pencher le haut de l'écran vers l'arrière fait monter la vue ; **Activé** la fait descendre. |
+| Mouvement pour émulateurs | **Désactivé** par défaut. **Activé** : Canapé publie le gyroscope pour les programmes qui lisent le mouvement par le réseau local (voir plus bas). |
 
 - **Jeux** : le mouvement est un mouvement de souris. Il marche dans les jeux qui acceptent la souris en même temps que la manette, ou la souris seule. Les jeux qui ne lisent que la manette l'ignorent, et certains changent leurs icônes clavier / manette à chaque mouvement de souris. Un jeu lancé en administrateur l'ignore aussi.
 - **Par jeu** : **X** garde ces réglages dans le profil du jeu au premier plan, avec les ventilateurs et la limite de FPS. Un profil sans réglages de gyroscope suit les réglages généraux. Pendant qu'un jeu qui a ses propres réglages est devant, un changement va dans son profil.
 - Les palettes servent à la visée même quand **Boutons de l'Ally** est désactivé. En mode **Tant qu'une palette est tenue**, tenir une palette dans un jeu qui l'utilise aussi fait les deux.
 - **Coût** : rien tant que le gyroscope est coupé ou les palettes relâchées ; pendant la visée, le shell lit le capteur toutes les 10 ms.
+
+##### Mouvement pour les émulateurs
+
+Avec **Mouvement pour émulateurs** activé, Canapé répond sur le port UDP **26760** de l'adresse locale `127.0.0.1` (jamais depuis un autre appareil) et publie le gyroscope pour les programmes qui savent le lire, comme les émulateurs de consoles à commandes de mouvement. Dans le programme, choisissez ce serveur de mouvement avec cette adresse et ce port. Le capteur n'est lu que tant qu'un programme est connecté. Ce réglage est indépendant de la visée à la souris et se garde aussi par jeu avec **X**. Le port se change avec `set_gyro` (`motion_port`, 1024 à 65535).
+
+> [!WARNING]
+> **Pas encore essayé sur l'Ally ni avec un émulateur.** L'accéléromètre n'est pas lu : ses trois valeurs sont à zéro. Le sens des axes reste à vérifier ; la plupart des programmes permettent d'inverser un axe.
 
 #### Boutons arrière et éclairage
 
@@ -859,7 +867,7 @@ Exemples (écrits ici sous forme lisible ; échappez les guillemets dans PowerSh
 | `{"type":"reset_fan_curves"}` | Ventilateurs rendus aux courbes du firmware (Automatique) |
 | `{"type":"set_fps_limit","fps":null}` | Retire la limite de FPS (ou `"fps":40` pour une limite, de 30 à 120) |
 | `{"type":"set_controller_mode","mode":"gamepad"}` | Manette remise en mode manette de jeu (`wasd`, `mouse`) |
-| `{"type":"set_gyro","settings":{"activation":"off"}}` | Visée au gyroscope coupée (`hold`, `toggle`, `always` ; autres champs : `sensitivity`, `horizontal` `yaw` ou `roll`, `invert_y`) |
+| `{"type":"set_gyro","settings":{"activation":"off"}}` | Visée au gyroscope coupée (`hold`, `toggle`, `always` ; autres champs : `sensitivity`, `horizontal` `yaw` ou `roll`, `invert_y`, `motion_server`, `motion_port`) |
 | `{"type":"reset_back_buttons"}` | M1 et M2 rendus à leurs propres touches |
 | `{"type":"set_lighting","lighting":null}` | Anneaux des sticks laissés à la manette (de retour au prochain redémarrage) |
 | `{"type":"list_profiles"}` | Profils enregistrés |

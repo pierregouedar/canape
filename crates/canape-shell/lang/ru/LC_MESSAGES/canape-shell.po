@@ -464,6 +464,9 @@ msgstr "Поворот консоли"
 msgid "Invert up and down"
 msgstr "Инвертировать вверх и вниз"
 
+msgid "Motion for emulators"
+msgstr "Движение для эмуляторов"
+
 msgid "Moves the mouse while a game is in front. Games that only read the gamepad ignore it."
 msgstr "Двигает мышь, пока игра на переднем плане. Игры, которые читают только геймпад, это игнорируют."
 
