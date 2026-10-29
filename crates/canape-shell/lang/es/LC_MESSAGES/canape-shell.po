@@ -224,8 +224,8 @@ msgstr "Buscando juegos…"
 msgid "No games found"
 msgstr "No se encontraron juegos"
 
-msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
-msgstr "Canapé muestra los juegos instalados con Steam, Epic Games Launcher, GOG Galaxy y la app de Xbox."
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher and the Xbox app."
+msgstr "Canapé muestra los juegos instalados con Steam, Epic Games Launcher y la app de Xbox."
 
 msgid "Hardware"
 msgstr "Hardware"
@@ -599,26 +599,8 @@ msgstr "Buscando accesos directos…"
 msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
 msgstr "No hay accesos directos a juegos en el menú Inicio ni en el escritorio. También se pueden añadir juegos en games.json, en %LOCALAPPDATA%\\Canape."
 
-msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers."
-msgstr "Steam: añade tu clave de la API web de Steam (steamcommunity.com/dev/apikey) como steam_api_key en shell.json. Epic y GOG: inicia sesión una vez abajo; Canapé instala sus juegos sin sus launchers."
-
-msgid "Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard."
-msgstr "Inicia sesión en GOG en el navegador y copia la dirección de la página a la que llegas: Canapé la lee del portapapeles."
-
-msgid "Opening the GOG sign-in…"
-msgstr "Abriendo el inicio de sesión de GOG…"
-
-msgid "Waiting for the GOG address…"
-msgstr "Esperando la dirección de GOG…"
-
-msgid "GOG: {} (sign in again)"
-msgstr "GOG: {} (volver a iniciar sesión)"
-
-msgid "Sign in to GOG"
-msgstr "Iniciar sesión en GOG"
-
-msgid "GOG account"
-msgstr "Cuenta de GOG"
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé installs its games without its launcher."
+msgstr "Steam: añade tu clave de la API web de Steam (steamcommunity.com/dev/apikey) como steam_api_key en shell.json. Epic: inicia sesión una vez abajo; Canapé instala sus juegos sin su launcher."
 
 msgid "{} GB free in {}"
 msgstr "{} GB libres en {}"
@@ -805,9 +787,6 @@ msgstr "Añade el id y el secreto de cliente de una aplicación de Twitch como i
 
 msgid "Canapé installs Epic games without their launcher once you are signed in."
 msgstr "Una vez iniciada la sesión, Canapé instala los juegos de Epic sin su lanzador."
-
-msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
-msgstr "Una vez iniciada la sesión, Canapé instala los juegos de GOG sin GOG Galaxy."
 
 
 msgctxt "decimal separator"

@@ -224,8 +224,8 @@ msgstr "正在查找游戏…"
 msgid "No games found"
 msgstr "未找到游戏"
 
-msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
-msgstr "Canapé 会显示通过 Steam、Epic Games Launcher、GOG Galaxy 和 Xbox 应用安装的游戏。"
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher and the Xbox app."
+msgstr "Canapé 会显示通过 Steam、Epic Games Launcher 和 Xbox 应用安装的游戏。"
 
 msgid "Hardware"
 msgstr "硬件"
@@ -599,26 +599,8 @@ msgstr "正在查找快捷方式…"
 msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
 msgstr "开始菜单和桌面上没有游戏快捷方式。也可以在 %LOCALAPPDATA%\\Canape 的 games.json 中列出游戏。"
 
-msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers."
-msgstr "Steam：在 shell.json 中将你的 Steam Web API 密钥（steamcommunity.com/dev/apikey）添加为 steam_api_key。Epic 和 GOG：在下方登录一次；Canapé 无需它们的启动器即可安装游戏。"
-
-msgid "Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard."
-msgstr "在浏览器中登录 GOG，然后复制跳转后页面的地址：Canapé 会从剪贴板读取。"
-
-msgid "Opening the GOG sign-in…"
-msgstr "正在打开 GOG 登录…"
-
-msgid "Waiting for the GOG address…"
-msgstr "正在等待 GOG 地址…"
-
-msgid "GOG: {} (sign in again)"
-msgstr "GOG：{}（重新登录）"
-
-msgid "Sign in to GOG"
-msgstr "登录 GOG"
-
-msgid "GOG account"
-msgstr "GOG 账户"
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé installs its games without its launcher."
+msgstr "Steam：在 shell.json 中将你的 Steam Web API 密钥（steamcommunity.com/dev/apikey）添加为 steam_api_key。Epic：在下方登录一次；Canapé 无需启动器即可安装游戏。"
 
 msgid "{} GB free in {}"
 msgstr "可用 {} GB（{}）"
@@ -817,9 +799,6 @@ msgstr "在 shell.json 中以 igdb_client_id 和 igdb_client_secret 添加一个
 
 msgid "Canapé installs Epic games without their launcher once you are signed in."
 msgstr "登录后，Canapé 无需启动器即可安装 Epic 游戏。"
-
-msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
-msgstr "登录后，Canapé 无需 GOG Galaxy 即可安装 GOG 游戏。"
 
 
 msgctxt "decimal separator"

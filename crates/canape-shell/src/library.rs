@@ -70,6 +70,9 @@ const ERROR_SHOWN: Duration = Duration::from_secs(10);
 /// The owned lists are asked for again after this.
 const OWNED_REFRESH: Duration = Duration::from_secs(10 * 60);
 /// How long the clipboard is watched for GOG's sign-in address.
+/// GOG is on hold: its games are not listed, installed or signed in to, and
+/// its settings are not shown. The code stays for when it is taken up again.
+const GOG_ENABLED: bool = false;
 const GOG_WAIT: Duration = Duration::from_secs(10 * 60);
 /// How often the clipboard is read meanwhile.
 const GOG_POLL: Duration = Duration::from_secs(1);
@@ -265,6 +268,15 @@ fn played_index(game: &Game, now: u64, offset: i64) -> i32 {
 /// in a development build the fake machine of `CANAPE_LIBRARY_FIXTURE` (see
 /// [`canape_library::Roots::fixture`]).
 fn roots(dir: &Path, tools_dir: &Path) -> (Roots, bool) {
+    let (mut roots, fixture) = all_roots(dir, tools_dir);
+    if !GOG_ENABLED {
+        roots.gog = canape_library::GogSource::None;
+        roots.gogdl = None;
+    }
+    (roots, fixture)
+}
+
+fn all_roots(dir: &Path, tools_dir: &Path) -> (Roots, bool) {
     match std::env::var_os("CANAPE_LIBRARY_FIXTURE") {
         Some(dir) if cfg!(debug_assertions) => (Roots::fixture(&PathBuf::from(dir)), true),
         _ => {
@@ -1169,7 +1181,7 @@ impl State {
         Tools {
             steam: self.roots.steam.clone(),
             legendary: legendary.is_file().then_some(legendary),
-            gogdl: gogdl.is_file().then(|| (gogdl, gog_dir())),
+            gogdl: (GOG_ENABLED && gogdl.is_file()).then(|| (gogdl, gog_dir())),
             games_dir: self.games_dir(),
             language: crate::i18n::current().to_owned(),
             game_running: self.foreground.is_some(),

@@ -5,7 +5,7 @@
 //   shelf 0, appearance: language, accent colour, the Ally's buttons;
 //   shelf 1, library: games folder, missing covers, add a game, game
 //   profiles;
-//   shelf 2, accounts: Steam, Epic Games, GOG, time to beat (IGDB);
+//   shelf 2, accounts: Steam, Epic Games, time to beat (IGDB);
 //   shelf 3, system: Windows tweaks (a page of its own), the welcome tour
 //   again, full power while Canapé is in front, the display (software
 //   renderer or graphics card).
@@ -117,7 +117,7 @@ export component SettingsPage inherits Rectangle {
         move-glyph: "leftright",
         move: @tr("Value"),
         b: @tr("Close"),
-    } : root.drawer == "epic" || root.drawer == "gog" ? {
+    } : root.drawer == "epic" ? {
         a: @tr("Sign in"),
         b: @tr("Close"),
     } : {
@@ -131,10 +131,10 @@ export component SettingsPage inherits Rectangle {
     }
 
     pure function key(s: int, c: int) -> string {
-        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : s == 2 ? ["steam", "epic", "gog", "igdb"][c] : ["tweaks", "tour", "uipower", "display"][c]
+        s == 0 ? ["language", "accent", "ally"][c] : s == 1 ? ["folder", "covers", "add", "profiles"][c] : s == 2 ? ["steam", "epic", "igdb"][c] : ["tweaks", "tour", "uipower", "display"][c]
     }
     pure function cards(s: int) -> int {
-        s == 0 ? 3 : 4
+        s == 0 || s == 2 ? 3 : 4
     }
     // The setting behind an On / Off drawer.
     pure function toggle-value(key: string) -> bool {
@@ -224,10 +224,6 @@ export component SettingsPage inherits Rectangle {
         } else if root.drawer == "epic" {
             if !Library.epic-busy {
                 Library.epic-login();
-            }
-        } else if root.drawer == "gog" {
-            if !Library.gog-busy {
-                Library.gog-login();
             }
         } else {
             root.drawer = "";
@@ -324,13 +320,6 @@ export component SettingsPage inherits Rectangle {
                 }
             }
 
-            VerticalLayout {
-                alignment: end;
-                AccountChip {
-                    text: "GOG · " + (Library.gog-account != "" ? Library.gog-account : @tr("not signed in"));
-                    signed-in: Library.gog-account != "";
-                }
-            }
         }
     }
 
@@ -483,26 +472,13 @@ export component SettingsPage inherits Rectangle {
             }
 
             ShelfCard {
-                label: "GOG";
-                store: "GOG";
-                value: Library.gog-busy || Library.gog-waiting ? "…" : Library.gog-account != "" ? Library.gog-account : @tr("Sign in");
+                label: @tr("Time to beat");
+                icon: "hourglass";
+                value: Library.igdb-keys ? "IGDB" : @tr("Off");
                 focused: root.active && root.shelf == 2 && root.card == 2;
                 clicked => {
                     root.shelf = 2;
                     root.card = 2;
-                    root.activate();
-                    fs.focus();
-                }
-            }
-
-            ShelfCard {
-                label: @tr("Time to beat");
-                icon: "hourglass";
-                value: Library.igdb-keys ? "IGDB" : @tr("Off");
-                focused: root.active && root.shelf == 2 && root.card == 3;
-                clicked => {
-                    root.shelf = 2;
-                    root.card = 3;
                     root.activate();
                     fs.focus();
                 }
@@ -573,13 +549,12 @@ export component SettingsPage inherits Rectangle {
         page-height: parent.height;
         open: root.open;
         sheet-height: root.sheet-height;
-        title: root.sheet == "language" ? @tr("Language") : root.sheet == "accent" ? @tr("Accent colour") : root.sheet == "ally" ? @tr("Use the Ally's buttons") : root.sheet == "folder" ? @tr("Games folder") : root.sheet == "covers" ? @tr("Download missing covers") : root.sheet == "steam" ? "Steam" : root.sheet == "epic" ? @tr("Epic Games account") : root.sheet == "gog" ? @tr("GOG account") : root.sheet == "uipower" ? @tr("Full power in Canapé") : root.sheet == "display" ? @tr("Display") : @tr("Time to beat");
+        title: root.sheet == "language" ? @tr("Language") : root.sheet == "accent" ? @tr("Accent colour") : root.sheet == "ally" ? @tr("Use the Ally's buttons") : root.sheet == "folder" ? @tr("Games folder") : root.sheet == "covers" ? @tr("Download missing covers") : root.sheet == "steam" ? "Steam" : root.sheet == "epic" ? @tr("Epic Games account") : root.sheet == "uipower" ? @tr("Full power in Canapé") : root.sheet == "display" ? @tr("Display") : @tr("Time to beat");
         note: root.sheet == "folder" && Library.games-free-tenths >= 0 ? @tr("{} GB free", App.tenths(Library.games-free-tenths))
             : root.sheet == "accent" ? Theme.accent-hex.to-uppercase()
             : root.sheet == "display" ? @tr("Smooth uses about 300 MB more memory, also during games. Canapé restarts.")
             : root.sheet == "steam" ? (Library.steam-key ? @tr("Steam API key set") : @tr("No Steam API key"))
             : root.sheet == "epic" ? (Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-waiting ? @tr("Waiting for the Epic code…") : Library.epic-account)
-            : root.sheet == "gog" ? (Library.gog-busy ? @tr("Opening the GOG sign-in…") : Library.gog-waiting ? @tr("Waiting for the GOG address…") : Library.gog-account)
             : "";
 
         if root.sheet == "language": VerticalLayout {
@@ -730,12 +705,11 @@ export component SettingsPage inherits Rectangle {
             wrap: word-wrap;
         }
 
-        if root.sheet == "epic" || root.sheet == "gog": Text {
+        if root.sheet == "epic": Text {
             x: 0;
             y: 0;
             width: 900px;
-            text: root.sheet == "epic" ? (Library.epic-waiting ? @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.") : @tr("Canapé installs Epic games without their launcher once you are signed in."))
-                : (Library.gog-waiting ? @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.") : @tr("Canapé installs GOG games without GOG Galaxy once you are signed in."));
+            text: Library.epic-waiting ? @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.") : @tr("Canapé installs Epic games without their launcher once you are signed in.");
             color: Theme.text.mix(Theme.dim, 0.6);
             font-size: 15px;
             wrap: word-wrap;

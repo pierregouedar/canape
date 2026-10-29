@@ -224,8 +224,8 @@ msgstr "Oyunlar aranıyor…"
 msgid "No games found"
 msgstr "Oyun bulunamadı"
 
-msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
-msgstr "Canapé; Steam, Epic Games Launcher, GOG Galaxy ve Xbox uygulamasıyla yüklenen oyunları gösterir."
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher and the Xbox app."
+msgstr "Canapé; Steam, Epic Games Launcher ve Xbox uygulamasıyla yüklenen oyunları gösterir."
 
 msgid "Hardware"
 msgstr "Donanım"
@@ -599,26 +599,8 @@ msgstr "Kısayollar aranıyor…"
 msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
 msgstr "Başlat menüsünde veya masaüstünde oyun kısayolu yok. Oyunlar %LOCALAPPDATA%\\Canape içindeki games.json dosyasına da yazılabilir."
 
-msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers."
-msgstr "Steam: Steam Web API anahtarını (steamcommunity.com/dev/apikey) shell.json içine steam_api_key olarak ekle. Epic ve GOG: aşağıdan bir kez giriş yap; Canapé oyunlarını başlatıcıları olmadan kurar."
-
-msgid "Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard."
-msgstr "Tarayıcıda GOG'a giriş yap, ardından açılan sayfanın adresini kopyala: Canapé onu panodan okur."
-
-msgid "Opening the GOG sign-in…"
-msgstr "GOG girişi açılıyor…"
-
-msgid "Waiting for the GOG address…"
-msgstr "GOG adresi bekleniyor…"
-
-msgid "GOG: {} (sign in again)"
-msgstr "GOG: {} (yeniden giriş yap)"
-
-msgid "Sign in to GOG"
-msgstr "GOG'a giriş yap"
-
-msgid "GOG account"
-msgstr "GOG hesabı"
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé installs its games without its launcher."
+msgstr "Steam: Steam Web API anahtarını (steamcommunity.com/dev/apikey) shell.json içine steam_api_key olarak ekle. Epic: aşağıdan bir kez giriş yap; Canapé oyunlarını başlatıcı olmadan kurar."
 
 msgid "{} GB free in {}"
 msgstr "{} GB boş ({})"
@@ -817,9 +799,6 @@ msgstr "Bir Twitch uygulamasının istemci kimliğini ve gizli anahtarını shel
 
 msgid "Canapé installs Epic games without their launcher once you are signed in."
 msgstr "Oturum açtıktan sonra Canapé, Epic oyunlarını başlatıcısı olmadan kurar."
-
-msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
-msgstr "Oturum açtıktan sonra Canapé, GOG oyunlarını GOG Galaxy olmadan kurar."
 
 
 msgctxt "decimal separator"

@@ -224,8 +224,8 @@ msgstr "게임 찾는 중…"
 msgid "No games found"
 msgstr "게임이 없습니다"
 
-msgid "Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app."
-msgstr "Canapé는 Steam, Epic Games Launcher, GOG Galaxy, Xbox 앱으로 설치한 게임을 보여 줍니다."
+msgid "Canapé lists the games installed with Steam, the Epic Games Launcher and the Xbox app."
+msgstr "Canapé는 Steam, Epic Games Launcher, Xbox 앱으로 설치한 게임을 보여 줍니다."
 
 msgid "Hardware"
 msgstr "하드웨어"
@@ -599,26 +599,8 @@ msgstr "바로 가기 찾는 중…"
 msgid "No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape."
 msgstr "시작 메뉴나 바탕 화면에 게임 바로 가기가 없습니다. %LOCALAPPDATA%\\Canape의 games.json에 게임을 직접 적을 수도 있습니다."
 
-msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers."
-msgstr "Steam: Steam 웹 API 키(steamcommunity.com/dev/apikey)를 shell.json의 steam_api_key에 추가하세요. Epic과 GOG: 아래에서 한 번 로그인하세요. Canapé는 각 런처 없이 게임을 설치합니다."
-
-msgid "Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard."
-msgstr "브라우저에서 GOG에 로그인한 뒤 이동한 페이지의 주소를 복사하세요. Canapé가 클립보드에서 읽습니다."
-
-msgid "Opening the GOG sign-in…"
-msgstr "GOG 로그인 여는 중…"
-
-msgid "Waiting for the GOG address…"
-msgstr "GOG 주소를 기다리는 중…"
-
-msgid "GOG: {} (sign in again)"
-msgstr "GOG: {} (다시 로그인)"
-
-msgid "Sign in to GOG"
-msgstr "GOG에 로그인"
-
-msgid "GOG account"
-msgstr "GOG 계정"
+msgid "Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé installs its games without its launcher."
+msgstr "Steam: Steam 웹 API 키(steamcommunity.com/dev/apikey)를 shell.json의 steam_api_key에 추가하세요. Epic: 아래에서 한 번 로그인하세요. Canapé는 런처 없이 게임을 설치합니다."
 
 msgid "{} GB free in {}"
 msgstr "{} GB 남음 ({})"
@@ -817,9 +799,6 @@ msgstr "Twitch 애플리케이션의 클라이언트 ID와 시크릿을 shell.js
 
 msgid "Canapé installs Epic games without their launcher once you are signed in."
 msgstr "로그인하면 Canapé가 런처 없이 Epic 게임을 설치합니다."
-
-msgid "Canapé installs GOG games without GOG Galaxy once you are signed in."
-msgstr "로그인하면 Canapé가 GOG Galaxy 없이 GOG 게임을 설치합니다."
 
 
 msgctxt "decimal separator"

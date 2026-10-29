@@ -1204,7 +1204,7 @@ export component LibraryPage inherits Rectangle {
     // Achievement tiles across the game page: at least 260px wide, 12px
     // apart.
     property <int> achievement-columns: max(1, Math.floor((root.width + 12px) / 272px));
-    // Empty To install: the store to sign in to, 0 Epic, 1 GOG.
+    // Empty To install: the store to sign in to (Epic only for now).
     in-out property <int> account-pick: 0;
     property <bool> signing-up: !root.has-games && root.to-install;
     property <int> sel: Library.selected;
@@ -1246,8 +1246,6 @@ export component LibraryPage inherits Rectangle {
             Library.open-detail(Library.selected);
         } else if root.signing-up && root.account-pick == 0 && !Library.epic-busy {
             Library.epic-login();
-        } else if root.signing-up && root.account-pick == 1 && !Library.gog-busy {
-            Library.gog-login();
         }
     }
     // Lines of the options menu at its current step.
@@ -1400,16 +1398,10 @@ export component LibraryPage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.LeftArrow {
-                if root.signing-up {
-                    root.account-pick = 0;
-                }
                 Library.selected = max(0, Library.selected - 1);
                 return accept;
             }
             if event.text == Key.RightArrow {
-                if root.signing-up {
-                    root.account-pick = 1;
-                }
                 Library.selected = max(0, min(root.front.games.length - 1, Library.selected + 1));
                 return accept;
             }
@@ -1537,7 +1529,7 @@ export component LibraryPage inherits Rectangle {
         title := RevealLine {
             order: 1;
             Text {
-                text: root.has-games ? root.current.title : !root.to-install ? (!Library.ready ? @tr("Looking for games…") : @tr("No games found")) : Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" || Library.gog-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
+                text: root.has-games ? root.current.title : !root.to-install ? (!Library.ready ? @tr("Looking for games…") : @tr("No games found")) : Library.owned-loading ? @tr("Looking for your games…") : Library.steam-key || Library.epic-account != "" ? @tr("Every game you own is installed") : @tr("Install your games from here");
                 color: Theme.text;
                 font-size: 52px;
                 font-weight: 700;
@@ -1550,7 +1542,7 @@ export component LibraryPage inherits Rectangle {
         note := RevealLine {
             order: 2;
             Text {
-                text: Library.change-text != "" ? Library.change-text : Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.signing-up && Library.epic-waiting ? @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.") : root.signing-up && Library.gog-waiting ? @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.") : root.signing-up ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic and GOG: sign in once below; Canapé installs their games without their launchers.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher, GOG Galaxy and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 1 ? @tr("Downloading…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
+                text: Library.change-text != "" ? Library.change-text : Library.install-error != "" ? Library.install-error : Library.failed != "" ? @tr("Could not launch {}", Library.failed) : root.signing-up && Library.epic-waiting ? @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.") : root.signing-up ? @tr("Steam: add your Steam Web API key (steamcommunity.com/dev/apikey) as steam_api_key in shell.json. Epic: sign in once below; Canapé installs its games without its launcher.") : !root.has-games && Library.ready ? @tr("Canapé lists the games installed with Steam, the Epic Games Launcher and the Xbox app.") : root.has-games && root.current.progress == 0 ? @tr("Waiting for the store…") : root.has-games && root.current.progress > 1 ? @tr("Downloading…") : root.has-games && root.current.progress > 0 ? @tr("Installing… {} %", Math.round(root.current.progress * 100)) : root.has-games && !root.current.installed ? @tr("Not installed") : root.has-games ? Library.played-text(root.current.played) : "";
                 color: Library.change-text != "" || Library.install-error != "" || Library.failed != "" ? Theme.warn : Theme.text.mix(Theme.dim, 0.6);
                 font-size: 16px;
                 wrap: word-wrap;
@@ -1575,8 +1567,7 @@ export component LibraryPage inherits Rectangle {
             }
         }
 
-        // No game to install yet: sign in to Epic or GOG, left and right
-        // pick one.
+        // No game to install yet: sign in to Epic.
         if root.signing-up: accounts := RevealLine {
             order: 3;
             padding-top: 10px;
@@ -1589,17 +1580,6 @@ export component LibraryPage inherits Rectangle {
                 label: Library.epic-busy ? @tr("Opening the Epic sign-in…") : Library.epic-waiting ? @tr("Waiting for the Epic code…") : Library.epic-account != "" ? @tr("Epic: {} (sign in again)", Library.epic-account) : @tr("Sign in to Epic Games");
                 clicked => {
                     root.account-pick = 0;
-                    root.act();
-                    fs.focus();
-                }
-            }
-            PrimaryButton {
-                opacity: accounts.shown;
-                pressed: root.pressed && root.account-pick == 1;
-                quiet: root.account-pick != 1;
-                label: Library.gog-busy ? @tr("Opening the GOG sign-in…") : Library.gog-waiting ? @tr("Waiting for the GOG address…") : Library.gog-account != "" ? @tr("GOG: {} (sign in again)", Library.gog-account) : @tr("Sign in to GOG");
-                clicked => {
-                    root.account-pick = 1;
                     root.act();
                     fs.focus();
                 }

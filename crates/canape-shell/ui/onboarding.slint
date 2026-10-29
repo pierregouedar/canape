@@ -284,8 +284,8 @@ export component OnboardingFlow inherits Rectangle {
     property <int> language: 0;
     // Accent step: the swatch focused.
     property <int> swatch: 0;
-    // Stores step: 0 Steam key, 1 Epic, 2 GOG, 3 IGDB client id, 4 IGDB
-    // secret, 5 the action.
+    // Stores step: 0 Steam key, 1 Epic, 3 IGDB client id, 4 IGDB secret,
+    // 5 the action (2 is skipped).
     property <int> line: 0;
     // The entry being typed ("steam", "igdb-id", "igdb-secret"), "" when
     // none.
@@ -369,10 +369,6 @@ export component OnboardingFlow inherits Rectangle {
             if !Library.epic-busy {
                 Library.epic-login();
             }
-        } else if root.line == 2 {
-            if !Library.gog-busy {
-                Library.gog-login();
-            }
         }
     }
     function pick-language(i: int) {
@@ -402,6 +398,10 @@ export component OnboardingFlow inherits Rectangle {
         } else if root.step == 4 {
             if dy != 0 {
                 root.line = clamp(root.line + dy, 0, 5);
+                // The line between Epic and the IGDB keys is not shown.
+                if root.line == 2 {
+                    root.line = 2 + dy;
+                }
             }
         } else if root.step == 5 {
             if dx != 0 {
@@ -773,21 +773,6 @@ export component OnboardingFlow inherits Rectangle {
                             text: @tr("Sign in to Epic in the browser, then copy the page it lands on (or its authorizationCode): Canapé reads it from the clipboard.");
                         }
 
-                        SettingLine {
-                            label: @tr("GOG account");
-                            value: Library.gog-busy ? @tr("Opening the GOG sign-in…") : Library.gog-waiting ? @tr("Waiting for the GOG address…") : Library.gog-account != "" ? Library.gog-account : @tr("Sign in");
-                            chevrons: false;
-                            focused: root.line == 2;
-                            clicked => {
-                                root.line = 2;
-                                root.act-row();
-                                fs.focus();
-                            }
-                        }
-
-                        if Library.gog-waiting: Help {
-                            text: @tr("Sign in to GOG in the browser, then copy the address of the page it lands on: Canapé reads it from the clipboard.");
-                        }
                         if Library.install-error != "": Help {
                             warn: true;
                             text: Library.install-error;

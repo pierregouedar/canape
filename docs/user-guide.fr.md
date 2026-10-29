@@ -400,6 +400,8 @@ Les jeux Epic qui s'installent par une autre boutique (Ubisoft, EA) sont écart�
 
 **GOG : se connecter une fois**
 
+> **GOG est en pause** : depuis le 29 octobre, il n'apparaît plus dans l'interface (ni réglages, ni visite, ni étagères, ni installation), et ses jeux ne sont plus listés. Le code est conservé ; ce qui suit décrit ce qu'il faisait.
+
 1. Choisissez **Compte GOG** dans les [Réglages](#réglages), ou **Se connecter à GOG** sur l'étagère À installer vide.
 2. La première fois, Canapé télécharge **gogdl** (heroic-gogdl, un outil de téléchargement GOG libre, licence GPL-3, qui reste un programme séparé) depuis ses publications officielles sur GitHub, dans `%LOCALAPPDATA%\Canape\tools`. La version est fixée (1.3.1) et le fichier vérifié avec son empreinte SHA-256 : s'il ne correspond pas, rien n'est enregistré et l'erreur s'affiche.
 3. La page de connexion de GOG s'ouvre dans le navigateur. Connectez-vous : GOG arrive sur une page presque vide dont l'adresse contient un code (`embed.gog.com/on_login_success?origin=client&code=…`).

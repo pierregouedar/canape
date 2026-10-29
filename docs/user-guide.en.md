@@ -401,6 +401,8 @@ Epic games that install through another store (Ubisoft, EA) are left out: Legend
 
 **GOG: sign in once**
 
+> **GOG is on hold**: since 29 October it no longer appears in the interface (no settings, tour, shelves or install), and its games are not listed. The code is kept; what follows describes what it did.
+
 1. Pick **GOG account** in [Settings](#settings), or **Sign in to GOG** on the empty To install shelf.
 2. The first time, Canapé downloads **gogdl** (heroic-gogdl, an open-source GOG downloader, GPL-3 licence, that stays a separate program) from its official releases on GitHub, into `%LOCALAPPDATA%\Canape\tools`. The version is pinned (1.3.1) and the file checked against its SHA-256 digest: if it does not match, nothing is saved and the error shows.
 3. GOG's sign-in page opens in the browser. Sign in: GOG lands on an almost empty page whose address holds a code (`embed.gog.com/on_login_success?origin=client&code=…`).
