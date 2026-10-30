@@ -200,6 +200,17 @@ Définition réelle relue par `Win32_VideoController` (toutes les 3 s).
 - Remarques : la fiche du jeu résume le profil par « Auto TDP désactivé » seulement, sans la définition. Le profil enregistre aussi le gyroscope et la fréquence courants.
 - Incident : en relançant, la touche droite a été perdue et **Catherine Classic** a été lancé à la place d'Among Us (l'ordre des Récents avait changé). Fermé au bout d'une minute environ, aucune touche envoyée au jeu.
 
+### T6 Options d'un jeu (Among Us)
+
+Fiche du jeu, Y « Options » : Renommer, Catégories, Retirer de la bibliothèque, Désinstaller (non touché).
+
+- **Renommer** : champ prérempli et sélectionné ; « Among Us Test » validé par A (`library: steam:945360 renamed`, `overrides.json` écrit). Titre changé sur la fiche et dans les étagères ; une ligne « Reprendre le titre de la boutique · Among Us » apparaît et remet le titre d'origine.
+- **Catégories** : « Nouvelle catégorie » → « Essai » créée et cochée ; une étagère « Essai · 1 » apparaît sur la page Jeux, sous Installés. Décocher la retire, et la catégorie vide disparaît de la liste.
+- **Retirer de la bibliothèque** : appliqué sans confirmation (`hidden`) ; Installés passe de 16 à 15, Steam de 63 à 62, l'étagère Essai disparaît. Le tiroir l'annonce : « Les jeux masqués se retrouvent dans Réglages › Ajouter un jeu ». Là, « Jeux masqués · 1 » → « Afficher à nouveau » (`shown again`), tout revient (Installés 16, Essai · 1). Il n'y a pas d'option « Masquer » distincte : Retirer joue ce rôle.
+- **Clavier tactile : n'apparaît pas** dans le champ Renommer ni dans « Nouvelle catégorie » (aucune ligne `touch keyboard` dans le journal, captures sans clavier), alors qu'il s'ouvre bien dans les champs de clé de la visite. La saisie au clavier physique fonctionne.
+- État final : titre d'origine, aucune catégorie, rien de masqué, `overrides.json` vide.
+- Vu en passant : « art of rally Standard Edit… » tronqué en titre de la page Jeux ; Heaven Benchmark sans jaquette (titre sur fond brun).
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
