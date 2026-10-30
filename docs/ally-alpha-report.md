@@ -235,6 +235,15 @@ Among Us lancé depuis Canapé, Game Bar ouverte (Win+G), widget Canapé ouvert 
 - Vu en passant : au retour de 720p à 1080p, le fond de l'accueil de Canapé ne couvre plus que les 1280 premiers pixels de large (capture), jusqu'au rafraîchissement suivant.
 - Remis : profil Among Us supprimé (`profiles: []`, comme au départ), limite de FPS Aucune, 1920×1080.
 
+### Vérification de `284703f` (clavier tactile des options d'un jeu)
+
+Réinstallé depuis `main` (`d1a2be4`). Fiche d'Among Us › Options :
+
+- **Renommer** : le clavier tactile s'ouvre avec le champ (`touch keyboard: shown`, capture) et se ferme à B ; nom inchangé.
+- **Catégories › Nouvelle catégorie** : le clavier s'ouvre, se ferme à B ; rouvert puis A sur le champ vide : le clavier se ferme et aucune catégorie n'est créée.
+- Windows affiche une fois sa propre bulle « Vous avez besoin d'un clavier tactile ? » au-dessus du clavier (non touchée).
+- `overrides.json` reste vide. Corrigé.
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.

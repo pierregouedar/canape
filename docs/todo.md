@@ -15,7 +15,7 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [x] **3. Page Optimisations Windows refaite.** Éprouvé le 30 octobre sur `7c8b2fe` : Widgets « Indisponible », Rétablir, réapplication, liste Applications, état Windows remis (diff vide). Reste : libellé « Tout est appliq… » tronqué.
 - [ ] **4. Limite de charge de la batterie.** Réglage par l'interface vérifié le 30 octobre, mais batterie à 100 % : l'arrêt et la reprise de la charge restent à observer avec la batterie sous 60 % (il faut débrancher).
 - [x] **5. Définition d'écran par profil et écran Image.** Éprouvé le 30 octobre (720p au lancement, 1080p au retour, « Pas encore appliqué »). Reste : la fiche du jeu ne résume pas la définition.
-- [ ] **6. Options d'un jeu.** Renommer, catégories, retirer et réafficher éprouvés le 30 octobre. **Bug** : le clavier tactile ne s'ouvre pas dans Renommer ni dans Nouvelle catégorie.
+- [x] **6. Options d'un jeu.** Renommer, catégories, retirer et réafficher éprouvés le 30 octobre ; clavier tactile corrigé et vérifié sur `284703f`.
 - [x] **7. Ajouter d'autres jeux.** Éprouvé le 30 octobre. À revoir : A retire une entrée sans confirmation, et la liste remonte quand « Jeux masqués » disparaît.
 - [ ] **8. Durées IGDB, succès Steam, images SteamGridDB, icônes.** Nécessitent les clés de Pierre.
 - [ ] **9. Éclairage par l'interface et gyroscope avec palette.** Réglages éprouvés le 30 octobre ; reste l'essai physique (palette tenue ou basculée en bougeant la console dans un jeu) et la couleur réelle des sticks.
