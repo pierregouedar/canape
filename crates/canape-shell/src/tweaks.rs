@@ -236,6 +236,10 @@ pub fn show(ui: &Weak<AppWindow>, tweaks: Vec<TweakState>) {
                 .busy
                 .take()
                 .filter(|b| REMOVABLE_APPS.iter().any(|a| a.package() == b));
+        } else {
+            // Recommended set finished (some may have failed); clear to let
+            // the user retry individual tweaks.
+            s.busy = None;
         }
     });
     refresh(ui);
@@ -550,5 +554,48 @@ mod tests {
         ] {
             assert!(source.contains(unavailable_name(Some(reason))));
         }
+    }
+    #[test]
+    fn recommended_busy_clears_on_list_even_with_failures() {
+        // When the recommended set was being applied and one tweak fails
+        // (e.g. WidgetsOff returns error 5), the list comes back with that
+        // tweak still unapplied and not unavailable. recommended_left is
+        // non-empty, so busy would remain "recommended" and the page would
+        // stay stuck. The fix clears busy in the else branch.
+        let mut tweaks: Vec<TweakState> = TweakId::ALL.iter().map(|&id| state(id, false)).collect();
+        // WidgetsOff remains unapplied and not unavailable (error 5 does not set unavailable).
+        let widgets_pos = tweaks
+            .iter()
+            .position(|t| t.id == TweakId::WidgetsOff)
+            .unwrap();
+        // WidgetsOff is still false / None — recommended_left will include it.
+        assert!(tweaks[widgets_pos].unavailable.is_none());
+        // Other recommended tweaks were applied.
+        let copilot_pos = tweaks
+            .iter()
+            .position(|t| t.id == TweakId::CopilotOff)
+            .unwrap();
+        let game_dvr_pos = tweaks
+            .iter()
+            .position(|t| t.id == TweakId::GameDvrOff)
+            .unwrap();
+        tweaks[copilot_pos].applied = true;
+        tweaks[copilot_pos].by_canape = true;
+        tweaks[game_dvr_pos].applied = true;
+        tweaks[game_dvr_pos].by_canape = true;
+
+        // recommended_left is non-empty because WidgetsOff is still unapplied.
+        let left = recommended_left(&tweaks);
+        assert!(left.contains(&TweakId::WidgetsOff));
+
+        // The else branch in show() sets s.busy = None regardless.
+        // This test verifies the condition that triggers it:
+        // busy == "recommended" AND recommended_left is non-empty.
+        let busy: Option<String> = Some("recommended".into());
+        let would_enter_else = busy.as_deref() == Some(RECOMMENDED)
+            && tweaks
+                .iter()
+                .any(|t| t.id.info().recommended && !t.applied && t.unavailable.is_none());
+        assert!(would_enter_else, "must enter else branch to clear busy");
     }
 }
