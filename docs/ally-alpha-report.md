@@ -306,6 +306,30 @@ Redémarrage lancé le 30 octobre à 22:30:12 (`shutdown /r /t 60`), Canapé ét
 - Ouverture de session : 22:33:34 (Winlogon, événement 7001).
 - **Shell lancé seul par l'écran Xbox** : `canape-shell 0.1.0 started, args=["windows.gaming:///home"]` à 22:33:35, **1 s après l'ouverture de session**, en rendu logiciel, un seul processus ; bibliothèque lue en 34 ms, serveur de mouvement à l'écoute du premier coup.
 - Capture : le relevé automatique (dossier Démarrage) n'a tourné qu'à 22:34:57, Windows retardant les programmes de démarrage ; Claude était alors devant, la capture ne montre donc pas Canapé. Pierre a relancé la session depuis l'Ally après le démarrage. L'élément de démarrage s'est supprimé comme prévu.
+### Vérification de `bf3c85d` (repli, en-tête, Widgets verrouillé)
+
+Réinstallé (`install-dev.ps1 -SetAsHomeApp`, `build-widget.ps1`).
+
+- **Repli sans programme GPU** : Fluide choisi, `canape-shell-gpu.exe` renommé, Canapé relancé : `gpu renderer: canape-shell-gpu.exe not found…; back to the software renderer` puis le démarrage continue (langue, serveur de mouvement, bibliothèque) et **Canapé s'ouvre** en Économe (capture), `renderer=software`. Corrigé. Aucun message à l'écran n'annonce le repli. Programme remis.
+- **En-tête en Fluide** : plus de « 2 FPS » à l'accueil sans jeu (capture). Corrigé.
+- **Widgets verrouillé** : `set_tweak widgets_off` → `error 5`, `unavailable: locked` ; après `Restart-Service CanapeService`, toujours `locked`. La page affiche Widgets « Indisponible », Recommandations « 1 à appliquer » et le tiroir ne propose plus que l'enregistrement en arrière-plan : plus de nouvelle tentative. Rien appliqué ; état Windows identique au départ.
+
+## Bilan de la campagne 2 (29 et 30 octobre)
+
+**Validé sur l'Ally** : T1 pleine puissance et animations allégées ; T2 étagère Processeur ; T3 optimisations Windows (recommandations, Widgets verrouillé, Rétablir, réapplication, liste Applications) ; T5 définition par profil et écran Image ; T6 options d'un jeu (renommer, catégories, retirer et réafficher, clavier tactile) ; T7 autres jeux ; T10 widget (onglet Matériel, profil appliqué au lancement, « Ouvrir Canapé ») ; T11 visite complète ; T12 rendu Fluide (mémoire, CPU, repli) ; T13 redémarrage (service puis shell lancés seuls) ; T14 désinstallation et réinstallation ; et les correctifs vérifiés en cours de route (clé vide gardée, visite qui garde `onboarded`, serveur de mouvement qui reprend son port, clavier tactile des clés et des options, limite de FPS rendue après un jeu sans profil, fenêtre remise plein écran après 720p, « 中文 », GOG retiré).
+
+**Reste à faire, gestes de Pierre** : T4 limite de charge avec la batterie sous 60 % ; T9 palette tenue ou basculée en jeu et couleur réelle des sticks ; touche Armoury depuis un jeu ; T8 clés IGDB, succès Steam, SteamGridDB ; « Profil enregistré » du widget à regarder à l'œil (les captures de la Game Bar ne se rafraîchissent pas : son horloge reste figée) ; fluidité ressentie de Fluide en jeu.
+
+**Défauts encore ouverts** :
+- La réinstallation après `uninstall-dev.ps1` ne réapplique ni les optimisations Windows ni l'étagère Processeur (à refaire à la main).
+- Le repli vers le rendu logiciel n'est pas annoncé à l'écran.
+- La limite de FPS du pilote n'agit qu'au lancement d'un jeu (sans effet sur un jeu déjà ouvert).
+- Ajouter un jeu : A retire une entrée sans confirmation, et la liste remonte d'un cran quand « Jeux masqués » disparaît.
+- La visite compte encore Widgets dans « 2 à appliquer » tant que Windows ne l'a pas refusé une fois.
+- Les programmes du dossier Démarrage ne tournent qu'environ 80 s après le démarrage avec l'écran Xbox (constat Windows, utile pour les outils de test).
+- Vus en passant : « art of rally Standard Edit… » tronqué, Heaven Benchmark sans jaquette.
+
+**État laissé sur la machine** : Canapé `19b4c7e` installé, accueil plein écran Canapé, service en automatique, widget installé (à épingler de nouveau dans la Game Bar, menu Widgets) ; Turbo, étagère Processeur agressif / 0 % / 2 000 MHz, éclairage arc-en-ciel, gyroscope désactivé avec serveur de mouvement actif, limite de charge 100 %, aucune limite de FPS, aucun profil de jeu ; Économe, accent #f97316, `onboarded=true`, clé Steam intacte ; optimisations Windows comme au départ (13 appliquées par Canapé, Widgets verrouillé, services ASUS non touchés). Deux écarts venus de Windows et laissés tels quels : `GameDVR_Enabled` revenu à 1 (sa valeur d'origine) et `LightingService` (ASUS, démarrage manuel) arrêté depuis le redémarrage.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
