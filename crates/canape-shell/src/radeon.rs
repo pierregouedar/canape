@@ -165,9 +165,7 @@ mod engine {
             if want.rsr != applied.rsr {
                 let result = match want.rsr {
                     Some(sharpness) => radeon.set_rsr(true, Some(sharpness as i32)),
-                    None => before
-                        .rsr
-                        .map_or(Ok(()), |b| radeon.set_rsr(b.enabled, b.sharpness)),
+                    None => before.rsr.map_or(Ok(()), |b| radeon.put_back_rsr(b)),
                 };
                 if report("Radeon Super Resolution", result, &mut failed) {
                     applied.rsr = want.rsr;
@@ -196,9 +194,7 @@ mod engine {
             if want.chill != applied.chill {
                 let result = match want.chill {
                     Some((min, max)) => radeon.set_chill(true, Some((min as i32, max as i32))),
-                    None => before.chill.map_or(Ok(()), |b| {
-                        radeon.set_chill(b.enabled, Some((b.min, b.max)))
-                    }),
+                    None => before.chill.map_or(Ok(()), |b| radeon.put_back_chill(b)),
                 };
                 if report("Chill", result, &mut failed) {
                     applied.chill = want.chill;
@@ -209,7 +205,7 @@ mod engine {
                     Some(sharpness) => radeon.set_sharpening(true, Some(sharpness as i32)),
                     None => before
                         .sharpening
-                        .map_or(Ok(()), |b| radeon.set_sharpening(b.enabled, b.sharpness)),
+                        .map_or(Ok(()), |b| radeon.put_back_sharpening(b)),
                 };
                 if report("Image Sharpening", result, &mut failed) {
                     applied.sharpening = want.sharpening;

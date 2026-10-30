@@ -338,6 +338,9 @@ impl Radeon {
     pub fn set_rsr(&self, enabled: bool, sharpness: Option<i32>) -> Result<()> {
         let rsr = self.rsr_interface()?;
         let result = (|| {
+            // Turned on first: the driver refuses the values of a feature
+            // that is off.
+            rsr.set_flag(SET_ENABLED, enabled, "RSR SetEnabled")?;
             if enabled && let Some(wanted) = sharpness {
                 let mut range = [0i32; 3];
                 let got =
@@ -352,7 +355,7 @@ impl Radeon {
                     "RSR SetSharpness",
                 )?;
             }
-            rsr.set_flag(SET_ENABLED, enabled, "RSR SetEnabled")
+            Ok(())
         })();
         rsr.release();
         result
@@ -447,6 +450,9 @@ impl Radeon {
     pub fn set_chill(&self, enabled: bool, range: Option<(i32, i32)>) -> Result<()> {
         let feature = self.chill_interface()?;
         let result = (|| {
+            // Turned on first: the driver refuses the values of a feature
+            // that is off.
+            feature.set_flag(CHILL_SET_ENABLED, enabled, "Chill SetEnabled")?;
             if enabled && let Some((min, max)) = range {
                 let limits = feature.range(CHILL_GET_RANGE, "Chill GetFPSRange")?;
                 let (low, high) = (limits[0], limits[1]);
@@ -466,7 +472,7 @@ impl Radeon {
                     feature.set_int(CHILL_SET_MAX, max, "Chill SetMaxFPS")?;
                 }
             }
-            feature.set_flag(CHILL_SET_ENABLED, enabled, "Chill SetEnabled")
+            Ok(())
         })();
         feature.release();
         result
@@ -489,6 +495,13 @@ impl Radeon {
     pub fn set_sharpening(&self, enabled: bool, sharpness: Option<i32>) -> Result<()> {
         let feature = self.sharpening_interface()?;
         let result = (|| {
+            // Turned on first: the driver refuses the values of a feature
+            // that is off.
+            feature.set_flag(
+                SHARPENING_SET_ENABLED,
+                enabled,
+                "Image Sharpening SetEnabled",
+            )?;
             if enabled && let Some(wanted) = sharpness {
                 let limits = feature.range(SHARPENING_GET_RANGE, "Image Sharpening range");
                 let wanted = match limits {
@@ -497,14 +510,41 @@ impl Radeon {
                 };
                 feature.set_int(SHARPENING_SET, wanted, "Image Sharpening SetSharpness")?;
             }
-            feature.set_flag(
-                SHARPENING_SET_ENABLED,
-                enabled,
-                "Image Sharpening SetEnabled",
-            )
+            Ok(())
         })();
         feature.release();
         result
+    }
+
+    /// Radeon Super Resolution as it was: its values written while it is on,
+    /// then off again if it was off.
+    pub fn put_back_rsr(&self, before: Setting) -> Result<()> {
+        self.set_rsr(true, before.sharpness)?;
+        if before.enabled {
+            Ok(())
+        } else {
+            self.set_rsr(false, None)
+        }
+    }
+
+    /// Chill as it was (see [`Self::put_back_rsr`]).
+    pub fn put_back_chill(&self, before: ChillSetting) -> Result<()> {
+        self.set_chill(true, Some((before.min, before.max)))?;
+        if before.enabled {
+            Ok(())
+        } else {
+            self.set_chill(false, None)
+        }
+    }
+
+    /// Image sharpening as it was (see [`Self::put_back_rsr`]).
+    pub fn put_back_sharpening(&self, before: Setting) -> Result<()> {
+        self.set_sharpening(true, before.sharpness)?;
+        if before.enabled {
+            Ok(())
+        } else {
+            self.set_sharpening(false, None)
+        }
     }
 
     /// Every feature as it is now; one that cannot be read is `None`.
@@ -523,7 +563,7 @@ impl Radeon {
     pub fn restore(&self, snapshot: &Snapshot) -> Vec<String> {
         let mut errors = Vec::new();
         if let Some(rsr) = snapshot.rsr
-            && let Err(err) = self.set_rsr(rsr.enabled, rsr.sharpness)
+            && let Err(err) = self.put_back_rsr(rsr)
         {
             errors.push(format!("Radeon Super Resolution: {err}"));
         }
@@ -538,12 +578,12 @@ impl Radeon {
             errors.push(format!("Anti-Lag: {err}"));
         }
         if let Some(chill) = snapshot.chill
-            && let Err(err) = self.set_chill(chill.enabled, Some((chill.min, chill.max)))
+            && let Err(err) = self.put_back_chill(chill)
         {
             errors.push(format!("Chill: {err}"));
         }
         if let Some(sharpening) = snapshot.sharpening
-            && let Err(err) = self.set_sharpening(sharpening.enabled, sharpening.sharpness)
+            && let Err(err) = self.put_back_sharpening(sharpening)
         {
             errors.push(format!("Image Sharpening: {err}"));
         }
