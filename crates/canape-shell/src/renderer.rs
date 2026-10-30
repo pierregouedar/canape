@@ -140,8 +140,10 @@ pub fn hand_over_at_startup(args: &[String]) -> bool {
                 "gpu renderer: {reason}; back to the software renderer"
             ));
             remember(Renderer::Software);
-            // The lock was released for the child; take it back, unless a
-            // later activation got it meanwhile.
+            // The lock was released for the child, or never was (the
+            // executable is missing): let go of it either way, then take it
+            // back, unless a later activation got it meanwhile.
+            crate::instance::release();
             !crate::instance::acquire()
         }
     }

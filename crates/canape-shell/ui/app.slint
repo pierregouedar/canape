@@ -258,7 +258,8 @@ export component AppWindow inherits Window {
                         value: Math.round(App.status.power-tenths / 10);
                         unit: @tr("W");
                     }
-                    if App.status.connected && App.status.fps >= 0: Reading {
+                    // Only a game has a frame rate worth showing: the shell drawing itself is not one.
+                    if App.status.connected && App.status.fps >= 0 && App.status.foreground != "": Reading {
                         value: App.status.fps;
                         unit: "FPS";
                     }
