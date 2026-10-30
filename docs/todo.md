@@ -12,7 +12,7 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 
 - [x] **1. Pleine puissance dans Canapé et animations allégées.** Éprouvé le 29 octobre (rapport, T1). Reste : la fluidité ressentie, à juger par Pierre.
 - [x] **2. Étagère Processeur depuis l'interface.** Éprouvé le 29 octobre (T2), libellés corrigés et revérifiés.
-- [ ] **3. Page Optimisations Windows refaite.** Partiel (T3 du rapport). À corriger d'abord : Widgets refusé par Windows (error 5 sur `Dsh\AllowNewsAndInterests`, même en administrateur) ; après un échec, la page reste bloquée (`busy` à `recommended`) et le reste de la sélection n'est pas appliqué. Puis éprouver Rétablir, la réapplication et la liste Applications.
+- [ ] **3. Page Optimisations Windows refaite.** Partiel (T3 du rapport). Corrigé le 30 octobre : la page ne reste plus bloquée quand un tweak échoue (bug `busy` à `recommended` jamais clear). À éprouver sur l'Ally : rétablir, réapplication, liste Applications.
 - [ ] **4. Limite de charge de la batterie.** Le service accepte 80 %, mais l'arrêt réel de la charge n'est pas mesuré (console branchée sous 80 %).
 - [ ] **5. Définition d'écran par profil et écran Image.** Seule la fréquence d'écran a été essayée. La résolution (720p) et les choix d'image ne sont pas vérifiés.
 - [ ] **6. Options d'un jeu.** Renommer, catégories, masquer, retirer, clavier tactile. Le menu s'ouvre et Désinstaller marche ; le reste non.
