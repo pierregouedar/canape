@@ -479,6 +479,7 @@ En dessous, quatre étagères de cartes, parcourues comme la page [Performance](
 | **Refroidissement** | Ventilateurs |
 | **Manette** | Mode, Boutons arrière, Éclairage des sticks, Visée au gyroscope |
 | **Image** | Résolution, Fréquence, Limite de FPS, Mise à l'échelle, Génération d'images |
+| **AMD** | Radeon (Anti-Lag, Netteté de l'image, Chill) |
 | **Batterie** | Limite de charge |
 
 **Ventilateurs**
@@ -495,6 +496,10 @@ En dessous, quatre étagères de cartes, parcourues comme la page [Performance](
 - **Automatique** réécrit le mode d'alimentation en cours : c'est ainsi que le firmware reprend ses courbes. En Manuel, le service remet ensuite votre TDP.
 - **Sécurité** : chaque courbe est vérifiée avant d'atteindre le firmware. Le ventilateur ne doit jamais ralentir quand la température monte, et il doit tourner à au moins 25 % dès 80 °C, 30 % dès 90 °C et 40 % dès 100 °C, juste sous le mode Silencieux d'ASUS. Une courbe qui laisserait les ventilateurs arrêtés à chaud est refusée. L'APU se bride de lui-même à sa limite de température, mais une courbe trop discrète rend la console chaude en main.
 - **Personnalisé** : quand les courbes en place ne correspondent à aucun préréglage (réglées avec `canape-ctl`, ou un préréglage différent par ventilateur), la carte Ventilateurs indique « Personnalisées », aucune tuile n'est sélectionnée et le titre du tiroir est suivi de « Courbes personnalisées définies par un autre client. »
+
+**Radeon**
+
+Le tiroir de la carte **Radeon** (étagère AMD) règle trois fonctions du pilote graphique pour le jeu au premier plan : **Anti-Lag** (Activé ou Désactivé), **Netteté de l'image** (Désactivée, ou de 10 à 100 %) et **Chill** (Activé ou Désactivé, puis les images par seconde minimum et maximum, de 30 à 300 par pas de 10). Comme la mise à l'échelle, ces réglages ne s'appliquent qu'avec le profil d'un jeu (**X** les enregistre) : ils sont activés tant que le jeu est devant, puis le pilote est remis comme il était. Un réglage laissé sur Désactivé ne touche pas au pilote. Sur certains processeurs graphiques, la netteté de l'image et Radeon Super Resolution ne marchent pas ensemble. **Pas encore essayé sur l'Ally.**
 
 **Limite de FPS**
 

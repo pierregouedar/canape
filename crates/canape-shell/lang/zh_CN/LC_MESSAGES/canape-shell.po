@@ -1285,3 +1285,12 @@ msgstr "还原"
 
 msgid "Applications"
 msgstr "应用"
+
+msgid "Image sharpening"
+msgstr "图像锐化"
+
+msgid "Chill minimum"
+msgstr "Chill 最低"
+
+msgid "Chill maximum"
+msgstr "Chill 最高"

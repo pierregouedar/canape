@@ -56,7 +56,7 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 
 ## D. Image
 
-- [ ] **Réglages AMD par profil (ADLX).** Fait et essayé sur l'Ally le 30 octobre : RSR (avec sa netteté) et AFMF, appliqués par le shell pendant le jeu du profil et rendus à sa sortie (`radeon.rs`, registre identique avant et après). Reste : l'effet à l'œil, Anti-Lag, Chill, RIS (champs de profil à ajouter).
+- [ ] **Réglages AMD par profil (ADLX).** Fait et essayé sur l'Ally le 30 octobre : RSR (avec sa netteté) et AFMF, appliqués par le shell pendant le jeu du profil et rendus à sa sortie (`radeon.rs`, registre identique avant et après). Anti-Lag, Chill et netteté de l'image (RIS) ajoutés le 30 octobre, **non essayés sur l'Ally** (carte Radeon, étagère AMD). Reste : l'effet à l'œil.
 - [x] Définition d'écran par profil (à éprouver : T5).
 - [ ] **Lossless Scaling.** Étude faite (`docs/lossless-scaling-study.md`). S'appuyer sur ses profils et son activation automatique, sans écrire dans son fichier de réglages.
 - [x] Écran « Image » dans le profil d'un jeu (à éprouver : T5).

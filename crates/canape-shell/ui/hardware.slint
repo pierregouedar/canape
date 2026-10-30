@@ -239,6 +239,9 @@ export component HardwarePage inherits Rectangle {
     // chosen, so that a saved choice stays visible).
     in-out property <int> upscaling-row: 0;
     in-out property <int> frame-gen-row: 0;
+    // The AMD drawer: Anti-Lag, sharpening, Chill, its minimum and maximum.
+    in-out property <int> radeon-row: 0;
+    property <int> radeon-rows: App.image-chill ? 5 : 3;
     property <[string]> upscaling-names: [@tr("None"), "AMD (RSR)", "Lossless Scaling"];
     property <[string]> frame-gen-names: [@tr("None"), "AMD (AFMF)", "Lossless Scaling"];
     property <[string]> rate-names: ["×2", "×3", "×4", @tr("Adaptive")];
@@ -276,7 +279,7 @@ export component HardwarePage inherits Rectangle {
         move2: @tr("Value"),
         a: root.light-pending() || root.light-row == 3 ? @tr("Apply") : "",
         b: @tr("Close"),
-    } : root.drawer == "upscaling" || root.drawer == "framegen" ? {
+    } : root.drawer == "upscaling" || root.drawer == "framegen" || root.drawer == "radeon" ? {
         move-glyph: "updown",
         move: @tr("Setting"),
         move2-glyph: "leftright",
@@ -305,7 +308,7 @@ export component HardwarePage inherits Rectangle {
     }
 
     pure function key(s: int, c: int) -> string {
-        s == 0 ? ["fans"][c] : s == 1 ? ["controller", "back", "lighting", "gyro"][c] : s == 2 ? ["resolution", "screen", "fps", "upscaling", "framegen"][c] : ["charge"][c]
+        s == 0 ? ["fans"][c] : s == 1 ? ["controller", "back", "lighting", "gyro"][c] : s == 2 ? ["resolution", "screen", "fps", "upscaling", "framegen"][c] : s == 3 ? ["radeon"][c] : ["charge"][c]
     }
     pure function cards(s: int) -> int {
         s == 1 ? 4 : s == 2 ? 5 : 1
@@ -329,6 +332,7 @@ export component HardwarePage inherits Rectangle {
         root.resolution-col = max(0, App.resolution-index);
         root.upscaling-row = 0;
         root.frame-gen-row = 0;
+        root.radeon-row = 0;
         root.paddle = 0;
         grid.current = App.status.m1;
         root.light-go(0);
@@ -351,6 +355,8 @@ export component HardwarePage inherits Rectangle {
             root.upscaling-side(1);
         } else if root.drawer == "framegen" {
             root.frame-gen-side(1);
+        } else if root.drawer == "radeon" {
+            root.radeon-side(1);
         } else if root.drawer == "back" {
             App.set-back-button(root.paddle == 0 ? "m1" : "m2", grid.current);
         } else if root.drawer == "lighting" {
@@ -381,6 +387,8 @@ export component HardwarePage inherits Rectangle {
             root.upscaling-side(d);
         } else if root.drawer == "framegen" {
             root.frame-gen-side(d);
+        } else if root.drawer == "radeon" {
+            root.radeon-side(d);
         } else if root.drawer == "back" {
             grid.move(d, 0);
         } else if root.drawer == "lighting" {
@@ -401,6 +409,8 @@ export component HardwarePage inherits Rectangle {
             root.upscaling-row = clamp(root.upscaling-row + d, 0, root.upscaling-rows - 1);
         } else if root.drawer == "framegen" {
             root.frame-gen-row = clamp(root.frame-gen-row + d, 0, root.frame-gen-rows - 1);
+        } else if root.drawer == "radeon" {
+            root.radeon-row = clamp(root.radeon-row + d, 0, root.radeon-rows - 1);
         }
     }
     function switch-paddle() {
@@ -470,6 +480,24 @@ export component HardwarePage inherits Rectangle {
         root.light-go(r);
     }
 
+    // Left (-1) or right (1) on the focused line of the AMD drawer.
+    function radeon-side(d: int) {
+        if root.radeon-row == 0 {
+            App.set-amd(!App.image-anti-lag, App.image-sharpening, App.image-chill, App.image-chill-min, App.image-chill-max);
+        } else if root.radeon-row == 1 {
+            App.set-amd(App.image-anti-lag, root.next-sharpening(d), App.image-chill, App.image-chill-min, App.image-chill-max);
+        } else if root.radeon-row == 2 {
+            App.set-amd(App.image-anti-lag, App.image-sharpening, !App.image-chill, App.image-chill-min, App.image-chill-max);
+        } else if root.radeon-row == 3 {
+            App.set-amd(App.image-anti-lag, App.image-sharpening, App.image-chill, clamp(App.image-chill-min + d * 10, 30, 300), App.image-chill-max);
+        } else {
+            App.set-amd(App.image-anti-lag, App.image-sharpening, App.image-chill, App.image-chill-min, clamp(App.image-chill-max + d * 10, 30, 300));
+        }
+    }
+    // Image sharpening one step on: off, then 10 to 100 percent.
+    pure function next-sharpening(d: int) -> int {
+        App.image-sharpening < 0 ? (d > 0 ? 10 : -1) : App.image-sharpening + d * 10 < 10 ? -1 : Math.min(100, App.image-sharpening + d * 10)
+    }
     // Left (-1) or right (1) on the focused line of the upscaling drawer.
     function upscaling-side(d: int) {
         if root.upscaling-row == 0 {
@@ -505,7 +533,7 @@ export component HardwarePage inherits Rectangle {
     }
 
     // A taller drawer lifts the shelves so the card stays in view.
-    property <length> sheet-height: root.sheet == "fans" ? 226px : root.sheet == "fps" ? 200px : root.sheet == "back" ? 252px : root.sheet == "lighting" ? 254px : root.sheet == "gyro" ? 306px : root.sheet == "upscaling" || root.sheet == "framegen" ? 252px : 186px;
+    property <length> sheet-height: root.sheet == "fans" ? 226px : root.sheet == "fps" ? 200px : root.sheet == "back" ? 252px : root.sheet == "lighting" ? 254px : root.sheet == "gyro" ? 306px : root.sheet == "upscaling" || root.sheet == "framegen" ? 252px : root.sheet == "radeon" ? 306px : 186px;
     property <length> lift: root.open ? max(0px, 420px - (root.height - root.sheet-height)) : 0px;
 
     fs := FocusScope {
@@ -540,7 +568,7 @@ export component HardwarePage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.UpArrow || event.text == Key.DownArrow {
-                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 3);
+                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 4);
                 root.card = min(root.card, root.cards(root.shelf) - 1);
                 return accept;
             }
@@ -782,6 +810,28 @@ export component HardwarePage inherits Rectangle {
             width: parent.width - 48px;
             index: 3;
             front: root.shelf;
+            icon: "gauge";
+            title: "AMD";
+            ShelfCard {
+                label: "Radeon";
+                icon: "gauge";
+                value: !App.status.connected ? "—" : (App.image-anti-lag ? 1 : 0) + (App.image-sharpening >= 0 ? 1 : 0) + (App.image-chill ? 1 : 0) == 0 ? @tr("Off") : @tr("On");
+                enabled: root.usable("radeon");
+                focused: root.active && root.shelf == 3 && root.card == 0;
+                clicked => {
+                    root.shelf = 3;
+                    root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+        }
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 4;
+            front: root.shelf;
             icon: "battery";
             title: @tr("Battery");
             ShelfCard {
@@ -789,9 +839,9 @@ export component HardwarePage inherits Rectangle {
                 icon: "battery";
                 value: App.status.connected && App.status.charge-limit > 0 ? App.percent(App.status.charge-limit) : "—";
                 enabled: root.usable("charge");
-                focused: root.active && root.shelf == 3 && root.card == 0;
+                focused: root.active && root.shelf == 4 && root.card == 0;
                 clicked => {
-                    root.shelf = 3;
+                    root.shelf = 4;
                     root.card = 0;
                     root.activate();
                     fs.focus();
@@ -805,11 +855,12 @@ export component HardwarePage inherits Rectangle {
         page-height: parent.height;
         open: root.open;
         sheet-height: root.sheet-height;
-        title: root.sheet == "fans" ? @tr("Fans") : root.sheet == "fps" ? @tr("Frame rate limit") : root.sheet == "controller" ? @tr("Controller") : root.sheet == "back" ? (root.paddle == 0 ? @tr("M1, right") : @tr("M2, left")) : root.sheet == "lighting" ? @tr("Stick lighting") : root.sheet == "gyro" ? @tr("Gyro aiming") : root.sheet == "screen" ? @tr("Refresh rate") : root.sheet == "resolution" ? @tr("Resolution") : root.sheet == "upscaling" ? @tr("Upscaling") : root.sheet == "framegen" ? @tr("Frame generation") : @tr("Charge limit");
+        title: root.sheet == "fans" ? @tr("Fans") : root.sheet == "fps" ? @tr("Frame rate limit") : root.sheet == "controller" ? @tr("Controller") : root.sheet == "back" ? (root.paddle == 0 ? @tr("M1, right") : @tr("M2, left")) : root.sheet == "lighting" ? @tr("Stick lighting") : root.sheet == "gyro" ? @tr("Gyro aiming") : root.sheet == "screen" ? @tr("Refresh rate") : root.sheet == "resolution" ? @tr("Resolution") : root.sheet == "upscaling" ? @tr("Upscaling") : root.sheet == "framegen" ? @tr("Frame generation") : root.sheet == "radeon" ? "Radeon" : @tr("Charge limit");
         note: root.sheet == "fans" ? (App.status.fan-preset == "custom" ? @tr("Custom curves set by another client.") : App.status.foreground != "" ? @tr("{} · game profile", App.status.foreground) : "")
             : root.sheet == "back" ? root.target-names[grid.current]
             : root.sheet == "upscaling" ? (App.image-upscaling == 2 || (App.image-upscaling == 1 && App.image-amd-failed) ? @tr("Not applied yet") : "")
             : root.sheet == "framegen" ? (App.image-frame-gen == 2 || (App.image-frame-gen == 1 && App.image-amd-failed) ? @tr("Not applied yet") : "")
+            : root.sheet == "radeon" ? (App.image-amd-failed ? @tr("Not applied yet") : App.status.foreground != "" ? @tr("{} · game profile", App.status.foreground) : "")
             : root.sheet == "lighting" ? (root.light-row == 3 && root.color-col == 0 ? @tr("Follows the accent colour") : "")
             : root.sheet == "gyro" ? (App.status.active-profile != "" ? @tr("{} · game profile", App.status.foreground) + " · " : "") + @tr("Moves the mouse while a game is in front. Games that only read the gamepad ignore it.")
             : "";
@@ -935,6 +986,94 @@ export component HardwarePage inherits Rectangle {
                 step(d) => {
                     root.upscaling-row = 1;
                     root.upscaling-side(d);
+                    fs.focus();
+                }
+            }
+        }
+
+        if root.sheet == "radeon": VerticalLayout {
+            x: 0;
+            width: 720px;
+            spacing: 2px;
+            alignment: start;
+            SettingLine {
+                height: 36px;
+                label: "Anti-Lag";
+                value: App.image-anti-lag ? @tr("On") : @tr("Off");
+                focused: root.active && root.radeon-row == 0;
+                clicked => {
+                    root.radeon-row = 0;
+                    root.radeon-side(1);
+                    fs.focus();
+                }
+                step(d) => {
+                    root.radeon-row = 0;
+                    root.radeon-side(d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                height: 36px;
+                label: @tr("Image sharpening");
+                value: App.image-sharpening < 0 ? @tr("Off") : App.percent(App.image-sharpening);
+                focused: root.active && root.radeon-row == 1;
+                clicked => {
+                    root.radeon-row = 1;
+                    fs.focus();
+                }
+                step(d) => {
+                    root.radeon-row = 1;
+                    root.radeon-side(d);
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
+                height: 36px;
+                label: "Chill";
+                value: App.image-chill ? @tr("On") : @tr("Off");
+                focused: root.active && root.radeon-row == 2;
+                clicked => {
+                    root.radeon-row = 2;
+                    root.radeon-side(1);
+                    fs.focus();
+                }
+                step(d) => {
+                    root.radeon-row = 2;
+                    root.radeon-side(d);
+                    fs.focus();
+                }
+            }
+
+            if App.image-chill: SettingLine {
+                height: 36px;
+                label: @tr("Chill minimum");
+                value: App.fps-value(App.image-chill-min);
+                focused: root.active && root.radeon-row == 3;
+                clicked => {
+                    root.radeon-row = 3;
+                    fs.focus();
+                }
+                step(d) => {
+                    root.radeon-row = 3;
+                    root.radeon-side(d);
+                    fs.focus();
+                }
+            }
+
+            if App.image-chill: SettingLine {
+                height: 36px;
+                label: @tr("Chill maximum");
+                value: App.fps-value(App.image-chill-max);
+                focused: root.active && root.radeon-row == 4;
+                clicked => {
+                    root.radeon-row = 4;
+                    fs.focus();
+                }
+                step(d) => {
+                    root.radeon-row = 4;
+                    root.radeon-side(d);
                     fs.focus();
                 }
             }

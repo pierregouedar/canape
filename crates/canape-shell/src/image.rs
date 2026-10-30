@@ -8,10 +8,14 @@
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use canape_core::settings::{FRAME_GEN_TARGET_RANGE, SHARPNESS_RANGE};
+use canape_core::settings::{CHILL_FPS_RANGE, FRAME_GEN_TARGET_RANGE, SHARPNESS_RANGE};
 use canape_core::{
-    FrameGenMethod, FrameGenRate, FrameGenSettings, UpscalingMethod, UpscalingSettings,
+    AmdSettings, ChillRange, FrameGenMethod, FrameGenRate, FrameGenSettings, UpscalingMethod,
+    UpscalingSettings,
 };
+
+/// The choices of a profile's Image section.
+pub type Choices = (UpscalingSettings, FrameGenSettings, AmdSettings);
 
 /// What is chosen for the game now.
 #[derive(Debug, Default)]
@@ -24,11 +28,12 @@ struct State {
     /// What the profile held when they were read: a change made elsewhere
     /// since (the profile list arrives late, or `canape-ctl`) is taken up
     /// as long as the page has not edited the choices.
-    read: Option<(UpscalingSettings, FrameGenSettings)>,
+    read: Option<Choices>,
     /// The page edited the choices since.
     edited: bool,
     upscaling: UpscalingSettings,
     frame_gen: FrameGenSettings,
+    amd: AmdSettings,
 }
 
 static STATE: Mutex<State> = Mutex::new(State {
@@ -45,12 +50,17 @@ static STATE: Mutex<State> = Mutex::new(State {
         rate: FrameGenRate::X2,
         target_fps: 60,
     },
+    amd: AmdSettings {
+        anti_lag: false,
+        sharpening: None,
+        chill: None,
+    },
 });
 
 /// Follows the active profile: its image settings (`saved`, `None` while
 /// the profile list is not known) become the choices when it changes, and
 /// the defaults come back when it leaves.
-pub fn follow(active: Option<&str>, saved: Option<(UpscalingSettings, FrameGenSettings)>) {
+pub fn follow(active: Option<&str>, saved: Option<Choices>) {
     let mut state = STATE.lock().unwrap();
     if state.profile.as_deref() != active {
         *state = State {
@@ -59,11 +69,12 @@ pub fn follow(active: Option<&str>, saved: Option<(UpscalingSettings, FrameGenSe
         };
     }
     if active.is_some()
-        && let Some((upscaling, frame_gen)) = saved
+        && let Some((upscaling, frame_gen, amd)) = saved
         && (!state.seeded || (!state.edited && state.read != saved))
     {
         state.upscaling = upscaling;
         state.frame_gen = frame_gen;
+        state.amd = amd;
         state.seeded = true;
         state.read = saved;
     }
@@ -74,16 +85,16 @@ pub fn follow(active: Option<&str>, saved: Option<(UpscalingSettings, FrameGenSe
 /// settings back when no profile is active.
 fn apply(state: &State) {
     crate::radeon::follow(if state.profile.is_some() {
-        crate::radeon::want(state.upscaling, state.frame_gen)
+        crate::radeon::want(state.upscaling, state.frame_gen, state.amd)
     } else {
         crate::radeon::Want::default()
     });
 }
 
 /// The choices now.
-pub fn current() -> (UpscalingSettings, FrameGenSettings) {
+pub fn current() -> Choices {
     let state = STATE.lock().unwrap();
-    (state.upscaling, state.frame_gen)
+    (state.upscaling, state.frame_gen, state.amd)
 }
 
 /// The methods in the order the page lists them.
@@ -151,6 +162,25 @@ pub fn set_frame_gen(method: i32, rate: i32, target_fps: i32) {
     apply(&state);
 }
 
+/// Sets the AMD driver's settings from the page: Anti-Lag, the sharpness of
+/// Image Sharpening (`-1` for off), Chill on or off with its two frame rates.
+/// Values are brought into range.
+pub fn set_amd(anti_lag: bool, sharpening: i32, chill: bool, chill_min: i32, chill_max: i32) {
+    let (low, high) = CHILL_FPS_RANGE;
+    let mut state = STATE.lock().unwrap();
+    state.edited = true;
+    state.amd = AmdSettings {
+        anti_lag,
+        sharpening: u32::try_from(sharpening).ok(),
+        chill: chill.then(|| ChillRange {
+            min: chill_min.clamp(low as i32, high as i32) as u32,
+            max: chill_max.clamp(low as i32, high as i32) as u32,
+        }),
+    }
+    .clamped();
+    apply(&state);
+}
+
 /// How long a look at the Steam libraries is trusted.
 const LOSSLESS_CACHE: Duration = Duration::from_secs(30);
 
@@ -202,6 +232,7 @@ mod tests {
                 sharpness: 30,
             },
             FrameGenSettings::default(),
+            AmdSettings::default(),
         );
         // The profile is named before its list arrives.
         follow(Some("a.exe"), None);
@@ -223,6 +254,7 @@ mod tests {
                 sharpness: 80,
             },
             FrameGenSettings::default(),
+            AmdSettings::default(),
         );
         follow(Some("b.exe"), Some(saved));
         assert_eq!(current(), saved);
@@ -238,6 +270,17 @@ mod tests {
         // Unknown indexes mean none.
         set_frame_gen(-1, 9, 60);
         assert_eq!(current().1.method, FrameGenMethod::None);
+        set_amd(true, 500, true, 50, 10);
+        assert_eq!(
+            current().2,
+            AmdSettings {
+                anti_lag: true,
+                sharpening: Some(100),
+                chill: Some(ChillRange { min: 50, max: 50 }),
+            }
+        );
+        set_amd(false, -1, false, 40, 60);
+        assert_eq!(current().2, AmdSettings::default());
         follow(None, None);
         assert_eq!(current(), Default::default());
     }

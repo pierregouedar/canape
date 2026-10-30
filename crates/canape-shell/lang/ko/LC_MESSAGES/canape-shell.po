@@ -1285,3 +1285,12 @@ msgstr "복원"
 
 msgid "Applications"
 msgstr "앱"
+
+msgid "Image sharpening"
+msgstr "이미지 선명도"
+
+msgid "Chill minimum"
+msgstr "Chill 최소"
+
+msgid "Chill maximum"
+msgstr "Chill 최대"

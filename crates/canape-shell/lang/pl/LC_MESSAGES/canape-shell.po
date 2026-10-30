@@ -1285,3 +1285,12 @@ msgstr "Przywróć"
 
 msgid "Applications"
 msgstr "Aplikacje"
+
+msgid "Image sharpening"
+msgstr "Wyostrzanie obrazu"
+
+msgid "Chill minimum"
+msgstr "Minimum Chill"
+
+msgid "Chill maximum"
+msgstr "Maksimum Chill"

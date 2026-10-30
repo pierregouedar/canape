@@ -387,6 +387,7 @@ fn connect(ui: &AppWindow, link: &Link) {
                 resolution: link.profile(&exe).and_then(|p| p.resolution),
                 upscaling: link.profile(&exe).map(|p| p.upscaling).unwrap_or_default(),
                 frame_gen: link.profile(&exe).map(|p| p.frame_gen).unwrap_or_default(),
+                amd: link.profile(&exe).map(|p| p.amd).unwrap_or_default(),
                 ..report::profile_for(&report, rec, &exe, status.auto_tdp)
             };
             link.send(Request::SaveProfile { profile });
@@ -506,6 +507,7 @@ fn connect(ui: &AppWindow, link: &Link) {
                         .map(|(width, height)| canape_core::Resolution { width, height }),
                     upscaling: image::current().0,
                     frame_gen: image::current().1,
+                    amd: image::current().2,
                     ..existing
                 },
             });
@@ -607,6 +609,13 @@ fn connect(ui: &AppWindow, link: &Link) {
         let ui = ui.as_weak();
         move |method, sharpness| {
             image::set_upscaling(method, sharpness);
+            link::show_image(&ui);
+        }
+    });
+    app.on_set_amd({
+        let ui = ui.as_weak();
+        move |anti_lag, sharpening, chill, chill_min, chill_max| {
+            image::set_amd(anti_lag, sharpening, chill, chill_min, chill_max);
             link::show_image(&ui);
         }
     });

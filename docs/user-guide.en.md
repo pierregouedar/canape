@@ -480,6 +480,7 @@ Below, four shelves of cards, used like the [Performance](#performance) page: **
 | **Cooling** | Fans |
 | **Controller** | Mode, Back buttons, Stick lighting, Gyro aiming |
 | **Image** | Resolution, Refresh rate, Frame rate limit, Upscaling, Frame generation |
+| **AMD** | Radeon (Anti-Lag, Image sharpening, Chill) |
 | **Battery** | Charge limit |
 
 **Fans**
@@ -496,6 +497,10 @@ Below, four shelves of cards, used like the [Performance](#performance) page: **
 - **Automatic** writes the current power mode again: that is how the firmware takes its curves back. In Manual, the service then puts your TDP back.
 - **Safety**: every curve is checked before it reaches the firmware. The fan may never slow down as the temperature rises, and it must run at least at 25 % from 80 °C, 30 % from 90 °C and 40 % from 100 °C, just under ASUS's own Silent mode. A curve that would leave the fans stopped when hot is refused. The APU also throttles itself at its temperature limit, but a quiet curve makes the console hot to hold.
 - **Custom**: when the curves in use match no preset (set with `canape-ctl`, or a different preset on each fan), the Fans card reads "Custom", no tile is selected and the drawer's title is followed by "Custom curves set by another client."
+
+**Radeon**
+
+The **Radeon** card's drawer (AMD shelf) sets three features of the graphics driver for the game in front: **Anti-Lag** (On or Off), **Image sharpening** (Off, or 10 to 100 %) and **Chill** (On or Off, then the minimum and maximum frame rates, 30 to 300 in steps of 10). Like upscaling, these only apply with a game's profile (**X** saves them): they are switched on while the game is in front, then the driver is put back as it was. A setting left Off does not touch the driver. On some graphics processors, image sharpening and Radeon Super Resolution cannot be used together. **Not tried on the Ally yet.**
 
 **Frame rate limit**
 

@@ -196,6 +196,13 @@ export global App {
     // The AMD driver could not be asked for the upscaling or frame
     // generation the profile chose.
     in property <bool> image-amd-failed;
+    // The AMD driver's other settings for the game: Anti-Lag, Image
+    // Sharpening (-1 off, else its sharpness) and Chill with its two rates.
+    in property <bool> image-anti-lag;
+    in property <int> image-sharpening: -1;
+    in property <bool> image-chill;
+    in property <int> image-chill-min: 40;
+    in property <int> image-chill-max: 60;
     // The Ally's own buttons act on Canapé (shell.json).
     in property <bool> ally-buttons;
     // The graphics card draws the shell (shell.json): the other executable
@@ -266,6 +273,8 @@ export global App {
     callback set-resolution(int);
     // Method and sharpness; method, rate and target frame rate.
     callback set-upscaling(int, int);
+    // Anti-Lag, sharpening (-1 off), Chill on, its minimum and maximum.
+    callback set-amd(bool, int, bool, int, int);
     callback set-frame-gen(int, int, int);
     // Next refresh rate the screen offers, wrapping around.
     callback cycle-refresh();

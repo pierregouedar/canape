@@ -1288,3 +1288,12 @@ msgstr "Herstellen"
 
 msgid "Applications"
 msgstr "Apps"
+
+msgid "Image sharpening"
+msgstr "Beeldscherpte"
+
+msgid "Chill minimum"
+msgstr "Chill-minimum"
+
+msgid "Chill maximum"
+msgstr "Chill-maximum"

@@ -1288,3 +1288,12 @@ msgstr "Ripristina"
 
 msgid "Applications"
 msgstr "Applicazioni"
+
+msgid "Image sharpening"
+msgstr "Nitidezza dell'immagine"
+
+msgid "Chill minimum"
+msgstr "Minimo di Chill"
+
+msgid "Chill maximum"
+msgstr "Massimo di Chill"

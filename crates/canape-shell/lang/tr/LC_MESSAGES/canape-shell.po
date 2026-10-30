@@ -1285,3 +1285,12 @@ msgstr "Geri al"
 
 msgid "Applications"
 msgstr "Uygulamalar"
+
+msgid "Image sharpening"
+msgstr "Görüntü keskinleştirme"
+
+msgid "Chill minimum"
+msgstr "Chill en düşük"
+
+msgid "Chill maximum"
+msgstr "Chill en yüksek"

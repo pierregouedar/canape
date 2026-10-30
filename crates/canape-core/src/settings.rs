@@ -93,6 +93,10 @@ pub struct Profile {
     /// Frame generation for this game. Stored only: nothing applies it yet.
     #[serde(default)]
     pub frame_gen: FrameGenSettings,
+    /// Other settings of the AMD driver for this game: applied by the shell
+    /// while the game is in front.
+    #[serde(default)]
+    pub amd: AmdSettings,
 }
 
 /// A screen resolution in pixels.
@@ -132,6 +136,57 @@ impl UpscalingMethod {
 
 /// Sharpness range of upscaling, in percent.
 pub const SHARPNESS_RANGE: (u32, u32) = (0, 100);
+
+/// Frame rates Chill is offered at, in FPS.
+pub const CHILL_FPS_RANGE: (u32, u32) = (30, 300);
+
+/// What AMD Chill keeps the frame rate between.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ChillRange {
+    /// Within [`CHILL_FPS_RANGE`], at most `max`.
+    pub min: u32,
+    pub max: u32,
+}
+
+impl Default for ChillRange {
+    fn default() -> Self {
+        Self { min: 40, max: 60 }
+    }
+}
+
+/// Settings of the AMD driver a game can ask for, besides upscaling and
+/// frame generation. What a game leaves unset stays as the driver has it.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AmdSettings {
+    /// Radeon Anti-Lag on.
+    pub anti_lag: bool,
+    /// Radeon Image Sharpening on, with its sharpness within
+    /// [`SHARPNESS_RANGE`]; `None` leaves it alone.
+    pub sharpening: Option<u32>,
+    /// Radeon Chill on, between these frame rates; `None` leaves it alone.
+    pub chill: Option<ChillRange>,
+}
+
+impl AmdSettings {
+    /// Brings every value into range (sharpness, Chill's range and order).
+    pub fn clamped(self) -> Self {
+        let (low, high) = CHILL_FPS_RANGE;
+        Self {
+            anti_lag: self.anti_lag,
+            sharpening: self
+                .sharpening
+                .map(|s| s.clamp(SHARPNESS_RANGE.0, SHARPNESS_RANGE.1)),
+            chill: self.chill.map(|c| {
+                let min = c.min.clamp(low, high);
+                ChillRange {
+                    min,
+                    max: c.max.clamp(min, high),
+                }
+            }),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
@@ -741,6 +796,35 @@ mod tests {
         assert_eq!(profile.upscaling, UpscalingSettings::default());
         assert_eq!(profile.frame_gen, FrameGenSettings::default());
         assert!(profile.unapplied_image().is_empty());
+        assert_eq!(profile.amd, AmdSettings::default());
+    }
+
+    #[test]
+    fn amd_settings_are_kept_in_range_and_old_profiles_load() {
+        let wild = AmdSettings {
+            anti_lag: true,
+            sharpening: Some(400),
+            chill: Some(ChillRange { min: 500, max: 10 }),
+        };
+        assert_eq!(
+            wild.clamped(),
+            AmdSettings {
+                anti_lag: true,
+                sharpening: Some(100),
+                chill: Some(ChillRange { min: 300, max: 300 }),
+            }
+        );
+        let low = AmdSettings {
+            chill: Some(ChillRange { min: 5, max: 20 }),
+            ..AmdSettings::default()
+        };
+        assert_eq!(low.clamped().chill, Some(ChillRange { min: 30, max: 30 }));
+        // A profile written before these settings existed.
+        let old: Profile = serde_json::from_str(
+            r#"{"exe":"a.exe","auto_tdp":{"enabled":false,"target_fps":60,"min_watts":7,"max_watts":25}}"#,
+        )
+        .unwrap();
+        assert_eq!(old.amd, AmdSettings::default());
     }
 
     #[test]

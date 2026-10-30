@@ -6,7 +6,9 @@
 //! ([`Want`]) is pure and tested on any OS; the thread that talks to the
 //! driver is Windows only. Called from the shell, in the user session.
 
-use canape_core::{FrameGenMethod, FrameGenSettings, UpscalingMethod, UpscalingSettings};
+use canape_core::{
+    AmdSettings, FrameGenMethod, FrameGenSettings, UpscalingMethod, UpscalingSettings,
+};
 
 /// What the profile asks the driver for.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -15,6 +17,11 @@ pub struct Want {
     pub rsr: Option<u32>,
     /// Fluid Motion Frames on.
     pub afmf: bool,
+    pub anti_lag: bool,
+    /// Chill on, between these frame rates.
+    pub chill: Option<(u32, u32)>,
+    /// Image Sharpening on, with its sharpness.
+    pub sharpening: Option<u32>,
 }
 
 impl Want {
@@ -27,10 +34,14 @@ impl Want {
 /// The driver features a profile's choices need. The other methods are not
 /// the driver's (Lossless Scaling), and "none" leaves the driver as the
 /// user has it.
-pub fn want(upscaling: UpscalingSettings, frame_gen: FrameGenSettings) -> Want {
+pub fn want(upscaling: UpscalingSettings, frame_gen: FrameGenSettings, amd: AmdSettings) -> Want {
+    let amd = amd.clamped();
     Want {
         rsr: (upscaling.method == UpscalingMethod::AmdRsr).then_some(upscaling.sharpness),
         afmf: frame_gen.method == FrameGenMethod::AmdAfmf,
+        anti_lag: amd.anti_lag,
+        chill: amd.chill.map(|c| (c.min, c.max)),
+        sharpening: amd.sharpening,
     }
 }
 
@@ -59,6 +70,9 @@ mod engine {
     static WANTED: Mutex<Want> = Mutex::new(Want {
         rsr: None,
         afmf: false,
+        anti_lag: false,
+        chill: None,
+        sharpening: None,
     });
     static CHANGED: Condvar = Condvar::new();
     static STARTED: Mutex<bool> = Mutex::new(false);
@@ -87,6 +101,18 @@ mod engine {
     /// The last attempt on the driver failed.
     pub fn failed() -> bool {
         FAILED.load(Ordering::Relaxed)
+    }
+
+    /// Logs a failure of one feature.
+    fn report(feature: &str, result: canape_hw::Result<()>, failed: &mut bool) -> bool {
+        match result {
+            Ok(()) => true,
+            Err(err) => {
+                crate::log(&format!("radeon: {feature}: {err}"));
+                *failed = true;
+                false
+            }
+        }
     }
 
     fn run() {
@@ -128,40 +154,61 @@ mod engine {
                     }
                 }
             }
-            let (radeon, snapshot) = driver.as_ref().expect("opened above");
+            let (radeon, before) = driver.as_ref().expect("opened above");
             let mut failed = false;
+            // A feature no longer asked for goes back as the driver had it,
+            // not forced off.
             if want.rsr != applied.rsr {
-                // Off again means back as the driver had it, not forced off.
                 let result = match want.rsr {
                     Some(sharpness) => radeon.set_rsr(true, Some(sharpness as i32)),
-                    None => match snapshot.rsr {
-                        Some(before) => radeon.set_rsr(before.enabled, before.sharpness),
-                        None => Ok(()),
-                    },
+                    None => before
+                        .rsr
+                        .map_or(Ok(()), |b| radeon.set_rsr(b.enabled, b.sharpness)),
                 };
-                match result {
-                    Ok(()) => applied.rsr = want.rsr,
-                    Err(err) => {
-                        crate::log(&format!("radeon: Radeon Super Resolution: {err}"));
-                        failed = true;
-                    }
+                if report("Radeon Super Resolution", result, &mut failed) {
+                    applied.rsr = want.rsr;
                 }
             }
             if want.afmf != applied.afmf {
                 let result = if want.afmf {
                     radeon.set_afmf(true)
                 } else {
-                    match snapshot.afmf {
-                        Some(before) => radeon.set_afmf(before.enabled),
-                        None => Ok(()),
-                    }
+                    before.afmf.map_or(Ok(()), |b| radeon.set_afmf(b.enabled))
                 };
-                match result {
-                    Ok(()) => applied.afmf = want.afmf,
-                    Err(err) => {
-                        crate::log(&format!("radeon: Fluid Motion Frames: {err}"));
-                        failed = true;
-                    }
+                if report("Fluid Motion Frames", result, &mut failed) {
+                    applied.afmf = want.afmf;
+                }
+            }
+            if want.anti_lag != applied.anti_lag {
+                let result = if want.anti_lag {
+                    radeon.set_anti_lag(true)
+                } else {
+                    before.anti_lag.map_or(Ok(()), |b| radeon.set_anti_lag(b))
+                };
+                if report("Anti-Lag", result, &mut failed) {
+                    applied.anti_lag = want.anti_lag;
+                }
+            }
+            if want.chill != applied.chill {
+                let result = match want.chill {
+                    Some((min, max)) => radeon.set_chill(true, Some((min as i32, max as i32))),
+                    None => before.chill.map_or(Ok(()), |b| {
+                        radeon.set_chill(b.enabled, Some((b.min, b.max)))
+                    }),
+                };
+                if report("Chill", result, &mut failed) {
+                    applied.chill = want.chill;
+                }
+            }
+            if want.sharpening != applied.sharpening {
+                let result = match want.sharpening {
+                    Some(sharpness) => radeon.set_sharpening(true, Some(sharpness as i32)),
+                    None => before
+                        .sharpening
+                        .map_or(Ok(()), |b| radeon.set_sharpening(b.enabled, b.sharpness)),
+                };
+                if report("Image Sharpening", result, &mut failed) {
+                    applied.sharpening = want.sharpening;
                 }
             }
             FAILED.store(failed, Ordering::Relaxed);
@@ -185,12 +232,21 @@ mod tests {
             rate: FrameGenRate::X2,
             target_fps: 60,
         };
-        assert!(want(UpscalingSettings::default(), FrameGenSettings::default()).is_empty());
+        let none = AmdSettings::default();
+        assert!(
+            want(
+                UpscalingSettings::default(),
+                FrameGenSettings::default(),
+                none
+            )
+            .is_empty()
+        );
         assert_eq!(
-            want(rsr, afmf),
+            want(rsr, afmf, none),
             Want {
                 rsr: Some(40),
-                afmf: true
+                afmf: true,
+                ..Want::default()
             }
         );
         let lossless_up = UpscalingSettings {
@@ -201,6 +257,25 @@ mod tests {
             method: FrameGenMethod::LosslessScaling,
             ..afmf
         };
-        assert!(want(lossless_up, lossless_gen).is_empty());
+        assert!(want(lossless_up, lossless_gen, none).is_empty());
+        // The driver's own settings, kept in range.
+        let amd = AmdSettings {
+            anti_lag: true,
+            sharpening: Some(300),
+            chill: Some(canape_core::ChillRange { min: 50, max: 10 }),
+        };
+        assert_eq!(
+            want(
+                UpscalingSettings::default(),
+                FrameGenSettings::default(),
+                amd
+            ),
+            Want {
+                anti_lag: true,
+                sharpening: Some(100),
+                chill: Some((50, 50)),
+                ..Want::default()
+            }
+        );
     }
 }

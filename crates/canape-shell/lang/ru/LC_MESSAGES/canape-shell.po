@@ -1285,3 +1285,12 @@ msgstr "Восстановить"
 
 msgid "Applications"
 msgstr "Приложения"
+
+msgid "Image sharpening"
+msgstr "Резкость изображения"
+
+msgid "Chill minimum"
+msgstr "Минимум Chill"
+
+msgid "Chill maximum"
+msgstr "Максимум Chill"

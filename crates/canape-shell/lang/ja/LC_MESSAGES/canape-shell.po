@@ -1285,3 +1285,12 @@ msgstr "元に戻す"
 
 msgid "Applications"
 msgstr "アプリ"
+
+msgid "Image sharpening"
+msgstr "画像シャープニング"
+
+msgid "Chill minimum"
+msgstr "Chill 最小"
+
+msgid "Chill maximum"
+msgstr "Chill 最大"

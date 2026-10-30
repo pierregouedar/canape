@@ -304,7 +304,7 @@ fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> 
             );
             crate::image::follow(
                 status.active_profile.as_deref(),
-                active.as_ref().map(|p| (p.upscaling, p.frame_gen)),
+                active.as_ref().map(|p| (p.upscaling, p.frame_gen, p.amd)),
             );
             #[cfg(windows)]
             {
@@ -419,7 +419,7 @@ fn refit_window(ui: &AppWindow, screen: (u32, u32)) {
 /// Shows the upscaling and frame generation choices, and whether Lossless
 /// Scaling can be chosen.
 pub fn show_image(ui: &Weak<AppWindow>) {
-    let (upscaling, frame_gen) = crate::image::current();
+    let (upscaling, frame_gen, amd) = crate::image::current();
     let lossless = crate::image::lossless_installed();
     let amd_failed = crate::radeon::failed();
     let _ = ui.upgrade_in_event_loop(move |ui| {
@@ -431,6 +431,12 @@ pub fn show_image(ui: &Weak<AppWindow>) {
         app.set_image_target_fps(frame_gen.target_fps as i32);
         app.set_lossless_scaling(lossless);
         app.set_image_amd_failed(amd_failed);
+        app.set_image_anti_lag(amd.anti_lag);
+        app.set_image_sharpening(amd.sharpening.map_or(-1, |s| s as i32));
+        app.set_image_chill(amd.chill.is_some());
+        let chill = amd.chill.unwrap_or_default();
+        app.set_image_chill_min(chill.min as i32);
+        app.set_image_chill_max(chill.max as i32);
     });
 }
 
