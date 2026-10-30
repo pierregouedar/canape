@@ -100,6 +100,9 @@ export struct ProfileView {
     fps-limit: int,
     // The game has its own processor settings.
     cpu-power: bool,
+    // Its screen mode, "1280×720 · 60 Hz", empty when it leaves the screen
+    // alone.
+    screen: string,
 }
 
 export struct BenchRow {

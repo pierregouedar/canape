@@ -643,7 +643,21 @@ fn profile_view(profile: &Profile) -> ProfileView {
         learned_watts: profile.learned_watts.map_or(-1, |w| w as i32),
         fps_limit: profile.fps_limit.map_or(0, |f| f as i32),
         cpu_power: profile.cpu_power.is_some_and(|p| !p.is_default()),
+        screen: screen_text(profile).into(),
     }
+}
+
+/// The screen mode a profile asks for, as shown on the game page.
+fn screen_text(profile: &Profile) -> String {
+    let size = profile
+        .resolution
+        .map(|r| format!("{}×{}", r.width, r.height));
+    let rate = profile.refresh_hz.map(|hz| format!("{hz} Hz"));
+    [size, rate]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join(" · ")
 }
 
 fn rec_view(rec: Option<Recommendation>) -> RecView {

@@ -66,7 +66,7 @@ export component SettingsPage inherits Rectangle {
         { code: "tr", name: "Türkçe" },
         { code: "ja", name: "日本語" },
         { code: "ko", name: "한국어" },
-        { code: "zh_CN", name: "简体中文" },
+        { code: "zh_CN", name: "中文" },
     ];
     property <int> language-index: App.language == "en" ? 1 : App.language == "fr" ? 2 : App.language == "es" ? 3 : App.language == "de" ? 4 : App.language == "it" ? 5 : App.language == "pt" ? 6 : App.language == "nl" ? 7 : App.language == "pl" ? 8 : App.language == "ru" ? 9 : App.language == "tr" ? 10 : App.language == "ja" ? 11 : App.language == "ko" ? 12 : App.language == "zh_CN" ? 13 : 0;
     // The language the focus is on in the drawer; A applies it.
