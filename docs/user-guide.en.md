@@ -499,7 +499,7 @@ Below, four shelves of cards, used like the [Performance](#performance) page: **
 
 **Frame rate limit**
 
-A ruler: None, 30, 40, 45, 60, 90 or 120. The AMD graphics driver holds every game at or below that rate, on AC and on battery: less heat, less noise, longer battery life. **None** removes the limit.
+A ruler: None, 30, 40, 45, 60, 90 or 120. The AMD graphics driver holds every game at or below that rate, on AC and on battery: less heat, less noise, longer battery life. **None** removes the limit. Changed from the widget during a game that has no profile, the limit is for that game only: it goes back to the earlier value when the game leaves (**X** saves it in the game's profile). The driver only applies it when the game starts: a game already running keeps its rate until the next launch.
 
 > [!TIP]
 > With auto TDP, set its target **at or below** the limit. Auto TDP regulates power to reach its target: with a limit of 40 and a target of 60, the target can never be reached and auto TDP would raise power to its maximum for nothing. A limit equal to the target is ideal: the game sits at its cap and auto TDP takes back the watts it does not need (see [Auto TDP and bench](auto-tdp.en.md#the-frame-cap-and-the-idle-gpu-rule)).

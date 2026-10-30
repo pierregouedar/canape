@@ -371,6 +371,7 @@ pub fn show_screen(ui: &Weak<AppWindow>) {
 /// Shows the screen's current resolution and the ones it offers.
 pub fn show_resolutions(ui: &Weak<AppWindow>) {
     let (current, sizes) = crate::screen::resolution_state();
+    let size = current;
     let index = sizes
         .iter()
         .position(|&size| size == current)
@@ -387,7 +388,32 @@ pub fn show_resolutions(ui: &Weak<AppWindow>) {
         app.set_resolution(current);
         app.set_resolutions(ModelRc::new(VecModel::from(labels)));
         app.set_resolution_index(index);
+        refit_window(&ui, size);
     });
+}
+
+/// A full-screen window that did not follow a change of resolution (a game's
+/// profile gave it back) is put full screen again.
+fn refit_window(ui: &AppWindow, screen: (u32, u32)) {
+    use std::sync::Mutex;
+    use std::time::{Duration, Instant};
+    static LAST: Mutex<Option<Instant>> = Mutex::new(None);
+    let window = ui.window();
+    let size = window.size();
+    if screen.0 == 0 || !window.is_fullscreen() || (size.width, size.height) == screen {
+        return;
+    }
+    let mut last = LAST.lock().unwrap();
+    if last.is_some_and(|at| at.elapsed() < Duration::from_secs(10)) {
+        return;
+    }
+    *last = Some(Instant::now());
+    crate::log(&format!(
+        "window: {}x{} on a {}x{} screen, full screen again",
+        size.width, size.height, screen.0, screen.1
+    ));
+    window.set_fullscreen(false);
+    window.set_fullscreen(true);
 }
 
 /// Shows the upscaling and frame generation choices, and whether Lossless

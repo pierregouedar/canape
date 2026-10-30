@@ -105,6 +105,9 @@ pub struct Handler {
     fan_curves: FanCurves,
     /// Frame rate cap in effect: the global one, or the active profile's.
     fps_limit: Option<u32>,
+    /// The cap before it was changed during a game that has no profile (from
+    /// the widget): that change lasts until the game leaves.
+    fps_before_game: Option<Option<u32>>,
     controller_mode: Option<ControllerMode>,
     /// Gyro aiming in effect: the global settings, or the active profile's.
     gyro: GyroSettings,
@@ -152,6 +155,7 @@ impl Handler {
             accent: None,
             fan_curves: FanCurves::default(),
             fps_limit: None,
+            fps_before_game: None,
             controller_mode: None,
             gyro: GyroSettings::default(),
             back_buttons: BackButtons::default(),
@@ -396,9 +400,17 @@ impl Handler {
                         message: format!("frame rate limit not in {low}..={high} FPS"),
                     };
                 }
+                // A game with no profile is in front: the cap changed there
+                // is for this game only, and goes back when it leaves.
+                let for_this_game = self.foreground.is_some() && self.active_profile.is_none();
+                let before = self.fps_limit;
                 let response = self.write_fps_limit(fps);
                 if response == Response::Ok {
-                    self.remember_fps_limit();
+                    if for_this_game {
+                        self.fps_before_game.get_or_insert(before);
+                    } else {
+                        self.remember_fps_limit();
+                    }
                 }
                 response
             }
@@ -944,6 +956,8 @@ impl Handler {
             .cloned();
         match profile {
             Some(profile) if self.active_profile.as_deref() != Some(profile.exe.as_str()) => {
+                // The cap of the game before this one is not the global one.
+                self.restore_game_fps();
                 if self.before_profile.is_none() {
                     self.before_profile = Some(self.saved());
                 }
@@ -968,6 +982,9 @@ impl Handler {
             Some(_) => {}
             None => {
                 self.active_profile = None;
+                if self.foreground.is_none() {
+                    self.restore_game_fps();
+                }
                 if let Some(global) = self.before_profile.take() {
                     if self.bench.is_none() {
                         self.apply_power_state(&global);
@@ -977,6 +994,16 @@ impl Handler {
                     self.apply_cpu_power(global.cpu_power);
                 }
             }
+        }
+    }
+
+    /// Puts the cap back to what it was before a game without a profile
+    /// changed it.
+    fn restore_game_fps(&mut self) {
+        if let Some(before) = self.fps_before_game.take()
+            && before != self.fps_limit
+        {
+            self.write_fps_limit(before);
         }
     }
 
@@ -2082,6 +2109,43 @@ mod tests {
         h.handle(Request::ForegroundApp { exe: None });
         assert_eq!(custom(&mut h).cpu, Some(FanPreset::Balanced.curve()));
         assert_eq!(h.status().fps_limit, Some(30));
+    }
+
+    #[test]
+    fn a_cap_set_in_a_game_without_a_profile_goes_back_when_it_leaves() {
+        let mut h = handler();
+        h.handle(Request::SetFpsLimit { fps: Some(60) });
+        h.handle(Request::SaveProfile {
+            profile: profile("known.exe", 40, None),
+        });
+        // From the shell, the cap is global.
+        h.handle(Request::SetFpsLimit { fps: Some(90) });
+        assert_eq!(h.saved().fps_limit, Some(90));
+
+        h.handle(Request::ForegroundApp {
+            exe: Some("unknown.exe".into()),
+        });
+        h.handle(Request::SetFpsLimit { fps: Some(30) });
+        assert_eq!(h.status().fps_limit, Some(30));
+        assert_eq!(
+            h.handle(Request::SetFpsLimit { fps: Some(45) }),
+            Response::Ok
+        );
+        h.handle(Request::ForegroundApp { exe: None });
+        assert_eq!(h.status().fps_limit, Some(90));
+        assert_eq!(h.saved().fps_limit, Some(90));
+
+        // Going from that game straight to one with a profile does not make
+        // the temporary cap the global one.
+        h.handle(Request::ForegroundApp {
+            exe: Some("unknown.exe".into()),
+        });
+        h.handle(Request::SetFpsLimit { fps: Some(30) });
+        h.handle(Request::ForegroundApp {
+            exe: Some("known.exe".into()),
+        });
+        h.handle(Request::ForegroundApp { exe: None });
+        assert_eq!(h.status().fps_limit, Some(90));
     }
 
     #[test]

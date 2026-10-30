@@ -498,7 +498,7 @@ En dessous, quatre étagères de cartes, parcourues comme la page [Performance](
 
 **Limite de FPS**
 
-Une réglette : Aucune, 30, 40, 45, 60, 90 ou 120. Le pilote graphique AMD maintient tous les jeux à ce débit ou en dessous, sur secteur comme sur batterie : moins de chaleur, moins de bruit, plus d'autonomie. **Aucune** retire la limite.
+Une réglette : Aucune, 30, 40, 45, 60, 90 ou 120. Le pilote graphique AMD maintient tous les jeux à ce débit ou en dessous, sur secteur comme sur batterie : moins de chaleur, moins de bruit, plus d'autonomie. **Aucune** retire la limite. Changée depuis le widget pendant un jeu qui n'a pas de profil, la limite ne vaut que pour ce jeu : elle revient à la valeur d'avant quand le jeu s'en va (**X** l'enregistre dans le profil du jeu). Le pilote ne l'applique qu'au démarrage du jeu : un jeu déjà lancé garde son débit jusqu'au prochain lancement.
 
 > [!TIP]
 > Avec l'auto TDP, réglez son objectif **au niveau de la limite ou en dessous**. L'auto TDP règle la puissance pour atteindre son objectif : avec une limite à 40 et un objectif à 60, l'objectif n'est jamais atteint et l'auto TDP monterait la puissance au maximum pour rien. Une limite égale à l'objectif est idéale : le jeu reste à son plafond et l'auto TDP rend les watts inutiles (voir [Auto TDP et banc d'essai](auto-tdp.fr.md#le-plafond-de-fps-et-la-règle-du-gpu-au-repos)).
