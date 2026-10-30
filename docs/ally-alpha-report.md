@@ -297,10 +297,15 @@ Fait avant T13 : le redémarrage coupe la session de test, et T13 vérifie ainsi
 - **Réinstallation** `install-dev.ps1 -SetAsHomeApp` puis `build-widget.ps1` : codes 0, `GamingHomeApp = Canape_84zrj1c9kn010!App`, service démarré automatique, deux paquets présents, Canapé s'ouvre sur l'accueil (capture), `onboarded=true`, aucun profil, Turbo. Le service ne reprend pas de lui-même les optimisations ni l'étagère Processeur : remises par `set_tweak` (13 réglages) et `set_cpu_power` (agressif, 0 %, 2 000 MHz). Éclairage remis en arc-en-ciel. **Relevé final des optimisations identique à celui d'avant la désinstallation.**
 - Vu en passant : `GameDVR_Enabled` valait 0 avant la désinstallation, alors que Canapé l'avait remis à 1 à 20:25 et que rien dans le journal du service ne l'a changé depuis (la Game Bar a été beaucoup utilisée pendant T10). Laissé tel quel.
 
-### T13 Redémarrage de Windows (en cours)
+### T13 Redémarrage de Windows
 
-Redémarrage lancé le 30 octobre à 22:30:12 (`shutdown /r /t 60`), Canapé étant l'accueil plein écran. Un relevé automatique au démarrage de la session (dossier Démarrage, supprimé après usage) note le service, les processus, la fenêtre au premier plan, une capture et la fin des journaux ; le résultat sera reporté ici à la reprise.
+Redémarrage lancé le 30 octobre à 22:30:12 (`shutdown /r /t 60`), Canapé étant l'accueil plein écran (`GamingHomeApp = Canape_84zrj1c9kn010!App`, `StartupToGamingHome = 1`).
 
+- Démarrage de Windows : 22:32:01 (`LastBootUpTime`).
+- **Service lancé seul** : `service starting, device = ROG Ally` à 22:32:16, 15 s après le démarrage, avant l'ouverture de session ; réglages restaurés (Turbo, étagère Processeur, éclairage), canal pour le widget ouvert. `CanapeService` en cours, démarrage automatique.
+- Ouverture de session : 22:33:34 (Winlogon, événement 7001).
+- **Shell lancé seul par l'écran Xbox** : `canape-shell 0.1.0 started, args=["windows.gaming:///home"]` à 22:33:35, **1 s après l'ouverture de session**, en rendu logiciel, un seul processus ; bibliothèque lue en 34 ms, serveur de mouvement à l'écoute du premier coup.
+- Capture : le relevé automatique (dossier Démarrage) n'a tourné qu'à 22:34:57, Windows retardant les programmes de démarrage ; Claude était alors devant, la capture ne montre donc pas Canapé. Pierre a relancé la session depuis l'Ally après le démarrage. L'élément de démarrage s'est supprimé comme prévu.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
