@@ -255,6 +255,22 @@ Réinstallé depuis `main`, widget recompilé et réinstallé (`build-widget.ps1
 - Vu en passant : l'horloge de la Game Bar reste figée (21:52 affiché à 21:55) alors que les valeurs du widget bougent.
 - Remis : profil supprimé (`profiles: []`), limite de FPS Aucune, 1920×1080.
 
+### T11 Visite de bienvenue complète (`374c067`)
+
+Rejouée depuis Réglages › Système › Visite de bienvenue, toutes les étapes capturées, rien appliqué (X « Passer » / « Plus tard » partout, A seulement sur Démarrer, Langue inchangée et « Aller aux jeux »). Neuf étapes :
+
+1. Bienvenue (« Service connecté »).
+2. Langue : la liste montre maintenant **« 中文 »**, lisible ; aucun libellé coupé.
+3. Couleur d'accent (10 pastilles, orange sélectionnée).
+4. Boutiques de jeux : Steam (« 12 jeux installés », clé masquée), compte Epic, Durée de jeu (IGDB) Client ID et Client secret masqués. Bas : Clé Steam → Compte Epic → Client ID → Client secret (l'aide IGDB s'affiche et la liste remonte), haut revient jusqu'à Epic. Aucune clé saisie.
+5. Dossier des jeux : « Là où s'installent les jeux Epic. Steam garde ses propres dossiers. » (plus de GOG), « C:\Games · 251,7 Go libres ».
+6. Boutons de l'Ally (Armoury, Command Center, « Utiliser les boutons de l'Ally · Activé »).
+7. Optimisations de Windows : « 2 à appliquer », bouton « Appliquer la sélection recommandée » non pressé. Le compte inclut Widgets, que Windows refuse (affiché « Indisponible » seulement après une tentative).
+8. Affichage : Économe / Fluide, « Canapé redémarre à la fin de la visite ».
+9. C'est prêt : rappel LB/RB, A, B, X, Y ; A « Aller aux jeux » → `onboarding: done`, retour à l'accueil.
+
+`shell.json` comparé avant/après (clés comparées par longueur seulement) : seule différence `onboarding_step` 5 → 0 ; `onboarded` reste `true`, clés et autres réglages inchangés. Pas d'étape « clavier tactile » ni « presse-papiers » distincte : l'aide de l'étape Boutiques renvoie à A (saisir) et Y (coller). Le libellé « Tout appliqué » n'a pas été revu (rien n'a été appliqué).
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.

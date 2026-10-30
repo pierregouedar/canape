@@ -20,10 +20,10 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [ ] **8. Durées IGDB, succès Steam, images SteamGridDB, icônes.** Nécessitent les clés de Pierre.
 - [ ] **9. Éclairage par l'interface et gyroscope avec palette.** Réglages éprouvés le 30 octobre ; reste l'essai physique (palette tenue ou basculée en bougeant la console dans un jeu) et la couleur réelle des sticks.
 - [ ] **10. Widget.** Onglet Matériel, enregistrement et application au lancement éprouvés le 30 octobre. Reste : le bouton Armoury depuis un jeu (geste physique). À revoir : la limite de FPS n'agit qu'au lancement du jeu, et reste active après sa fermeture.
-- [ ] **11. Visite de bienvenue : étapes non vues.** Optimisations, affichage, clés, clavier tactile, presse-papiers.
+- [x] **11. Visite de bienvenue : toutes les étapes.** Éprouvé le 30 octobre sur `374c067` (9 étapes, rien appliqué, `onboarded` garde `true`).
 - [x] **11 bis. Clavier tactile resté ouvert.** Corrigé et vérifié sur `7c8b2fe` (fermé après A/A et après B).
 - [ ] **11 quater. Corrigé le 29 octobre, à revérifier sur l'Ally :** Widgets refusé par Windows (le tweak devient « verrouillé », la page ne reste plus bloquée), clavier tactile non détecté (fermeture forcée quand Canapé l'a ouvert), texte du dossier des jeux sans GOG. Reste : « 体中文 » et la police du chiffre « 1 à appliquer ».
-- [ ] **11 ter. Visite :** « 体中文 » au lieu de « 简体中文 » ; chiffre de « 1 à appliquer » dans une autre police.
+- [x] **11 ter. Visite :** « 中文 » lisible, texte du dossier sans GOG (vérifié le 30 octobre).
 - [ ] **12. Rendu Fluide en jeu.** Fluidité, consommation et repli. Démarrage dans l'écran Xbox plein écran avec le shell GPU.
 - [ ] **13. Redémarrage de Windows.** Démarrage automatique dans l'écran Xbox plein écran, observé et journalisé.
 - [ ] **14. Script de désinstallation** (`uninstall-dev.ps1`).
