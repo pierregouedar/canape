@@ -257,11 +257,11 @@ const PROFILES_REFRESH_PUSHES: u32 = 10;
 fn follow(ui: &Weak<AppWindow>, shared: &Shared, commands: &Sender<Request>) -> io::Result<()> {
     let mut conn = open()?;
     conn.send(&Request::Subscribe)?;
-    // A (re)started service knows nothing of the user session.
+    // A (re)started service knows nothing of the user session, and a
+    // service that outlived a shell that crashed still names its last game:
+    // say what is in front now, even when it is nothing.
     let foreground = shared.foreground.lock().unwrap().clone();
-    if foreground.is_some() {
-        let _ = commands.send(Request::ForegroundApp { exe: foreground });
-    }
+    let _ = commands.send(Request::ForegroundApp { exe: foreground });
     let _ = commands.send(Request::ListProfiles);
     let _ = commands.send(Request::GetBenchReport);
 

@@ -116,8 +116,11 @@ mod engine {
     }
 
     fn run() {
-        // Opened when something is asked for, closed when it is all given back.
-        let mut driver: Option<(Radeon, Snapshot)> = None;
+        // Opened when something is asked for, and then kept for the life of
+        // the process: the driver's module crashes when it is closed and
+        // opened again. What it held when a game came is `before`.
+        let mut driver: Option<Radeon> = None;
+        let mut before: Option<Snapshot> = None;
         let mut applied = Want::default();
         let mut seen = Want::default();
         loop {
@@ -130,7 +133,7 @@ mod engine {
                 *wanted
             };
             if want.is_empty() {
-                if let Some((radeon, snapshot)) = driver.take() {
+                if let (Some(radeon), Some(snapshot)) = (driver.as_ref(), before.take()) {
                     for error in radeon.restore(&snapshot) {
                         crate::log(&format!("radeon: {error}"));
                     }
@@ -142,11 +145,7 @@ mod engine {
             }
             if driver.is_none() {
                 match Radeon::open() {
-                    Ok(radeon) => {
-                        let snapshot = radeon.snapshot();
-                        crate::log(&format!("radeon: driver opened, was {snapshot:?}"));
-                        driver = Some((radeon, snapshot));
-                    }
+                    Ok(radeon) => driver = Some(radeon),
                     Err(err) => {
                         crate::log(&format!("radeon: {err}"));
                         FAILED.store(true, Ordering::Relaxed);
@@ -154,7 +153,12 @@ mod engine {
                     }
                 }
             }
-            let (radeon, before) = driver.as_ref().expect("opened above");
+            let radeon = driver.as_ref().expect("opened above");
+            let before = before.get_or_insert_with(|| {
+                let snapshot = radeon.snapshot();
+                crate::log(&format!("radeon: driver read, was {snapshot:?}"));
+                snapshot
+            });
             let mut failed = false;
             // A feature no longer asked for goes back as the driver had it,
             // not forced off.
