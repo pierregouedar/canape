@@ -11,7 +11,7 @@ mod sim;
 #[cfg(windows)]
 mod windows;
 
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 
 use canape_core::{TweakId, TweakState, Unavailable};
@@ -441,6 +441,9 @@ pub struct Applied {
     pub paths: Vec<String>,
     /// ASUS services Canapé disabled, as they were.
     pub services: Vec<SavedService>,
+    /// Windows refused to write a value (access denied: a protected
+    /// policy): the tweak is reported as locked, also after a restart.
+    pub blocked: bool,
 }
 
 /// A registry value before Canapé changed it; `data: None` when absent.
@@ -459,9 +462,6 @@ pub struct Tweaks {
     applied: BTreeMap<TweakId, Applied>,
     at_start: HashMap<TweakId, bool>,
     widget_family: String,
-    /// Tweaks whose values Windows refused to write (access denied: a
-    /// protected policy); they are reported as locked from then on.
-    blocked: HashSet<TweakId>,
     /// What Canapé replaced in the power plan (CPU settings).
     power: PowerRecord,
 }
@@ -473,7 +473,6 @@ impl Tweaks {
             applied: BTreeMap::new(),
             at_start: HashMap::new(),
             widget_family: canape_ipc::widget_family_name(),
-            blocked: HashSet::new(),
             power: PowerRecord::default(),
         }
     }
@@ -555,7 +554,7 @@ impl Tweaks {
     }
 
     fn unavailable(&self, id: TweakId, folders: &[String]) -> Option<Unavailable> {
-        if self.blocked.contains(&id) {
+        if self.applied.get(&id).is_some_and(|a| a.blocked) {
             return Some(Unavailable::Locked);
         }
         match id {
@@ -698,7 +697,7 @@ impl Tweaks {
                 && value.checked
             {
                 if e == ACCESS_DENIED {
-                    self.blocked.insert(id);
+                    record.blocked = true;
                 }
                 error.get_or_insert(format!("writing {}\\{}: {e}", value.key, value.name));
             }
@@ -1132,6 +1131,19 @@ mod tests {
                 .unwrap()
         };
         assert_eq!(state(&mut tweaks).unavailable, Some(Unavailable::Locked));
+        // The service remembers it across a restart.
+        let saved = tweaks.saved();
+        let (mut again_tweaks, _) = engine();
+        again_tweaks.restore(saved);
+        assert_eq!(
+            again_tweaks
+                .list()
+                .into_iter()
+                .find(|s| s.id == TweakId::WidgetsOff)
+                .unwrap()
+                .unavailable,
+            Some(Unavailable::Locked)
+        );
         // Asked again, it says why at once instead of trying.
         let again = tweaks.set(TweakId::WidgetsOff, true).unwrap_err();
         assert!(again.contains("locked"), "{again}");
