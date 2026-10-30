@@ -209,6 +209,17 @@ pub struct ChillSetting {
     pub max: i32,
 }
 
+/// The features a game's profile asked for: only these are put back, the
+/// driver's others are left exactly as they are.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Touched {
+    pub rsr: bool,
+    pub afmf: bool,
+    pub anti_lag: bool,
+    pub chill: bool,
+    pub sharpening: bool,
+}
+
 /// The features as the driver had them; one that cannot be read is `None`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Snapshot {
@@ -516,12 +527,12 @@ impl Radeon {
         result
     }
 
-    /// Radeon Super Resolution as it was: its values written while it is on,
-    /// then off again if it was off.
+    /// Radeon Super Resolution as it was. One that was off is only turned
+    /// off: writing its values would turn it on, which the driver does not
+    /// allow beside image sharpening and then turns the other feature off.
     pub fn put_back_rsr(&self, before: Setting) -> Result<()> {
-        self.set_rsr(true, before.sharpness)?;
         if before.enabled {
-            Ok(())
+            self.set_rsr(true, before.sharpness)
         } else {
             self.set_rsr(false, None)
         }
@@ -539,9 +550,8 @@ impl Radeon {
 
     /// Image sharpening as it was (see [`Self::put_back_rsr`]).
     pub fn put_back_sharpening(&self, before: Setting) -> Result<()> {
-        self.set_sharpening(true, before.sharpness)?;
         if before.enabled {
-            Ok(())
+            self.set_sharpening(true, before.sharpness)
         } else {
             self.set_sharpening(false, None)
         }
@@ -560,32 +570,38 @@ impl Radeon {
 
     /// Puts both features back as `snapshot` had them, and returns what
     /// could not be.
-    pub fn restore(&self, snapshot: &Snapshot) -> Vec<String> {
+    pub fn restore(&self, snapshot: &Snapshot, touched: Touched) -> Vec<String> {
         let mut errors = Vec::new();
-        if let Some(rsr) = snapshot.rsr
+        // Image sharpening first: it cannot be on beside Super Resolution.
+        if touched.sharpening
+            && let Some(sharpening) = snapshot.sharpening
+            && let Err(err) = self.put_back_sharpening(sharpening)
+        {
+            errors.push(format!("Image Sharpening: {err}"));
+        }
+        if touched.rsr
+            && let Some(rsr) = snapshot.rsr
             && let Err(err) = self.put_back_rsr(rsr)
         {
             errors.push(format!("Radeon Super Resolution: {err}"));
         }
-        if let Some(afmf) = snapshot.afmf
+        if touched.afmf
+            && let Some(afmf) = snapshot.afmf
             && let Err(err) = self.set_afmf(afmf.enabled)
         {
             errors.push(format!("Fluid Motion Frames: {err}"));
         }
-        if let Some(on) = snapshot.anti_lag
+        if touched.anti_lag
+            && let Some(on) = snapshot.anti_lag
             && let Err(err) = self.set_anti_lag(on)
         {
             errors.push(format!("Anti-Lag: {err}"));
         }
-        if let Some(chill) = snapshot.chill
+        if touched.chill
+            && let Some(chill) = snapshot.chill
             && let Err(err) = self.put_back_chill(chill)
         {
             errors.push(format!("Chill: {err}"));
-        }
-        if let Some(sharpening) = snapshot.sharpening
-            && let Err(err) = self.put_back_sharpening(sharpening)
-        {
-            errors.push(format!("Image Sharpening: {err}"));
         }
         errors
     }

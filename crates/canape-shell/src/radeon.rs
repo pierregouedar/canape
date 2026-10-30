@@ -63,7 +63,7 @@ mod engine {
     use std::sync::{Condvar, Mutex};
     use std::thread;
 
-    use canape_hw::radeon::{Radeon, Snapshot};
+    use canape_hw::radeon::{Radeon, Snapshot, Touched};
 
     use super::Want;
 
@@ -122,6 +122,9 @@ mod engine {
         let mut driver: Option<Radeon> = None;
         let mut before: Option<Snapshot> = None;
         let mut applied = Want::default();
+        // What was tried on the driver, whether it worked or not: only that
+        // is given back.
+        let mut touched = Touched::default();
         let mut seen = Want::default();
         loop {
             let want = {
@@ -134,12 +137,13 @@ mod engine {
             };
             if want.is_empty() {
                 if let (Some(radeon), Some(snapshot)) = (driver.as_ref(), before.take()) {
-                    for error in radeon.restore(&snapshot) {
+                    for error in radeon.restore(&snapshot, touched) {
                         crate::log(&format!("radeon: {error}"));
                     }
                     crate::log("radeon: settings given back");
                 }
                 applied = Want::default();
+                touched = Touched::default();
                 FAILED.store(false, Ordering::Relaxed);
                 continue;
             }
@@ -163,6 +167,7 @@ mod engine {
             // A feature no longer asked for goes back as the driver had it,
             // not forced off.
             if want.rsr != applied.rsr {
+                touched.rsr = true;
                 let result = match want.rsr {
                     Some(sharpness) => radeon.set_rsr(true, Some(sharpness as i32)),
                     None => before.rsr.map_or(Ok(()), |b| radeon.put_back_rsr(b)),
@@ -172,6 +177,7 @@ mod engine {
                 }
             }
             if want.afmf != applied.afmf {
+                touched.afmf = true;
                 let result = if want.afmf {
                     radeon.set_afmf(true)
                 } else {
@@ -182,6 +188,7 @@ mod engine {
                 }
             }
             if want.anti_lag != applied.anti_lag {
+                touched.anti_lag = true;
                 let result = if want.anti_lag {
                     radeon.set_anti_lag(true)
                 } else {
@@ -192,6 +199,7 @@ mod engine {
                 }
             }
             if want.chill != applied.chill {
+                touched.chill = true;
                 let result = match want.chill {
                     Some((min, max)) => radeon.set_chill(true, Some((min as i32, max as i32))),
                     None => before.chill.map_or(Ok(()), |b| radeon.put_back_chill(b)),
@@ -200,7 +208,17 @@ mod engine {
                     applied.chill = want.chill;
                 }
             }
-            if want.sharpening != applied.sharpening {
+            // The driver does not allow image sharpening beside Super
+            // Resolution, and turning the one on turns the other off: leave
+            // it alone then, whoever has Super Resolution on.
+            let rsr_on = want.rsr.is_some() || before.rsr.is_some_and(|r| r.enabled);
+            if want.sharpening.is_some() && rsr_on {
+                if applied.sharpening.is_none() {
+                    crate::log("radeon: Image Sharpening not applied: Super Resolution is on");
+                }
+                failed = true;
+            } else if want.sharpening != applied.sharpening {
+                touched.sharpening = true;
                 let result = match want.sharpening {
                     Some(sharpness) => radeon.set_sharpening(true, Some(sharpness as i32)),
                     None => before
