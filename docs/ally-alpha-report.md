@@ -185,6 +185,10 @@ Réinstallé depuis `main` (`ac8b0c2`, `62fbadb`, `7c8b2fe`).
 - **Clavier tactile** : dans la visite, champ de la clé Steam : ouvert à A, **fermé** après B, rouvert, **fermé** après A/A (captures). La clé garde ses 32 caractères. Corrigé.
 - **Étape Dossier des jeux** : « Là où s'installent les jeux Epic. Steam garde ses propres dossiers. » Plus de GOG. Visite quittée à l'étape 5, `onboarded` reste `true`.
 
+### T4 Limite de charge (non concluant)
+
+Page Matériel, étagère Batterie, tiroir « Limite de charge » (60 %, 80 %, 100 %). 60 % appliqué : `SetBatteryChargeLimit { percent: 60 } -> Ok`, carte « 60 % », `battery_charge_limit=60`. Mais la console était branchée et **déjà à 100 %** : pendant 5 min (relevé toutes les 30 s), `Win32_Battery` reste à 100 %, `BatteryStatus=2`, et `root\wmi BatteryStatus` donne `Charging=False`, `Discharging=False`, débit 0, capacité 32 207 mWh constante. La batterie ne se décharge pas vers 60 % sur secteur, et l'arrêt de la charge ne peut pas se voir à 100 %. Remis à 100 % (`-> Ok`). À refaire batterie sous 60 % (il faut débrancher pour la vider, geste de Pierre).
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
