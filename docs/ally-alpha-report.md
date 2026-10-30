@@ -351,6 +351,24 @@ Mêmes précautions que pour RSR/AFMF (`shell.json`, `state.json`, export de la 
 - **Conséquence du plantage** : le service a gardé `foreground = Among Us.exe` après la fermeture du jeu (le shell mort n'a pas envoyé `ForegroundApp None`, et le shell relancé ne le renvoie pas tant qu'aucun jeu ne change). Effacé à la main par `foreground_app` avec `exe: null`.
 - **(e) Étagère AMD** (Matériel, entre Image et Batterie) : carte « Radeon · Désactivé » ; tiroir « Radeon · Among Us.exe · profil du jeu » avec Anti-Lag, Netteté de l'image, Chill, puis Chill minimum et Chill maximum quand Chill est activé (40 et 60 FPS). Haut, bas, gauche, droite et B répondent ; libellés entiers. Deux remarques : le sous-titre dit « profil du jeu » alors qu'aucun profil n'existait (premier plan resté sur Among Us) ; et les valeurs changées passent sur la carte (« Activé ») même fermées par B, sans enregistrement (`profiles: []`) — shell redémarré pour repartir de zéro.
 - Remis : profil supprimé, `shell.json` inchangé, clés du pilote identiques à celles d'avant, premier plan vide. L'état interne Anti-Lag/Chill/netteté du pilote n'est lisible que par l'instantané de Canapé : non relu après le plantage pour ne pas rouvrir le pilote.
+### Vérification de `eedc59b` (pilote ouvert une seule fois, premier plan au démarrage)
+
+Réinstallé. Au démarrage du shell, le service reçoit `ForegroundApp { exe: None }` : premier plan vide d'emblée. Corrigé.
+
+Cinq lancements d'Among Us dans **un même processus du shell** (pid inchangé du premier au dernier), profil modifié par `canape-ctl` entre chaque tour sans redémarrer le shell. À chaque tour : `radeon: driver read, was Snapshot { rsr: Some(Setting { enabled: true, sharpness: Some(20) }), afmf: Some(Setting { enabled: false, sharpness: None }), anti_lag: Some(false), chill: Some(ChillSetting { enabled: false, min: 120, max: 120 }), sharpening: Some(Setting { enabled: false, sharpness: Some(80) }) }` (identique à chaque fois, donc le pilote a bien été rendu au tour précédent), puis `radeon: settings given back` à la fermeture.
+
+| Tour | Profil | Lignes `radeon:` en plus | Pendant le jeu |
+|---|---|---|---|
+| 1 | Anti-Lag | aucune | clés du pilote inchangées |
+| 2 | Chill 40–60 | `Chill: device I/O failed: Chill SetMinFPS returned 3` | `KMD_ChillEnabled=0` |
+| 3 | Netteté 50 | `Image Sharpening: device I/O failed: Image Sharpening SetSharpness returned 3` | inchangé |
+| 4 | RSR + AFMF + Anti-Lag | aucune | `DrvFrameGenEnabled=1` |
+| 5 | Tout (RSR, AFMF, Anti-Lag, netteté 50, Chill 40–60) | les deux refus ci-dessus | `DrvFrameGenEnabled=1` |
+
+- **Plus aucun plantage** (aucun événement 1000), shell réactif tout du long. Le plantage de la réouverture est corrigé.
+- **Chill et la netteté sont refusés par le pilote** (code ADLX 3) sur cette Ally, que RSR soit demandé ou non. RSR était déjà actif dans le pilote avant l'essai, ce qui peut expliquer le refus de la netteté. Les refus sont journalisés proprement, sans plantage. Anti-Lag est accepté ; son effet n'est pas lisible dans le registre.
+- L'effet à l'écran n'a pas été jugé.
+- Remis : profil supprimé, clés du pilote identiques à celles d'avant, `shell.json` inchangé, premier plan vide.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
