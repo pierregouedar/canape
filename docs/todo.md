@@ -12,7 +12,7 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 
 - [x] **1. Pleine puissance dans Canapé et animations allégées.** Éprouvé le 29 octobre (rapport, T1). Reste : la fluidité ressentie, à juger par Pierre.
 - [x] **2. Étagère Processeur depuis l'interface.** Éprouvé le 29 octobre (T2), libellés corrigés et revérifiés.
-- [ ] **3. Page Optimisations Windows refaite.** Partiel (T3 du rapport). Corrigé le 30 octobre : la page ne reste plus bloquée quand un tweak échoue (bug `busy` à `recommended` jamais clear). À éprouver sur l'Ally : rétablir, réapplication, liste Applications.
+- [x] **3. Page Optimisations Windows refaite.** Éprouvé le 30 octobre sur `7c8b2fe` : Widgets « Indisponible », Rétablir, réapplication, liste Applications, état Windows remis (diff vide). Reste : libellé « Tout est appliq… » tronqué.
 - [ ] **4. Limite de charge de la batterie.** Le service accepte 80 %, mais l'arrêt réel de la charge n'est pas mesuré (console branchée sous 80 %).
 - [ ] **5. Définition d'écran par profil et écran Image.** Seule la fréquence d'écran a été essayée. La résolution (720p) et les choix d'image ne sont pas vérifiés.
 - [ ] **6. Options d'un jeu.** Renommer, catégories, masquer, retirer, clavier tactile. Le menu s'ouvre et Désinstaller marche ; le reste non.
@@ -21,9 +21,9 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [ ] **9. Éclairage par l'interface** (page Matériel) et **gyroscope avec palette** (modes maintenir et basculer).
 - [ ] **10. Widget.** Onglet Matériel, application d'un profil différent des réglages courants, bouton Armoury depuis un jeu.
 - [ ] **11. Visite de bienvenue : étapes non vues.** Optimisations, affichage, clés, clavier tactile, presse-papiers.
-- [ ] **11 bis. Clavier tactile resté ouvert.** Toujours vrai sur `2ef4cb4` après A/A et après B : `visible()` lit `IPTip_Main_Window` (invisible) alors que le clavier affiché est la fenêtre XAML de `TabTip.exe` ; le titre de l'hôte de saisie est traduit. Détails dans le rapport.
+- [x] **11 bis. Clavier tactile resté ouvert.** Corrigé et vérifié sur `7c8b2fe` (fermé après A/A et après B).
 - [ ] **11 quater. Corrigé le 29 octobre, à revérifier sur l'Ally :** Widgets refusé par Windows (le tweak devient « verrouillé », la page ne reste plus bloquée), clavier tactile non détecté (fermeture forcée quand Canapé l'a ouvert), texte du dossier des jeux sans GOG. Reste : « 体中文 » et la police du chiffre « 1 à appliquer ».
-- [ ] **11 ter. Visite :** « 体中文 » au lieu de « 简体中文 » ; texte du dossier des jeux qui cite GOG ; chiffre de « 1 à appliquer » dans une autre police.
+- [ ] **11 ter. Visite :** « 体中文 » au lieu de « 简体中文 » ; chiffre de « 1 à appliquer » dans une autre police.
 - [ ] **12. Rendu Fluide en jeu.** Fluidité, consommation et repli. Démarrage dans l'écran Xbox plein écran avec le shell GPU.
 - [ ] **13. Redémarrage de Windows.** Démarrage automatique dans l'écran Xbox plein écran, observé et journalisé.
 - [ ] **14. Script de désinstallation** (`uninstall-dev.ps1`).

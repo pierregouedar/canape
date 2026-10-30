@@ -174,6 +174,17 @@ Réinstallé depuis `main` (`67533cd`, `2ef4cb4`).
 - **Visite rejouée puis quittée à mi-parcours** (shell arrêté à l'étape 7) : `onboarded` reste `true` pendant et après, la visite ne revient pas au relancement. Corrigé. La clé Steam garde ses 32 caractères.
 - **Clavier tactile** : **toujours ouvert** après B et après A/A sur le champ de la clé Steam (5 s d'attente, captures). Aucun journal de masquage. Cause relevée : sur l'Ally, `IPTip_Main_Window` existe avec un style invisible et désactivé, alors que le clavier affiché est une fenêtre XAML de `TabTip.exe` ; `visible()` répond donc `Some(false)` et `hide()` ne fait rien. La fenêtre de l'hôte de saisie a un titre traduit (« Expérience d'entrée Windows »), la recherche par « Microsoft Text Input Application » ne la trouve pas. Effet de bord : la réouverture d'un champ avec le clavier déjà affiché le referme (bascule).
 
+### Vérification de `7c8b2fe` et suite de T3
+
+Réinstallé depuis `main` (`ac8b0c2`, `62fbadb`, `7c8b2fe`).
+
+- **Sélection recommandée** (Widgets + Game DVR) : les deux requêtes partent dans la même seconde ; Widgets répond encore `error 5` dans le journal, Game DVR `Ok`. La page affiche Widgets « Indisponible », « Tout est appliq… » (libellé tronqué) et Rétablir passe de 14 à 15, sans bandeau d'erreur. Registre relu : `GameDVR_Enabled=0`, `AppCaptureEnabled=0`, Copilot toujours appliqué. Capture prise 0,3 s après le second A : déjà l'état final, on ne peut donc pas voir à l'œil un déblocage avant la fin (les réponses arrivent trop vite).
+- **Rétablir** s'ouvre (liste des 15, les trois réglages de sécurité en orange, avertissement « Les applications supprimées ne sont pas réinstallées »). Après le double A : 15 requêtes `on: false` `Ok`, compteur à 0, « 11 à appliquer ». Relecture réelle : toutes les valeurs d'avant Canapé sont revenues (Copilot, recherche, suggestions `SystemPaneSuggestionsEnabled=1`, télémétrie, mode jeu, GPU, Game DVR `1`, exclusions Defender vides, temps réel Defender réactivé, intégrité de la mémoire à sa valeur d'origine 0).
+- **Réapplication** par Recommandations : 11 réglages, tous `Ok` (dont les exclusions Defender, signalées en orange). Les applications en arrière-plan, le temps réel Defender et l'intégrité de la mémoire ne font pas partie des recommandations : remis par `set_tweak` pour retrouver l'état de départ, Game DVR retiré. **Diff avec l'état de départ : vide.** Widgets n'est plus marqué « par Canapé ».
+- **Applications** : 16 lignes ; 15 marquées « Réinstaller » (déjà retirées : Clipchamp, Actualités, Météo, Bing Search, Obtenir de l'aide, Hub de commentaires, Power Automate, Pense-bêtes, Mobile connecté, Family, Assistance rapide, Dev Home, Enregistreur audio, Calculatrice, Photos) et Microsoft 365 « Retirer ». Concorde avec `Get-AppxPackage`. Rien n'a été retiré ni réinstallé.
+- **Clavier tactile** : dans la visite, champ de la clé Steam : ouvert à A, **fermé** après B, rouvert, **fermé** après A/A (captures). La clé garde ses 32 caractères. Corrigé.
+- **Étape Dossier des jeux** : « Là où s'installent les jeux Epic. Steam garde ses propres dossiers. » Plus de GOG. Visite quittée à l'étape 5, `onboarded` reste `true`.
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
