@@ -211,6 +211,12 @@ Fiche du jeu, Y « Options » : Renommer, Catégories, Retirer de la bibliothèq
 - État final : titre d'origine, aucune catégorie, rien de masqué, `overrides.json` vide.
 - Vu en passant : « art of rally Standard Edit… » tronqué en titre de la page Jeux ; Heaven Benchmark sans jaquette (titre sur fond brun).
 
+### T7 Ajouter d'autres jeux
+
+- **Par `games.json`** : entrée « Essai Charmap » (`C:\Windows\System32\charmap.exe`, la Table des caractères) ajoutée à la main. Le shell ne la voit qu'après un changement de page (`library: 17 games found`). Étagère « Autres jeux · 2 », carte sans jaquette (titre sur fond brun). A sur Jouer : `launching other:… charmap.exe`, la fenêtre « Table des caractères » s'ouvre devant Canapé. Fermée, entrée retirée, `games.json` remis.
+- **Par l'interface** (Réglages › Bibliothèque › Ajouter un jeu) : la liste lit les raccourcis du menu Démarrer (Deluge `deluge.exe`, Heaven Benchmark 4.0, Tailscale `tailscale-ipn.exe`) ; une entrée déjà présente porte « Ajouté ». A sur Heaven **le retire tout de suite, sans confirmation** (`add games: removed`, la ligne affiche alors `heaven.bat`), A à nouveau le remet (`added`). Le retrait a été fait par erreur : la ligne « Jeux masqués » disparaît quand elle est vide, et la liste remonte d'un cran sous le curseur. `games.json` final identique à celui de départ.
+- Le compteur « Installés » des Réglages reste à 17 après le retrait de l'entrée, jusqu'à la relecture suivante de la bibliothèque.
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
