@@ -326,7 +326,7 @@ Réinstallé (`install-dev.ps1 -SetAsHomeApp`, `build-widget.ps1`).
 - La limite de FPS du pilote n'agit qu'au lancement d'un jeu (sans effet sur un jeu déjà ouvert).
 - Ajouter un jeu : A retire une entrée sans confirmation, et la liste remonte d'un cran quand « Jeux masqués » disparaît.
 - La visite compte encore Widgets dans « 2 à appliquer » tant que Windows ne l'a pas refusé une fois.
-- Les programmes du dossier Démarrage ne tournent qu'environ 80 s après le démarrage avec l'écran Xbox (constat Windows, utile pour les outils de test).
+- Les programmes du dossier Démarrage ne tournent qu'environ 40 s après l'ouverture de session avec l'écran Xbox (constat Windows, utile pour les outils de test).
 - Vus en passant : « art of rally Standard Edit… » tronqué, Heaven Benchmark sans jaquette.
 
 **État laissé sur la machine** : Canapé `19b4c7e` installé, accueil plein écran Canapé, service en automatique, widget installé (à épingler de nouveau dans la Game Bar, menu Widgets) ; Turbo, étagère Processeur agressif / 0 % / 2 000 MHz, éclairage arc-en-ciel, gyroscope désactivé avec serveur de mouvement actif, limite de charge 100 %, aucune limite de FPS, aucun profil de jeu ; Économe, accent #f97316, `onboarded=true`, clé Steam intacte ; optimisations Windows comme au départ (13 appliquées par Canapé, Widgets verrouillé, services ASUS non touchés). Deux écarts venus de Windows et laissés tels quels : `GameDVR_Enabled` revenu à 1 (sa valeur d'origine) et `LightingService` (ASUS, démarrage manuel) arrêté depuis le redémarrage.
