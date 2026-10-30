@@ -369,6 +369,15 @@ Cinq lancements d'Among Us dans **un même processus du shell** (pid inchangé d
 - **Chill et la netteté sont refusés par le pilote** (code ADLX 3) sur cette Ally, que RSR soit demandé ou non. RSR était déjà actif dans le pilote avant l'essai, ce qui peut expliquer le refus de la netteté. Les refus sont journalisés proprement, sans plantage. Anti-Lag est accepté ; son effet n'est pas lisible dans le registre.
 - L'effet à l'écran n'a pas été jugé.
 - Remis : profil supprimé, clés du pilote identiques à celles d'avant, `shell.json` inchangé, premier plan vide.
+### Vérification de `7d2476d` (fonction activée avant d'écrire ses valeurs) : RSR coupé au retour
+
+Réinstallé. Relevé complet de la clé du pilote (`Class\{4d36e968…}\0000` et sous-clés, 861 valeurs) avant, pendant et après le jeu ; deux relevés au repos identiques.
+
+- **Chill 40–60 seul : accepté.** Plus de `returned 3`. Pendant le jeu, seules trois valeurs changent : `KMD_ChillEnabled` 0 → 1, `KMD_ChillMinFps` 120 → 40, `KMD_ChillMaxFps` 120 → 60. Jeu fermé : `radeon: settings given back`, les trois reviennent à 0 / 120 / 120.
+- **Mais RSR est coupé au retour.** Après le jeu, `Gmx_RSREnabled` passe de 3 à 0 et l'option de mise à l'échelle de chacun des 30 chemins d'affichage change (`DAL2_DATA__2_0\DisplayPath_*\Option\BestViewOption` : avant-dernier octet `0c`/`0d` → `08`/`09`). Pendant le jeu, RSR était encore actif (inchangé) : c'est la restitution qui l'a coupé. L'instantané du lancement suivant le confirme : `rsr: Some(Setting { enabled: false, sharpness: Some(20) })`.
+- **Cause dans le code** : `Radeon::restore` remet RSR d'abord, puis `put_back_sharpening` **active** la netteté pour réécrire 80 % avant de la couper ; le pilote n'admet pas la netteté et RSR ensemble, donc activer la netteté coupe RSR. Pistes : ne pas réécrire une fonction que le profil n'a pas touchée, ou remettre RSR en dernier.
+- **Remis** : profil temporaire « RSR 20 » appliqué au lancement, shell arrêté avant la fermeture du jeu pour qu'il ne rende rien ; relevé complet ensuite **identique à celui d'avant** (RSR à 3, chemins d'affichage d'origine). Profil supprimé, shell relancé, premier plan vide, `shell.json` inchangé.
+- Netteté seule et tout ensemble **non refaits** : ils passeraient par la même restitution qui coupe RSR.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
