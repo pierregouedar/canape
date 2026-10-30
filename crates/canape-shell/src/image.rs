@@ -1,8 +1,9 @@
 //! Upscaling and frame generation of the Hardware page's Image section.
 //!
-//! Nothing applies them yet: the choices are kept here, taken from the
-//! active game profile when it changes, and saved back into the profile
-//! with the rest of the hardware settings.
+//! The choices are kept here, taken from the active game profile when it
+//! changes, and saved back into the profile with the rest of the hardware
+//! settings. The AMD driver's own methods are applied by [`crate::radeon`]
+//! while the game is in front; Lossless Scaling is not applied yet.
 
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -57,6 +58,17 @@ pub fn follow(active: Option<&str>, saved: Option<(UpscalingSettings, FrameGenSe
         state.frame_gen = frame_gen;
         state.seeded = true;
     }
+    apply(&state);
+}
+
+/// Asks the driver for what the active profile chooses, or gives its
+/// settings back when no profile is active.
+fn apply(state: &State) {
+    crate::radeon::follow(if state.profile.is_some() {
+        crate::radeon::want(state.upscaling, state.frame_gen)
+    } else {
+        crate::radeon::Want::default()
+    });
 }
 
 /// The choices now.
@@ -99,19 +111,22 @@ pub fn rate_index(rate: FrameGenRate) -> i32 {
 /// the sharpness is brought into range.
 pub fn set_upscaling(method: i32, sharpness: i32) {
     let (low, high) = SHARPNESS_RANGE;
-    STATE.lock().unwrap().upscaling = UpscalingSettings {
+    let mut state = STATE.lock().unwrap();
+    state.upscaling = UpscalingSettings {
         method: usize::try_from(method)
             .ok()
             .and_then(|i| UPSCALING.get(i).copied())
             .unwrap_or_default(),
         sharpness: sharpness.clamp(low as i32, high as i32) as u32,
     };
+    apply(&state);
 }
 
 /// Sets the frame generation from the page's indexes.
 pub fn set_frame_gen(method: i32, rate: i32, target_fps: i32) {
     let (low, high) = FRAME_GEN_TARGET_RANGE;
-    STATE.lock().unwrap().frame_gen = FrameGenSettings {
+    let mut state = STATE.lock().unwrap();
+    state.frame_gen = FrameGenSettings {
         method: usize::try_from(method)
             .ok()
             .and_then(|i| FRAME_GEN.get(i).copied())
@@ -122,6 +137,7 @@ pub fn set_frame_gen(method: i32, rate: i32, target_fps: i32) {
             .unwrap_or_default(),
         target_fps: target_fps.clamp(low as i32, high as i32) as u32,
     };
+    apply(&state);
 }
 
 /// How long a look at the Steam libraries is trusted.

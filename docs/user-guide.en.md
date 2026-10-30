@@ -552,7 +552,7 @@ A shelf that gathers what shapes a game's picture: resolution, refresh rate, the
 *Upscaling.* Three choices: None, AMD (RSR) or Lossless Scaling, with a sharpness from 0 to 100 %. *Frame generation.* None, AMD (AFMF) or Lossless Scaling; with Lossless Scaling, a multiplier of ×2, ×3 or ×4, or "Adaptive" with a target frame rate. The **Lossless Scaling** choice only appears when the application is installed (Steam, app 993090).
 
 > [!WARNING]
-> **Not applied yet.** Upscaling and frame generation are only **stored** in the game's profile: nothing switches them on yet, the drawers say "Not applied yet", and the service writes `image: upscaling … not applied yet` to its log when the profile applies.
+> **Radeon Super Resolution and Fluid Motion Frames** (the AMD method) are switched on in the graphics driver while the profile's game is in front, then the driver is put back as it was (the shell's log says `radeon: …`). **Not tried on the Ally yet.** If the driver refuses (absent or too old), the drawer says "Not applied yet". **Lossless Scaling** is not applied yet: its choice is only **stored** in the profile, the drawer says "Not applied yet", and the service writes `image: … not applied yet` to its log.
 
 > [!NOTE]
 > Display refresh, including per-game refresh, was tried on the Ally ([report](m5-report-2.md)). Resolution, resolution filtering and Lossless Scaling detection remain to be checked.

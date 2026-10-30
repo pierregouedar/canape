@@ -551,7 +551,7 @@ Une étagère qui regroupe ce qui touche à l'image d'un jeu : la résolution, l
 *Mise à l'échelle.* Trois choix : Aucune, AMD (RSR) ou Lossless Scaling, avec une netteté de 0 à 100 %. *Génération d'images.* Aucune, AMD (AFMF) ou Lossless Scaling ; avec Lossless Scaling, un multiplicateur ×2, ×3 ou ×4, ou « Adaptatif » avec une cadence cible. Le choix de **Lossless Scaling** n'apparaît que si l'application est installée (Steam, app 993090).
 
 > [!WARNING]
-> **Pas encore appliqué.** La mise à l'échelle et la génération d'images sont seulement **enregistrées** dans le profil du jeu : rien ne les active encore, les tiroirs l'indiquent par « Pas encore appliqué » et le service écrit dans son journal `image: upscaling … not applied yet` quand le profil s'applique.
+> **Radeon Super Resolution et Fluid Motion Frames** (méthode AMD) sont activés dans le pilote graphique tant que le jeu du profil est au premier plan, puis le pilote est remis comme il était (le journal du shell dit `radeon: …`). **Pas encore essayé sur l'Ally.** Si le pilote refuse (pilote absent ou trop ancien), le tiroir affiche « Pas encore appliqué ». **Lossless Scaling** n'est pas encore appliqué : son choix est seulement **enregistré** dans le profil, le tiroir l'indique par « Pas encore appliqué » et le service écrit `image: … not applied yet` dans son journal.
 
 > [!NOTE]
 > La fréquence de l'écran, y compris par jeu, a été essayée sur l'Ally ([rapport](m5-report-2.md)). La résolution, son filtrage et la détection de Lossless Scaling restent à vérifier.

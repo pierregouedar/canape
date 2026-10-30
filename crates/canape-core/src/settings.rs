@@ -210,16 +210,17 @@ impl Default for FrameGenSettings {
 
 impl Profile {
     /// What the image settings of this profile ask for that nothing applies
-    /// yet, one line each, for the log.
+    /// yet (the AMD driver's own methods are applied by the shell), one line
+    /// each, for the log.
     pub fn unapplied_image(&self) -> Vec<String> {
         let mut lines = Vec::new();
-        if self.upscaling.method != UpscalingMethod::None {
+        if self.upscaling.method == UpscalingMethod::LosslessScaling {
             lines.push(format!(
                 "image: upscaling {} not applied yet",
                 self.upscaling.method.name()
             ));
         }
-        if self.frame_gen.method != FrameGenMethod::None {
+        if self.frame_gen.method == FrameGenMethod::LosslessScaling {
             lines.push(format!(
                 "image: frame generation {} not applied yet",
                 self.frame_gen.method.name()
@@ -766,10 +767,7 @@ mod tests {
         assert_eq!(serde_json::from_str::<Profile>(&json).unwrap(), profile);
         assert_eq!(
             profile.unapplied_image(),
-            [
-                "image: upscaling AMD (RSR) not applied yet",
-                "image: frame generation Lossless Scaling not applied yet"
-            ]
+            ["image: frame generation Lossless Scaling not applied yet"]
         );
         assert_eq!(profile.resolution.unwrap().to_string(), "1600×900");
         // Partial image blocks take their defaults.

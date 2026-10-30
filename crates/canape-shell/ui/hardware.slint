@@ -808,8 +808,8 @@ export component HardwarePage inherits Rectangle {
         title: root.sheet == "fans" ? @tr("Fans") : root.sheet == "fps" ? @tr("Frame rate limit") : root.sheet == "controller" ? @tr("Controller") : root.sheet == "back" ? (root.paddle == 0 ? @tr("M1, right") : @tr("M2, left")) : root.sheet == "lighting" ? @tr("Stick lighting") : root.sheet == "gyro" ? @tr("Gyro aiming") : root.sheet == "screen" ? @tr("Refresh rate") : root.sheet == "resolution" ? @tr("Resolution") : root.sheet == "upscaling" ? @tr("Upscaling") : root.sheet == "framegen" ? @tr("Frame generation") : @tr("Charge limit");
         note: root.sheet == "fans" ? (App.status.fan-preset == "custom" ? @tr("Custom curves set by another client.") : App.status.foreground != "" ? @tr("{} · game profile", App.status.foreground) : "")
             : root.sheet == "back" ? root.target-names[grid.current]
-            : root.sheet == "upscaling" ? (App.image-upscaling != 0 ? @tr("Not applied yet") : "")
-            : root.sheet == "framegen" ? (App.image-frame-gen != 0 ? @tr("Not applied yet") : "")
+            : root.sheet == "upscaling" ? (App.image-upscaling == 2 || (App.image-upscaling == 1 && App.image-amd-failed) ? @tr("Not applied yet") : "")
+            : root.sheet == "framegen" ? (App.image-frame-gen == 2 || (App.image-frame-gen == 1 && App.image-amd-failed) ? @tr("Not applied yet") : "")
             : root.sheet == "lighting" ? (root.light-row == 3 && root.color-col == 0 ? @tr("Follows the accent colour") : "")
             : root.sheet == "gyro" ? (App.status.active-profile != "" ? @tr("{} · game profile", App.status.foreground) + " · " : "") + @tr("Moves the mouse while a game is in front. Games that only read the gamepad ignore it.")
             : "";

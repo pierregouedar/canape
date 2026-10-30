@@ -37,6 +37,7 @@ mod motion_server;
 #[cfg(any(windows, test))]
 mod nav;
 mod onboarding;
+mod radeon;
 mod renderer;
 mod report;
 mod screen;

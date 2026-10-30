@@ -191,6 +191,9 @@ export global App {
     in property <int> image-target-fps: 60;
     // Lossless Scaling is installed.
     in property <bool> lossless-scaling;
+    // The AMD driver could not be asked for the upscaling or frame
+    // generation the profile chose.
+    in property <bool> image-amd-failed;
     // The Ally's own buttons act on Canapé (shell.json).
     in property <bool> ally-buttons;
     // The graphics card draws the shell (shell.json): the other executable

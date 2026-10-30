@@ -421,6 +421,7 @@ fn refit_window(ui: &AppWindow, screen: (u32, u32)) {
 pub fn show_image(ui: &Weak<AppWindow>) {
     let (upscaling, frame_gen) = crate::image::current();
     let lossless = crate::image::lossless_installed();
+    let amd_failed = crate::radeon::failed();
     let _ = ui.upgrade_in_event_loop(move |ui| {
         let app = ui.global::<App>();
         app.set_image_upscaling(crate::image::upscaling_index(upscaling.method));
@@ -429,6 +430,7 @@ pub fn show_image(ui: &Weak<AppWindow>) {
         app.set_image_rate(crate::image::rate_index(frame_gen.rate));
         app.set_image_target_fps(frame_gen.target_fps as i32);
         app.set_lossless_scaling(lossless);
+        app.set_image_amd_failed(amd_failed);
     });
 }
 

@@ -20,6 +20,8 @@ pub mod mock;
 pub mod motion;
 pub mod pad;
 #[cfg(windows)]
+pub mod radeon;
+#[cfg(windows)]
 pub mod windows;
 
 #[derive(Debug, thiserror::Error)]
