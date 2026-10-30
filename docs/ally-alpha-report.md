@@ -189,6 +189,17 @@ Réinstallé depuis `main` (`ac8b0c2`, `62fbadb`, `7c8b2fe`).
 
 Page Matériel, étagère Batterie, tiroir « Limite de charge » (60 %, 80 %, 100 %). 60 % appliqué : `SetBatteryChargeLimit { percent: 60 } -> Ok`, carte « 60 % », `battery_charge_limit=60`. Mais la console était branchée et **déjà à 100 %** : pendant 5 min (relevé toutes les 30 s), `Win32_Battery` reste à 100 %, `BatteryStatus=2`, et `root\wmi BatteryStatus` donne `Charging=False`, `Discharging=False`, débit 0, capacité 32 207 mWh constante. La batterie ne se décharge pas vers 60 % sur secteur, et l'arrêt de la charge ne peut pas se voir à 100 %. Remis à 100 % (`-> Ok`). À refaire batterie sous 60 % (il faut débrancher pour la vider, geste de Pierre).
 
+### T5 Définition d'écran par profil et écran Image
+
+Définition réelle relue par `Win32_VideoController` (toutes les 3 s).
+
+- Among Us lancé depuis Canapé (l'écran des conditions d'utilisation du jeu reste affiché, non accepté). Retour dans Canapé : la page Matériel affiche « AMONG US », la carte Résolution devient active (désactivée sans jeu au premier plan). Tiroir : 1920×1080, 1600×900, 1280×720. 1280×720 + A : l'écran passe en **1280×720** tout de suite (`screen: 1280x720`). X « Enregistrer pour ce jeu » : `SaveProfile … resolution: Some(1280x720) -> Ok`, « Profil enregistré », en-tête « AMONG US · profil du jeu ».
+- Jeu fermé : **1920×1080** en 3 s (`screen: 1920x1080`).
+- Jeu relancé depuis Canapé : **1280×720** environ 4 s après le lancement, et toute la partie ; jeu fermé : retour à **1920×1080**. La fréquence reste 120 Hz.
+- Écran Image : Mise à l'échelle → « AMD (RSR) » et Génération d'images → « AMD (AFMF) » affichent **« Pas encore appliqué »** à côté du titre du tiroir, la carte prend la valeur. X enregistre : `upscaling: AmdRsr`, puis `frame_gen: AmdAfmf` dans le profil. Remis à « Aucune » et réenregistré.
+- Remarques : la fiche du jeu résume le profil par « Auto TDP désactivé » seulement, sans la définition. Le profil enregistre aussi le gyroscope et la fréquence courants.
+- Incident : en relançant, la touche droite a été perdue et **Catherine Classic** a été lancé à la place d'Among Us (l'ordre des Récents avait changé). Fermé au bout d'une minute environ, aucune touche envoyée au jeu.
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
