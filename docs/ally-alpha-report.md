@@ -271,6 +271,22 @@ Rejouée depuis Réglages › Système › Visite de bienvenue, toutes les étap
 
 `shell.json` comparé avant/après (clés comparées par longueur seulement) : seule différence `onboarding_step` 5 → 0 ; `onboarded` reste `true`, clés et autres réglages inchangés. Pas d'étape « clavier tactile » ni « presse-papiers » distincte : l'aide de l'étape Boutiques renvoie à A (saisir) et Y (coller). Le libellé « Tout appliqué » n'a pas été revu (rien n'a été appliqué).
 
+### T12 Rendu Fluide en jeu et repli
+
+Mesures par `Get-Process` (CPU rapporté à tous les cœurs, sur 10 à 15 s).
+
+| Situation | CPU | Mémoire de travail | Privée |
+|---|---|---|---|
+| Économe (`canape-shell`), accueil, repos | 0,1 % | 53 Mo | 28 Mo |
+| Fluide (`canape-shell-gpu`), accueil, repos | 0,1 % | 157 Mo | 200 Mo |
+| Fluide, Among Us au premier plan (deux relevés) | 0,1 % | 183 Mo | 255 Mo |
+| Fluide, retour après fermeture du jeu | 0,1 % | 182 Mo | 255 Mo |
+
+- Passage à Fluide par Réglages › Affichage : un seul `os error 10048` puis `listening` 2 s après, comme vu plus haut. L'en-tête de Canapé en Fluide affiche « 2 FPS » à l'accueil (le shell lui-même est compté).
+- Écart mesuré : environ 130 Mo de mémoire de travail et 230 Mo de privée en plus, conforme à l'avertissement « environ 300 Mo ». La fluidité ressentie en jeu n'a pas été jugée (personne devant la console).
+- **Repli : bug.** Shell arrêté, `canape-shell-gpu.exe` renommé, Canapé relancé : le journal dit `gpu renderer: canape-shell-gpu.exe not found next to this executable; back to the software renderer` et `shell.json` repasse à `software`, mais **le processus s'arrête aussitôt, sans fenêtre** (aucun `canape-shell` en cours 15 s après, aucun événement d'erreur). Le lancement suivant ouvre bien Canapé en Économe. Piste : `hand_over_at_startup` (`renderer.rs:145`) quitte quand `instance::acquire()` échoue ; ici aucune autre instance n'était lancée, donc la reprise du verrou semble échouer à tort. L'interface n'annonce pas le repli.
+- Remis : `canape-shell-gpu.exe` à sa place, Économe, shell en cours.
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.

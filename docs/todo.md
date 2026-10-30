@@ -24,7 +24,7 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [x] **11 bis. Clavier tactile resté ouvert.** Corrigé et vérifié sur `7c8b2fe` (fermé après A/A et après B).
 - [ ] **11 quater. Corrigé le 29 octobre, à revérifier sur l'Ally :** Widgets refusé par Windows (le tweak devient « verrouillé », la page ne reste plus bloquée), clavier tactile non détecté (fermeture forcée quand Canapé l'a ouvert), texte du dossier des jeux sans GOG. Reste : « 体中文 » et la police du chiffre « 1 à appliquer ».
 - [x] **11 ter. Visite :** « 中文 » lisible, texte du dossier sans GOG (vérifié le 30 octobre).
-- [ ] **12. Rendu Fluide en jeu.** Fluidité, consommation et repli. Démarrage dans l'écran Xbox plein écran avec le shell GPU.
+- [ ] **12. Rendu Fluide en jeu.** Mesuré le 30 octobre (environ 130 Mo de plus, CPU négligeable). **Bug** : quand `canape-shell-gpu.exe` manque, le shell journalise le repli puis se ferme sans fenêtre (`renderer.rs:145`). Reste : fluidité ressentie, démarrage Xbox plein écran en Fluide.
 - [ ] **13. Redémarrage de Windows.** Démarrage automatique dans l'écran Xbox plein écran, observé et journalisé.
 - [ ] **14. Script de désinstallation** (`uninstall-dev.ps1`).
 
