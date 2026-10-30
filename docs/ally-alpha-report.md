@@ -244,6 +244,17 @@ Réinstallé depuis `main` (`d1a2be4`). Fiche d'Among Us › Options :
 - Windows affiche une fois sa propre bulle « Vous avez besoin d'un clavier tactile ? » au-dessus du clavier (non touchée).
 - `overrides.json` reste vide. Corrigé.
 
+### Vérification de `abcc7ee` (limite de FPS, fenêtre, widget)
+
+Réinstallé depuis `main`, widget recompilé et réinstallé (`build-widget.ps1`, paquet du 30 octobre 21:51). Après cette réinstallation, l'icône Canapé avait disparu de la barre de la Game Bar : remise par le menu Widgets › Canapé.
+
+- **Limite de FPS sans profil** : Among Us sans profil (pas de pastille « profil du jeu »), widget › Matériel › Limite de FPS › 30 (`SetFpsLimit 30 -> Ok`, état 30). Jeu fermé : `ForegroundApp None`, limite **Aucune**. Corrigé.
+- **Fond après 720p** : profil Among Us en 1280×720 enregistré depuis Canapé (`SaveProfile … 1280x720`) ; au passage en 720p le journal note `window: 1920x1080 on a 1280x720 screen, full screen again`. Jeu fermé : `screen: 1920x1080`, et le fond de l'accueil couvre toute la largeur (capture). Corrigé.
+- **« Enregistré » dans le widget : non vu.** Jeu au premier plan, un seul clic sur « Enregistrer pour ce jeu » suffit cette fois (`SaveForegroundProfile { part: Hardware } -> Ok`), mais le bouton garde « Enregistrer pour ce jeu » sur les captures prises 0,4 s, 1 s et 3 s après. Le service a bien reçu la demande ; c'est l'affichage du widget qui ne change pas (la réponse n'est peut-être pas reconnue par `SendAsync`).
+- **Premier clic** : la fois précédente, le premier clic n'avait rien fait ; cette fois le widget venait d'être ouvert par un clic et un seul clic a suffi. Cela ressemble à la Game Bar qui active d'abord la fenêtre du widget, sans certitude.
+- Vu en passant : l'horloge de la Game Bar reste figée (21:52 affiché à 21:55) alors que les valeurs du widget bougent.
+- Remis : profil supprimé (`profiles: []`), limite de FPS Aucune, 1920×1080.
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
