@@ -330,6 +330,16 @@ Réinstallé (`install-dev.ps1 -SetAsHomeApp`, `build-widget.ps1`).
 - Vus en passant : « art of rally Standard Edit… » tronqué, Heaven Benchmark sans jaquette.
 
 **État laissé sur la machine** : Canapé `19b4c7e` installé, accueil plein écran Canapé, service en automatique, widget installé (à épingler de nouveau dans la Game Bar, menu Widgets) ; Turbo, étagère Processeur agressif / 0 % / 2 000 MHz, éclairage arc-en-ciel, gyroscope désactivé avec serveur de mouvement actif, limite de charge 100 %, aucune limite de FPS, aucun profil de jeu ; Économe, accent #f97316, `onboarded=true`, clé Steam intacte ; optimisations Windows comme au départ (13 appliquées par Canapé, Widgets verrouillé, services ASUS non touchés). Deux écarts venus de Windows et laissés tels quels : `GameDVR_Enabled` revenu à 1 (sa valeur d'origine) et `LightingService` (ASUS, démarrage manuel) arrêté depuis le redémarrage.
+### Radeon Super Resolution et Fluid Motion Frames par le profil (`c4a51e1`)
+
+Premier essai du code `radeon.rs` sur l'Ally. Sauvegardes préalables : `shell.json`, `state.json`, export de la clé du pilote AMD. AMD Adrenalin n'est pas installé : l'état réel est lu dans les valeurs du pilote (`Gmx_RSREnabled`, `DrvFrameGenEnabled`) et dans l'instantané que Canapé journalise. Profil Among Us créé par `canape-ctl save_profile`, jeu lancé depuis Canapé (écran des conditions non accepté).
+
+- **Avant** : `Gmx_RSREnabled=3`, `DrvFrameGenEnabled=0` ; instantané `rsr: enabled true, sharpness 20 ; afmf: enabled false`. **RSR était déjà actif** chez Pierre, netteté 20.
+- **RSR seul (netteté 50)** : `radeon: driver opened, was Snapshot { rsr: Some(Setting { enabled: true, sharpness: Some(20) }), afmf: Some(Setting { enabled: false, sharpness: None }) }` 3 s après le lancement, aucune erreur. Tiroir Mise à l'échelle « AMD (RSR) », netteté 50 %, sans « Pas encore appliqué ». Jeu fermé : `radeon: settings given back`. (Le passage de 20 à 50 ne se lit pas dans le registre.)
+- **AFMF seul** : premier lancement sans aucune ligne `radeon:` : le profil modifié par `canape-ctl` n'était pas connu du shell, qui n'a relu les profils qu'à son redémarrage (`shared.profiles` non rafraîchi). Après redémarrage du shell : tiroir Génération d'images « AMD (AFMF) » sans « Pas encore appliqué », `amdadlx64.dll` chargé, mais **la ligne `driver opened` manque** au journal ; à la fermeture du jeu, `settings given back` apparaît bien. État du pilote pendant le jeu non relevé pour ce tour.
+- **RSR + AFMF** : `driver opened, was` identique au premier tour (preuve que RSR avait bien été rendu à 20 et AFMF à off). **Pendant le jeu, `DrvFrameGenEnabled=1`** : le pilote a réellement changé. Le compteur d'images reste à 60 (écran des conditions, statique). Jeu fermé : `settings given back`, valeurs du pilote identiques à celles d'avant. Shell resté réactif tout du long, aucun plantage.
+- Remarques : la fiche du jeu ne mentionne ni RSR ni AFMF dans le résumé du profil ; l'effet visuel (netteté, images générées) n'a pas été jugé à l'œil.
+- Remis : profil supprimé (`profiles: []`), `shell.json` inchangé, pilote comme avant.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
