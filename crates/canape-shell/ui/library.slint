@@ -1054,6 +1054,9 @@ component TextField inherits Rectangle {
     init => {
         input.focus();
         input.select-all();
+        // The field already has the focus when it appears, so the
+        // has-focus change above never reports it: ask for the keyboard here.
+        Library.text-entry(true);
     }
 }
 
