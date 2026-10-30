@@ -217,6 +217,12 @@ Fiche du jeu, Y « Options » : Renommer, Catégories, Retirer de la bibliothèq
 - **Par l'interface** (Réglages › Bibliothèque › Ajouter un jeu) : la liste lit les raccourcis du menu Démarrer (Deluge `deluge.exe`, Heaven Benchmark 4.0, Tailscale `tailscale-ipn.exe`) ; une entrée déjà présente porte « Ajouté ». A sur Heaven **le retire tout de suite, sans confirmation** (`add games: removed`, la ligne affiche alors `heaven.bat`), A à nouveau le remet (`added`). Le retrait a été fait par erreur : la ligne « Jeux masqués » disparaît quand elle est vide, et la liste remonte d'un cran sous le curseur. `games.json` final identique à celui de départ.
 - Le compteur « Installés » des Réglages reste à 17 après le retrait de l'entrée, jusqu'à la relecture suivante de la bibliothèque.
 
+### T9 Éclairage et gyroscope par l'interface (partiel)
+
+- **Éclairage** (Matériel › Manette › Éclairage des sticks) : Luminosité, Effet, Vitesse et 10 pastilles (la première « Suit la couleur d'accent »). Changer l'effet marque la valeur d'un point orange et propose « A Appliquer » ; les effets vus : Arc-en-ciel, Cycle de couleurs, Respiration, Fixe, Stroboscope. « Fixe » + A : `SetLighting … effect: Steady -> Ok`, carte « Fixe », Vitesse grisée, pastilles vives. Pastille verte + A : `color: Some("#10b981") -> Ok`. La couleur réelle des sticks n'a pas été regardée (personne devant la console). Remis en arc-en-ciel, niveau 3, rapide.
+- **Gyroscope** (Visée au gyroscope › Actif) : Désactivé → « Tant qu'une palette arrière est tenue » (`hold`) → « Une palette arrière l'active et le coupe » (`toggle`) → « Toujours » (`always`) → Désactivé ; chaque cran est appliqué tout de suite par le service. Remis à Désactivé.
+- **Non essayé** : l'effet réel dans Among Us, palette tenue ou basculée en bougeant la console. Il faut quelqu'un qui tient l'Ally.
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
