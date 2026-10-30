@@ -287,6 +287,16 @@ Mesures par `Get-Process` (CPU rapporté à tous les cœurs, sur 10 à 15 s).
 - **Repli : bug.** Shell arrêté, `canape-shell-gpu.exe` renommé, Canapé relancé : le journal dit `gpu renderer: canape-shell-gpu.exe not found next to this executable; back to the software renderer` et `shell.json` repasse à `software`, mais **le processus s'arrête aussitôt, sans fenêtre** (aucun `canape-shell` en cours 15 s après, aucun événement d'erreur). Le lancement suivant ouvre bien Canapé en Économe. Piste : `hand_over_at_startup` (`renderer.rs:145`) quitte quand `instance::acquire()` échoue ; ici aucune autre instance n'était lancée, donc la reprise du verrou semble échouer à tort. L'interface n'annonce pas le repli.
 - Remis : `canape-shell-gpu.exe` à sa place, Économe, shell en cours.
 
+### T14 Désinstallation (`uninstall-dev.ps1`) et réinstallation
+
+Fait avant T13 : le redémarrage coupe la session de test, et T13 vérifie ainsi aussi le démarrage après réinstallation. Sauvegarde préalable (hors dépôt) : `%LOCALAPPDATA%\Canape`, `state.json`, binaires de `C:\Program Files\Canape`, clé `GamingConfiguration`, état du service, relevé réel des optimisations Windows.
+
+- Script lancé en administrateur, code 0. Il liste les 15 applications retirées par Canapé (à réinstaller depuis le Store si besoin), puis : `CanapeService removed`, paquets retirés, `GamingHomeApp removed (Canape_84zrj1c9kn010!App)`, dossier d'installation supprimé, données et certificat gardés.
+- **Ce qui reste** : plus de service, plus de paquet `Canape` ni `Canape.Widget`, plus de `C:\Program Files\Canape`, aucun processus `canape*`. Restent `C:\ProgramData\Canape` (`state.json`, `service.log`), `%LOCALAPPDATA%\Canape` (14 fichiers, `shell.json` avec la clé Steam intacte) et le certificat `CN=Canape Dev`. `GamingHomeApp` est supprimée (`StartupToGamingHome` reste à 1, l'accueil plein écran revient donc à celui de Windows).
+- **Rendu à Windows** : optimisations rétablies (Copilot, recherche, télémétrie… aux valeurs d'avant Canapé, temps réel Defender réactivé, exclusions vides), plan d'alimentation remis à ses valeurs (boost 2/2, préférence 25/60, fréquence 0/4000), éclairage rendu à la manette. Le script ne le dit pas pour le processeur, mais c'est relu par `powercfg`.
+- **Réinstallation** `install-dev.ps1 -SetAsHomeApp` puis `build-widget.ps1` : codes 0, `GamingHomeApp = Canape_84zrj1c9kn010!App`, service démarré automatique, deux paquets présents, Canapé s'ouvre sur l'accueil (capture), `onboarded=true`, aucun profil, Turbo. Le service ne reprend pas de lui-même les optimisations ni l'étagère Processeur : remises par `set_tweak` (13 réglages) et `set_cpu_power` (agressif, 0 %, 2 000 MHz). Éclairage remis en arc-en-ciel. **Relevé final des optimisations identique à celui d'avant la désinstallation.**
+- Vu en passant : `GameDVR_Enabled` valait 0 avant la désinstallation, alors que Canapé l'avait remis à 1 à 20:25 et que rien dans le journal du service ne l'a changé depuis (la Game Bar a été beaucoup utilisée pendant T10). Laissé tel quel.
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.

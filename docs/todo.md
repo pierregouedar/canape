@@ -26,7 +26,7 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [x] **11 ter. Visite :** « 中文 » lisible, texte du dossier sans GOG (vérifié le 30 octobre).
 - [ ] **12. Rendu Fluide en jeu.** Mesuré le 30 octobre (environ 130 Mo de plus, CPU négligeable). **Bug** : quand `canape-shell-gpu.exe` manque, le shell journalise le repli puis se ferme sans fenêtre (`renderer.rs:145`). Reste : fluidité ressentie, démarrage Xbox plein écran en Fluide.
 - [ ] **13. Redémarrage de Windows.** Démarrage automatique dans l'écran Xbox plein écran, observé et journalisé.
-- [ ] **14. Script de désinstallation** (`uninstall-dev.ps1`).
+- [x] **14. Script de désinstallation** (`uninstall-dev.ps1`). Éprouvé le 30 octobre : tout est retiré, Windows rendu, données gardées ; réinstallation OK. À savoir : la réinstallation ne réapplique ni les optimisations ni l'étagère Processeur.
 
 Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éclairage par commandes ; fréquence d'écran par profil ; Epic (installation, lancement, désinstallation) ; gyroscope et serveur de mouvement ; auto TDP, banc d'essai, limite de FPS, ventilateurs, mode manette ; bascule Économe/Fluide ; widget (modes de puissance, Auto TDP, profil du jeu) ; préférence énergétique ; Game DVR (registre) ; pleine puissance (T1) ; étagère Processeur (T2) ; serveur de mouvement après changement de rendu ; visite rejouée qui garde `onboarded`.
 
