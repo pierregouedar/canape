@@ -8,7 +8,7 @@
 //! Called from the user session (the shell): the driver refuses 3D settings
 //! to a service in session 0.
 //!
-//! UNTESTED on the device: checked only by `cargo check` for Windows.
+//! Tried on the device: RSR and AFMF switch on and the driver is given back.
 
 use std::ffi::c_void;
 

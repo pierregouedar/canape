@@ -21,6 +21,12 @@ struct State {
     /// Whether they were read from that profile (its list can arrive
     /// after the status that names it).
     seeded: bool,
+    /// What the profile held when they were read: a change made elsewhere
+    /// since (the profile list arrives late, or `canape-ctl`) is taken up
+    /// as long as the page has not edited the choices.
+    read: Option<(UpscalingSettings, FrameGenSettings)>,
+    /// The page edited the choices since.
+    edited: bool,
     upscaling: UpscalingSettings,
     frame_gen: FrameGenSettings,
 }
@@ -28,6 +34,8 @@ struct State {
 static STATE: Mutex<State> = Mutex::new(State {
     profile: None,
     seeded: false,
+    read: None,
+    edited: false,
     upscaling: UpscalingSettings {
         method: UpscalingMethod::None,
         sharpness: 50,
@@ -51,12 +59,13 @@ pub fn follow(active: Option<&str>, saved: Option<(UpscalingSettings, FrameGenSe
         };
     }
     if active.is_some()
-        && !state.seeded
         && let Some((upscaling, frame_gen)) = saved
+        && (!state.seeded || (!state.edited && state.read != saved))
     {
         state.upscaling = upscaling;
         state.frame_gen = frame_gen;
         state.seeded = true;
+        state.read = saved;
     }
     apply(&state);
 }
@@ -112,6 +121,7 @@ pub fn rate_index(rate: FrameGenRate) -> i32 {
 pub fn set_upscaling(method: i32, sharpness: i32) {
     let (low, high) = SHARPNESS_RANGE;
     let mut state = STATE.lock().unwrap();
+    state.edited = true;
     state.upscaling = UpscalingSettings {
         method: usize::try_from(method)
             .ok()
@@ -126,6 +136,7 @@ pub fn set_upscaling(method: i32, sharpness: i32) {
 pub fn set_frame_gen(method: i32, rate: i32, target_fps: i32) {
     let (low, high) = FRAME_GEN_TARGET_RANGE;
     let mut state = STATE.lock().unwrap();
+    state.edited = true;
     state.frame_gen = FrameGenSettings {
         method: usize::try_from(method)
             .ok()
@@ -203,6 +214,24 @@ mod tests {
         assert_eq!(current().0.sharpness, 100);
         follow(Some("a.exe"), Some(saved));
         assert_eq!(current().0.sharpness, 100);
+        follow(None, None);
+        // A profile changed elsewhere after it was read is taken up, until
+        // the page edits it.
+        let changed = (
+            UpscalingSettings {
+                method: UpscalingMethod::AmdRsr,
+                sharpness: 80,
+            },
+            FrameGenSettings::default(),
+        );
+        follow(Some("b.exe"), Some(saved));
+        assert_eq!(current(), saved);
+        follow(Some("b.exe"), Some(changed));
+        assert_eq!(current(), changed);
+        set_upscaling(0, 10);
+        follow(Some("b.exe"), Some(saved));
+        assert_eq!(current().0.method, UpscalingMethod::None);
+        follow(Some("a.exe"), Some(saved));
         set_frame_gen(2, 3, 10);
         assert_eq!(current().1.rate, FrameGenRate::Adaptive);
         assert_eq!(current().1.target_fps, 30);

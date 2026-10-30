@@ -784,7 +784,7 @@ component GamePage inherits Rectangle {
                     }
 
                     Text {
-                        text: (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "") + (profile.fps-limit > 0 ? " · " + @tr("limit {}", App.fps-value(profile.fps-limit)) : "") + (profile.cpu-power ? " · " + @tr("CPU settings") : "") + (profile.screen != "" ? " · " + profile.screen : "");
+                        text: (profile.auto-tdp ? App.fps-value(profile.target-fps) + " · " + App.watts(profile.min-watts) + "–" + App.watts(profile.max-watts) : @tr("Auto TDP off")) + (profile.learned-watts >= 0 ? " · " + @tr("{} learned", App.watts(profile.learned-watts)) : "") + (profile.fps-limit > 0 ? " · " + @tr("limit {}", App.fps-value(profile.fps-limit)) : "") + (profile.cpu-power ? " · " + @tr("CPU settings") : "") + (profile.screen != "" ? " · " + profile.screen : "") + (profile.image != "" ? " · " + profile.image : "");
                         color: Theme.text;
                         font-size: 16px;
                         font-weight: 600;

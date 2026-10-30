@@ -646,7 +646,30 @@ fn profile_view(profile: &Profile) -> ProfileView {
         fps_limit: profile.fps_limit.map_or(0, |f| f as i32),
         cpu_power: profile.cpu_power.is_some_and(|p| !p.is_default()),
         screen: screen_text(profile).into(),
+        image: image_text(profile).into(),
     }
+}
+
+/// The upscaling and frame generation a profile asks for, as shown on the
+/// game page.
+fn image_text(profile: &Profile) -> String {
+    use canape_core::{FrameGenMethod, UpscalingMethod};
+    let up = match profile.upscaling.method {
+        UpscalingMethod::None => None,
+        UpscalingMethod::AmdRsr => Some(format!("RSR {}", profile.upscaling.sharpness)),
+        UpscalingMethod::LosslessScaling => Some("Lossless Scaling".to_owned()),
+    };
+    let generation = match profile.frame_gen.method {
+        FrameGenMethod::None => None,
+        FrameGenMethod::AmdAfmf => Some("AFMF".to_owned()),
+        FrameGenMethod::LosslessScaling if up.is_some() => None,
+        FrameGenMethod::LosslessScaling => Some("Lossless Scaling".to_owned()),
+    };
+    [up, generation]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join(" · ")
 }
 
 /// The screen mode a profile asks for, as shown on the game page.
