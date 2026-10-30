@@ -223,6 +223,18 @@ Fiche du jeu, Y « Options » : Renommer, Catégories, Retirer de la bibliothèq
 - **Gyroscope** (Visée au gyroscope › Actif) : Désactivé → « Tant qu'une palette arrière est tenue » (`hold`) → « Une palette arrière l'active et le coupe » (`toggle`) → « Toujours » (`always`) → Désactivé ; chaque cran est appliqué tout de suite par le service. Remis à Désactivé.
 - **Non essayé** : l'effet réel dans Among Us, palette tenue ou basculée en bougeant la console. Il faut quelqu'un qui tient l'Ally.
 
+### T10 Widget
+
+Among Us lancé depuis Canapé, Game Bar ouverte (Win+G), widget Canapé ouvert à la souris.
+
+- En-tête : « Among Us · profil du jeu », consommation, images/s, température, courbe. Onglet **Puissance** : modes, limite de puissance (« Fixé par le mode du firmware » en Turbo). Onglet **Matériel** : Ventilateurs (Auto, Équilibré, Maximum), Limite de FPS, Limite de charge, Manette (Manette, Clavier, Souris).
+- **Limite de FPS** › : 30 FPS (`SetFpsLimit 30 -> Ok`), mais le jeu déjà lancé reste à environ 120 FPS. « Enregistrer pour ce jeu » : `SaveForegroundProfile { part: Hardware } -> Ok`, `fps_limit: 30` dans le profil. Le premier clic sur un bouton du widget ne fait que lui donner le focus ; aucune confirmation visible après l'enregistrement.
+- Jeu fermé, la limite courante reste à 30 (elle n'est pas rendue à la sortie du jeu) ; remise à Aucune pour que le profil diffère des réglages. **Jeu relancé** : `fps_limit=30` dès le premier relevé, puis **30,0 FPS** stables pendant 30 s, et la définition du profil (1280×720) appliquée. La limite du pilote ne prend donc effet qu'au démarrage du jeu.
+- **« Ouvrir Canapé ›»** (deuxième clic) : Canapé repasse devant, sur la fiche d'Among Us, qui résume maintenant le profil par « Auto TDP désactivé · limite 30 FPS » ; l'en-tête affiche 31 FPS.
+- **Bouton Armoury depuis un jeu : non essayé**, il faut appuyer sur la touche de la console.
+- Vu en passant : au retour de 720p à 1080p, le fond de l'accueil de Canapé ne couvre plus que les 1280 premiers pixels de large (capture), jusqu'au rafraîchissement suivant.
+- Remis : profil Among Us supprimé (`profiles: []`, comme au départ), limite de FPS Aucune, 1920×1080.
+
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.

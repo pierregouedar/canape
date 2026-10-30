@@ -13,13 +13,13 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [x] **1. Pleine puissance dans Canapé et animations allégées.** Éprouvé le 29 octobre (rapport, T1). Reste : la fluidité ressentie, à juger par Pierre.
 - [x] **2. Étagère Processeur depuis l'interface.** Éprouvé le 29 octobre (T2), libellés corrigés et revérifiés.
 - [x] **3. Page Optimisations Windows refaite.** Éprouvé le 30 octobre sur `7c8b2fe` : Widgets « Indisponible », Rétablir, réapplication, liste Applications, état Windows remis (diff vide). Reste : libellé « Tout est appliq… » tronqué.
-- [ ] **4. Limite de charge de la batterie.** Le service accepte 80 %, mais l'arrêt réel de la charge n'est pas mesuré (console branchée sous 80 %).
-- [ ] **5. Définition d'écran par profil et écran Image.** Seule la fréquence d'écran a été essayée. La résolution (720p) et les choix d'image ne sont pas vérifiés.
-- [ ] **6. Options d'un jeu.** Renommer, catégories, masquer, retirer, clavier tactile. Le menu s'ouvre et Désinstaller marche ; le reste non.
-- [ ] **7. Ajouter d'autres jeux** (`games.json`, raccourcis).
+- [ ] **4. Limite de charge de la batterie.** Réglage par l'interface vérifié le 30 octobre, mais batterie à 100 % : l'arrêt et la reprise de la charge restent à observer avec la batterie sous 60 % (il faut débrancher).
+- [x] **5. Définition d'écran par profil et écran Image.** Éprouvé le 30 octobre (720p au lancement, 1080p au retour, « Pas encore appliqué »). Reste : la fiche du jeu ne résume pas la définition.
+- [ ] **6. Options d'un jeu.** Renommer, catégories, retirer et réafficher éprouvés le 30 octobre. **Bug** : le clavier tactile ne s'ouvre pas dans Renommer ni dans Nouvelle catégorie.
+- [x] **7. Ajouter d'autres jeux.** Éprouvé le 30 octobre. À revoir : A retire une entrée sans confirmation, et la liste remonte quand « Jeux masqués » disparaît.
 - [ ] **8. Durées IGDB, succès Steam, images SteamGridDB, icônes.** Nécessitent les clés de Pierre.
-- [ ] **9. Éclairage par l'interface** (page Matériel) et **gyroscope avec palette** (modes maintenir et basculer).
-- [ ] **10. Widget.** Onglet Matériel, application d'un profil différent des réglages courants, bouton Armoury depuis un jeu.
+- [ ] **9. Éclairage par l'interface et gyroscope avec palette.** Réglages éprouvés le 30 octobre ; reste l'essai physique (palette tenue ou basculée en bougeant la console dans un jeu) et la couleur réelle des sticks.
+- [ ] **10. Widget.** Onglet Matériel, enregistrement et application au lancement éprouvés le 30 octobre. Reste : le bouton Armoury depuis un jeu (geste physique). À revoir : la limite de FPS n'agit qu'au lancement du jeu, et reste active après sa fermeture.
 - [ ] **11. Visite de bienvenue : étapes non vues.** Optimisations, affichage, clés, clavier tactile, presse-papiers.
 - [x] **11 bis. Clavier tactile resté ouvert.** Corrigé et vérifié sur `7c8b2fe` (fermé après A/A et après B).
 - [ ] **11 quater. Corrigé le 29 octobre, à revérifier sur l'Ally :** Widgets refusé par Windows (le tweak devient « verrouillé », la page ne reste plus bloquée), clavier tactile non détecté (fermeture forcée quand Canapé l'a ouvert), texte du dossier des jeux sans GOG. Reste : « 体中文 » et la police du chiffre « 1 à appliquer ».
