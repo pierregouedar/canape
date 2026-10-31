@@ -10,6 +10,12 @@ Sur la RC71L, Among Us démarre depuis la fiche Canapé avec Steam déjà ouvert
 
 Essai complémentaire avec Steam déjà ouvert : lancer directement la même commande avec `Start-Process -WindowStyle Hidden` donne encore `steamwebhelper` au premier plan pendant huit mesures à 250 ms avant le jeu. Masquer la fenêtre initiale du processus ne suffit donc pas à supprimer ce passage. Il faut préserver les éventuels dialogues utiles du lanceur, et vérifier toute autre approche sur l'Ally.
 
+## Diagnostic et correctif du 31 octobre
+
+Relevé sur l'Ally (Among Us, trois lancements depuis Canapé, `EnumWindows` toutes les ~110 ms, voir le [rapport](ally-alpha-report.md)) : une seule fenêtre Steam apparaît, « Lancement… », classe `SDL_app`, processus `steamwebhelper`, 600 × 286 au centre, et elle prend le premier plan à Canapé. Avec Steam ouvert, elle reste visible 2,8 s avant le jeu ; avec Steam fermé, environ 7 s de démarrage sans fenêtre, puis la même fenêtre 2,6 s. La fenêtre principale de Steam ne s'affiche jamais. La réduire (`SW_MINIMIZE`) dès qu'elle est vue n'empêche pas le jeu de démarrer.
+
+Correctif (`steamveil.rs`) : après un lancement par Steam depuis Canapé, un fil surveille les fenêtres pendant 40 s et réduit toute fenêtre de classe `SDL_app`, de `steamwebhelper.exe` ou `steam.exe`, de moins de 800 × 400. Le client Steam, plus grand, n'est jamais touché. **À vérifier sur l'Ally** : que le jeu prenne bien le premier plan, et que le flash de moins de 100 ms avant la réduction ne se voie pas.
+
 ## Installation d'un jeu possédé
 
 L'installation suit un autre chemin : Canapé essaie de mettre le téléchargement dans la file de Steam, puis démarre ou redémarre Steam discrètement lorsque c'est possible. Si la mise en file n'est pas possible ou ne démarre pas à temps, il utilise `steam://install/<appid>` et Steam peut afficher sa fenêtre d'installation. Le repli a été essayé sur l'Ally. Le 28 octobre, le journal montre aussi une installation de Toribash mise en file, prise en charge par Steam et terminée ; sans observation continue, elle ne prouve pas l'absence de fenêtre. Voir le [rapport de campagne](ally-alpha-report.md#lancement-steam-et-limite-de-fps) et le [guide utilisateur](user-guide.fr.md#installer-des-jeux-possédés).

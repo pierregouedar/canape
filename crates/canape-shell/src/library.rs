@@ -1121,6 +1121,10 @@ impl State {
         ));
 
         let fixture = self.fixture;
+        if !fixture && crate::steamveil::through_steam(&game.launch) {
+            // Steam's "Launching…" dialog would take the screen from Canapé.
+            crate::steamveil::watch();
+        }
         let (id, title) = (game.id.clone(), game.title.clone());
         // A refused anti-cheat prompt is not shown again before every
         // launch of the session.

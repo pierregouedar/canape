@@ -43,6 +43,7 @@ mod renderer;
 mod report;
 mod screen;
 mod shelves;
+mod steamveil;
 mod timetobeat;
 mod touchkb;
 mod tweaks;
