@@ -483,6 +483,19 @@ Aucun jeu lancé, rien installé, rien écrit dans la configuration de Lossless 
 - **Valeurs du pilote** (clé `Class\{4d36e968…}`, une seule carte, `0000` « AMD Radeon Graphics », sous-clés comprises) dont le nom contient Shader, Cache, Boost, MinClock, MinGfx, GPUTuning ou Tuning : `KMD_RadeonBoostEnabled` (DWORD) = 0, `KMD_BoostAdaptiveVrsEnabled` (DWORD) = 0, `UMD\ShaderCache` (chaîne) = `1`, `UMD\DXVA\EnablePCOMShaders` (chaîne) = `1`, `UMD\DXVA\EnableOCLShaders` (chaîne) = `1`. Aucune valeur MinClock, MinGfx ni Tuning.
 - **ADLX** (`amdadlx64.dll` 1.5.0.124) : les noms d'interfaces suivants figurent dans la DLL : `IADLX3DBoost`, `IADLX3DBoost1`, `IADLX3DResetShaderCache`, `IADLXGPUTuningServices`, `IADLXGPUTuningServices1`, `IADLXGPUAutoTuning`, `IADLXGPUPresetTuning`, `IADLXManualGraphicsTuning1` et `2`, `IADLXManualVRAMTuning1` et `2`, `IADLXManualPowerTuning` et `1`, `IADLXManualFanTuning` et `1`, `IADLXPowerTuningServices` et `1`. C'est la présence dans la bibliothèque, pas la prise en charge par la puce : non interrogé (`IsSupported…`). Pas d'interface « réglage du cache de shaders » au-delà de sa remise à zéro (`IADLX3DResetShaderCache`).
 - **Processeur** : « AMD Ryzen Z1 Extreme », 8 cœurs, 16 processeurs logiques, 3 301 MHz annoncés : un **Z1 Extreme** (8 cœurs Zen 4).
+### FPS avec et sans génération d'images AMD (accord de Pierre)
+
+Among Us lancé depuis Canapé, deux fois, 30 relevés de `get_status` à une seconde d'écart après 20 s ; le jeu reste sur l'écran des conditions d'utilisation (non accepté, image fixe).
+
+| Essai | FPS (ADL) | Consommation moyenne |
+|---|---|---|
+| Sans profil | 59,9 à 60,1, moyenne 60,0 | 8,1 W |
+| Profil AFMF (`radeon: driver read` puis `settings given back`, aucune erreur) | 59,9 à 60,1, moyenne 60,0 | 12,2 W |
+
+- Le compteur d'ADL ne voit pas les images générées par AFMF : il compte celles que le jeu présente (60, plafond d'Among Us). La hausse de 4,1 W indique que le pilote fait bien un travail en plus.
+- Limites : image fixe (AFMF peut s'effacer quand rien ne bouge), un seul jeu, pas d'œil humain sur l'écran. Une vraie mesure des images affichées demandera un autre compteur (PresentMon ou la superposition AMD), ou un jeu en mouvement regardé par Pierre.
+- Génération d'images de Lossless Scaling : non essayée, elle demande de lancer Lossless Scaling et d'écrire dans ses réglages ou d'appuyer sur son raccourci.
+- Remis : profil supprimé, pilote identique à l'origine (861 valeurs), premier plan vide.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
