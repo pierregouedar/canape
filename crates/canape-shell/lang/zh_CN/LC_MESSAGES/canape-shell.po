@@ -1303,3 +1303,9 @@ msgstr "再按一次 A 即可移除"
 
 msgid "The graphics card renderer did not start: back to the light one."
 msgstr "显卡渲染器未能启动，已改回轻量渲染。"
+
+msgid "Compare CPU boost"
+msgstr "比较 CPU 加速"
+
+msgid "Better with the CPU boost off"
+msgstr "关闭 CPU 加速更好"

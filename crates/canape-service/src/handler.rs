@@ -6,9 +6,9 @@ use canape_core::settings::{
     DEFAULT_ACCENT, FPS_LIMIT_RANGE, GYRO_SENSITIVITY_RANGE, MOTION_PORT_RANGE,
 };
 use canape_core::{
-    AutoTdpSettings, BackButtons, BenchPlan, BenchProgress, BenchReport, ControllerMode, CpuPower,
-    Fan, FanCurve, FanCurves, FanPreset, GyroSettings, Lighting, PerformanceMode, Profile,
-    ProfilePart, Request, Response, Status, TweakId, protocol,
+    AutoTdpSettings, BackButtons, BenchPlan, BenchProgress, BenchReport, ControllerMode, CpuBoost,
+    CpuPower, Fan, FanCurve, FanCurves, FanPreset, GyroSettings, Lighting, PerformanceMode,
+    Profile, ProfilePart, Request, Response, Status, TweakId, protocol,
 };
 use canape_hw::{Device, HwError, Telemetry};
 use serde::{Deserialize, Serialize};
@@ -528,10 +528,11 @@ impl Handler {
                 cpu_temp: telemetry.cpu_temp_c,
             };
             match run.tick(reading) {
-                Some(Step::SetTdp(watts)) => {
+                Some(Step::Set { watts, boost }) => {
                     if self.device.set_tdp(watts).is_ok() {
                         self.tdp_watts = Some(watts);
                     }
+                    self.bench_boost(boost);
                 }
                 Some(Step::Done) => {
                     let run = self.bench.take().expect("bench is running");
@@ -1045,6 +1046,7 @@ impl Handler {
             step_watts: plan.step_watts.max(1),
             settle_secs: plan.settle_secs.max(1),
             measure_secs: plan.measure_secs.max(1),
+            compare_boost: plan.compare_boost,
         };
         let started = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -1052,12 +1054,28 @@ impl Handler {
         let snapshot = self.saved();
         let (run, first) = BenchRun::new(plan, self.foreground.clone(), started);
         self.controller = None;
-        if let Response::Error { message } = self.set_tdp(first) {
+        if let Response::Error { message } = self.set_tdp(first.0) {
             return Response::Error { message };
         }
         self.before_bench = Some(snapshot);
         self.bench = Some(run);
         Response::Ok
+    }
+
+    /// The processor boost for a bench step: off when the step compares it,
+    /// otherwise what it was before the bench.
+    fn bench_boost(&mut self, boost: Option<bool>) {
+        let Some(base) = self.before_bench.as_ref().map(|s| s.cpu_power) else {
+            return;
+        };
+        let power = match boost {
+            Some(false) => CpuPower {
+                boost: Some(CpuBoost::Disabled),
+                ..base
+            },
+            _ => base,
+        };
+        self.apply_cpu_power(power);
     }
 
     /// Keeps the report and gives the power back to what ran before.
@@ -1078,6 +1096,8 @@ impl Handler {
         self.active_profile = None;
         if let Some(before) = self.before_bench.take() {
             self.apply_power_state(&before);
+            // A boost comparison turned the boost off along the way.
+            self.apply_cpu_power(before.cpu_power);
         }
         // The foreground game's profile, if any, takes over again.
         self.follow_foreground();
@@ -1568,6 +1588,7 @@ mod tests {
             step_watts: 5,
             settle_secs: 1,
             measure_secs: 2,
+            compare_boost: false,
         };
         assert_eq!(h.handle(Request::StartBench { plan }), Response::Ok);
         assert_eq!(h.status().tdp_watts, Some(20));
@@ -1593,6 +1614,39 @@ mod tests {
         assert_eq!(h.saved().last_bench, Some(report));
     }
 
+    #[test]
+    fn bench_can_compare_the_boost_and_gives_it_back() {
+        let mut h = handler_with(Some(60.0), Some(0.8));
+        h.tick();
+        let plan = BenchPlan {
+            compare_boost: true,
+            ..short_plan()
+        };
+        assert_eq!(h.handle(Request::StartBench { plan }), Response::Ok);
+        let mut seen_off = false;
+        for _ in 0..40 {
+            h.tick();
+            seen_off |= h.cpu_power.boost == Some(CpuBoost::Disabled);
+            if h.status().bench.is_none() {
+                break;
+            }
+        }
+        assert!(seen_off, "the second sweep turns the boost off");
+        assert!(h.status().bench.is_none());
+        assert_eq!(h.cpu_power, CpuPower::default(), "the boost is back");
+        let Response::Bench {
+            report: Some(report),
+        } = h.handle(Request::GetBenchReport)
+        else {
+            panic!("expected a report");
+        };
+        assert_eq!(report.points.len(), 6);
+        assert_eq!(
+            report.points.iter().filter(|p| p.boost.is_some()).count(),
+            3
+        );
+    }
+
     fn short_plan() -> BenchPlan {
         BenchPlan {
             from_watts: 20,
@@ -1600,6 +1654,7 @@ mod tests {
             step_watts: 5,
             settle_secs: 1,
             measure_secs: 2,
+            compare_boost: false,
         }
     }
 

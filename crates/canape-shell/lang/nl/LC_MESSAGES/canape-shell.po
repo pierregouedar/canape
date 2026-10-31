@@ -1306,3 +1306,9 @@ msgstr "Druk nogmaals op A om te verwijderen"
 
 msgid "The graphics card renderer did not start: back to the light one."
 msgstr "De renderer van de videokaart is niet gestart: terug naar de lichte."
+
+msgid "Compare CPU boost"
+msgstr "CPU-boost vergelijken"
+
+msgid "Better with the CPU boost off"
+msgstr "Beter zonder CPU-boost"

@@ -16,14 +16,17 @@ pub struct Reading {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Step {
-    /// Apply this power limit now.
-    SetTdp(u32),
+    /// Apply this power limit now, and the boost when it is `Some`.
+    Set {
+        watts: u32,
+        boost: Option<bool>,
+    },
     Done,
 }
 
 pub struct BenchRun {
     plan: BenchPlan,
-    steps: Vec<u32>,
+    steps: Vec<(u32, Option<bool>)>,
     index: usize,
     tick_in_step: u32,
     fps: Vec<f32>,
@@ -33,9 +36,13 @@ pub struct BenchRun {
 }
 
 impl BenchRun {
-    /// The run and the first wattage to apply.
-    pub fn new(plan: BenchPlan, exe: Option<String>, started_unix: u64) -> (Self, u32) {
-        let steps = plan.steps();
+    /// The run and the first setting to apply.
+    pub fn new(
+        plan: BenchPlan,
+        exe: Option<String>,
+        started_unix: u64,
+    ) -> (Self, (u32, Option<bool>)) {
+        let steps = plan.settings();
         let first = steps[0];
         let run = Self {
             plan,
@@ -76,7 +83,7 @@ impl BenchRun {
         self.index += 1;
         self.tick_in_step = 0;
         match self.steps.get(self.index) {
-            Some(&watts) => Some(Step::SetTdp(watts)),
+            Some(&(watts, boost)) => Some(Step::Set { watts, boost }),
             None => {
                 self.report.completed = true;
                 Some(Step::Done)
@@ -92,8 +99,10 @@ impl BenchRun {
             return;
         }
         let average = |v: &[f32]| v.iter().sum::<f32>() / v.len() as f32;
+        let (watts, boost) = self.steps[self.index];
         self.report.points.push(BenchPoint {
-            watts: self.steps[self.index],
+            watts,
+            boost,
             fps_avg: average(&fps),
             fps_low: fps.iter().copied().fold(f32::INFINITY, f32::min),
             gpu_avg: (!gpu.is_empty()).then(|| average(&gpu)),
@@ -108,7 +117,7 @@ impl BenchRun {
         BenchProgress {
             step: self.index as u32 + 1,
             steps: self.steps.len() as u32,
-            watts: self.steps[self.index.min(self.steps.len() - 1)],
+            watts: self.steps[self.index.min(self.steps.len() - 1)].0,
             seconds_left: (remaining_steps * per_step).saturating_sub(self.tick_in_step),
         }
     }
@@ -116,7 +125,7 @@ impl BenchRun {
     /// The report so far, points sorted by wattage.
     pub fn into_report(self) -> BenchReport {
         let mut report = self.report;
-        report.points.sort_by_key(|p| p.watts);
+        report.points.sort_by_key(|p| (p.boost.is_some(), p.watts));
         report
     }
 }
@@ -132,13 +141,14 @@ mod tests {
             step_watts: 5,
             settle_secs: 2,
             measure_secs: 3,
+            compare_boost: false,
         }
     }
 
     #[test]
     fn walks_every_step_and_measures_after_settling() {
         let (mut run, first) = BenchRun::new(plan(), Some("game.exe".into()), 0);
-        assert_eq!(first, 20);
+        assert_eq!(first, (20, None));
         let mut steps = Vec::new();
         for t in 0..15 {
             // Settling seconds read 0 FPS: they must not count.
@@ -156,7 +166,20 @@ mod tests {
                 steps.push(step);
             }
         }
-        assert_eq!(steps, vec![Step::SetTdp(15), Step::SetTdp(10), Step::Done]);
+        assert_eq!(
+            steps,
+            vec![
+                Step::Set {
+                    watts: 15,
+                    boost: None
+                },
+                Step::Set {
+                    watts: 10,
+                    boost: None
+                },
+                Step::Done
+            ]
+        );
         let report = run.into_report();
         assert!(report.completed);
         let watts: Vec<_> = report.points.iter().map(|p| p.watts).collect();

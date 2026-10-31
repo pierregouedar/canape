@@ -1303,3 +1303,9 @@ msgstr "Kaldırmak için A'ya tekrar basın"
 
 msgid "The graphics card renderer did not start: back to the light one."
 msgstr "Ekran kartı oluşturucusu başlamadı: hafif olana dönüldü."
+
+msgid "Compare CPU boost"
+msgstr "CPU boost karşılaştır"
+
+msgid "Better with the CPU boost off"
+msgstr "CPU boost kapalıyken daha iyi"

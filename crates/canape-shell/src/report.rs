@@ -22,6 +22,8 @@ pub struct Recommendations {
     pub for_target: Option<Recommendation>,
     /// Best frames per watt.
     pub most_efficient: Option<Recommendation>,
+    /// Best frames per watt with the boost off, when it beats the base run.
+    pub no_boost: Option<Recommendation>,
 }
 
 fn at(report: &BenchReport, watts: Option<u32>) -> Option<Recommendation> {
@@ -38,6 +40,10 @@ pub fn recommendations(report: &BenchReport, target_fps: u32) -> Recommendations
         sweet_spot: at(report, report.sweet_spot()),
         for_target: at(report, report.watts_for(target_fps as f32)),
         most_efficient: at(report, report.most_efficient()),
+        no_boost: report.better_without_boost().map(|p| Recommendation {
+            watts: p.watts,
+            fps: p.fps_avg,
+        }),
     }
 }
 
@@ -95,6 +101,7 @@ mod tests {
             gpu_avg: Some(0.9),
             temp_max: Some(70.0),
             samples: 15,
+            boost: None,
         };
         BenchReport {
             exe: Some("game.exe".into()),

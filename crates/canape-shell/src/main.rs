@@ -343,10 +343,11 @@ fn connect(ui: &AppWindow, link: &Link) {
 
     app.on_start_bench({
         let link = link.clone();
-        move |step_watts, measure_secs| {
+        move |step_watts, measure_secs, compare_boost| {
             let plan = BenchPlan {
                 step_watts: step_watts.max(1) as u32,
                 measure_secs: measure_secs.max(1) as u32,
+                compare_boost,
                 ..BenchPlan::default()
             };
             link.send(Request::StartBench { plan });
@@ -356,10 +357,11 @@ fn connect(ui: &AppWindow, link: &Link) {
         let link = link.clone();
         move || link.send(Request::CancelBench)
     });
-    app.on_bench_duration(|step_watts, measure_secs| {
+    app.on_bench_duration(|step_watts, measure_secs, compare_boost| {
         let plan = BenchPlan {
             step_watts: step_watts.max(1) as u32,
             measure_secs: measure_secs.max(1) as u32,
+            compare_boost,
             ..BenchPlan::default()
         };
         plan.total_secs() as i32

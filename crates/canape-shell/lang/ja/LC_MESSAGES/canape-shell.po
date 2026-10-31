@@ -1303,3 +1303,9 @@ msgstr "もう一度 A を押すと削除"
 
 msgid "The graphics card renderer did not start: back to the light one."
 msgstr "GPU レンダラーが起動しなかったため、軽量なものに戻しました。"
+
+msgid "Compare CPU boost"
+msgstr "CPU ブーストを比較"
+
+msgid "Better with the CPU boost off"
+msgstr "CPU ブーストなしの方が良い"

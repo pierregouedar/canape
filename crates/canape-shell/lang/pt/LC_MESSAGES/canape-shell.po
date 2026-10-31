@@ -1306,3 +1306,9 @@ msgstr "Pressione A de novo para remover"
 
 msgid "The graphics card renderer did not start: back to the light one."
 msgstr "O renderizador da placa gráfica não iniciou: voltando ao leve."
+
+msgid "Compare CPU boost"
+msgstr "Comparar o boost da CPU"
+
+msgid "Better with the CPU boost off"
+msgstr "Melhor sem o boost da CPU"

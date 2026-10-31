@@ -342,7 +342,8 @@ export component ProfilesPage inherits Rectangle {
 // run, lines 3 to 5 are the recommendations: A sets the power limit, X
 // saves it for the game.
 export component BenchPage inherits Rectangle {
-    in-out property <int> focus-row: 2;
+    in-out property <int> focus-row: 3;
+    in-out property <bool> compare-boost: false;
     in-out property <int> step-watts: 3;
     in-out property <int> measure-secs: 15;
     property <bool> active: fs.has-focus;
@@ -354,8 +355,8 @@ export component BenchPage inherits Rectangle {
         App.refresh();
     }
     changed results => {
-        if !root.results && root.focus-row > 2 {
-            root.focus-row = 2;
+        if !root.results && root.focus-row > 3 {
+            root.focus-row = 3;
         }
     }
 
@@ -367,14 +368,14 @@ export component BenchPage inherits Rectangle {
         if App.status.bench-running {
             App.cancel-bench();
         } else if App.status.connected {
-            App.start-bench(root.step-watts, root.measure-secs);
+            App.start-bench(root.step-watts, root.measure-secs, root.compare-boost);
         }
     }
     function rec-watts(r: int) -> int {
-        r == 3 ? App.bench.sweet-spot.watts : r == 4 ? App.bench.for-target.watts : App.bench.most-efficient.watts
+        r == 4 ? App.bench.sweet-spot.watts : r == 5 ? App.bench.for-target.watts : App.bench.most-efficient.watts
     }
     function rec-available(r: int) -> bool {
-        r == 3 ? App.bench.sweet-spot.available : r == 4 ? App.bench.for-target.available : App.bench.most-efficient.available
+        r == 4 ? App.bench.sweet-spot.available : r == 5 ? App.bench.for-target.available : App.bench.most-efficient.available
     }
 
     fs := FocusScope {
@@ -387,7 +388,7 @@ export component BenchPage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.DownArrow {
-                root.focus-row = min(root.results ? 5 : 2, root.focus-row + 1);
+                root.focus-row = min(root.results ? 6 : 3, root.focus-row + 1);
                 return accept;
             }
             if (event.text == Key.LeftArrow || event.text == Key.RightArrow) && !App.status.bench-running {
@@ -396,18 +397,22 @@ export component BenchPage inherits Rectangle {
                     root.step-watts = root.pick(root.steps, root.step-watts, d);
                 } else if root.focus-row == 1 {
                     root.measure-secs = root.pick(root.times, root.measure-secs, d);
+                } else if root.focus-row == 2 {
+                    root.compare-boost = d > 0;
                 }
                 return accept;
             }
             if event.text == Key.Return || event.text == " " {
-                if root.focus-row == 2 {
+                if root.focus-row == 2 && !App.status.bench-running {
+                    root.compare-boost = !root.compare-boost;
+                } else if root.focus-row == 3 {
                     root.start-or-cancel();
-                } else if root.focus-row > 2 && root.rec-available(root.focus-row) && App.status.connected {
+                } else if root.focus-row > 3 && root.rec-available(root.focus-row) && App.status.connected {
                     App.apply-tdp(root.rec-watts(root.focus-row));
                 }
                 return accept;
             }
-            if (event.text == Key.F2 || event.text == "x") && root.focus-row > 2 && root.rec-available(root.focus-row) && root.has-game && App.status.connected {
+            if (event.text == Key.F2 || event.text == "x") && root.focus-row > 3 && root.rec-available(root.focus-row) && root.has-game && App.status.connected {
                 App.apply-profile(root.rec-watts(root.focus-row));
                 return accept;
             }
@@ -455,13 +460,25 @@ export component BenchPage inherits Rectangle {
             }
 
             SettingLine {
+                label: @tr("Compare CPU boost");
+                value: root.compare-boost ? @tr("On") : @tr("Off");
+                enabled: !App.status.bench-running;
+                focused: root.active && root.focus-row == 2;
+                step(d) => {
+                    root.focus-row = 2;
+                    root.compare-boost = d > 0;
+                    fs.focus();
+                }
+            }
+
+            SettingLine {
                 label: App.status.bench-running ? @tr("Cancel") : @tr("Start");
-                value: App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("about {}", App.duration(App.bench-duration(root.step-watts, root.measure-secs)));
+                value: App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("about {}", App.duration(App.bench-duration(root.step-watts, root.measure-secs, root.compare-boost)));
                 chevrons: false;
                 enabled: App.status.connected;
-                focused: root.active && root.focus-row == 2;
+                focused: root.active && root.focus-row == 3;
                 clicked => {
-                    root.focus-row = 2;
+                    root.focus-row = 3;
                     root.start-or-cancel();
                     fs.focus();
                 }
@@ -558,9 +575,9 @@ export component BenchPage inherits Rectangle {
                 }
             }
 
-            for r in (root.results ? [3, 4, 5] : []): SettingLine {
-                label: r == 3 ? @tr("Sweet spot") : r == 4 ? @tr("For {} FPS", App.bench.target-fps) : @tr("Most efficient");
-                value: root.rec-available(r) ? App.watts(root.rec-watts(r)) + " · " + App.fps-value(r == 3 ? App.bench.sweet-spot.fps : r == 4 ? App.bench.for-target.fps : App.bench.most-efficient.fps) : "—";
+            for r in (root.results ? [4, 5, 6] : []): SettingLine {
+                label: r == 4 ? @tr("Sweet spot") : r == 5 ? @tr("For {} FPS", App.bench.target-fps) : @tr("Most efficient");
+                value: root.rec-available(r) ? App.watts(root.rec-watts(r)) + " · " + App.fps-value(r == 4 ? App.bench.sweet-spot.fps : r == 5 ? App.bench.for-target.fps : App.bench.most-efficient.fps) : "—";
                 chevrons: false;
                 enabled: root.rec-available(r);
                 focused: root.active && root.focus-row == r;
@@ -568,6 +585,15 @@ export component BenchPage inherits Rectangle {
                     root.focus-row = r;
                     fs.focus();
                 }
+            }
+
+            // Only after a run that compared the boost and found it cheaper off.
+            if root.results && App.bench.no-boost.available: SettingLine {
+                label: @tr("Better with the CPU boost off");
+                value: App.watts(App.bench.no-boost.watts) + " · " + App.fps-value(App.bench.no-boost.fps);
+                chevrons: false;
+                enabled: false;
+                focused: false;
             }
 
             Rectangle {

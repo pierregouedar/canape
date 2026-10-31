@@ -132,6 +132,8 @@ export struct BenchView {
     sweet-spot: RecView,
     for-target: RecView,
     most-efficient: RecView,
+    // Best frames per watt with the CPU boost off, when that beats the base run.
+    no-boost: RecView,
 }
 
 // The last minute as Path commands (history.rs): viewbox 59 x 100, the
@@ -227,10 +229,10 @@ export global App {
     callback save-profile();
     callback delete-profile(string);
     callback refresh();
-    callback start-bench(int, int);
+    callback start-bench(int, int, bool);
     callback cancel-bench();
     // Total seconds of a run with this step (W) and measuring time (s).
-    pure callback bench-duration(int, int) -> int;
+    pure callback bench-duration(int, int, bool) -> int;
     // Saves a game profile from the bench result at this wattage.
     callback apply-profile(int);
     callback set-language(string);

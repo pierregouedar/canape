@@ -14,6 +14,18 @@ L'[annonce de la version 2.0](https://store.steampowered.com/news/posts/?appgrou
 
 La [page Steam de l'application](https://store.steampowered.com/app/993090/Lossless_Scaling/) décrit la mise à l'échelle et la génération d'images ; les [annonces de l'éditeur](https://steamcommunity.com/app/993090/announcements/) décrivent notamment le coût GPU et les modes de génération. Elles ne documentent pas ici une API stable de lecture, d'écriture ou de synchronisation des profils avec Canapé.
 
+## Relevé sur l'Ally (31 octobre 2026)
+
+Lecture seule, aucun jeu lancé.
+
+- Installé par Steam (appid 993090), version 3.2.2.0 ; Canapé le détecte par le manifeste Steam.
+- Réglages : `%LOCALAPPDATA%\Lossless Scaling\Settings.xml` (XML). Raccourci `Alt+Ctrl+S`, démarrage avec Windows désactivé. `GameProfiles` contient un seul profil « Par défaut » (`AutoScale=false`, `ScalingType=Off`, `FrameGeneration=Off`, `LSFG3Multiplier=2`, `LSFG3Target=120`, `ScaleFactor=1.5`, `CaptureApi=DXGI`). Les champs `Executable`/`ExecutableFiles`, `ProcessName` et `WindowTitle` existent dans le code et lient un profil à un jeu. `config.ini` à côté de l'exécutable ne contient pas de profils. Rien dans `%APPDATA%` ni dans le registre utilisateur.
+- Aucun argument de ligne de commande trouvé. Seuls moyens visibles : le raccourci clavier et l'échelle automatique par profil.
+
+**FPS avec AFMF (Among Us, écran fixe, 30 relevés) :** le compteur ADL donne 60,0 FPS avec et sans AFMF (8,1 W sans, 12,2 W avec) : il compte ce que le jeu présente, pas les images générées ; les +4,1 W montrent que le pilote travaille. Limites : image fixe, un seul jeu. Pour mesurer les images affichées, il faudrait PresentMon ou la superposition AMD. La génération d'images de Lossless Scaling n'est pas essayée. Conséquence : l'auto TDP ne doit pas déduire un objectif de FPS de base de ce compteur quand une génération d'images est active.
+
+**Décision :** Canapé n'écrit pas dans `Settings.xml` (fichier d'une autre application, réécrit à sa fermeture, format non documenté). Il lance Lossless Scaling si besoin et laisse l'utilisateur créer le profil du jeu avec l'échelle automatique. L'interrupteur du widget (D20) attend l'essai des FPS avec et sans génération d'images, qui demande l'accord de Pierre pour lancer un jeu.
+
 ## Proposition minimale
 
 1. Sur l'Ally, noter la version installée et vérifier la détection existante. Configurer manuellement un profil dans Lossless Scaling et vérifier l'activation automatique pour un jeu, le retour à Canapé et la sortie du jeu.

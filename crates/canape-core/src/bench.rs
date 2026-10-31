@@ -14,6 +14,10 @@ pub struct BenchPlan {
     /// Ignored seconds after each change, while the frame rate settles.
     pub settle_secs: u32,
     pub measure_secs: u32,
+    /// Walks the wattages a second time with the processor boost off, to
+    /// show what it costs or buys.
+    #[serde(default)]
+    pub compare_boost: bool,
 }
 
 impl Default for BenchPlan {
@@ -24,6 +28,7 @@ impl Default for BenchPlan {
             step_watts: 3,
             settle_secs: 5,
             measure_secs: 15,
+            compare_boost: false,
         }
     }
 }
@@ -46,8 +51,19 @@ impl BenchPlan {
         watts
     }
 
+    /// Every setting to visit, in order: the wattages with the boost left as
+    /// it is, then (when asked) the same wattages with the boost off.
+    pub fn settings(&self) -> Vec<(u32, Option<bool>)> {
+        let steps = self.steps();
+        let mut all: Vec<_> = steps.iter().map(|&w| (w, None)).collect();
+        if self.compare_boost {
+            all.extend(steps.into_iter().map(|w| (w, Some(false))));
+        }
+        all
+    }
+
     pub fn total_secs(&self) -> u32 {
-        self.steps().len() as u32 * (self.settle_secs + self.measure_secs)
+        self.settings().len() as u32 * (self.settle_secs + self.measure_secs)
     }
 }
 
@@ -61,6 +77,10 @@ pub struct BenchPoint {
     pub gpu_avg: Option<f32>,
     pub temp_max: Option<f32>,
     pub samples: u32,
+    /// `Some(false)` for a point measured with the boost off, `None` when
+    /// the boost was left as it was.
+    #[serde(default)]
+    pub boost: Option<bool>,
 }
 
 impl BenchPoint {
@@ -82,16 +102,35 @@ pub struct BenchReport {
 }
 
 impl BenchReport {
+    /// The points measured with the boost left as it was: what the
+    /// recommendations below are about.
+    fn base(&self) -> impl Iterator<Item = &BenchPoint> {
+        self.points.iter().filter(|p| p.boost.is_none())
+    }
+
     fn best_fps(&self) -> Option<f32> {
-        self.points.iter().map(|p| p.fps_avg).reduce(f32::max)
+        self.base().map(|p| p.fps_avg).reduce(f32::max)
+    }
+
+    /// The most efficient point over every variant measured, when the boost
+    /// comparison ran and found a better one than the base sweep.
+    pub fn better_without_boost(&self) -> Option<BenchPoint> {
+        let best = |variant: bool| {
+            self.points
+                .iter()
+                .filter(|p| p.boost.is_some() == variant)
+                .max_by(|a, b| a.fps_per_watt().total_cmp(&b.fps_per_watt()))
+                .copied()
+        };
+        let (with, without) = (best(false)?, best(true)?);
+        (without.fps_per_watt() > with.fps_per_watt()).then_some(without)
     }
 
     /// Lowest wattage within 5 % of the best frame rate: more power buys
     /// almost nothing past it.
     pub fn sweet_spot(&self) -> Option<u32> {
         let best = self.best_fps()?;
-        self.points
-            .iter()
+        self.base()
             .filter(|p| p.fps_avg >= best * SWEET_SPOT_SHARE)
             .map(|p| p.watts)
             .min()
@@ -102,19 +141,17 @@ impl BenchReport {
     /// missed: otherwise the answer may lie below what it reached.
     pub fn watts_for(&self, fps: f32) -> Option<u32> {
         let watts = self
-            .points
-            .iter()
+            .base()
             .filter(|p| p.fps_avg >= fps)
             .map(|p| p.watts)
             .min()?;
-        let lowest = self.points.iter().map(|p| p.watts).min()?;
+        let lowest = self.base().map(|p| p.watts).min()?;
         (self.completed || watts > lowest).then_some(watts)
     }
 
     /// Best frames per watt: the most battery-friendly setting.
     pub fn most_efficient(&self) -> Option<u32> {
-        self.points
-            .iter()
+        self.base()
             .max_by(|a, b| a.fps_per_watt().total_cmp(&b.fps_per_watt()))
             .map(|p| p.watts)
     }
@@ -142,7 +179,37 @@ mod tests {
             gpu_avg: None,
             temp_max: None,
             samples: 15,
+            boost: None,
         }
+    }
+
+    #[test]
+    fn comparing_the_boost_doubles_the_settings_and_finds_the_better_one() {
+        let plan = BenchPlan {
+            compare_boost: true,
+            ..BenchPlan::default()
+        };
+        let steps = plan.steps();
+        assert_eq!(plan.settings().len(), 2 * steps.len());
+        assert_eq!(
+            plan.settings().last(),
+            Some(&(steps[steps.len() - 1], Some(false)))
+        );
+        let mut report = report();
+        assert_eq!(report.better_without_boost(), None, "no comparison ran");
+        let sweet = report.sweet_spot();
+        let mut off = point(10, 55.0);
+        off.boost = Some(false);
+        report.points.push(off);
+        assert_eq!(report.better_without_boost(), Some(off));
+        let mut huge = point(7, 300.0);
+        huge.boost = Some(false);
+        report.points.push(huge);
+        assert_eq!(
+            report.sweet_spot(),
+            sweet,
+            "recommendations ignore the variant"
+        );
     }
 
     fn report() -> BenchReport {

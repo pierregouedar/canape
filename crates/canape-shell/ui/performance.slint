@@ -466,7 +466,7 @@ export component PerformancePage inherits Rectangle {
             ShelfCard {
                 label: @tr("Bench");
                 icon: "bench";
-                value: App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("Start · {}", App.duration(App.bench-duration(3, 15)));
+                value: App.status.bench-running ? @tr("{} left", App.duration(App.status.bench-seconds-left)) : @tr("Start · {}", App.duration(App.bench-duration(3, 15, false)));
                 focused: root.active && root.shelf == 1 && root.card == 0;
                 clicked => {
                     root.shelf = 1;

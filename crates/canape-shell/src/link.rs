@@ -705,10 +705,10 @@ pub fn bench_view(report: Option<&BenchReport>, target_fps: u32) -> (BenchView, 
         return (BenchView::default(), Vec::new());
     };
     let recs = report::recommendations(report, target_fps);
-    let best = report.points.iter().map(|p| p.fps_avg).fold(1.0, f32::max);
-    let rows = report
-        .points
-        .iter()
+    // The columns show the base run; the boost comparison has its own line.
+    let base = || report.points.iter().filter(|p| p.boost.is_none());
+    let best = base().map(|p| p.fps_avg).fold(1.0, f32::max);
+    let rows = base()
         .map(|p| BenchRow {
             watts: p.watts as i32,
             fps_avg: p.fps_avg.round() as i32,
@@ -727,6 +727,7 @@ pub fn bench_view(report: Option<&BenchReport>, target_fps: u32) -> (BenchView, 
         sweet_spot: rec_view(recs.sweet_spot),
         for_target: rec_view(recs.for_target),
         most_efficient: rec_view(recs.most_efficient),
+        no_boost: rec_view(recs.no_boost),
     };
     (view, rows)
 }
@@ -858,6 +859,7 @@ mod tests {
             gpu_avg: None,
             temp_max: Some(71.4),
             samples: 15,
+            boost: None,
         };
         let report = BenchReport {
             exe: Some("game.exe".into()),

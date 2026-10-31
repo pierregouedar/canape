@@ -50,15 +50,15 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [x] Couper l'enregistrement en arrière-plan (Game DVR).
 - [x] CPU boost, EPP, fréquence max, cœurs parqués par profil (à éprouver : T2).
 - [x] Mouvement pour les émulateurs (serveur local) : validé avec un client local ; reprise du port après changement de rendu vérifiée.
-- [ ] **Affinité des cœurs sur le Z1 non Extreme.** Fil principal du jeu sur les cœurs Zen 4.
-- [ ] **Cache des shaders AMD au maximum.**
-- [ ] **Comprendre l'option « GPU boost » d'autres outils.** À faire sur l'Ally avant de décider. Notes dans `docs/` seulement, rien dans le code.
+- [x] **Affinité des cœurs sur le Z1 non Extreme.** Sans objet sur cet Ally : c'est un Z1 Extreme (8 cœurs Zen 4, 16 logiques). À reprendre seulement avec un Z1 simple sous la main.
+- [x] **Cache des shaders AMD au maximum.** Relevé le 31 octobre : `UMD\ShaderCache` vaut déjà « 1 » (réglage par défaut du pilote) et ADLX n'expose que la remise à zéro (`IADLX3DResetShaderCache`) : rien à régler de plus. Abandonné.
+- [ ] **Comprendre l'option « GPU boost » d'autres outils.** Relevé le 31 octobre : aucune valeur MinClock/MinGfx/Tuning dans le pilote ; ADLX contient `IADLXManualGraphicsTuning` (réglage manuel, de type overclocking) et `IADLX3DBoost` (Radeon Boost, `KMD_RadeonBoostEnabled`=0), non appelés. Rien dans le code ; décision à prendre avec Pierre avant toute écriture de fréquence.
 
 ## D. Image
 
 - [ ] **Réglages AMD par profil (ADLX).** Fait et essayé sur l'Ally le 30 octobre : RSR (avec sa netteté) et AFMF, appliqués par le shell pendant le jeu du profil et rendus à sa sortie (`radeon.rs`, registre identique avant et après). Anti-Lag, Chill et netteté de l'image (RIS) ajoutés le 30 octobre (carte Radeon, étagère AMD) ; essayés sur l'Ally le 31 : Chill et Anti-Lag marchent et le pilote est rendu à l'identique, Anti-Lag n'est pas gardé avec Chill, la netteté n'est pas appliquée avec Super Resolution (celle de Pierre est active : donc **netteté seule non essayée**). Reste : l'effet à l'œil.
 - [x] Définition d'écran par profil (à éprouver : T5).
-- [ ] **Lossless Scaling.** Étude faite (`docs/lossless-scaling-study.md`). S'appuyer sur ses profils et son activation automatique, sans écrire dans son fichier de réglages.
+- [ ] **Lossless Scaling.** Relevé fait le 31 octobre (profils dans `Settings.xml`, pas de ligne de commande, voir l'étude) : Canapé n'écrit pas dans ce fichier. Reste l'essai des FPS avec et sans génération d'images (accord de Pierre). Étude faite (`docs/lossless-scaling-study.md`). S'appuyer sur ses profils et son activation automatique, sans écrire dans son fichier de réglages.
 - [x] Écran « Image » dans le profil d'un jeu (à éprouver : T5).
 - [ ] **Interrupteur Lossless Scaling dans le widget.**
 
@@ -70,7 +70,7 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 
 ## F. L'aboutissement
 
-- [ ] **Banc d'essai qui combine tous les leviers.** Propose pour chaque jeu le meilleur rapport FPS par watt.
+- [ ] **Banc d'essai qui combine tous les leviers.** Première étape faite le 31 octobre : option « Comparer le boost du processeur » (seconde passe avec le boost coupé, ligne « Mieux sans le boost » dans les résultats ; boost rendu à la fin ou à l'annulation, testé en simulation). Pas encore essayé sur l'Ally. Reste : limite de FPS, fréquence d'écran et cœurs parqués comme autres leviers.
 
 ## G. Décisions, ménage et site
 
