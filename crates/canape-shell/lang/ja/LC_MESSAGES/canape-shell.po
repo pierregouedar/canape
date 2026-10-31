@@ -1301,8 +1301,8 @@ msgstr "一部"
 msgid "Press A again to remove"
 msgstr "もう一度 A を押すと削除"
 
-msgid "The graphics card renderer did not start: back to the light one."
-msgstr "GPU レンダラーが起動しなかったため、軽量なものに戻しました。"
+msgid "The graphics card renderer did not start: back to Efficient."
+msgstr "GPU レンダラーが起動しなかったため、省メモリ に戻しました。"
 
 msgid "Compare CPU boost"
 msgstr "CPU ブーストを比較"

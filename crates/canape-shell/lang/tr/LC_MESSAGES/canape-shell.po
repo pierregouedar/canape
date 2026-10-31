@@ -1301,8 +1301,8 @@ msgstr "Kısmen"
 msgid "Press A again to remove"
 msgstr "Kaldırmak için A'ya tekrar basın"
 
-msgid "The graphics card renderer did not start: back to the light one."
-msgstr "Ekran kartı oluşturucusu başlamadı: hafif olana dönüldü."
+msgid "The graphics card renderer did not start: back to Efficient."
+msgstr "Ekran kartı oluşturucusu başlamadı: Verimli moduna dönüldü."
 
 msgid "Compare CPU boost"
 msgstr "CPU boost karşılaştır"

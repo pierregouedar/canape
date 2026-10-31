@@ -1304,8 +1304,8 @@ msgstr "Teilweise"
 msgid "Press A again to remove"
 msgstr "Zum Entfernen erneut A drücken"
 
-msgid "The graphics card renderer did not start: back to the light one."
-msgstr "Der Grafikkarten-Renderer ist nicht gestartet: zurück zum leichten."
+msgid "The graphics card renderer did not start: back to Efficient."
+msgstr "Der Grafikkarten-Renderer ist nicht gestartet: zurück zu Sparsam."
 
 msgid "Compare CPU boost"
 msgstr "CPU-Boost vergleichen"

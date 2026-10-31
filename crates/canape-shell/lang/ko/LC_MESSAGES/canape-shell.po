@@ -1301,8 +1301,8 @@ msgstr "일부"
 msgid "Press A again to remove"
 msgstr "제거하려면 A를 다시 누르세요"
 
-msgid "The graphics card renderer did not start: back to the light one."
-msgstr "그래픽 카드 렌더러가 시작되지 않아 가벼운 렌더러로 돌아갑니다."
+msgid "The graphics card renderer did not start: back to Efficient."
+msgstr "그래픽 카드 렌더러가 시작되지 않아 효율(으)로 돌아갑니다."
 
 msgid "Compare CPU boost"
 msgstr "CPU 부스트 비교"

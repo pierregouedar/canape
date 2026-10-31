@@ -77,14 +77,14 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [ ] **Protection de `main`.** La garder ou la retirer : toutes les sessions la contournent avec les droits de Pierre.
 - [ ] **Adresse des commits.** Gmail ou koul.io.
 - [ ] **Ancienne branche `claude/loving-cori-xyxqv6`.** Vérifier qu'elle est supprimée avant d'ouvrir le dépôt.
-- [ ] **Site `canape-site` :** bancs sur d'autres jeux et sélecteur de jeux. Il faut la liste des jeux installés sur l'Ally.
+- [ ] **Site `canape-site` :** bancs sur d'autres jeux et sélecteur de jeux. Jeux installés relevés le 31 octobre (16 : 12 Steam, 2 Epic, Palworld, Heaven Benchmark) ; il manque des bancs mesurés, ce qui demande de lancer des jeux avec l'accord de Pierre. Sans mesures, un sélecteur serait vide : on ne l'ajoute pas.
 - [ ] **Serveur de mouvement :** essai avec un vrai émulateur. Accéléromètre : lu (1,01 g à plat le 31 octobre). Le plantage du premier essai (violation d'accès 6–7 s après l'abonnement) venait de `get_object` (`then_some` construisait puis relâchait un objet nul quand le capteur n'avait pas encore de lecture) : corrigé le 31 octobre et vérifié sur l'Ally (63 paquets par seconde, aucune accélération nulle, lecture sur un fil à part). À voir avec quelqu'un qui bouge la console : la vitesse angulaire au repos reste strictement constante pendant une session (valeur retenue par Windows ?) et le sens des axes. En attente, pas d'émulateur.
 - [ ] **GOG (en pause).** Aucun compte connecté, aucun essai prévu. Retiré de l'interface le 29 octobre (réglages, visite, étagères, installation) : `GOG_ENABLED` dans `crates/canape-shell/src/library.rs` le remet quand on le reprend.
 
 ## H. Petits correctifs d'ergonomie (31 octobre)
 
 - [x] « Ajouter un jeu » : confirmation avant de retirer, curseur stable (`8e05ec5`).
-- [x] Annoncer à l'écran le repli du rendu GPU vers le rendu logiciel (bandeau de 10 s au démarrage ; à vérifier sur l'Ally).
+- [x] Annoncer à l'écran le repli du rendu GPU vers le rendu logiciel (bandeau de 10 s au démarrage ; vérifié sur l'Ally le 31 octobre sur `1618e1b`, libellé aligné sur « Économe » ensuite).
 - [x] Options d'un jeu : « Retirer » d'un jeu de boutique ne fait que le masquer (réversible, dit à l'écran) : pas de confirmation ajoutée, seul le retrait de `games.json` en demande une.
 - [ ] Libellé « Tout est appliqué » tronqué sur la page des optimisations.
 - [x] Fiche du jeu : la définition d'écran et l'image du profil sont déjà résumées (`profile.screen`, `profile.image`).

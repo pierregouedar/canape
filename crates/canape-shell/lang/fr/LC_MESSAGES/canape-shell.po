@@ -1304,8 +1304,8 @@ msgstr "Partiel"
 msgid "Press A again to remove"
 msgstr "Appuyez de nouveau sur A pour retirer"
 
-msgid "The graphics card renderer did not start: back to the light one."
-msgstr "Le rendu par la carte graphique n'a pas démarré : retour au rendu léger."
+msgid "The graphics card renderer did not start: back to Efficient."
+msgstr "Le rendu par la carte graphique n'a pas démarré : retour à Économe."
 
 msgid "Compare CPU boost"
 msgstr "Comparer le boost du processeur"

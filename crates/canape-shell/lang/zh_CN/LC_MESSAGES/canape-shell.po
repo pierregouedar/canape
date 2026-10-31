@@ -1301,8 +1301,8 @@ msgstr "部分"
 msgid "Press A again to remove"
 msgstr "再按一次 A 即可移除"
 
-msgid "The graphics card renderer did not start: back to the light one."
-msgstr "显卡渲染器未能启动，已改回轻量渲染。"
+msgid "The graphics card renderer did not start: back to Efficient."
+msgstr "显卡渲染器未能启动，已改回节能。"
 
 msgid "Compare CPU boost"
 msgstr "比较 CPU 加速"

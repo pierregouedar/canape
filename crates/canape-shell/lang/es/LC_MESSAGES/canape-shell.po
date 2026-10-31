@@ -1304,8 +1304,8 @@ msgstr "Parcial"
 msgid "Press A again to remove"
 msgstr "Pulsa A de nuevo para quitar"
 
-msgid "The graphics card renderer did not start: back to the light one."
-msgstr "El renderizador de la tarjeta gráfica no arrancó: se vuelve al ligero."
+msgid "The graphics card renderer did not start: back to Efficient."
+msgstr "El renderizador de la tarjeta gráfica no arrancó: se vuelve a Eficiente."
 
 msgid "Compare CPU boost"
 msgstr "Comparar el boost de la CPU"

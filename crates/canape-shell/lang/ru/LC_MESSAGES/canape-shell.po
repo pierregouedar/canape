@@ -1301,8 +1301,8 @@ msgstr "Частично"
 msgid "Press A again to remove"
 msgstr "Нажмите A ещё раз, чтобы убрать"
 
-msgid "The graphics card renderer did not start: back to the light one."
-msgstr "Рендерер видеокарты не запустился: возврат к лёгкому."
+msgid "The graphics card renderer did not start: back to Efficient."
+msgstr "Рендерер видеокарты не запустился: возврат к режиму «Экономный»."
 
 msgid "Compare CPU boost"
 msgstr "Сравнить буст ЦП"
