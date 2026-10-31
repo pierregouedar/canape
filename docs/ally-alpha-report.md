@@ -513,6 +513,24 @@ Installé depuis `1618e1b` (`f052d25` ne touche que la documentation). Aucun jeu
   - À l'écran, à 3 s : ligne orange en bas à gauche, « Le rendu par la carte graphique n'a pas démarré : retour au rendu léger. » ; disparue à 13 s. Conforme.
   - Le bandeau dit « rendu léger » alors que le réglage s'appelle « Économe » : à aligner.
 - Remis : exécutable rendu à son nom, rendu Économe, clé Steam intacte (32 caractères).
+
+### Fenêtres de Steam au lancement d'un jeu (diagnostic, accord de Pierre)
+
+Among Us lancé depuis Canapé (A sur la carte, puis Jouer), trois fois. Pendant le lancement, un script relève toutes les fenêtres de premier niveau visibles (EnumWindows) toutes les 100 à 125 ms : classe, titre, processus, rectangle, état. Rien d'écrit dans le code. Les rectangles sont en coordonnées logiques (écran 1280 × 720 à 150 %).
+
+| Essai | Avant la fenêtre de Steam | Fenêtre de Steam | Jeu au premier plan |
+|---|---|---|---|
+| Steam déjà ouvert | rien | « Lancement… », 2,8 s | 2,8 s après l'apparition de la fenêtre |
+| Steam fermé | environ 7 s de démarrage de Steam, sans aucune fenêtre visible ; Canapé reste au premier plan | « Lancement… », 2,6 s | 2,3 s après l'apparition de la fenêtre |
+| Steam ouvert, fenêtre réduite par le script | rien | « Lancement… » réduite au premier relevé | 2,6 s après l'apparition de la fenêtre |
+
+- La seule fenêtre de Steam qui apparaît s'appelle « Lancement… ». Elle appartient à `steamwebhelper` (la partie web de Steam), classe `SDL_app`, rectangle 340,193 à 940,479 (600 × 286, au centre). Elle passe au premier plan à la place de Canapé.
+- Une fine fenêtre `EdgeUiInputTopWndClass` d'`explorer` (bande de 3 pixels en haut de l'écran) apparaît en même temps. Elle disparaît avant ou avec le jeu.
+- La fenêtre principale de Steam ne s'affiche dans aucun des trois essais, même quand Steam démarre à froid.
+- Réduction : `ShowWindow(SW_MINIMIZE)` sur la fenêtre `SDL_app` au premier relevé où elle est vue. Elle passe hors écran (-21333,-21333) et reste réduite jusqu'à sa fermeture, mais garde le premier plan (« min+fg »). Le jeu s'ouvre normalement, avec le même délai que sans réduction.
+- Avant d'être réduite, la fenêtre reste visible au plus un intervalle de relevé (environ 100 ms). Un œil sur l'écran dirait si ce flash se voit.
+- Rien à remettre pour la fenêtre : elle se ferme d'elle-même quand le jeu démarre.
+- Remis : Among Us fermé (accord de Pierre), Steam rouvert par le premier essai à froid, premier plan vide dans le service.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
