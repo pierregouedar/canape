@@ -378,6 +378,25 @@ Réinstallé. Relevé complet de la clé du pilote (`Class\{4d36e968…}\0000` e
 - **Cause dans le code** : `Radeon::restore` remet RSR d'abord, puis `put_back_sharpening` **active** la netteté pour réécrire 80 % avant de la couper ; le pilote n'admet pas la netteté et RSR ensemble, donc activer la netteté coupe RSR. Pistes : ne pas réécrire une fonction que le profil n'a pas touchée, ou remettre RSR en dernier.
 - **Remis** : profil temporaire « RSR 20 » appliqué au lancement, shell arrêté avant la fermeture du jeu pour qu'il ne rende rien ; relevé complet ensuite **identique à celui d'avant** (RSR à 3, chemins d'affichage d'origine). Profil supprimé, shell relancé, premier plan vide, `shell.json` inchangé.
 - Netteté seule et tout ensemble **non refaits** : ils passeraient par la même restitution qui coupe RSR.
+### Vérification de `8af32b5` (restitution limitée à ce que le profil a touché)
+
+Réinstallé la veille ; essais dans **un même processus du shell** (pid inchangé sur les cinq tours), profil modifié par `canape-ctl` entre les tours. Relevé complet de la clé du pilote (861 valeurs) avant, pendant et après chaque tour. Chaque tour commence par le même instantané (`rsr` actif 20, `afmf` off, `anti_lag` off, `chill` off 120/120, `sharpening` off 80) et finit par `radeon: settings given back`.
+
+| Tour | Profil | Journal | Valeurs du pilote changées pendant le jeu | Après fermeture |
+|---|---|---|---|---|
+| 1 | Chill 40–60 | rien d'autre | `KMD_ChillEnabled` 0→1, `KMD_ChillMinFps` 120→40, `KMD_ChillMaxFps` 120→60 | identique à l'origine |
+| 2 | Anti-Lag | rien d'autre | `KMD_DeLagEnabled` 0→1 | identique |
+| 3 | Netteté 50, RSR actif dans le pilote | `Image Sharpening not applied: Super Resolution is on` | aucune | identique |
+| 4 | RSR + AFMF + Anti-Lag + Chill | rien d'autre | `DrvFrameGenEnabled` 0→1, `Gmx_FRTCEnabled` 1→0, `KMD_Chill*` comme au tour 1 | identique |
+| 5 | AFMF | rien d'autre | `DrvFrameGenEnabled` 0→1, `Gmx_FRTCEnabled` 1→0 | identique |
+
+- **Plus de régression RSR** : `Gmx_RSREnabled` reste à 3 et les 30 `BestViewOption` ne bougent pas, à chaque tour. Les 861 valeurs sont identiques à l'état d'origine après chaque fermeture.
+- **Anti-Lag n'est pas appliqué avec Chill (tour 4)** : `KMD_DeLagEnabled` reste à 0, **sans aucune ligne d'erreur**. Le pilote semble ne pas admettre les deux ensemble ; Canapé ne le signale pas.
+- **AFMF coupe le plafond d'images du pilote** (`Gmx_FRTCEnabled` 1→0, rendu à la fermeture) : effet du pilote, pas une demande de Canapé.
+- Aucun plantage (aucun événement 1000). Le tiroir « Pas encore appliqué » du tour 3 n'a pas été regardé (jeu au premier plan). Netteté seule sans RSR actif : **non essayée** (il faudrait toucher au RSR de Pierre).
+- Outil de test : la fenêtre de Claude passait désormais devant Canapé, et les touches simulées (dont Échap) arrêtaient la commande en cours. Les scripts vérifient maintenant que Canapé est au premier plan avant chaque touche.
+- Vu en passant : depuis la nuit, le shell journalise `buttons: device I/O failed: … (os error 1167)` puis `buttons: not supported on this device: no Ally controller HID interface with input reports` : les boutons de l'Ally ne sont plus vus, probablement après une mise en veille.
+- Remis : profil supprimé, premier plan vide, `shell.json` inchangé, pilote identique à l'origine.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
