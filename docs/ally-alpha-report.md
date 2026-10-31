@@ -555,6 +555,43 @@ Installé depuis `fc531aa`. Le premier passage de `install-dev.ps1` a échoué :
 - Remise en Automatique : pendant cette étape, des appuis sur A de la manette ont été reçus en plus des miens (shell.log, « pad Return », sans que j'en envoie). La boîte a rouvert l'éditeur, où tous les points étaient affichés à 100 % (non appliqué), puis Automatique a été appliqué.
 - État final relu : `SetFanPreset { preset: None } -> Ok`, aucune courbe perso, tuile « Automatique ». Le ventilateur CPU affichait encore 3600 tr/min juste après.
 - Je n'ai pas pu dire d'où venaient les 100 % de l'éditeur, à cause de ces appuis.
+- Correctif, relu après coup dans service.log : l'état final ci-dessus n'a pas tenu. Vingt secondes plus tard, de nouveaux appuis sur A de la manette (par séries de cinq, pas de moi) ont appliqué trois fois la courbe CPU à 100 %. Environ 40 minutes après, Équilibré a été choisi à la manette. Le service a ensuite rendu Équilibré après la réinstallation suivante.
+
+### Vérification de `950f5d3` (limite 1100 × 560, Gérer les jeux, message de l'éditeur) et de la page Matériel `68a4759`
+
+Installé depuis `950f5d3` en une fois (shell arrêté avant). Les ventilateurs étaient sur Équilibré au départ (choix fait à la manette, voir plus haut) : c'est l'état remis à la fin.
+
+**Fenêtre « Lancement… » de Steam.** Among Us lancé deux fois depuis Canapé avec l'accord de Pierre. Relevé des fenêtres en pixels réels et captures toutes les 200 ms environ.
+
+- Steam ouvert : la ligne « steam: launch dialog minimized (steamwebhelper.exe) » est dans le journal. La boîte est déjà réduite au premier relevé, hors écran, et ne prend jamais le premier plan. Canapé reste devant, avec « Lancement… » sur le bouton, puis le jeu prend le premier plan 2,1 s plus tard.
+  - Captures à 0,07, 0,5, 1,1 et 1,9 s : Canapé seul, sans boîte ni barre des tâches. Résolu.
+- Steam fermé : environ 7 s de démarrage de Steam, puis la même ligne de journal. La boîte est vue une fois visible avant d'être réduite.
+  - Capture à 0,04 s : un rectangle noir (la boîte pas encore dessinée) au centre, et la barre des tâches de Windows.
+  - La boîte réduite garde ensuite le premier plan (« min+fg ») pendant 1,3 s. La barre des tâches reste visible pendant ce temps (capture à 0,65 s, sans boîte).
+  - À partir de 1,1 s environ, Canapé seul. Puis Canapé reprend le premier plan, et le jeu 1,1 s plus tard.
+  - Le bouton affiche « Jouer » et non « Lancement… » pendant l'attente de Steam.
+  - Reste donc un éclair noir d'environ 0,1 s et la barre des tâches environ 1 s, seulement quand Steam démarre à froid.
+- Pendant le premier essai, les fenêtres du widget Canapé et de la Game Bar apparaissent un seul relevé à l'arrivée du jeu, sans premier plan.
+- Fenêtre principale de Steam jamais visible.
+- Remis : Among Us fermé (accord de Pierre), Steam ouvert comme avant.
+
+**Page Matériel.** Quatre étagères, dans l'ordre :
+- Refroidissement et batterie : Ventilateurs, Limite de charge 100 %.
+- Manette : Mode, Boutons arrière, Éclairage des sticks, Visée au gyroscope.
+- Affichage : Résolution 1920×1080 (grisée, sans « Régler »), Taux de rafraîchissement 120 Hz, Limite de FPS Aucune.
+- Image : Mise à l'échelle Aucune, Génération d'images Aucune, Pilote AMD Désactivé.
+- Le haut de page (tr/min, température, courbe) reste le même sur les quatre.
+
+**Gérer les jeux (Jeux › X).**
+- Première ligne « Ordre des étagères ‹ Titre › », puis Deluge (deluge.exe), Heaven Benchmark 4.0 (Ajouté), Tailscale (tailscale-ipn.exe).
+- Droite : « Dernier lancement », `sort_recent: true` dans shell.json. L'étagère Installés passe à Among Us, Catherine Classic, Ultimate Custom Night, Fall Guys, Terraria… (ordre des Récents).
+- Canapé fermé puis relancé : la page rouvre sur « Dernier lancement ». Choix gardé.
+- Gauche : « Titre », `sort_recent: false`, Installés de nouveau par ordre alphabétique (Among Us, art of rally, Besiege, Caravan Sandwitch, Catherine Classic, Fall Guys, Fallout Shelter, Heaven…). Remis.
+
+**Éditeur de courbes.**
+- CPU, premier point de 10 % à 15 %, puis A. Le message vert « Courbe envoyée au ventilateur. » s'affiche sous les points (capture à 0,3 s), toujours là 4 s après. Journal du service : `SetFanCurve Cpu … -> Ok`.
+- En rouvrant le menu Ventilateurs, le cadre de sélection est sur Automatique alors que le choix en cours (souligné) est Courbes perso.
+- Équilibré remis depuis le menu : `SetFanPreset Some(Balanced) -> Ok`, tuile « Équilibré ».
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
