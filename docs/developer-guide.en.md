@@ -633,7 +633,7 @@ Examples:
 
 **`ButtonTarget`**: `default` (the button's own key), `disabled`; gamepad `pad_a`, `pad_b`, `pad_x`, `pad_y`, `pad_lb`, `pad_rb`, `pad_lt`, `pad_rt`, `pad_ls`, `pad_rs` (stick clicks), `dpad_up`, `dpad_down`, `dpad_left`, `dpad_right`, `pad_view`, `pad_menu`, `pad_xbox`; keyboard `key_escape`, `key_enter`, `key_space`, `key_tab`, `key_backspace`, `key_up`, `key_down`, `key_left`, `key_right`, `key_page_up`, `key_page_down`, `key_shift`, `key_ctrl`, `key_windows`, `key_f11`, `key_f12`; mouse `mouse_left`, `mouse_right`, `mouse_middle`, `wheel_up`, `wheel_down`; media `volume_up`, `volume_down`, `mute_mic`, `show_keyboard` (the touch keyboard). `ButtonTarget::ALL` keeps this order.
 
-**`BenchPlan`**: `from_watts` (25), `to_watts` (7), `step_watts` (3), `settle_secs` (5), `measure_secs` (15).
+**`BenchPlan`**: `from_watts` (25), `to_watts` (7), `step_watts` (3), `settle_secs` (5), `measure_secs` (15), `compare_boost` (false, absent = false): a second pass over the same powers with `CpuBoost::Disabled` (`BenchPlan::settings`, `BenchRun`, `Handler::bench_boost`; `end_bench` gives the snapshot's boost back). `BenchPoint.boost` is `Some(false)` for that pass; `sweet_spot`, `watts_for` and `most_efficient` only look at the first, `BenchReport::better_without_boost` compares the two.
 
 **`BenchProgress`**: `step` (from 1), `steps`, `watts`, `seconds_left`. Example: `{"step":2,"steps":7,"watts":22,"seconds_left":110}`.
 

@@ -689,6 +689,7 @@ Opened from the **Bench** card of the Performance page; **B** goes back. The ben
 1. Start the game and leave a **demanding, steady scene** running (not a menu).
 2. Come back to Canapé (Xbox button or Alt+Tab), **Performance → Bench**.
 3. Set the **step** (2, 3 or 5 W) and the time **per step** (10, 15 or 30 s) with left and right. The total time shows on the **Start** line (about 2:20 with 3 W and 15 s).
+3 bis. Optionally turn on **Compare CPU boost**: after the sweep, the same powers are measured again with the processor boost off (the run takes twice as long). If that is more efficient, a line "Better with the CPU boost off" appears under the recommendations (informative: it is not applied for you). The boost is given back at the end or when cancelled. *Not tried on the Ally yet.*
 4. **A** on **Start**, then go back to the game. Until the game is back in front, the bench shows "Waiting for the game"; it starts once the game has been running again for 3 s, and gives up after 2 minutes. The limit then changes on its own; each step waits 5 s before measuring.
 
 <img src="images/en/bench-running.png" alt="Bench running" width="720">
