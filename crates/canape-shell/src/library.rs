@@ -679,7 +679,7 @@ impl State {
         library.set_achievement_focus(0);
         library.set_detail(true);
         self.detail = Some(game.id.clone());
-        crate::achievements::open(&game.id, self.roots.steam.as_deref());
+        crate::achievements::open(&game.id, &game.title, self.roots.steam.as_deref());
         if let Some(install) = install
             && size.is_none()
             && !self.fixture

@@ -96,8 +96,8 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [x] **Matériel mieux organisé.** Fait le 31 octobre : quatre étagères (Refroidissement et batterie, Manette, Affichage, Image) ; le pilote AMD rejoint l'étagère Image, la batterie le refroidissement. Vérifié par captures sous Linux ; à voir sur l'Ally.
 - [ ] **Courbes de ventilateurs personnalisées.** Éditeur codé le 31 octobre (page « Courbes de ventilateurs », quatrième tuile du tiroir Ventilateurs, `fancurve.rs`, vérifié par captures sous Linux). Reste : l'essayer sur l'Ally, et l'enregistrement par profil (X de la page Matériel garde déjà les courbes courantes).
 - [ ] **Ajout de jeux dans la vue « Jeux ».** Première étape faite le 31 octobre : X dans Jeux ouvre « Gérer les jeux » (ordre des étagères Titre / Dernier lancement, jeux masqués, ajout et retrait des autres jeux). Reste : à essayer sur l'Ally ; autres tris (par boutique, temps de jeu) si Pierre en veut.
-- [ ] **Succès Steam pour les jeux hors Steam.** Faire correspondre un jeu Epic, Xbox ou ajouté à la main à son jeu Steam par le titre, puis afficher ses succès.
-- [ ] **Installation en un clic d'émulateurs.** À réfléchir : quels émulateurs, d'où les télécharger, vérification, dossier de jeux, intégration dans la bibliothèque. Étude à écrire avant le code.
+- [ ] **Succès Steam pour les jeux hors Steam.** Codé le 31 octobre : recherche dans le magasin Steam d'un titre identique (`match_appid`), liste de ses succès verrouillés, résultat gardé dans `steam-matches.json`. À essayer sur l'Ally avec Fall Guys ou art of rally ; les succès réellement débloqués d'une copie Epic ne sont pas lisibles.
+- [ ] **Installation en un clic d'émulateurs.** Étude écrite le 31 octobre (`docs/emulator-install-study.md`) : sources officielles, vérification, dossier à part, intégration à la bibliothèque. À décider avec Pierre : quels émulateurs d'abord, zip seulement ou aussi 7z. Adresses et noms de fichiers à vérifier avant de coder.
 
 ## Avant de pousser
 

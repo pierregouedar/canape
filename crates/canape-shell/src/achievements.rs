@@ -1,6 +1,9 @@
 //! Achievements on the game page, below the fold: Steam's, with the Web API
 //! key of shell.json (`steam_api_key`) and the account signed in to Steam
-//! (see [`canape_library::achievements`]). Other stores: none.
+//! (see [`canape_library::achievements`]). A game of another store, or one
+//! added by hand, shows the achievements of the Steam game with exactly the
+//! same title (found by the store search, remembered in
+//! `steam-matches.json`), all locked: nothing says what that copy unlocked.
 //!
 //! Lists are kept in `achievements.json` per game id and shown at once
 //! when the page opens; a list older than an hour, or in another language,
@@ -61,6 +64,12 @@ struct State {
     ui: Weak<AppWindow>,
     cache: Cache,
     cache_path: PathBuf,
+    /// The Steam game found for a game of another store: `None` when the
+    /// search found none.
+    matches: HashMap<String, Option<u32>>,
+    matches_path: PathBuf,
+    /// Searches in progress.
+    searching: HashSet<String>,
     icons_dir: PathBuf,
     offline: bool,
     /// The game whose page is open.
@@ -198,15 +207,13 @@ impl State {
         self.images.insert(url.to_owned(), image);
     }
 
-    /// Asks Steam for the list of `id` when it is not fresh.
-    fn fetch(&mut self, id: &str, steam: Option<&Path>, language: &'static str) {
+    /// Asks Steam for the list of `id` when it is not fresh. A game that is
+    /// not on Steam is looked up by its `title` first.
+    fn fetch(&mut self, id: &str, title: &str, steam: Option<&Path>, language: &'static str) {
         let now = Instant::now();
-        let Some(appid) = id
+        let own = id
             .strip_prefix("steam:")
-            .and_then(|a| a.parse::<u32>().ok())
-        else {
-            return;
-        };
+            .and_then(|a| a.parse::<u32>().ok());
         if self.offline
             || self.fetching.contains(id)
             || self.paused_until.is_some_and(|until| now < until)
@@ -214,24 +221,79 @@ impl State {
         {
             return;
         }
+        let appid = match (own, self.matches.get(id)) {
+            (Some(appid), _) => appid,
+            (None, Some(Some(appid))) => *appid,
+            (None, Some(None)) => return,
+            (None, None) => {
+                self.search(id, title, language);
+                return;
+            }
+        };
         let key = crate::i18n::ShellSettings::load().steam_api_key;
         let key = key.trim().to_owned();
-        let Some(steam) = steam.map(Path::to_path_buf) else {
-            return;
-        };
         if key.is_empty() {
+            return;
+        }
+        let steam = steam.map(Path::to_path_buf);
+        if own.is_some() && steam.is_none() {
             return;
         }
         self.fetching.insert(id.to_owned());
         let id = id.to_owned();
         thread::spawn(move || {
-            let result = canape_library::steam::local_steam_id(&steam)
-                .ok_or_else(|| io::Error::other("no Steam account signed in"))
-                .and_then(|steam_id| run(&key, steam_id, appid, language));
+            let result = match (own, steam) {
+                (Some(_), Some(steam)) => canape_library::steam::local_steam_id(&steam)
+                    .ok_or_else(|| io::Error::other("no Steam account signed in"))
+                    .and_then(|steam_id| run(&key, steam_id, appid, language)),
+                _ => run_listing(&key, appid, language),
+            };
             let _ = slint::invoke_from_event_loop(move || {
                 with_state(|state| state.fetched(&id, language, result));
             });
         });
+    }
+
+    /// Looks for the Steam game with this title, on a thread.
+    fn search(&mut self, id: &str, title: &str, language: &'static str) {
+        if title.trim().is_empty() || !self.searching.insert(id.to_owned()) {
+            return;
+        }
+        let (id, title) = (id.to_owned(), title.to_owned());
+        thread::spawn(move || {
+            let result = find_on_steam(&title);
+            let _ = slint::invoke_from_event_loop(move || {
+                with_state(|state| state.searched(&id, &title, language, result));
+            });
+        });
+    }
+
+    fn searched(
+        &mut self,
+        id: &str,
+        title: &str,
+        language: &'static str,
+        result: io::Result<Option<u32>>,
+    ) {
+        self.searching.remove(id);
+        let appid = match result {
+            Ok(appid) => appid,
+            Err(err) => {
+                crate::log(&format!("library: Steam search for {id}: {err}"));
+                self.paused_until = Some(Instant::now() + PAUSE);
+                return;
+            }
+        };
+        crate::log(&format!("library: {id} matches Steam game {appid:?}"));
+        self.matches.insert(id.to_owned(), appid);
+        if let Ok(text) = serde_json::to_string(&self.matches)
+            && let Err(err) = std::fs::write(&self.matches_path, text)
+        {
+            crate::log(&format!("library: saving steam-matches.json: {err}"));
+        }
+        if appid.is_some() && self.current.as_deref() == Some(id) {
+            self.fetch(id, title, None, language);
+        }
     }
 
     fn fetched(&mut self, id: &str, language: &str, result: io::Result<Answer>) {
@@ -269,6 +331,34 @@ fn run(key: &str, steam_id: u64, appid: u32, language: &str) -> io::Result<Answe
 
 #[cfg(not(windows))]
 fn run(_: &str, _: u64, _: u32, _: &str) -> io::Result<Answer> {
+    Err(io::Error::new(io::ErrorKind::Unsupported, "no HTTP here"))
+}
+
+/// The list of a Steam game for a copy that is not on Steam.
+#[cfg(windows)]
+fn run_listing(key: &str, appid: u32, language: &str) -> io::Result<Answer> {
+    let http = canape_library::http::WinHttp::new()?;
+    achievements::fetch_listing(&http, appid, language, key)
+}
+
+#[cfg(not(windows))]
+fn run_listing(_: &str, _: u32, _: &str) -> io::Result<Answer> {
+    Err(io::Error::new(io::ErrorKind::Unsupported, "no HTTP here"))
+}
+
+/// The Steam game that has exactly this title: `Ok(None)` when none does.
+#[cfg(windows)]
+fn find_on_steam(title: &str) -> io::Result<Option<u32>> {
+    use canape_library::online::Http;
+    let http = canape_library::http::WinHttp::new()?;
+    let json = http.get(&achievements::store_search_url(title), None)?;
+    let results = achievements::parse_store_search(&json)
+        .ok_or_else(|| io::Error::other("unreadable store search"))?;
+    Ok(achievements::match_appid(title, &results))
+}
+
+#[cfg(not(windows))]
+fn find_on_steam(_: &str) -> io::Result<Option<u32>> {
     Err(io::Error::new(io::ErrorKind::Unsupported, "no HTTP here"))
 }
 
@@ -368,6 +458,7 @@ fn worker(icons: Arc<Icons>) {
 /// development fixture, which reads its own files and never goes online.
 pub fn start(ui: &AppWindow, dir: &Path, suffix: &str, offline: bool, offset: i64) {
     let cache_path = dir.join(format!("achievements{suffix}.json"));
+    let matches_path = dir.join(format!("steam-matches{suffix}.json"));
     let icons = Arc::new(Icons {
         queue: Mutex::new(Queue::default()),
         wake: Condvar::new(),
@@ -384,6 +475,12 @@ pub fn start(ui: &AppWindow, dir: &Path, suffix: &str, offline: bool, offset: i6
         ui: ui.as_weak(),
         cache: Cache::load(&cache_path),
         cache_path,
+        matches: std::fs::read_to_string(&matches_path)
+            .ok()
+            .and_then(|text| serde_json::from_str(&text).ok())
+            .unwrap_or_default(),
+        matches_path,
+        searching: HashSet::new(),
         icons_dir: dir.join(format!("achievement-icons{suffix}")),
         offline,
         current: None,
@@ -417,7 +514,7 @@ pub fn start(ui: &AppWindow, dir: &Path, suffix: &str, offline: bool, offset: i6
 
 /// The page of `id` opened: its cached list at once, a fresh one later.
 /// `steam` is Steam's folder, for the signed-in account.
-pub fn open(id: &str, steam: Option<&Path>) {
+pub fn open(id: &str, title: &str, steam: Option<&Path>) {
     let language = achievements::steam_language(crate::i18n::current());
     with_state(|state| {
         state.current = Some(id.to_owned());
@@ -430,7 +527,7 @@ pub fn open(id: &str, steam: Option<&Path>) {
             .and_then(|e| e.list.clone())
             .unwrap_or_default();
         state.show(cached);
-        state.fetch(id, steam, language);
+        state.fetch(id, title, steam, language);
     });
 }
 

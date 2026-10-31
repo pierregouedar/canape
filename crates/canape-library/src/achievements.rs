@@ -361,6 +361,105 @@ pub fn fetch(
     Ok(Answer::List(merge(list, &unlocks, &percents)))
 }
 
+/// Steam's store search, which finds the Steam game of a title.
+pub fn store_search_url(term: &str) -> String {
+    format!(
+        "https://store.steampowered.com/api/storesearch/?term={}&l=english&cc=US",
+        encode_component(term)
+    )
+}
+
+/// Percent-encodes `text` for a query string.
+fn encode_component(text: &str) -> String {
+    let mut out = String::new();
+    for byte in text.bytes() {
+        if byte.is_ascii_alphanumeric() || b"-_.~".contains(&byte) {
+            out.push(char::from(byte));
+        } else {
+            out.push_str(&format!("%{byte:02X}"));
+        }
+    }
+    out
+}
+
+#[derive(Deserialize)]
+struct SearchAnswer {
+    #[serde(default)]
+    items: Vec<SearchItem>,
+}
+
+#[derive(Deserialize)]
+struct SearchItem {
+    id: u32,
+    name: String,
+}
+
+/// The `(appid, name)` pairs of a store search answer.
+pub fn parse_store_search(json: &[u8]) -> Option<Vec<(u32, String)>> {
+    let answer: SearchAnswer = serde_json::from_slice(json).ok()?;
+    Some(answer.items.into_iter().map(|i| (i.id, i.name)).collect())
+}
+
+/// Edition words a store adds after a title and Steam does not.
+const EDITIONS: [&str; 5] = [
+    "standard edition",
+    "deluxe edition",
+    "complete edition",
+    "definitive edition",
+    "game of the year edition",
+];
+
+/// A title reduced to what two stores agree on: lower case, letters and
+/// digits only, one space between words, no trademark signs, no trailing
+/// edition name.
+pub fn normalize_title(title: &str) -> String {
+    let mut words = String::new();
+    for c in title.chars() {
+        if c.is_alphanumeric() {
+            words.extend(c.to_lowercase());
+        } else if !matches!(c, '\u{2122}' | '\u{00AE}' | '\u{00A9}') && !words.ends_with(' ') {
+            words.push(' ');
+        }
+    }
+    let mut words = words.trim().to_owned();
+    for edition in EDITIONS {
+        if let Some(rest) = words.strip_suffix(edition) {
+            words = rest.trim_end().to_owned();
+        }
+    }
+    words
+}
+
+/// The Steam game that carries exactly this title, if the search found it.
+/// Only an exact match counts: a wrong game's achievements are worse than
+/// none.
+pub fn match_appid(title: &str, results: &[(u32, String)]) -> Option<u32> {
+    let wanted = normalize_title(title);
+    if wanted.is_empty() {
+        return None;
+    }
+    results
+        .iter()
+        .find(|(_, name)| normalize_title(name) == wanted)
+        .map(|(id, _)| *id)
+}
+
+/// The achievements of a Steam game for a copy that is not on Steam: its
+/// list and rarity, all locked, since nothing says what this copy unlocked.
+pub fn fetch_listing(http: &dyn Http, appid: u32, language: &str, key: &str) -> io::Result<Answer> {
+    let schema = http.get(&schema_url(key, appid, language), None)?;
+    let list = parse_schema(&schema).ok_or_else(|| io::Error::other("unreadable schema"))?;
+    if list.is_empty() {
+        return Ok(Answer::Nothing("no achievements".into()));
+    }
+    let percents = http
+        .get(&global_url(appid), None)
+        .ok()
+        .and_then(|json| parse_global(&json))
+        .unwrap_or_default();
+    Ok(Answer::List(merge(list, &Unlocks::default(), &percents)))
+}
+
 /// The cache file name of an icon: a hash of its URL, with its extension.
 pub fn icon_file(url: &str) -> String {
     let digest = crate::sha256::digest(url.as_bytes());
@@ -642,5 +741,36 @@ mod tests {
         assert_eq!(urls[0], url);
         assert!(urls[1].starts_with("https://cdn.cloudflare.steamstatic.com/"));
         assert_eq!(icon_urls("https://example.com/a.jpg").len(), 1);
+    }
+
+    #[test]
+    fn store_search_finds_the_game_of_a_title() {
+        let json = br#"{"total":2,"items":[{"id":1,"name":"Art of Rally: Soundtrack"},{"id":550320,"name":"art of rally"}]}"#;
+        let results = parse_store_search(json).unwrap();
+        assert_eq!(
+            match_appid("art of rally Standard Edition", &results),
+            Some(550320)
+        );
+        // Both spellings of the soundtrack name the same entry; a title that is
+        // only part of a name does not.
+        assert_eq!(match_appid("Art of Rally Soundtrack", &results), Some(1));
+        assert_eq!(match_appid("art of", &results), None);
+        assert_eq!(match_appid("", &results), None);
+        // A near miss is not a match.
+        assert_eq!(match_appid("art of rally 2", &results), None);
+    }
+
+    #[test]
+    fn titles_agree_across_stores() {
+        assert_eq!(normalize_title("Fall Guys\u{2122}"), "fall guys");
+        assert_eq!(
+            normalize_title("LEGO\u{00AE} City Undercover"),
+            "lego city undercover"
+        );
+        assert_eq!(normalize_title("Hades: Definitive Edition"), "hades");
+        assert_eq!(
+            store_search_url("Fall Guys & Co"),
+            "https://store.steampowered.com/api/storesearch/?term=Fall%20Guys%20%26%20Co&l=english&cc=US"
+        );
     }
 }

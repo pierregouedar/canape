@@ -293,7 +293,7 @@ Below the time to beat (or alone below the game page), a Steam game shows its **
 - Names and descriptions come in the interface language when the game is translated. A hidden achievement keeps its description secret until it is unlocked.
 - The list is kept in `%LOCALAPPDATA%\Canape\achievements.json` and shows at once; it is asked for again when the page opens if it is more than an hour old (or in another language). Icons are downloaded once into `%LOCALAPPDATA%\Canape\achievement-icons`, only those on screen, three at a time. After a network error, nothing is asked for 10 minutes.
 - The key only goes to Steam (`api.steampowered.com`) and never appears in the logs.
-- GOG, Epic, Xbox and other games: no achievements. GOG has an achievements service, but it needs each game's own identifiers (from the game's build files) and an exchange of your GOG sign-in that could disturb the one gogdl keeps: left out for now.
+- **Epic, Xbox and hand-added games**: Canapé searches the Steam store for a game with **exactly the same title** (ignoring ™ ® and a trailing "Standard Edition" or "Definitive Edition") and shows its achievements, **all locked**: nothing says what your copy has unlocked, and a near title is never taken. The search result is kept in `%LOCALAPPDATA%\Canape\steam-matches.json`. It needs the Steam API key, not Steam installed. GOG is paused. *Not tried on the Ally yet.*
 
 > [!NOTE]
 > Not tried on the Ally yet: neither the Steam requests (written from Valve's published Web API documentation and tested on answers written from it, not recorded ones), nor the icon downloads, nor the grid on the device. Only the page (on Linux, with the fake library) and the reading of the answers were tested.
