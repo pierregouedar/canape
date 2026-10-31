@@ -1,13 +1,12 @@
-// Hardware page: the fans and the CPU temperature at the top, then three
+// Hardware page: the fans and the CPU temperature at the top, then
 // shelves of setting cards, moved through as on the performance page. A
 // opens the card's drawer; X saves the fans, the screen's mode, the frame
 // rate cap, the image settings and gyro aiming for the game in the
 // foreground. Cards:
-//   shelf 0, cooling: fans;
+//   shelf 0, cooling and battery: fans, charge limit;
 //   shelf 1, controller: mode, back buttons, lighting, gyro aiming;
-//   shelf 2, image: resolution, refresh rate, frame rate limit,
-//     upscaling, frame generation;
-//   shelf 3, battery: charge limit.
+//   shelf 2, display: resolution, refresh rate, frame rate limit;
+//   shelf 3, image: upscaling, frame generation, AMD driver.
 // In the back buttons' drawer the arrows move over the targets, A applies
 // one to the paddle shown, Y switches paddle and X restores the default
 // buttons. In the lighting, gyro, upscaling and frame generation drawers,
@@ -310,10 +309,10 @@ export component HardwarePage inherits Rectangle {
     }
 
     pure function key(s: int, c: int) -> string {
-        s == 0 ? ["fans"][c] : s == 1 ? ["controller", "back", "lighting", "gyro"][c] : s == 2 ? ["resolution", "screen", "fps", "upscaling", "framegen"][c] : s == 3 ? ["radeon"][c] : ["charge"][c]
+        s == 0 ? ["fans", "charge"][c] : s == 1 ? ["controller", "back", "lighting", "gyro"][c] : s == 2 ? ["resolution", "screen", "fps"][c] : ["upscaling", "framegen", "radeon"][c]
     }
     pure function cards(s: int) -> int {
-        s == 1 ? 4 : s == 2 ? 5 : 1
+        s == 0 ? 2 : s == 1 ? 4 : 3
     }
     // The refresh rate works without the service; the resolution only
     // while a game runs, since it is not changed for the shell itself.
@@ -574,7 +573,7 @@ export component HardwarePage inherits Rectangle {
                 return accept;
             }
             if event.text == Key.UpArrow || event.text == Key.DownArrow {
-                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 4);
+                root.shelf = clamp(root.shelf + (event.text == Key.UpArrow ? -1 : 1), 0, 3);
                 root.card = min(root.card, root.cards(root.shelf) - 1);
                 return accept;
             }
@@ -653,7 +652,7 @@ export component HardwarePage inherits Rectangle {
             index: 0;
             front: root.shelf;
             icon: "cool";
-            title: @tr("Cooling");
+            title: @tr("Cooling and battery");
             ShelfCard {
                 label: @tr("Fans");
                 icon: "fan";
@@ -663,6 +662,20 @@ export component HardwarePage inherits Rectangle {
                 clicked => {
                     root.shelf = 0;
                     root.card = 0;
+                    root.activate();
+                    fs.focus();
+                }
+            }
+
+            ShelfCard {
+                label: @tr("Charge limit");
+                icon: "battery";
+                value: App.status.connected && App.status.charge-limit > 0 ? App.percent(App.status.charge-limit) : "—";
+                enabled: root.usable("charge");
+                focused: root.active && root.shelf == 0 && root.card == 1;
+                clicked => {
+                    root.shelf = 0;
+                    root.card = 1;
                     root.activate();
                     fs.focus();
                 }
@@ -738,8 +751,8 @@ export component HardwarePage inherits Rectangle {
             width: parent.width - 48px;
             index: 2;
             front: root.shelf;
-            icon: "image";
-            title: @tr("Image");
+            icon: "screen";
+            title: @tr("Display");
             ShelfCard {
                 label: @tr("Resolution");
                 icon: "screen";
@@ -782,15 +795,26 @@ export component HardwarePage inherits Rectangle {
                 }
             }
 
+
+
+        }
+
+        Shelf {
+            x: 48px;
+            width: parent.width - 48px;
+            index: 3;
+            front: root.shelf;
+            icon: "image";
+            title: @tr("Image");
             ShelfCard {
                 label: @tr("Upscaling");
                 icon: "range";
                 value: App.status.connected ? root.upscaling-names[App.image-upscaling] : "—";
                 enabled: root.usable("upscaling");
-                focused: root.active && root.shelf == 2 && root.card == 3;
+                focused: root.active && root.shelf == 3 && root.card == 0;
                 clicked => {
-                    root.shelf = 2;
-                    root.card = 3;
+                    root.shelf = 3;
+                    root.card = 0;
                     root.activate();
                     fs.focus();
                 }
@@ -801,54 +825,24 @@ export component HardwarePage inherits Rectangle {
                 icon: "auto";
                 value: App.status.connected ? root.frame-gen-names[App.image-frame-gen] : "—";
                 enabled: root.usable("framegen");
-                focused: root.active && root.shelf == 2 && root.card == 4;
+                focused: root.active && root.shelf == 3 && root.card == 1;
                 clicked => {
-                    root.shelf = 2;
-                    root.card = 4;
+                    root.shelf = 3;
+                    root.card = 1;
                     root.activate();
                     fs.focus();
                 }
             }
-        }
 
-        Shelf {
-            x: 48px;
-            width: parent.width - 48px;
-            index: 3;
-            front: root.shelf;
-            icon: "gauge";
-            title: "AMD";
             ShelfCard {
-                label: "Radeon";
+                label: @tr("AMD driver");
                 icon: "gauge";
                 value: !App.status.connected ? "—" : App.image-amd-failed && App.status.foreground != "" ? @tr("Partial") : (App.image-anti-lag ? 1 : 0) + (App.image-sharpening >= 0 ? 1 : 0) + (App.image-chill ? 1 : 0) == 0 ? @tr("Off") : @tr("On");
                 enabled: root.usable("radeon");
-                focused: root.active && root.shelf == 3 && root.card == 0;
+                focused: root.active && root.shelf == 3 && root.card == 2;
                 clicked => {
                     root.shelf = 3;
-                    root.card = 0;
-                    root.activate();
-                    fs.focus();
-                }
-            }
-        }
-
-        Shelf {
-            x: 48px;
-            width: parent.width - 48px;
-            index: 4;
-            front: root.shelf;
-            icon: "battery";
-            title: @tr("Battery");
-            ShelfCard {
-                label: @tr("Charge limit");
-                icon: "battery";
-                value: App.status.connected && App.status.charge-limit > 0 ? App.percent(App.status.charge-limit) : "—";
-                enabled: root.usable("charge");
-                focused: root.active && root.shelf == 4 && root.card == 0;
-                clicked => {
-                    root.shelf = 4;
-                    root.card = 0;
+                    root.card = 2;
                     root.activate();
                     fs.focus();
                 }
@@ -861,7 +855,7 @@ export component HardwarePage inherits Rectangle {
         page-height: parent.height;
         open: root.open;
         sheet-height: root.sheet-height;
-        title: root.sheet == "fans" ? @tr("Fans") : root.sheet == "fps" ? @tr("Frame rate limit") : root.sheet == "controller" ? @tr("Controller") : root.sheet == "back" ? (root.paddle == 0 ? @tr("M1, right") : @tr("M2, left")) : root.sheet == "lighting" ? @tr("Stick lighting") : root.sheet == "gyro" ? @tr("Gyro aiming") : root.sheet == "screen" ? @tr("Refresh rate") : root.sheet == "resolution" ? @tr("Resolution") : root.sheet == "upscaling" ? @tr("Upscaling") : root.sheet == "framegen" ? @tr("Frame generation") : root.sheet == "radeon" ? "Radeon" : @tr("Charge limit");
+        title: root.sheet == "fans" ? @tr("Fans") : root.sheet == "fps" ? @tr("Frame rate limit") : root.sheet == "controller" ? @tr("Controller") : root.sheet == "back" ? (root.paddle == 0 ? @tr("M1, right") : @tr("M2, left")) : root.sheet == "lighting" ? @tr("Stick lighting") : root.sheet == "gyro" ? @tr("Gyro aiming") : root.sheet == "screen" ? @tr("Refresh rate") : root.sheet == "resolution" ? @tr("Resolution") : root.sheet == "upscaling" ? @tr("Upscaling") : root.sheet == "framegen" ? @tr("Frame generation") : root.sheet == "radeon" ? @tr("AMD driver") : @tr("Charge limit");
         note: root.sheet == "fans" ? (App.status.fan-preset == "custom" ? @tr("Custom curves") : App.status.foreground != "" ? @tr("{} · game profile", App.status.foreground) : "")
             : root.sheet == "back" ? root.target-names[grid.current]
             : root.sheet == "upscaling" ? (App.image-upscaling == 2 || (App.image-upscaling == 1 && App.image-amd-failed) ? @tr("Not applied yet") : "")

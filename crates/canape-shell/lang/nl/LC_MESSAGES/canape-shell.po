@@ -740,9 +740,6 @@ msgstr "limiet {} · {} geleerd"
 msgid "Measures and screen"
 msgstr "Metingen en scherm"
 
-msgid "Cooling"
-msgstr "Koeling"
-
 msgid "Custom"
 msgstr "Aangepast"
 
@@ -1222,9 +1219,6 @@ msgstr "Niet toegepast: {}"
 msgid "Image"
 msgstr "Beeld"
 
-msgid "Battery"
-msgstr "Batterij"
-
 msgid "Resolution"
 msgstr "Resolutie"
 
@@ -1321,3 +1315,9 @@ msgstr "Punt"
 
 msgid "Next fan"
 msgstr "Andere ventilator"
+
+msgid "Cooling and battery"
+msgstr "Koeling en accu"
+
+msgid "AMD driver"
+msgstr "AMD-stuurprogramma"

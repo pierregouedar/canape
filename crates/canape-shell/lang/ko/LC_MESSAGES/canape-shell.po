@@ -740,9 +740,6 @@ msgstr "제한 {} · 학습값 {}"
 msgid "Measures and screen"
 msgstr "측정 및 화면"
 
-msgid "Cooling"
-msgstr "냉각"
-
 msgid "Custom"
 msgstr "사용자 지정"
 
@@ -1219,9 +1216,6 @@ msgstr "적용하지 못한 항목: {}"
 msgid "Image"
 msgstr "화면 품질"
 
-msgid "Battery"
-msgstr "배터리"
-
 msgid "Resolution"
 msgstr "해상도"
 
@@ -1318,3 +1312,9 @@ msgstr "지점"
 
 msgid "Next fan"
 msgstr "다른 팬"
+
+msgid "Cooling and battery"
+msgstr "냉각 및 배터리"
+
+msgid "AMD driver"
+msgstr "AMD 드라이버"

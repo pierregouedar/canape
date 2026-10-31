@@ -740,9 +740,6 @@ msgstr "上限 {} · 学習値 {}"
 msgid "Measures and screen"
 msgstr "計測と画面"
 
-msgid "Cooling"
-msgstr "冷却"
-
 msgid "Custom"
 msgstr "カスタム"
 
@@ -1219,9 +1216,6 @@ msgstr "適用できなかった項目: {}"
 msgid "Image"
 msgstr "画質"
 
-msgid "Battery"
-msgstr "バッテリー"
-
 msgid "Resolution"
 msgstr "解像度"
 
@@ -1318,3 +1312,9 @@ msgstr "ポイント"
 
 msgid "Next fan"
 msgstr "別のファン"
+
+msgid "Cooling and battery"
+msgstr "冷却とバッテリー"
+
+msgid "AMD driver"
+msgstr "AMD ドライバー"

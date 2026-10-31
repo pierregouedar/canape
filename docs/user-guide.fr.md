@@ -472,15 +472,14 @@ Le fonctionnement détaillé est dans [Auto TDP et banc d'essai](auto-tdp.fr.md)
 
 **En haut**, en direct : le jeu au premier plan, la vitesse du ventilateur CPU (et celle du GPU en dessous), en tr/min, la température CPU (avec la limite de température si elle est réglée) et la courbe du ventilateur CPU, un trait en pointillés marquant la température du moment. « — » quand le firmware ne donne pas de mesure.
 
-En dessous, quatre étagères de cartes, parcourues comme la page [Performance](#performance) : **A** ouvre le tiroir d'une carte, **B** le ferme, **X** enregistre les ventilateurs, le mode de l'écran (résolution et fréquence), la limite de FPS, les réglages d'image et la visée au gyroscope pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)).
+En dessous, étagères de cartes, parcourues comme la page [Performance](#performance) : **A** ouvre le tiroir d'une carte, **B** le ferme, **X** enregistre les ventilateurs, le mode de l'écran (résolution et fréquence), la limite de FPS, les réglages d'image et la visée au gyroscope pour le jeu au premier plan (voir [Ce jeu](#ce-jeu)).
 
 | Étagère | Cartes |
 |---|---|
-| **Refroidissement** | Ventilateurs |
+| **Refroidissement et batterie** | Ventilateurs, Limite de charge |
 | **Manette** | Mode, Boutons arrière, Éclairage des sticks, Visée au gyroscope |
-| **Image** | Résolution, Fréquence, Limite de FPS, Mise à l'échelle, Génération d'images |
-| **AMD** | Radeon (Anti-Lag, Netteté de l'image, Chill) |
-| **Batterie** | Limite de charge |
+| **Affichage** | Résolution, Fréquence, Limite de FPS |
+| **Image** | Mise à l'échelle, Génération d'images, Pilote AMD (Anti-Lag, Netteté de l'image, Chill) |
 
 **Ventilateurs**
 
@@ -499,7 +498,7 @@ En dessous, quatre étagères de cartes, parcourues comme la page [Performance](
 
 **Radeon**
 
-Le tiroir de la carte **Radeon** (étagère AMD) règle trois fonctions du pilote graphique pour le jeu au premier plan : **Anti-Lag** (Activé ou Désactivé), **Netteté de l'image** (Désactivée, ou de 10 à 100 %) et **Chill** (Activé ou Désactivé, puis les images par seconde minimum et maximum, de 30 à 300 par pas de 10). Comme la mise à l'échelle, ces réglages ne s'appliquent qu'avec le profil d'un jeu (**X** les enregistre) : ils sont activés tant que le jeu est devant, puis le pilote est remis comme il était. Un réglage laissé sur Désactivé ne touche pas au pilote. Le pilote n'admet pas la netteté de l'image avec Radeon Super Resolution (et activer l'une coupe l'autre) : si Super Resolution est activée, par vous dans le pilote ou par le profil, Canapé ne touche pas à la netteté et le tiroir indique « Pas encore appliqué ». Le pilote ne garde pas Anti-Lag avec Chill (Chill le coupe sans rien dire) : avec Chill, Canapé n'applique pas Anti-Lag et le tiroir indique « Pas encore appliqué ». **Chill et Anti-Lag essayés sur l'Ally** (Chill : seules ses trois clés changent et reviennent à la fermeture) ; **la netteté de l'image n'a pas été essayée.**
+Le tiroir de la carte **Pilote AMD** (étagère Image) règle trois fonctions du pilote graphique pour le jeu au premier plan : **Anti-Lag** (Activé ou Désactivé), **Netteté de l'image** (Désactivée, ou de 10 à 100 %) et **Chill** (Activé ou Désactivé, puis les images par seconde minimum et maximum, de 30 à 300 par pas de 10). Comme la mise à l'échelle, ces réglages ne s'appliquent qu'avec le profil d'un jeu (**X** les enregistre) : ils sont activés tant que le jeu est devant, puis le pilote est remis comme il était. Un réglage laissé sur Désactivé ne touche pas au pilote. Le pilote n'admet pas la netteté de l'image avec Radeon Super Resolution (et activer l'une coupe l'autre) : si Super Resolution est activée, par vous dans le pilote ou par le profil, Canapé ne touche pas à la netteté et le tiroir indique « Pas encore appliqué ». Le pilote ne garde pas Anti-Lag avec Chill (Chill le coupe sans rien dire) : avec Chill, Canapé n'applique pas Anti-Lag et le tiroir indique « Pas encore appliqué ». **Chill et Anti-Lag essayés sur l'Ally** (Chill : seules ses trois clés changent et reviennent à la fermeture) ; **la netteté de l'image n'a pas été essayée.**
 
 **Limite de FPS**
 

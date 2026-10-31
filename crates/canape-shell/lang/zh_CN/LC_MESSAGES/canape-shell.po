@@ -740,9 +740,6 @@ msgstr "上限 {} · 已学习 {}"
 msgid "Measures and screen"
 msgstr "测量与屏幕"
 
-msgid "Cooling"
-msgstr "散热"
-
 msgid "Custom"
 msgstr "自定义"
 
@@ -1219,9 +1216,6 @@ msgstr "未能应用：{}"
 msgid "Image"
 msgstr "画面"
 
-msgid "Battery"
-msgstr "电池"
-
 msgid "Resolution"
 msgstr "分辨率"
 
@@ -1318,3 +1312,9 @@ msgstr "点"
 
 msgid "Next fan"
 msgstr "切换风扇"
+
+msgid "Cooling and battery"
+msgstr "散热与电池"
+
+msgid "AMD driver"
+msgstr "AMD 驱动"

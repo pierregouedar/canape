@@ -740,9 +740,6 @@ msgstr "предел {} · изучено {}"
 msgid "Measures and screen"
 msgstr "Замеры и экран"
 
-msgid "Cooling"
-msgstr "Охлаждение"
-
 msgid "Custom"
 msgstr "Свои"
 
@@ -1219,9 +1216,6 @@ msgstr "Не применено: {}"
 msgid "Image"
 msgstr "Изображение"
 
-msgid "Battery"
-msgstr "Батарея"
-
 msgid "Resolution"
 msgstr "Разрешение"
 
@@ -1318,3 +1312,9 @@ msgstr "Точка"
 
 msgid "Next fan"
 msgstr "Другой вентилятор"
+
+msgid "Cooling and battery"
+msgstr "Охлаждение и батарея"
+
+msgid "AMD driver"
+msgstr "Драйвер AMD"

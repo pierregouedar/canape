@@ -740,9 +740,6 @@ msgstr "límite {} · {} aprendidos"
 msgid "Measures and screen"
 msgstr "Mediciones y pantalla"
 
-msgid "Cooling"
-msgstr "Refrigeración"
-
 msgid "Custom"
 msgstr "Personalizadas"
 
@@ -1222,9 +1219,6 @@ msgstr "No aplicados: {}"
 msgid "Image"
 msgstr "Imagen"
 
-msgid "Battery"
-msgstr "Batería"
-
 msgid "Resolution"
 msgstr "Resolución"
 
@@ -1321,3 +1315,9 @@ msgstr "Punto"
 
 msgid "Next fan"
 msgstr "Otro ventilador"
+
+msgid "Cooling and battery"
+msgstr "Refrigeración y batería"
+
+msgid "AMD driver"
+msgstr "Controlador AMD"

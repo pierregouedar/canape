@@ -740,9 +740,6 @@ msgstr "sınır {} · {} öğrenildi"
 msgid "Measures and screen"
 msgstr "Ölçümler ve ekran"
 
-msgid "Cooling"
-msgstr "Soğutma"
-
 msgid "Custom"
 msgstr "Özel"
 
@@ -1219,9 +1216,6 @@ msgstr "Uygulanamayanlar: {}"
 msgid "Image"
 msgstr "Görüntü"
 
-msgid "Battery"
-msgstr "Pil"
-
 msgid "Resolution"
 msgstr "Çözünürlük"
 
@@ -1318,3 +1312,9 @@ msgstr "Nokta"
 
 msgid "Next fan"
 msgstr "Diğer fan"
+
+msgid "Cooling and battery"
+msgstr "Soğutma ve pil"
+
+msgid "AMD driver"
+msgstr "AMD sürücüsü"

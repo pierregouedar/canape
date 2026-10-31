@@ -93,7 +93,7 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 ## I. Demandes de Pierre du 31 octobre (en cours)
 
 - [ ] **Lancement Steam sans fenêtre.** Diagnostic fait sur l'Ally (fenêtre « Lancement… », `SDL_app`, 600 × 286, réductible sans gêner le jeu) ; correctif codé le 31 octobre (`steamveil.rs`, réduit la fenêtre pendant 40 s après un lancement). À essayer sur l'Ally : premier plan du jeu et flash éventuel.
-- [ ] **Matériel mieux organisé.** Radeon sort de son étagère solitaire : réglages AMD dans la section Image ; batterie avec le refroidissement.
+- [x] **Matériel mieux organisé.** Fait le 31 octobre : quatre étagères (Refroidissement et batterie, Manette, Affichage, Image) ; le pilote AMD rejoint l'étagère Image, la batterie le refroidissement. Vérifié par captures sous Linux ; à voir sur l'Ally.
 - [ ] **Courbes de ventilateurs personnalisées.** Éditeur codé le 31 octobre (page « Courbes de ventilateurs », quatrième tuile du tiroir Ventilateurs, `fancurve.rs`, vérifié par captures sous Linux). Reste : l'essayer sur l'Ally, et l'enregistrement par profil (X de la page Matériel garde déjà les courbes courantes).
 - [ ] **Ajout de jeux dans la vue « Jeux ».** Sous-menu avec tri et gestion des autres jeux (jeux ajoutés à la main, masqués), au lieu de passer par les réglages.
 - [ ] **Succès Steam pour les jeux hors Steam.** Faire correspondre un jeu Epic, Xbox ou ajouté à la main à son jeu Steam par le titre, puis afficher ses succès.
