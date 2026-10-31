@@ -1294,3 +1294,6 @@ msgstr "Chill 最小"
 
 msgid "Chill maximum"
 msgstr "Chill 最大"
+
+msgid "Partial"
+msgstr "一部"

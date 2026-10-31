@@ -815,7 +815,7 @@ export component HardwarePage inherits Rectangle {
             ShelfCard {
                 label: "Radeon";
                 icon: "gauge";
-                value: !App.status.connected ? "—" : (App.image-anti-lag ? 1 : 0) + (App.image-sharpening >= 0 ? 1 : 0) + (App.image-chill ? 1 : 0) == 0 ? @tr("Off") : @tr("On");
+                value: !App.status.connected ? "—" : App.image-amd-failed && App.status.foreground != "" ? @tr("Partial") : (App.image-anti-lag ? 1 : 0) + (App.image-sharpening >= 0 ? 1 : 0) + (App.image-chill ? 1 : 0) == 0 ? @tr("Off") : @tr("On");
                 enabled: root.usable("radeon");
                 focused: root.active && root.shelf == 3 && root.card == 0;
                 clicked => {

@@ -1294,3 +1294,6 @@ msgstr "Chill en düşük"
 
 msgid "Chill maximum"
 msgstr "Chill en yüksek"
+
+msgid "Partial"
+msgstr "Kısmen"

@@ -1297,3 +1297,6 @@ msgstr "Chill-Minimum"
 
 msgid "Chill maximum"
 msgstr "Chill-Maximum"
+
+msgid "Partial"
+msgstr "Teilweise"

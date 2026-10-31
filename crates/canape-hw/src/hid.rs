@@ -236,7 +236,7 @@ pub fn write_input(reports: impl Fn(usize) -> Vec<Vec<u8>>) -> Result<usize> {
 /// fails, calling `on_button` for each press. Blocks: run it on its own
 /// thread, and call it again after an error (the device comes back after
 /// sleep).
-pub fn listen(mut on_button: impl FnMut(pad::Button)) -> Result<()> {
+pub fn listen(on_ready: impl FnOnce(), mut on_button: impl FnMut(pad::Button)) -> Result<()> {
     let interface = interface_paths()
         .iter()
         .find_map(|path| Interface::open(path).filter(|i| i.input_len > 0))
@@ -245,6 +245,7 @@ pub fn listen(mut on_button: impl FnMut(pad::Button)) -> Result<()> {
         ))?;
     // The buttons only report once the interface has been woken.
     interface.set_feature(&pad::init_report(interface.feature_len))?;
+    on_ready();
     let mut report = vec![0u8; interface.input_len];
     loop {
         let mut read = 0u32;

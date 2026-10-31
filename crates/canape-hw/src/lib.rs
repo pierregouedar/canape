@@ -140,8 +140,8 @@ impl FrameMetrics {
 /// from the user session; see [`hid::listen`]. Reading needs no rights and
 /// writes nothing but the interface's wake-up report.
 #[cfg(windows)]
-pub fn listen_buttons(on_button: impl FnMut(pad::Button)) -> Result<()> {
-    hid::listen(on_button)
+pub fn listen_buttons(on_ready: impl FnOnce(), on_button: impl FnMut(pad::Button)) -> Result<()> {
+    hid::listen(on_ready, on_button)
 }
 
 /// Picks the backend for the machine we run on.

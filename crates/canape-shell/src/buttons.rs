@@ -25,8 +25,20 @@ pub fn spawn(ui: Weak<AppWindow>) {
     thread::spawn(move || {
         // The same failure is logged once, not at every retry.
         let mut last = String::new();
+        // Said at the first success and after every failure, so that the log
+        // shows the buttons coming back (after sleep, for example).
+        let mut announce = true;
         loop {
-            let result = canape_hw::listen_buttons(|button| pressed(&ui, button));
+            let result = canape_hw::listen_buttons(
+                || {
+                    if announce {
+                        crate::log("buttons: listening");
+                        announce = false;
+                    }
+                },
+                |button| pressed(&ui, button),
+            );
+            announce = true;
             let absent = matches!(result, Err(canape_hw::HwError::Unsupported(_)));
             if let Err(err) = result {
                 let err = err.to_string();

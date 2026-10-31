@@ -1294,3 +1294,6 @@ msgstr "Chill 최소"
 
 msgid "Chill maximum"
 msgstr "Chill 최대"
+
+msgid "Partial"
+msgstr "일부"
