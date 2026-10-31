@@ -69,6 +69,8 @@ pub struct ShellSettings {
     pub removed_apps: Vec<String>,
     /// Software renderer (the default) or the graphics card.
     pub renderer: Renderer,
+    /// Library shelves ordered by last played instead of by title.
+    pub sort_recent: bool,
 }
 
 impl Default for ShellSettings {
@@ -88,6 +90,7 @@ impl Default for ShellSettings {
             onboarding_step: 0,
             removed_apps: Vec::new(),
             renderer: Renderer::Software,
+            sort_recent: false,
         }
     }
 }

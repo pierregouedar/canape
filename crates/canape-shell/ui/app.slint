@@ -118,15 +118,20 @@ export component AppWindow inherits Window {
     // The section the game profiles were opened from: Performance or
     // Settings.
     property <int> profiles-from: 3;
+    // The same for the page managing the games: Games or Settings.
+    property <int> manage-from: 3;
     // Sections 1 to 3 are shelves of setting cards: their hints come from
     // the page (PageHints).
     property <bool> shelf-page: (root.page >= 1 && root.page <= 3) || root.page == 8;
     pure function section-of(page: int) -> int {
-        page == 4 ? root.profiles-from : page == 6 || page == 7 || page == 8 ? 3 : page == 5 ? 1 : page == 9 ? 2 : page
+        page == 4 ? root.profiles-from : page == 6 ? root.manage-from : page == 7 || page == 8 ? 3 : page == 5 ? 1 : page == 9 ? 2 : page
     }
     function go(page: int) {
         if page == 4 && root.page != 4 {
             root.profiles-from = root.section;
+        }
+        if page == 6 && root.page != 6 && root.page != 7 {
+            root.manage-from = root.section;
         }
         let to-section = root.section-of(page);
         root.enter-x = to-section > root.section ? 32px : to-section < root.section ? -32px : 0;
@@ -308,7 +313,11 @@ export component AppWindow inherits Window {
                     height: parent.height + 34px;
                     from-x: root.enter-x;
                     from-y: root.enter-y;
-                    LibraryPage { }
+                    LibraryPage {
+                        open-manage => {
+                            root.go(6);
+                        }
+                    }
                 }
                 // The next shelf fades out under the hints.
                 if root.page == 0: Rectangle {
@@ -533,6 +542,10 @@ export component AppWindow inherits Window {
                 if root.page == 5: Hint {
                     glyph: "X";
                     text: @tr("Save for this game");
+                }
+                if root.page == 0 && !Library.detail: Hint {
+                    glyph: "X";
+                    text: @tr("Manage games");
                 }
                 if root.page == 4: Hint {
                     glyph: "X";

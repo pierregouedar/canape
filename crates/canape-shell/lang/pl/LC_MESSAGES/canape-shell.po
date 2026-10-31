@@ -1318,3 +1318,18 @@ msgstr "Chłodzenie i bateria"
 
 msgid "AMD driver"
 msgstr "Sterownik AMD"
+
+msgid "Manage games"
+msgstr "Zarządzaj grami"
+
+msgid "Order of the shelves"
+msgstr "Kolejność półek"
+
+msgid "Last played"
+msgstr "Ostatnio grane"
+
+msgid "Title"
+msgstr "Tytuł"
+
+msgid "Curve sent to the fan."
+msgstr "Krzywa wysłana do wentylatora."

@@ -1318,3 +1318,18 @@ msgstr "냉각 및 배터리"
 
 msgid "AMD driver"
 msgstr "AMD 드라이버"
+
+msgid "Manage games"
+msgstr "게임 관리"
+
+msgid "Order of the shelves"
+msgstr "선반 정렬"
+
+msgid "Last played"
+msgstr "최근 플레이"
+
+msgid "Title"
+msgstr "제목"
+
+msgid "Curve sent to the fan."
+msgstr "곡선을 팬에 보냈습니다."

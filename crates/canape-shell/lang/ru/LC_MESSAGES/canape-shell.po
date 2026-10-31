@@ -1318,3 +1318,18 @@ msgstr "Охлаждение и батарея"
 
 msgid "AMD driver"
 msgstr "Драйвер AMD"
+
+msgid "Manage games"
+msgstr "Управление играми"
+
+msgid "Order of the shelves"
+msgstr "Порядок полок"
+
+msgid "Last played"
+msgstr "Недавние"
+
+msgid "Title"
+msgstr "Название"
+
+msgid "Curve sent to the fan."
+msgstr "Кривая отправлена вентилятору."

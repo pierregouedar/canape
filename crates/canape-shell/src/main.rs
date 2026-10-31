@@ -417,9 +417,9 @@ fn connect(ui: &AppWindow, link: &Link) {
     let show_fan_editor = {
         let ui = ui.as_weak();
         let editor = fan_editor.clone();
-        Rc::new(move |note: String| {
+        Rc::new(move |note: String, sent: bool| {
             let Some(ui) = ui.upgrade() else { return };
-            fancurve::show(&ui.global::<App>(), &editor.borrow(), note);
+            fancurve::show(&ui.global::<App>(), &editor.borrow(), note, sent);
         })
     };
     app.on_fan_edit_open({
@@ -427,28 +427,28 @@ fn connect(ui: &AppWindow, link: &Link) {
         move || {
             *editor.borrow_mut() =
                 fancurve::FanEditor::new(canape_core::fan::Fan::Cpu, &link.status().fan_curves);
-            show(String::new());
+            show(String::new(), false);
         }
     });
     app.on_fan_edit_select({
         let (editor, show) = (fan_editor.clone(), show_fan_editor.clone());
         move |delta| {
             editor.borrow_mut().select(delta);
-            show(String::new());
+            show(String::new(), false);
         }
     });
     app.on_fan_edit_change({
         let (editor, show) = (fan_editor.clone(), show_fan_editor.clone());
         move |steps| {
             let note = editor.borrow_mut().change(steps).err().unwrap_or_default();
-            show(note);
+            show(note, false);
         }
     });
     app.on_fan_edit_toggle_field({
         let (editor, show) = (fan_editor.clone(), show_fan_editor.clone());
         move || {
             editor.borrow_mut().toggle_field();
-            show(String::new());
+            show(String::new(), false);
         }
     });
     app.on_fan_edit_switch_fan({
@@ -456,7 +456,7 @@ fn connect(ui: &AppWindow, link: &Link) {
         move || {
             let next = editor.borrow().next_fan();
             *editor.borrow_mut() = fancurve::FanEditor::new(next, &link.status().fan_curves);
-            show(String::new());
+            show(String::new(), false);
         }
     });
     app.on_fan_edit_save({
@@ -467,7 +467,7 @@ fn connect(ui: &AppWindow, link: &Link) {
                 (editor.fan, editor.curve)
             };
             link.send(Request::SetFanCurve { fan, curve });
-            show(String::new());
+            show(String::new(), true);
         }
     });
     app.on_set_fps_limit({

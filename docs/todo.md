@@ -92,10 +92,10 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 
 ## I. Demandes de Pierre du 31 octobre (en cours)
 
-- [ ] **Lancement Steam sans fenêtre.** Diagnostic fait sur l'Ally (fenêtre « Lancement… », `SDL_app`, 600 × 286, réductible sans gêner le jeu) ; correctif codé le 31 octobre (`steamveil.rs`, réduit la fenêtre pendant 40 s après un lancement). À essayer sur l'Ally : premier plan du jeu et flash éventuel.
+- [ ] **Lancement Steam sans fenêtre.** Premier essai le 31 octobre (`fc531aa`) : fenêtre non réduite, limite de taille trop basse (900 × 429 px réels à 150 %) ; limite portée à 1100 × 560, à réessayer. Diagnostic fait sur l'Ally (fenêtre « Lancement… », `SDL_app`, 600 × 286, réductible sans gêner le jeu) ; correctif codé le 31 octobre (`steamveil.rs`, réduit la fenêtre pendant 40 s après un lancement). À essayer sur l'Ally : premier plan du jeu et flash éventuel.
 - [x] **Matériel mieux organisé.** Fait le 31 octobre : quatre étagères (Refroidissement et batterie, Manette, Affichage, Image) ; le pilote AMD rejoint l'étagère Image, la batterie le refroidissement. Vérifié par captures sous Linux ; à voir sur l'Ally.
 - [ ] **Courbes de ventilateurs personnalisées.** Éditeur codé le 31 octobre (page « Courbes de ventilateurs », quatrième tuile du tiroir Ventilateurs, `fancurve.rs`, vérifié par captures sous Linux). Reste : l'essayer sur l'Ally, et l'enregistrement par profil (X de la page Matériel garde déjà les courbes courantes).
-- [ ] **Ajout de jeux dans la vue « Jeux ».** Sous-menu avec tri et gestion des autres jeux (jeux ajoutés à la main, masqués), au lieu de passer par les réglages.
+- [ ] **Ajout de jeux dans la vue « Jeux ».** Première étape faite le 31 octobre : X dans Jeux ouvre « Gérer les jeux » (ordre des étagères Titre / Dernier lancement, jeux masqués, ajout et retrait des autres jeux). Reste : à essayer sur l'Ally ; autres tris (par boutique, temps de jeu) si Pierre en veut.
 - [ ] **Succès Steam pour les jeux hors Steam.** Faire correspondre un jeu Epic, Xbox ou ajouté à la main à son jeu Steam par le titre, puis afficher ses succès.
 - [ ] **Installation en un clic d'émulateurs.** À réfléchir : quels émulateurs, d'où les télécharger, vérification, dossier de jeux, intégration dans la bibliothèque. Étude à écrire avant le code.
 

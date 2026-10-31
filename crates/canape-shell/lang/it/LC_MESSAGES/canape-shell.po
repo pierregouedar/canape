@@ -1321,3 +1321,18 @@ msgstr "Raffreddamento e batteria"
 
 msgid "AMD driver"
 msgstr "Driver AMD"
+
+msgid "Manage games"
+msgstr "Gestisci i giochi"
+
+msgid "Order of the shelves"
+msgstr "Ordine degli scaffali"
+
+msgid "Last played"
+msgstr "Ultima partita"
+
+msgid "Title"
+msgstr "Titolo"
+
+msgid "Curve sent to the fan."
+msgstr "Curva inviata alla ventola."

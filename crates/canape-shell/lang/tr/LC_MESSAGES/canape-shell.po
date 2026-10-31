@@ -1318,3 +1318,18 @@ msgstr "Soğutma ve pil"
 
 msgid "AMD driver"
 msgstr "AMD sürücüsü"
+
+msgid "Manage games"
+msgstr "Oyunları yönet"
+
+msgid "Order of the shelves"
+msgstr "Raf sıralaması"
+
+msgid "Last played"
+msgstr "Son oynanan"
+
+msgid "Title"
+msgstr "Başlık"
+
+msgid "Curve sent to the fan."
+msgstr "Eğri fana gönderildi."

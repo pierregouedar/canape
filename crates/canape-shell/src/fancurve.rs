@@ -105,7 +105,7 @@ impl FanEditor {
 }
 
 /// Puts the editor on the page: the points, their line and the note.
-pub fn show(app: &App, editor: &FanEditor, note: String) {
+pub fn show(app: &App, editor: &FanEditor, note: String, sent: bool) {
     let points: Vec<FanPointView> = editor
         .curve
         .0
@@ -123,6 +123,7 @@ pub fn show(app: &App, editor: &FanEditor, note: String) {
     app.set_fan_edit_sel(editor.selected as i32);
     app.set_fan_edit_field(i32::from(editor.field == Field::Temp));
     app.set_fan_edit_note(note.into());
+    app.set_fan_edit_sent(sent);
 }
 
 #[cfg(test)]

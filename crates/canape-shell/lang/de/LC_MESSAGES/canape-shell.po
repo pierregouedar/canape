@@ -1321,3 +1321,18 @@ msgstr "Kühlung und Akku"
 
 msgid "AMD driver"
 msgstr "AMD-Treiber"
+
+msgid "Manage games"
+msgstr "Spiele verwalten"
+
+msgid "Order of the shelves"
+msgstr "Reihenfolge der Regale"
+
+msgid "Last played"
+msgstr "Zuletzt gespielt"
+
+msgid "Title"
+msgstr "Titel"
+
+msgid "Curve sent to the fan."
+msgstr "Kurve an den Lüfter gesendet."

@@ -1318,3 +1318,18 @@ msgstr "散热与电池"
 
 msgid "AMD driver"
 msgstr "AMD 驱动"
+
+msgid "Manage games"
+msgstr "管理游戏"
+
+msgid "Order of the shelves"
+msgstr "货架排序"
+
+msgid "Last played"
+msgstr "最近游玩"
+
+msgid "Title"
+msgstr "标题"
+
+msgid "Curve sent to the fan."
+msgstr "曲线已发送到风扇。"

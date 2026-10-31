@@ -22,8 +22,10 @@ pub const WATCH: Duration = Duration::from_secs(40);
 /// The window class of Steam's dialogs.
 const CLASS: &str = "SDL_app";
 const OWNERS: [&str; 2] = ["steamwebhelper.exe", "steam.exe"];
-/// Steam's launch dialog is small; its client window is not.
-const MAX_SIZE: (i32, i32) = (800, 400);
+/// Steam's launch dialog is small (600 x 286 logical, 900 x 429 real pixels
+/// at 150 % scaling, which is what the shell measures); its client window is
+/// not (1280 x 800 at least).
+const MAX_SIZE: (i32, i32) = (1100, 560);
 
 /// True for Steam's launch dialog: its class, one of its processes, small.
 pub fn is_launch_dialog(class: &str, exe: &str, width: i32, height: i32) -> bool {
@@ -136,13 +138,15 @@ mod tests {
     #[test]
     fn only_steams_small_launch_dialog_matches() {
         assert!(is_launch_dialog("SDL_app", "steamwebhelper.exe", 600, 286));
+        // Measured in real pixels on the Ally at 150 % scaling.
+        assert!(is_launch_dialog("SDL_app", "steamwebhelper.exe", 900, 429));
         assert!(is_launch_dialog("SDL_app", "Steam.exe", 600, 286));
         // The client window is large; other programs may share the class.
         assert!(!is_launch_dialog(
             "SDL_app",
             "steamwebhelper.exe",
             1280,
-            720
+            800
         ));
         assert!(!is_launch_dialog("SDL_app", "game.exe", 600, 286));
         assert!(!is_launch_dialog(

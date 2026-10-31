@@ -162,6 +162,8 @@ struct State {
     /// Downloaded covers.
     covers_dir: PathBuf,
     recent_path: PathBuf,
+    /// Order of the installed, store and category shelves.
+    sort: canape_library::Sort,
     launch_timer: Timer,
     offset: i64,
     /// Owned games (installed or not), as entries to install.
@@ -318,7 +320,12 @@ impl State {
         let to_install = canape_library::not_installed(&self.owned, &self.all);
         let shown = self.overrides.apply(&self.all);
         let to_install = self.overrides.apply(&to_install);
-        let shelves = shelves::build(&shown, to_install, &self.overrides.category_map());
+        let shelves = shelves::build_sorted(
+            &shown,
+            to_install,
+            &self.overrides.category_map(),
+            self.sort,
+        );
         let now = canape_library::now();
 
         let same_kinds = shelves.len() == self.shelves.len()
@@ -1812,6 +1819,30 @@ impl State {
         self.rebuild(None);
     }
 
+    /// Switches the shelves between title order and last played order, and
+    /// remembers the choice.
+    fn toggle_sort(&mut self) {
+        let recent = self.sort != canape_library::Sort::Recent;
+        self.sort = if recent {
+            canape_library::Sort::Recent
+        } else {
+            canape_library::Sort::Title
+        };
+        let mut settings = crate::i18n::ShellSettings::load();
+        settings.sort_recent = recent;
+        if let Err(err) = settings.save() {
+            crate::log(&format!("library: saving the sort order: {err}"));
+        }
+        if let Some(ui) = self.ui.upgrade() {
+            ui.global::<Library>().set_sort_recent(recent);
+        }
+        crate::log(&format!(
+            "library: sorted by {}",
+            if recent { "last played" } else { "title" }
+        ));
+        self.rebuild(None);
+    }
+
     /// A on a hidden game: back on the shelves.
     fn show_game(&mut self, index: usize) {
         let Some(id) = self.hidden.get(index).cloned() else {
@@ -2554,6 +2585,11 @@ pub fn start(ui: &AppWindow) {
 
     let wanted = Arc::new(Mutex::new(HashSet::new()));
     let mut state = State {
+        sort: if crate::i18n::ShellSettings::load().sort_recent {
+            canape_library::Sort::Recent
+        } else {
+            canape_library::Sort::Title
+        },
         ui: ui.as_weak(),
         all: canape_library::merge(cached, &recent.launched),
         shelves: Vec::new(),
@@ -2692,6 +2728,8 @@ pub fn start(ui: &AppWindow) {
     });
     library.on_new_category(|text| with_state(|state| state.new_category(&text)));
     library.on_remove_game(|| with_state(State::remove_game));
+    library.set_sort_recent(crate::i18n::ShellSettings::load().sort_recent);
+    library.on_toggle_sort(|| with_state(State::toggle_sort));
     library.on_uninstall_game(|| with_state(State::uninstall));
     library.on_show_game(|index| {
         if let Ok(index) = usize::try_from(index) {

@@ -51,10 +51,22 @@ pub struct Shelf {
 /// with the user's `categories` (game id → category names). The installed
 /// and to-install shelves are always there, even empty: the page explains
 /// what is missing; a category shelf only when a game is in it.
+#[cfg(test)]
 pub fn build(
+    installed: &[Game],
+    to_install: Vec<Game>,
+    categories: &HashMap<String, Vec<String>>,
+) -> Vec<Shelf> {
+    build_sorted(installed, to_install, categories, Sort::Title)
+}
+
+/// [`build`] with the order of the installed, store and category shelves
+/// (the recent shelf is always last played first).
+pub fn build_sorted(
     installed: &[Game],
     mut to_install: Vec<Game>,
     categories: &HashMap<String, Vec<String>>,
+    order: Sort,
 ) -> Vec<Shelf> {
     let mut shelves = Vec::new();
     let mut recent: Vec<Game> = installed
@@ -72,8 +84,8 @@ pub fn build(
     }
 
     let mut all = installed.to_vec();
-    canape_library::sort(&mut all, Sort::Title);
-    canape_library::sort(&mut to_install, Sort::Title);
+    canape_library::sort(&mut all, order);
+    canape_library::sort(&mut to_install, order);
     // A store's shelf mixes its installed games and those to install.
     let mut by_store: Vec<Shelf> = Source::ALL
         .into_iter()
@@ -84,7 +96,7 @@ pub fn build(
                 .filter(|g| g.source == source)
                 .cloned()
                 .collect();
-            canape_library::sort(&mut games, Sort::Title);
+            canape_library::sort(&mut games, order);
             Shelf {
                 kind: Kind::Store(source),
                 games,
@@ -124,7 +136,7 @@ pub fn build(
                 })
                 .cloned()
                 .collect();
-            canape_library::sort(&mut games, Sort::Title);
+            canape_library::sort(&mut games, order);
             Shelf {
                 kind: Kind::Category(name),
                 games,
@@ -170,6 +182,23 @@ mod tests {
 
     fn ids(shelf: &Shelf) -> Vec<&str> {
         shelf.games.iter().map(|g| g.id.as_str()).collect()
+    }
+
+    #[test]
+    fn the_order_applies_to_the_installed_shelf_not_the_recent_one() {
+        let installed = vec![
+            game("a", Source::Steam, Some(1)),
+            game("b", Source::Steam, Some(9)),
+            game("c", Source::Steam, None),
+        ];
+        let ids = |shelf: &Shelf| shelf.games.iter().map(|g| g.id.clone()).collect::<Vec<_>>();
+        let by_title = build_sorted(&installed, Vec::new(), &none(), Sort::Title);
+        let recent = build_sorted(&installed, Vec::new(), &none(), Sort::Recent);
+        let installed_shelf =
+            |shelves: &[Shelf]| ids(shelves.iter().find(|s| s.kind == Kind::Installed).unwrap());
+        assert_eq!(installed_shelf(&by_title), ["a", "b", "c"]);
+        assert_eq!(installed_shelf(&recent), ["b", "a", "c"]);
+        assert_eq!(ids(&recent[0]), ["b", "a"]);
     }
 
     #[test]

@@ -1318,3 +1318,18 @@ msgstr "冷却とバッテリー"
 
 msgid "AMD driver"
 msgstr "AMD ドライバー"
+
+msgid "Manage games"
+msgstr "ゲームを管理"
+
+msgid "Order of the shelves"
+msgstr "棚の並び順"
+
+msgid "Last played"
+msgstr "最近のプレイ順"
+
+msgid "Title"
+msgstr "タイトル順"
+
+msgid "Curve sent to the fan."
+msgstr "カーブをファンに送信しました。"

@@ -1321,3 +1321,18 @@ msgstr "Koeling en accu"
 
 msgid "AMD driver"
 msgstr "AMD-stuurprogramma"
+
+msgid "Manage games"
+msgstr "Games beheren"
+
+msgid "Order of the shelves"
+msgstr "Volgorde van de planken"
+
+msgid "Last played"
+msgstr "Laatst gespeeld"
+
+msgid "Title"
+msgstr "Titel"
+
+msgid "Curve sent to the fan."
+msgstr "Curve naar de ventilator gestuurd."

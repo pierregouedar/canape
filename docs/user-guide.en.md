@@ -345,6 +345,8 @@ A game no store knows (a standalone `.exe`, an itch.io game, an emulator…) can
 
 **From Canapé, with the gamepad**: **Settings → Add a game** lists, by name, the games already added ("Added") and the shortcuts of the Start menu (yours and everyone's) and of both desktops that could be games, with the program's name. **A** adds the game, or takes it out if it was added; the library updates at once. Left out: shortcuts to anything but an `.exe` (documents, web pages), Windows' own programs, uninstallers, installers, update tools, manuals and support pages, the stores' clients, and games a store already lists (same title or same program). What is left may include apps that are not games: nothing is added unless you pick it.
 
+**Manage games**: in the **Games** view, **X** opens the "Manage games" page (also **Settings → Add a game**). Its first line, **Order of the shelves** (left and right, or **A**), switches between **Title** (the default) and **Last played** for the Installed, store and category shelves; the Recent shelf stays sorted by last played. The choice is kept in `shell.json` (`sort_recent`). Then come "Hidden games" (when there are some) and the list of games to add; **A** on a game already added asks for a second press before taking it out. **B** goes back to where you came from. *Not tried on the Ally yet.*
+
 **By hand**, in `%LOCALAPPDATA%\Canape\games.json` (the file the sub-page writes):
 
 ```json

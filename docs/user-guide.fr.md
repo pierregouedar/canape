@@ -344,6 +344,8 @@ Un jeu qu'aucune boutique ne connaît (un `.exe` autonome, un jeu itch.io, un é
 
 **Depuis Canapé, à la manette** : **Réglages → Ajouter un jeu** liste, par nom, les jeux déjà ajoutés (« Ajouté ») et les raccourcis du menu Démarrer (le vôtre et celui de tous les utilisateurs) et des deux bureaux qui pourraient être des jeux, avec le nom du programme. **A** ajoute le jeu, ou le retire s'il était ajouté ; la bibliothèque se met à jour aussitôt. Sont écartés : les raccourcis vers autre chose qu'un `.exe` (documents, pages web), les programmes de Windows, les désinstalleurs, installeurs, outils de mise à jour, manuels et pages de support, les clients des boutiques et les jeux qu'une boutique liste déjà (même titre ou même programme). Ce qui reste peut contenir des applications qui ne sont pas des jeux : rien n'est ajouté sans votre choix.
 
+**Gérer les jeux** : dans la vue **Jeux**, **X** ouvre la page « Gérer les jeux » (aussi **Réglages → Ajouter un jeu**). Sa première ligne, **Ordre des étagères** (gauche et droite, ou **A**), choisit entre **Titre** (le défaut) et **Dernier lancement** pour les étagères Installés, boutiques et catégories ; l'étagère Récents reste triée par dernier lancement. Le choix est gardé dans `shell.json` (`sort_recent`). Viennent ensuite « Jeux masqués » (quand il y en a) puis la liste des jeux à ajouter ; **A** sur un jeu déjà ajouté demande une seconde pression avant de le retirer. **B** revient à la vue d'où l'on vient. *Pas encore essayé sur l'Ally.*
+
 **À la main**, dans `%LOCALAPPDATA%\Canape\games.json` (le fichier que la sous-page écrit) :
 
 ```json

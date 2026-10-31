@@ -242,6 +242,10 @@ export global Library {
     callback new-category(string);
     // Hides the game, or takes a game of games.json out of the file.
     callback remove-game();
+    // The order of the shelves: last played (true) or by title.
+    in-out property <bool> sort-recent;
+    callback toggle-sort();
+
     callback uninstall-game();
     // A text field gained (true) or lost the focus: the touch keyboard
     // follows.
@@ -1200,6 +1204,9 @@ component OptionsPanel inherits Rectangle {
 }
 
 export component LibraryPage inherits Rectangle {
+    // X on the shelves: the page that manages the games (order, hidden games,
+    // other games).
+    callback open-manage();
     property <ShelfView> front: Library.shelves[Library.shelf];
     property <GameView> current: root.front.games[Library.selected];
     property <bool> has-games: root.front.games.length > 0;
@@ -1418,6 +1425,10 @@ export component LibraryPage inherits Rectangle {
             }
             if event.text == Key.Return || event.text == " " {
                 root.act();
+                return accept;
+            }
+            if event.text == Key.F2 || event.text == "x" {
+                root.open-manage();
                 return accept;
             }
             return reject;

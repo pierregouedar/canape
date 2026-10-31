@@ -1321,3 +1321,18 @@ msgstr "Refrigeração e bateria"
 
 msgid "AMD driver"
 msgstr "Driver AMD"
+
+msgid "Manage games"
+msgstr "Gerir jogos"
+
+msgid "Order of the shelves"
+msgstr "Ordem das prateleiras"
+
+msgid "Last played"
+msgstr "Último jogado"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "Curve sent to the fan."
+msgstr "Curva enviada à ventoinha."

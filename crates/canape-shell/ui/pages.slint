@@ -16,8 +16,9 @@ export component AddGamesPage inherits Rectangle {
     callback open-hidden();
     property <bool> active: fs.has-focus;
     property <length> pitch: 56px;
-    // The "Hidden games" line comes first when there are some.
-    property <int> extra: Library.hidden-games.length > 0 ? 1 : 0;
+    // The sort line comes first, then "Hidden games" when there are some.
+    property <bool> has-hidden: Library.hidden-games.length > 0;
+    property <int> extra: root.has-hidden ? 2 : 1;
     // The line count of "extra" last seen, to keep the cursor on the same game
     // when the "Hidden games" line appears or goes away.
     property <int> seen-extra: root.extra;
@@ -67,6 +68,14 @@ export component AddGamesPage inherits Rectangle {
                 root.focus-row = max(0, min(Library.add-games.length + root.extra - 1, root.focus-row + 1));
                 return accept;
             }
+            if (event.text == Key.LeftArrow || event.text == Key.RightArrow) && root.focus-row == 0 {
+                Library.toggle-sort();
+                return accept;
+            }
+            if (event.text == Key.Return || event.text == " ") && root.focus-row == 0 {
+                Library.toggle-sort();
+                return accept;
+            }
             if (event.text == Key.Return || event.text == " ") && root.focus-row < root.extra {
                 root.open-hidden();
                 return accept;
@@ -88,7 +97,7 @@ export component AddGamesPage inherits Rectangle {
         SectionTitle {
             height: 36px;
             x: 16px;
-            text: @tr("Add a game");
+            text: @tr("Manage games");
         }
 
         if Library.add-games-error != "": Text {
@@ -99,7 +108,7 @@ export component AddGamesPage inherits Rectangle {
             wrap: word-wrap;
         }
 
-        if Library.add-games.length == 0 && root.extra == 0: Text {
+        if Library.add-games.length == 0: Text {
             x: 16px;
             text: Library.add-games-loading ? @tr("Looking for shortcuts…") : @tr("No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape.");
             color: Theme.dim;
@@ -111,15 +120,32 @@ export component AddGamesPage inherits Rectangle {
             vertical-stretch: 1;
             content-height: (Library.add-games.length + root.extra) * root.pitch;
             animate content-y { duration: 160ms; easing: ease-out; }
-            if root.extra > 0: SettingLine {
+            SettingLine {
                 y: 0;
+                width: list.width;
+                label: @tr("Order of the shelves");
+                value: Library.sort-recent ? @tr("Last played") : @tr("Title");
+                focused: root.active && root.focus-row == 0;
+                step(d) => {
+                    root.focus-row = 0;
+                    Library.toggle-sort();
+                    fs.focus();
+                }
+                clicked => {
+                    root.focus-row = 0;
+                    Library.toggle-sort();
+                    fs.focus();
+                }
+            }
+            if root.has-hidden: SettingLine {
+                y: root.pitch;
                 width: list.width;
                 label: @tr("Hidden games");
                 value: Library.hidden-games.length;
                 chevrons: false;
-                focused: root.active && root.focus-row == 0;
+                focused: root.active && root.focus-row == 1;
                 clicked => {
-                    root.focus-row = 0;
+                    root.focus-row = 1;
                     root.open-hidden();
                 }
             }
@@ -737,8 +763,8 @@ export component FanCurvePage inherits Rectangle {
 
         Text {
             x: 16px;
-            text: App.fan-edit-note;
-            color: Theme.warn;
+            text: App.fan-edit-note != "" ? App.fan-edit-note : App.fan-edit-sent ? @tr("Curve sent to the fan.") : "";
+            color: App.fan-edit-note != "" ? Theme.warn : Theme.good;
             font-size: 13px;
             wrap: word-wrap;
         }
