@@ -465,6 +465,24 @@ Réinstallé ; console posée à plat, écran vers le haut ; un seul processus d
 - **Abonnements répétés** (3 s, 10 s d'écart, puis 8 s de pause et 5 s) : 188, 186, 186 puis 312 paquets (62 à 63 par seconde), ≈ 1 g dès le premier paquet, aucun paquet à 0. Journal : `sensor released` puis réouverture des deux capteurs à chaque fois.
 - Vu en passant : la vitesse angulaire reste exactement constante sur toute une session au repos (même valeur min et max), et change d'une session à l'autre ; le gyromètre de Windows ne publie sans doute une nouvelle lecture qu'au mouvement. À confirmer en bougeant la console.
 - Mesure de la durée d'un `GetCurrentReading` : inutile, la cadence est revenue. Inclinaison non essayée (geste de Pierre). Serveur de mouvement laissé activé.
+### Lossless Scaling sur l'Ally (relevé en lecture seule, `26116f2`)
+
+Aucun jeu lancé, rien installé, rien écrit dans la configuration de Lossless Scaling.
+
+- **Installé** par Steam (appid 993090, `StateFlags` 4, build `19655272`, 183,8 Mo) dans `C:\Program Files (x86)\Steam\steamapps\common\Lossless Scaling`. `LosslessScaling.exe` et `LosslessScaling.dll` : version **3.2.2.0** (application .NET : `LosslessScaling.exe` 154 Ko, `LosslessScaling.dll` 163 Ko, `Lossless.dll` 7,2 Mo, `LosslessScaling.runtimeconfig.json`, `LosslessScaling.deps.json`).
+- **Détection par Canapé** : par le manifeste Steam (`canape_library::steam::lossless_scaling`, relu au plus toutes les 30 s). Le tiroir Matériel › Image › Mise à l'échelle propose bien Aucune → AMD (RSR) → **Lossless Scaling** (capture). Choix remis à Aucune, shell relancé, aucun profil enregistré.
+- **Réglages** :
+  - `%LOCALAPPDATA%\Lossless Scaling\Settings.xml` (2 923 octets, XML, modifié le 20 octobre). Racine `Settings` : réglages de l'application, dont `Hotkey` = `S` et `HotkeyModifierKeys` = `Alt Control` (raccourci Ctrl+Alt+S), `StartAtWindowsStartup` false, `MinimizeToTray` false, `StartAsAdmin` false. Puis `GameProfiles` › `Profile` : un seul profil, « Par défaut », avec `AutoScale` false, `AutoScaleDelay` 0, `ScalingMode` Auto, `ScalingFitMode` AspectRatio, `ScaleFactor` 1.5, `ScalingType` Off, `FSRType` ORIGINAL, `LS1Type` BALANCED, `FrameGeneration` Off, `LSFG2Mode` X2, `LSFG3Mode1` FIXED, `LSFG3Multiplier` 2, `LSFG3Target` 120, `LSFGFlowScale` 100, `LSFGSize` BALANCED, `Sharpness` 5, `SyncMode` DEFAULT, `MaxFrameLatency` 3, `CaptureApi` DXGI, `DrawFps` true, `WindowedMode` false, `HdrSupport` false, `GsyncSupport` true, ainsi que les options de curseur, de recadrage et d'affichage.
+  - `config.ini` dans le dossier d'installation (373 octets, INI) : sections `[rendering]`, `[capture]` (`frametime_buffer_size` 15…), `[lsfg]` (`ui_detection_rate`, `base_framerate_threshold` 10…), `[fps_counter]`. Pas de profils.
+  - Rien dans `%APPDATA%` ni dans `HKCU\Software`.
+- **Activation** : aucune option de ligne de commande trouvée dans les binaires (pas de `GetCommandLineArgs`). Le seul moyen visible est le **raccourci Ctrl+Alt+S** (`Hotkey` / `HotkeyPressDelegate`) et l'**échelle automatique par profil** : le code contient les champs `AutoScale`, `AutoScaleDelay`, `Executable` / `ExecutableFiles`, `ProcessName` et `WindowTitle` ; le profil par défaut n'en remplit aucun.
+- Comparaison de FPS avec et sans génération d'images : **non faite**, il faut l'accord de Pierre pour lancer un jeu.
+
+### Pilote AMD, ADLX et processeur (relevé en lecture seule)
+
+- **Valeurs du pilote** (clé `Class\{4d36e968…}`, une seule carte, `0000` « AMD Radeon Graphics », sous-clés comprises) dont le nom contient Shader, Cache, Boost, MinClock, MinGfx, GPUTuning ou Tuning : `KMD_RadeonBoostEnabled` (DWORD) = 0, `KMD_BoostAdaptiveVrsEnabled` (DWORD) = 0, `UMD\ShaderCache` (chaîne) = `1`, `UMD\DXVA\EnablePCOMShaders` (chaîne) = `1`, `UMD\DXVA\EnableOCLShaders` (chaîne) = `1`. Aucune valeur MinClock, MinGfx ni Tuning.
+- **ADLX** (`amdadlx64.dll` 1.5.0.124) : les noms d'interfaces suivants figurent dans la DLL : `IADLX3DBoost`, `IADLX3DBoost1`, `IADLX3DResetShaderCache`, `IADLXGPUTuningServices`, `IADLXGPUTuningServices1`, `IADLXGPUAutoTuning`, `IADLXGPUPresetTuning`, `IADLXManualGraphicsTuning1` et `2`, `IADLXManualVRAMTuning1` et `2`, `IADLXManualPowerTuning` et `1`, `IADLXManualFanTuning` et `1`, `IADLXPowerTuningServices` et `1`. C'est la présence dans la bibliothèque, pas la prise en charge par la puce : non interrogé (`IsSupported…`). Pas d'interface « réglage du cache de shaders » au-delà de sa remise à zéro (`IADLX3DResetShaderCache`).
+- **Processeur** : « AMD Ryzen Z1 Extreme », 8 cœurs, 16 processeurs logiques, 3 301 MHz annoncés : un **Z1 Extreme** (8 cœurs Zen 4).
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
