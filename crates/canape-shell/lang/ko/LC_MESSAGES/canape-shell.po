@@ -1297,3 +1297,6 @@ msgstr "Chill 최대"
 
 msgid "Partial"
 msgstr "일부"
+
+msgid "Press A again to remove"
+msgstr "제거하려면 A를 다시 누르세요"

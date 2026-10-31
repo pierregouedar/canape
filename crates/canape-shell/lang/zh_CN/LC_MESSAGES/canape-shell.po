@@ -1297,3 +1297,6 @@ msgstr "Chill 最高"
 
 msgid "Partial"
 msgstr "部分"
+
+msgid "Press A again to remove"
+msgstr "再按一次 A 即可移除"

@@ -1300,3 +1300,6 @@ msgstr "Máximo de Chill"
 
 msgid "Partial"
 msgstr "Parcial"
+
+msgid "Press A again to remove"
+msgstr "Pulsa A de nuevo para quitar"

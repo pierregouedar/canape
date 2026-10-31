@@ -18,8 +18,18 @@ export component AddGamesPage inherits Rectangle {
     property <length> pitch: 56px;
     // The "Hidden games" line comes first when there are some.
     property <int> extra: Library.hidden-games.length > 0 ? 1 : 0;
+    // The line count of "extra" last seen, to keep the cursor on the same game
+    // when the "Hidden games" line appears or goes away.
+    property <int> seen-extra: root.extra;
+    // Game whose removal A confirms on the next press, -1 when none.
+    property <int> armed: -1;
     init => {
         Library.open-add-games();
+    }
+    changed extra => {
+        root.focus-row = max(0, root.focus-row + root.extra - root.seen-extra);
+        root.seen-extra = root.extra;
+        root.armed = -1;
     }
     changed focus-row => {
         // Keep the focused line in view: the gamepad cannot scroll.
@@ -32,16 +42,28 @@ export component AddGamesPage inherits Rectangle {
         }
     }
 
+    // Adding is immediate; taking out a game already listed needs a second press.
+    function press(index: int) {
+        if Library.add-games[index].added && root.armed != index {
+            root.armed = index;
+        } else {
+            root.armed = -1;
+            Library.toggle-add-game(index);
+        }
+    }
+
     fs := FocusScope {
         init => {
             self.focus();
         }
         key-pressed(event) => {
             if event.text == Key.UpArrow {
+                root.armed = -1;
                 root.focus-row = max(0, root.focus-row - 1);
                 return accept;
             }
             if event.text == Key.DownArrow {
+                root.armed = -1;
                 root.focus-row = max(0, min(Library.add-games.length + root.extra - 1, root.focus-row + 1));
                 return accept;
             }
@@ -50,7 +72,7 @@ export component AddGamesPage inherits Rectangle {
                 return accept;
             }
             if (event.text == Key.Return || event.text == " ") && root.focus-row - root.extra < Library.add-games.length {
-                Library.toggle-add-game(root.focus-row - root.extra);
+                root.press(root.focus-row - root.extra);
                 return accept;
             }
             return reject;
@@ -105,12 +127,12 @@ export component AddGamesPage inherits Rectangle {
                 y: (i + root.extra) * root.pitch;
                 width: list.width;
                 label: game.name;
-                value: game.added ? @tr("Added") : game.file;
+                value: root.armed == i ? @tr("Press A again to remove") : game.added ? @tr("Added") : game.file;
                 chevrons: false;
                 focused: root.active && root.focus-row == i + root.extra;
                 clicked => {
                     root.focus-row = i + root.extra;
-                    Library.toggle-add-game(i);
+                    root.press(i);
                     fs.focus();
                 }
             }

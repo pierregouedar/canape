@@ -1297,3 +1297,6 @@ msgstr "Максимум Chill"
 
 msgid "Partial"
 msgstr "Частично"
+
+msgid "Press A again to remove"
+msgstr "Нажмите A ещё раз, чтобы убрать"
