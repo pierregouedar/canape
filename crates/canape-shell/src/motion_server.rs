@@ -14,6 +14,8 @@
 //! then a u32 message type and its payload.
 
 use std::net::{SocketAddr, UdpSocket};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use canape_hw::motion::{Acceleration, Accelerometer, AngularVelocity, Gyro};
@@ -233,6 +235,47 @@ const TICK: Duration = Duration::from_millis(5);
 const SEND_INTERVAL: Duration = Duration::from_millis(8);
 /// Wait before looking for a sensor again after a failure.
 const SENSOR_RETRY: Duration = Duration::from_secs(5);
+/// The accelerometer, read by a thread of its own so that a slow sensor
+/// never holds the gyroscope's stream back (with it read in the same loop
+/// the stream fell to two packets a second on the Ally).
+struct AccelFeed {
+    value: Arc<Mutex<Acceleration>>,
+    stop: Arc<AtomicBool>,
+}
+
+impl AccelFeed {
+    /// How often the thread asks the sensor.
+    const POLL: Duration = Duration::from_millis(10);
+
+    fn start(mut sensor: Box<dyn Accelerometer>) -> Self {
+        sensor.set_active(true);
+        // One reading now, so that the first packets carry it if it is there.
+        let first = sensor.read().ok().flatten().unwrap_or_default();
+        let value = Arc::new(Mutex::new(first));
+        let stop = Arc::new(AtomicBool::new(false));
+        let (shared, halt) = (value.clone(), stop.clone());
+        std::thread::spawn(move || {
+            while !halt.load(Ordering::Relaxed) {
+                if let Ok(Some(reading)) = sensor.read() {
+                    *shared.lock().unwrap() = reading;
+                }
+                std::thread::sleep(Self::POLL);
+            }
+            sensor.set_active(false);
+        });
+        Self { value, stop }
+    }
+
+    fn latest(&self) -> Acceleration {
+        *self.value.lock().unwrap()
+    }
+
+    /// The thread ends, and puts the sensor back to its default rate.
+    fn stop(self) {
+        self.stop.store(true, Ordering::Relaxed);
+    }
+}
+
 /// Whether the accelerometer is read. It was off after a crash a few
 /// seconds after a client subscribed (twice on the Ally): a sensor with no
 /// reading yet returned a null one, and the null `Object` built for it was
@@ -256,7 +299,7 @@ fn serve(
     let mut clients = Clients::new(start_id());
     let mut sensor: Option<Box<dyn Gyro>> = None;
     // Opened with the gyroscope; without it the acceleration reads zero.
-    let mut accelerometer: Option<Box<dyn Accelerometer>> = None;
+    let mut accelerometer: Option<AccelFeed> = None;
     let mut retry_at = start;
     let mut last_send = start;
     let mut buffer = [0u8; 512];
@@ -292,10 +335,9 @@ fn serve(
                     sensor = Some(gyro);
                     if let Some(open_accelerometer) = open_accelerometer {
                         match open_accelerometer() {
-                            Ok(mut accel) => {
+                            Ok(accel) => {
                                 crate::log(&accel.describe());
-                                accel.set_active(true);
-                                accelerometer = Some(accel);
+                                accelerometer = Some(AccelFeed::start(accel));
                             }
                             Err(err) => crate::log(&format!("motion server: {err}")),
                         }
@@ -317,8 +359,8 @@ fn serve(
         match gyro.read() {
             Ok(Some(rate)) => {
                 let acceleration = accelerometer
-                    .as_mut()
-                    .and_then(|accel| accel.read().ok().flatten())
+                    .as_ref()
+                    .map(AccelFeed::latest)
                     .unwrap_or_default();
                 let data = clients.data(rate, acceleration, now - start);
                 for client in clients.addresses() {
@@ -338,9 +380,9 @@ fn serve(
 }
 
 /// Puts the sensor back to its default rate, which saves power.
-fn release(sensor: &mut Option<Box<dyn Gyro>>, accelerometer: &mut Option<Box<dyn Accelerometer>>) {
-    if let Some(mut accel) = accelerometer.take() {
-        accel.set_active(false);
+fn release(sensor: &mut Option<Box<dyn Gyro>>, accelerometer: &mut Option<AccelFeed>) {
+    if let Some(feed) = accelerometer.take() {
+        feed.stop();
     }
     if let Some(mut gyro) = sensor.take() {
         gyro.set_active(false);
