@@ -326,7 +326,8 @@ export component HardwarePage inherits Rectangle {
         if !root.usable(root.focused-key) {
             return;
         }
-        root.fan-col = max(0, root.fan-index);
+        // A custom curve (index -1) reopens on the Custom curves tile.
+        root.fan-col = root.fan-index >= 0 ? root.fan-index : App.status.connected ? 3 : 0;
         root.controller-col = max(0, root.controller-index);
         root.charge-col = root.charge-index >= 0 ? root.charge-index : 2;
         root.refresh-col = max(0, Refresh.index(App.refresh-hz));

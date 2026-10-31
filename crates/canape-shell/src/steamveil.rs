@@ -65,13 +65,13 @@ mod windows {
         QueryFullProcessImageNameW,
     };
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        EnumWindows, GetClassNameW, GetWindowRect, GetWindowThreadProcessId, IsIconic,
-        IsWindowVisible, SW_MINIMIZE, ShowWindow,
+        EnumWindows, GetClassNameW, GetForegroundWindow, GetWindowRect, GetWindowThreadProcessId,
+        IsIconic, IsWindowVisible, SW_MINIMIZE, ShowWindow,
     };
 
     use super::{WATCH, is_launch_dialog};
 
-    const POLL: Duration = Duration::from_millis(50);
+    const POLL: Duration = Duration::from_millis(20);
 
     pub fn watch() {
         thread::spawn(|| {
@@ -124,7 +124,13 @@ mod windows {
             && is_launch_dialog(&class, &exe, width, height)
         {
             crate::log(&format!("steam: launch dialog minimized ({exe})"));
+            let in_front = unsafe { GetForegroundWindow() } == window;
             unsafe { ShowWindow(window, SW_MINIMIZE) };
+            // A minimized window can keep the foreground, and the taskbar
+            // with it: hand the screen back to Canapé.
+            if in_front {
+                crate::instance::bring_to_front();
+            }
         }
         1
     }

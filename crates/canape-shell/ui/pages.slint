@@ -108,13 +108,6 @@ export component AddGamesPage inherits Rectangle {
             wrap: word-wrap;
         }
 
-        if Library.add-games.length == 0: Text {
-            x: 16px;
-            text: Library.add-games-loading ? @tr("Looking for shortcuts…") : @tr("No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape.");
-            color: Theme.dim;
-            font-size: 14px;
-            wrap: word-wrap;
-        }
 
         list := Flickable {
             vertical-stretch: 1;
@@ -148,6 +141,15 @@ export component AddGamesPage inherits Rectangle {
                     root.focus-row = 1;
                     root.open-hidden();
                 }
+            }
+            if Library.add-games.length == 0: Text {
+                y: root.extra * root.pitch + 8px;
+                x: 16px;
+                width: list.width - 32px;
+                text: Library.add-games-loading ? @tr("Looking for shortcuts…") : @tr("No shortcut to a game in the Start menu or on the desktop. Games can also be listed in games.json, in %LOCALAPPDATA%\\Canape.");
+                color: Theme.dim;
+                font-size: 14px;
+                wrap: word-wrap;
             }
             for game[i] in Library.add-games: SettingLine {
                 y: (i + root.extra) * root.pitch;

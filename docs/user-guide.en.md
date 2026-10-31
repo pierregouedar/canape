@@ -720,6 +720,7 @@ Opened from **Settings → Windows tweaks**; **B** goes back. Up and down change
 > Most of these optimizations remain to be tried on the Ally. Writing and restoring the background recording values was checked in the registry ([report](ally-alpha-report.md#réglages-windows)), without testing recording itself. These settings change Windows: try them one at a time first.
 
 - **Apply the recommended settings** applies at once those marked "yes" in the *Recommended* column below (never real-time protection, memory integrity or background apps). A second **A** confirms, since the set includes the Defender exclusions.
+- **Uninstalling and reinstalling**: uninstalling gives Windows back what Canapé had changed, and keeps your data (profiles, settings). Reinstalling does not apply these tweaks or the Processor shelf again: open the page and apply them once more.
 - Changes that lower protection and app removal ask for **a second A**; changing the selection cancels. **Restore my changes** lists and restores only tweaks applied by Canapé; removed apps must be reinstalled separately.
 - **Everything is reversible**: Canapé records what each value held before changing it (in `%ProgramData%\Canape\state.json`) and puts it back as it was when you revert the tweak. A tweak already in place before Canapé shows as applied; reverting it restores the Windows default.
 - Per-user settings apply to the account signed in on the screen.
