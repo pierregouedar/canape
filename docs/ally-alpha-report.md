@@ -496,6 +496,23 @@ Among Us lancé depuis Canapé, deux fois, 30 relevés de `get_status` à une se
 - Limites : image fixe (AFMF peut s'effacer quand rien ne bouge), un seul jeu, pas d'œil humain sur l'écran. Une vraie mesure des images affichées demandera un autre compteur (PresentMon ou la superposition AMD), ou un jeu en mouvement regardé par Pierre.
 - Génération d'images de Lossless Scaling : non essayée, elle demande de lancer Lossless Scaling et d'écrire dans ses réglages ou d'appuyer sur son raccourci.
 - Remis : profil supprimé, pilote identique à l'origine (861 valeurs), premier plan vide.
+
+### Vérification de `1618e1b` (banc, bibliothèque, Ajouter un jeu, repli du rendu)
+
+Installé depuis `1618e1b` (`f052d25` ne touche que la documentation). Aucun jeu ni banc lancé.
+
+- Banc d'essai (tiroir ouvert sur Heaven.exe, rien démarré) : lignes Pas 3 W, Par palier 15 s, « Comparer le boost du processeur · Désactivé », puis « Démarrer · environ 2:20 » en quatrième ligne. Conforme.
+- Jeux installés vus par Canapé (16) :
+  - Steam : Among Us, Besiege, Caravan Sandwitch, Catherine Classic, Fallout Shelter, Hotline Miami, LEGO® City Undercover, McOsu, SIGNALIS, Terraria, Toribash, Ultimate Custom Night.
+  - Epic : art of rally Standard Edition, Fall Guys.
+  - Xbox : Palworld.
+  - Ajouté à la main : Heaven Benchmark 4.0.
+- Ajouter un jeu : A sur Heaven Benchmark 4.0 (« Ajouté ») remplace la mention par « Appuyez de nouveau sur A pour retirer » ; en quittant la ligne, « Ajouté » revient et games.json n'a pas changé. Conforme.
+- Repli du rendu : Fluide choisi dans Réglages › Affichage (passage à `canape-shell-gpu.exe` sans souci), Canapé fermé, `canape-shell-gpu.exe` renommé, Canapé relancé.
+  - Journal : « canape-shell-gpu.exe not found next to this executable; back to the software renderer ». Le réglage repasse à Économe.
+  - À l'écran, à 3 s : ligne orange en bas à gauche, « Le rendu par la carte graphique n'a pas démarré : retour au rendu léger. » ; disparue à 13 s. Conforme.
+  - Le bandeau dit « rendu léger » alors que le réglage s'appelle « Économe » : à aligner.
+- Remis : exécutable rendu à son nom, rendu Économe, clé Steam intacte (32 caractères).
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
