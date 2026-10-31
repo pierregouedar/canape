@@ -429,6 +429,15 @@ Même méthode (même processus du shell, relevé complet des 861 valeurs du pil
 - Tiroir du tour (c), capturé avec le jeu ouvert : « Radeon · **Pas encore appliqué** », Anti-Lag Désactivé, Netteté de l'image 50 %, Chill Désactivé. La carte Radeon affiche pourtant « Activé », ce qui peut prêter à confusion.
 - Le message « the driver kept it off » n'est pas apparu : avec la nouvelle règle, Anti-Lag n'est plus demandé à côté de Chill.
 - Remis : profil supprimé, premier plan vide, `shell.json` inchangé.
+### Accéléromètre dans le serveur de mouvement (`f9040c3`) : plantage du shell
+
+Réinstallé (`c8f20d7` et `f9040c3`). Au démarrage : `buttons: listening` (la reprise des boutons est maintenant journalisée). Serveur de mouvement **activé**, comme il l'était au début de la campagne (état laissé tel quel). Client de test local (protocole DSU, requête de version puis demandes de données toutes les 0,5 s ; accélération lue aux octets 76–87, vitesse angulaire à 88–99).
+
+- **Abonnement** : `gyro: Windows gyrometer, minimum report interval 10 ms` et `motion: Windows accelerometer, minimum report interval 10 ms`. Aucune erreur d'ouverture.
+- **Console posée à plat, écran vers le haut, immobile** : accélération (x, y, z) = **(0,05 ; 0,01 ; −1,01) g**, norme ≈ 1,01 g. Deuxième essai, 59 paquets en 20 s : x 0,00 à 0,08, y −0,02 à 0,03, z −1,11 à −0,88 (moyenne −1,01). Vitesse angulaire proche de 0 (roulis −0,49 à 0,53).
+- **PLANTAGE du shell, reproduit deux fois** : 6 à 7 s après l'abonnement du client (17:33:03 → 17:33:09, puis 17:35:15 → 17:35:22), `canape-shell.exe` s'arrête sur une **violation d'accès `0xc0000005` dans `canape-shell.exe` lui-même, décalage `0x3f01e0`** (journal Application, événement 1000 ; WER `MoAppCrash`). Sans client, le shell tient (40 s observées). Deux vidages mémoire gardés hors dépôt (`canape-shell.exe.16172.dmp`, `canape-shell.exe.12740.dmp`), avec le `.pdb` de la même compilation (binaire installé identique à `target\release`). La fonction n'a pas pu être nommée ici (`llvm-symbolizer` sans DIA renvoie `main`, `dbghelp` ne charge pas les symboles).
+- Inclinaison de la console : **non essayée** (geste de Pierre).
+- Remis : shell relancé, serveur de mouvement laissé activé comme au départ. Tant que le correctif n'est pas là, un émulateur abonné au serveur ferait planter Canapé.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
