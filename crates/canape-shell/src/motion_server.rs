@@ -233,6 +233,11 @@ const TICK: Duration = Duration::from_millis(5);
 const SEND_INTERVAL: Duration = Duration::from_millis(8);
 /// Wait before looking for a sensor again after a failure.
 const SENSOR_RETRY: Duration = Duration::from_secs(5);
+/// Whether the accelerometer is read. Off: opening it next to the gyroscope
+/// crashed the shell a few seconds after a client subscribed (access
+/// violation in the shell itself, twice on the Ally), cause not found yet.
+#[cfg(windows)]
+const ACCELEROMETER: bool = false;
 
 /// Answers requests on `socket` and streams the sensor to the subscribed
 /// clients, until `keep` says to stop. The sensor is opened with
@@ -242,7 +247,7 @@ fn serve(
     socket: &UdpSocket,
     keep: impl Fn() -> bool,
     open_sensor: impl Fn() -> canape_hw::Result<Box<dyn Gyro>>,
-    open_accelerometer: impl Fn() -> canape_hw::Result<Box<dyn Accelerometer>>,
+    open_accelerometer: Option<&dyn Fn() -> canape_hw::Result<Box<dyn Accelerometer>>>,
 ) -> std::io::Result<()> {
     socket.set_read_timeout(Some(TICK))?;
     let start = Instant::now();
@@ -283,13 +288,15 @@ fn serve(
                     crate::log(&gyro.describe());
                     gyro.set_active(true);
                     sensor = Some(gyro);
-                    match open_accelerometer() {
-                        Ok(mut accel) => {
-                            crate::log(&accel.describe());
-                            accel.set_active(true);
-                            accelerometer = Some(accel);
+                    if let Some(open_accelerometer) = open_accelerometer {
+                        match open_accelerometer() {
+                            Ok(mut accel) => {
+                                crate::log(&accel.describe());
+                                accel.set_active(true);
+                                accelerometer = Some(accel);
+                            }
+                            Err(err) => crate::log(&format!("motion server: {err}")),
                         }
-                        Err(err) => crate::log(&format!("motion server: {err}")),
                     }
                 }
                 Err(err) => {
@@ -359,7 +366,7 @@ mod engine {
     use canape_core::GyroSettings;
     use canape_hw::motion;
 
-    use super::serve;
+    use super::{ACCELEROMETER, serve};
 
     /// Wait before serving again after a failure.
     const RETRY: Duration = Duration::from_secs(30);
@@ -404,7 +411,7 @@ mod engine {
                             &socket,
                             || wanted() == Some(port),
                             motion::open,
-                            motion::open_accelerometer,
+                            ACCELEROMETER.then_some(&motion::open_accelerometer),
                         );
                         if let Err(err) = result {
                             crate::log(&format!("motion server: {err}"));
@@ -633,7 +640,7 @@ mod tests {
                             reads: 0,
                         }) as Box<dyn Gyro>)
                     },
-                    || {
+                    Some(&|| {
                         Ok(Box::new(MockAccelerometer {
                             value: Acceleration {
                                 x: 0.0,
@@ -641,7 +648,7 @@ mod tests {
                                 z: 0.25,
                             },
                         }) as Box<dyn Accelerometer>)
-                    },
+                    }),
                 )
             })
         };

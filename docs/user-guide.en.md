@@ -586,7 +586,7 @@ The **Gyro aiming** card (Controller shelf) opens a drawer of five lines: up and
 With **Motion for emulators** on, Canapé answers on UDP port **26760** of the local address `127.0.0.1` (never from another device) and publishes the gyroscope for programs that can read it, such as console emulators with motion controls. In the program, pick this motion server with that address and port. The sensor is read only while a program is connected. The setting is independent of mouse aiming and is also kept per game with **X**. The port is changed with `set_gyro` (`motion_port`, 1024 to 65535).
 
 > [!WARNING]
-> **Tried on the Ally with a local test client, not yet with an emulator.** The accelerometer has been read since 31 October (in g, gravity included) but **was not tried on the Ally**; without it its three values are zero. The direction of the axes is still to check; most programs can invert an axis.
+> **Tried on the Ally with a local test client, not yet with an emulator.** The accelerometer is **not read**: reading it crashed the shell a few seconds after a client subscribed (31 October test), cause not found; its three values are zero. The direction of the axes is still to check; most programs can invert an axis.
 
 #### Back buttons and lighting
 
