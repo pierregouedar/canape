@@ -233,11 +233,13 @@ const TICK: Duration = Duration::from_millis(5);
 const SEND_INTERVAL: Duration = Duration::from_millis(8);
 /// Wait before looking for a sensor again after a failure.
 const SENSOR_RETRY: Duration = Duration::from_secs(5);
-/// Whether the accelerometer is read. Off: opening it next to the gyroscope
-/// crashed the shell a few seconds after a client subscribed (access
-/// violation in the shell itself, twice on the Ally), cause not found yet.
+/// Whether the accelerometer is read. It was off after a crash a few
+/// seconds after a client subscribed (twice on the Ally): a sensor with no
+/// reading yet returned a null one, and the null `Object` built for it was
+/// released. Fixed in `canape-hw` (`get_object`); on again, to be checked on
+/// the Ally.
 #[cfg(windows)]
-const ACCELEROMETER: bool = false;
+const ACCELEROMETER: bool = true;
 
 /// Answers requests on `socket` and streams the sensor to the subscribed
 /// clients, until `keep` says to stop. The sensor is opened with

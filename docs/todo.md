@@ -78,7 +78,7 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [ ] **Adresse des commits.** Gmail ou koul.io.
 - [ ] **Ancienne branche `claude/loving-cori-xyxqv6`.** Vérifier qu'elle est supprimée avant d'ouvrir le dépôt.
 - [ ] **Site `canape-site` :** bancs sur d'autres jeux et sélecteur de jeux. Il faut la liste des jeux installés sur l'Ally.
-- [ ] **Serveur de mouvement :** essai avec un vrai émulateur. Accéléromètre : le code existe (`ACCELEROMETER` dans `motion_server.rs`, à `false`) mais lire l'accéléromètre fait planter le shell 6–7 s après l'abonnement d'un client (violation d'accès dans `canape-shell.exe`, reproduit deux fois le 31 octobre ; lecture correcte avant : 1,01 g à plat) ; cause à trouver avec les minidumps et le pdb. En attente, pas d'émulateur.
+- [ ] **Serveur de mouvement :** essai avec un vrai émulateur. Accéléromètre : lu (1,01 g à plat le 31 octobre). Le plantage du premier essai (violation d'accès 6–7 s après l'abonnement) venait de `get_object` (`then_some` construisait puis relâchait un objet nul quand le capteur n'avait pas encore de lecture) : corrigé le 31 octobre, **à revérifier sur l'Ally** (`ACCELEROMETER` dans `motion_server.rs`). En attente, pas d'émulateur.
 - [ ] **GOG (en pause).** Aucun compte connecté, aucun essai prévu. Retiré de l'interface le 29 octobre (réglages, visite, étagères, installation) : `GOG_ENABLED` dans `crates/canape-shell/src/library.rs` le remet quand on le reprend.
 
 ## Avant de pousser

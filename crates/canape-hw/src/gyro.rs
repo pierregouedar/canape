@@ -77,7 +77,10 @@ impl Object {
         let mut out = std::ptr::null_mut();
         let hr = unsafe { self.method::<GetObject>(index)(self.0, &mut out) };
         check(hr, what)?;
-        Ok((!out.is_null()).then_some(Object(out)))
+        // Built only when there is an object: `then_some` would build (and
+        // drop, releasing a null pointer) an `Object` for a null one, which
+        // crashed the shell when a sensor had no reading yet.
+        Ok((!out.is_null()).then(|| Object(out)))
     }
 
     fn get_u32(&self, index: usize, what: &str) -> Result<u32> {
@@ -105,7 +108,9 @@ impl Object {
 
 impl Drop for Object {
     fn drop(&mut self) {
-        unsafe { self.method::<Release>(RELEASE)(self.0) };
+        if !self.0.is_null() {
+            unsafe { self.method::<Release>(RELEASE)(self.0) };
+        }
     }
 }
 
