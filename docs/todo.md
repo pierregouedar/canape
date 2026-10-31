@@ -87,8 +87,8 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [x] Annoncer à l'écran le repli du rendu GPU vers le rendu logiciel (bandeau de 10 s au démarrage ; à vérifier sur l'Ally).
 - [x] Options d'un jeu : « Retirer » d'un jeu de boutique ne fait que le masquer (réversible, dit à l'écran) : pas de confirmation ajoutée, seul le retrait de `games.json` en demande une.
 - [ ] Libellé « Tout est appliqué » tronqué sur la page des optimisations.
-- [ ] Fiche du jeu : résumer la définition d'écran choisie.
-- [ ] Réinstallation : dire clairement que les optimisations et l'étagère Processeur ne se réappliquent pas seules (rendues à la désinstallation, par conception).
+- [x] Fiche du jeu : la définition d'écran et l'image du profil sont déjà résumées (`profile.screen`, `profile.image`).
+- [x] Réinstallation : dit clairement dans le guide FR que les optimisations et l'étagère Processeur ne se réappliquent pas seules (rendues à la désinstallation, par conception).
 
 ## Avant de pousser
 
