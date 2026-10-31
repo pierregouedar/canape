@@ -90,6 +90,15 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [x] Fiche du jeu : la définition d'écran et l'image du profil sont déjà résumées (`profile.screen`, `profile.image`).
 - [x] Réinstallation : dit clairement dans le guide FR que les optimisations et l'étagère Processeur ne se réappliquent pas seules (rendues à la désinstallation, par conception).
 
+## I. Demandes de Pierre du 31 octobre (en cours)
+
+- [ ] **Lancement Steam sans fenêtre.** Diagnostiquer sur l'Ally quelle fenêtre apparaît (classe, titre, processus), puis la réduire automatiquement après le lancement d'un jeu, sans masquer un dialogue qui demande une action.
+- [ ] **Matériel mieux organisé.** Radeon sort de son étagère solitaire : réglages AMD dans la section Image ; batterie avec le refroidissement.
+- [ ] **Courbes de ventilateurs personnalisées.** Éditeur de courbe (points température / vitesse) pour chaque ventilateur, enregistré par profil ; le moteur et le protocole existent déjà.
+- [ ] **Ajout de jeux dans la vue « Jeux ».** Sous-menu avec tri et gestion des autres jeux (jeux ajoutés à la main, masqués), au lieu de passer par les réglages.
+- [ ] **Succès Steam pour les jeux hors Steam.** Faire correspondre un jeu Epic, Xbox ou ajouté à la main à son jeu Steam par le titre, puis afficher ses succès.
+- [ ] **Installation en un clic d'émulateurs.** À réfléchir : quels émulateurs, d'où les télécharger, vérification, dossier de jeux, intégration dans la bibliothèque. Étude à écrire avant le code.
+
 ## Avant de pousser
 
 `cargo fmt --all --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, et `cargo check --target x86_64-pc-windows-msvc --all-targets` depuis Linux. Aucun secret dans le dépôt, aucune mention d'IA dans les commits.
