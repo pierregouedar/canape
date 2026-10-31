@@ -531,6 +531,30 @@ Among Us lancé depuis Canapé (A sur la carte, puis Jouer), trois fois. Pendant
 - Avant d'être réduite, la fenêtre reste visible au plus un intervalle de relevé (environ 100 ms). Un œil sur l'écran dirait si ce flash se voit.
 - Rien à remettre pour la fenêtre : elle se ferme d'elle-même quand le jeu démarre.
 - Remis : Among Us fermé (accord de Pierre), Steam rouvert par le premier essai à froid, premier plan vide dans le service.
+
+### Vérification de `fc531aa` (fenêtre « Lancement… » réduite) et de l'éditeur de courbes `b591ef7`
+
+Installé depuis `fc531aa`. Le premier passage de `install-dev.ps1` a échoué : `canape-shell.exe` était en cours d'utilisation au moment de la copie. Le second passage est allé au bout. L'exécutable installé contient bien « launch dialog minimized ».
+
+**Fenêtre de Steam : pas réduite.** Among Us lancé deux fois depuis Canapé avec l'accord de Pierre, Steam ouvert puis Steam fermé. Relevé des fenêtres comme au point précédent, et une capture d'écran toutes les 250 ms environ.
+
+- Steam ouvert : « Lancement… » au premier plan pendant 1,6 s, puis le jeu.
+- Steam fermé : « Lancement… » pendant 1,4 s après environ 7 s de démarrage, puis Canapé revient au premier plan 0,4 s, puis le jeu.
+- Aucune ligne « steam: » dans shell.log. La fenêtre n'est jamais réduite (jamais « min » dans le relevé).
+- Captures à 0,5 s, 1 s et 2 s : à 0,5 s et 1 s la boîte « Démarrage du jeu · Among Us · Ouvrir Steam » est au centre, par-dessus Canapé, avec la barre des tâches de Windows visible en bas. À 2 s, le jeu.
+- Cause probable : la taille de la fenêtre. Mon premier relevé était fait par un script non adapté à la mise à l'échelle et donnait 600 × 286 en coordonnées logiques (150 %). Relevé à nouveau avec un script adapté (`SetProcessDpiAwarenessContext`), la boîte mesure 900 × 429 pixels réels (510,289 à 1410,718). C'est au-dessus de la limite de 800 × 400 de `steamveil.rs`, que le shell (adapté à la mise à l'échelle) mesure en pixels réels. Il faut comparer à une taille relative à l'écran, ou relever la limite (par exemple 1000 × 500 à 150 %, en gardant la fenêtre principale de Steam hors d'atteinte).
+- Fenêtre principale de Steam : jamais visible pendant les deux essais, donc jamais touchée.
+- Remis : Among Us fermé (accord de Pierre), Steam ouvert comme avant.
+
+**Éditeur de courbes (Matériel › Ventilateurs › Courbes perso).**
+
+- Avant : Automatique, aucune courbe perso, CPU 3000 tr/min et GPU 2800 tr/min à 41 °C.
+- L'éditeur s'ouvre sur le ventilateur CPU, avec 8 points : 40 °C 10 %, 50 °C 18 %, 58 °C 26 %, 65 °C 34 %, 72 °C 42 %, 78 °C 50 %, 85 °C 62 %, 92 °C 75 %. Ce n'est pas la courbe d'origine du mode (`get_fan_curves` donne 40 °C 4 %, 45 °C 8 %… 80 °C 74 %).
+- Croix haut sur le premier point : 10 % passe à 15 %, le graphique suit. A : journal du service `SetFanCurve { fan: Cpu, … (40, 15) … } -> Ok`, et `get_fan_curves` relit la même courbe. Aucun message à l'écran après A.
+- En revenant, la tuile affiche « Personnalisées » et la petite courbe en haut à droite, avec un trait à la température actuelle. Le ventilateur CPU passe de 3000 à 3600 tr/min (38 °C, sous le premier point).
+- Remise en Automatique : pendant cette étape, des appuis sur A de la manette ont été reçus en plus des miens (shell.log, « pad Return », sans que j'en envoie). La boîte a rouvert l'éditeur, où tous les points étaient affichés à 100 % (non appliqué), puis Automatique a été appliqué.
+- État final relu : `SetFanPreset { preset: None } -> Ok`, aucune courbe perso, tuile « Automatique ». Le ventilateur CPU affichait encore 3600 tr/min juste après.
+- Je n'ai pas pu dire d'où venaient les 100 % de l'éditeur, à cause de ces appuis.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
