@@ -457,6 +457,14 @@ Réinstallé ; console posée à plat, écran vers le haut ; un seul processus d
 - **60 s d'abonnement** : premier paquet (0,04 ; 0,01 ; −1,01) g. Accélération moyenne z −0,90 : 10 paquets sur 90 ont l'accélération à 0 (pas de lecture disponible à ce moment). **Seulement 90 paquets en 60 s (2 par seconde)**, contre 63 par seconde avec l'accéléromètre coupé (`aeaeb24`) : la cadence chute nettement quand l'accéléromètre est lu.
 - **Abonnements répétés** (3 s chacun, 10 s d'écart, puis 8 s de pause et un dernier) : le journal montre à chaque fois `motion server: sensor released` puis `gyro: Windows gyrometer…` et `motion: Windows accelerometer, minimum report interval 10 ms` à la réouverture. Accélération ≈ (0,04 ; 0,00 ; −1,01) g **dès le premier paquet** à chaque fois. Paquets : 6 en 3 s, 49, 41, puis 99 en 5 s : cadence irrégulière.
 - Le plantage de la lecture nulle est corrigé. Reste à comprendre la cadence basse et les paquets à 0 quand l'accéléromètre est lu. Inclinaison toujours non essayée (geste de Pierre). Serveur de mouvement laissé activé.
+### Vérification de `24429d5` (accéléromètre lu par un fil à part)
+
+Réinstallé ; console posée à plat, écran vers le haut ; un seul processus du shell, aucun plantage.
+
+- **60 s d'abonnement** : **3 753 paquets, 63 par seconde** (comme sans accéléromètre). **Aucun paquet à accélération nulle** (0 sur 3 753). Accélération x 0,01 à 0,07, y −0,02 à 0,04, z −1,07 à −0,94 g (moyenne −1,01), ≈ 1 g dès le premier paquet.
+- **Abonnements répétés** (3 s, 10 s d'écart, puis 8 s de pause et 5 s) : 188, 186, 186 puis 312 paquets (62 à 63 par seconde), ≈ 1 g dès le premier paquet, aucun paquet à 0. Journal : `sensor released` puis réouverture des deux capteurs à chaque fois.
+- Vu en passant : la vitesse angulaire reste exactement constante sur toute une session au repos (même valeur min et max), et change d'une session à l'autre ; le gyromètre de Windows ne publie sans doute une nouvelle lecture qu'au mouvement. À confirmer en bougeant la console.
+- Mesure de la durée d'un `GetCurrentReading` : inutile, la cadence est revenue. Inclinaison non essayée (geste de Pierre). Serveur de mouvement laissé activé.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
