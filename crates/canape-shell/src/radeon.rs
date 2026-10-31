@@ -187,7 +187,14 @@ mod engine {
                     applied.afmf = want.afmf;
                 }
             }
-            if want.anti_lag != applied.anti_lag {
+            // Chill turns Anti-Lag off, and the driver says nothing: leave it
+            // alone when Chill is wanted.
+            if want.anti_lag && want.chill.is_some() {
+                if !applied.anti_lag {
+                    crate::log("radeon: Anti-Lag not applied: Chill is on");
+                }
+                failed = true;
+            } else if want.anti_lag != applied.anti_lag {
                 touched.anti_lag = true;
                 let result = if want.anti_lag {
                     radeon.set_anti_lag(true)

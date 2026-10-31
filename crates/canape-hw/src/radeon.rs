@@ -175,7 +175,18 @@ impl Interface {
         check(
             unsafe { self.method::<CallSetBool>(index)(self.0, on as u8) },
             what,
-        )
+        )?;
+        // The driver answers success for a feature it then keeps off (one
+        // that cannot be on beside another): read it back.
+        let now = self.flag(IS_ENABLED, what)?;
+        if now == on {
+            Ok(())
+        } else {
+            Err(HwError::Io(std::io::Error::other(format!(
+                "{what}: the driver kept it {}",
+                if now { "on" } else { "off" }
+            ))))
+        }
     }
 
     fn release(self) {
