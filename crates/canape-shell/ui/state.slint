@@ -107,6 +107,11 @@ export struct ProfileView {
     image: string,
 }
 
+export struct FanPointView {
+    temp: int,
+    duty: int,
+}
+
 export struct BenchRow {
     watts: int,
     fps-avg: int,
@@ -230,6 +235,21 @@ export global App {
     callback delete-profile(string);
     callback refresh();
     callback start-bench(int, int, bool);
+    // The fan curve editor (fancurve.rs): the fan's eight points, the one
+    // selected, and the value Up and Down change (0 speed, 1 temperature).
+    in property <[FanPointView]> fan-edit-points;
+    in property <string> fan-edit-line;
+    in property <string> fan-edit-area;
+    in property <int> fan-edit-fan;
+    in property <int> fan-edit-sel;
+    in property <int> fan-edit-field;
+    in property <string> fan-edit-note;
+    callback fan-edit-open();
+    callback fan-edit-select(int);
+    callback fan-edit-change(int);
+    callback fan-edit-toggle-field();
+    callback fan-edit-switch-fan();
+    callback fan-edit-save();
     callback cancel-bench();
     // Total seconds of a run with this step (W) and measuring time (s).
     pure callback bench-duration(int, int, bool) -> int;

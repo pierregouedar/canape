@@ -239,9 +239,6 @@ msgstr "{} rpm"
 msgid "The power mode's own curve"
 msgstr "전원 모드 자체 곡선"
 
-msgid "Custom curves set by another client."
-msgstr "다른 클라이언트가 설정한 사용자 곡선입니다."
-
 msgid "Frame rate limit"
 msgstr "프레임 제한"
 
@@ -1309,3 +1306,15 @@ msgstr "CPU 부스트 비교"
 
 msgid "Better with the CPU boost off"
 msgstr "CPU 부스트 없이 더 좋음"
+
+msgid "Fan curves"
+msgstr "팬 곡선"
+
+msgid "Custom curves"
+msgstr "사용자 곡선"
+
+msgid "Point"
+msgstr "지점"
+
+msgid "Next fan"
+msgstr "다른 팬"

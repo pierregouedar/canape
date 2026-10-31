@@ -17,6 +17,7 @@ mod backdrop;
 mod buttons;
 mod clipboard;
 mod clock;
+mod fancurve;
 #[cfg(any(windows, test))]
 mod foreground;
 #[cfg(windows)]
@@ -405,6 +406,67 @@ fn connect(ui: &AppWindow, link: &Link) {
             link.send(Request::SetFanPreset {
                 preset: hardware::preset_from_key(&key),
             })
+        }
+    });
+    // The fan curve editor: one working copy, shown after every change.
+    let fan_editor = Rc::new(std::cell::RefCell::new(fancurve::FanEditor::new(
+        canape_core::fan::Fan::Cpu,
+        &canape_core::fan::FanCurves::default(),
+    )));
+    let show_fan_editor = {
+        let ui = ui.as_weak();
+        let editor = fan_editor.clone();
+        Rc::new(move |note: String| {
+            let Some(ui) = ui.upgrade() else { return };
+            fancurve::show(&ui.global::<App>(), &editor.borrow(), note);
+        })
+    };
+    app.on_fan_edit_open({
+        let (link, editor, show) = (link.clone(), fan_editor.clone(), show_fan_editor.clone());
+        move || {
+            *editor.borrow_mut() =
+                fancurve::FanEditor::new(canape_core::fan::Fan::Cpu, &link.status().fan_curves);
+            show(String::new());
+        }
+    });
+    app.on_fan_edit_select({
+        let (editor, show) = (fan_editor.clone(), show_fan_editor.clone());
+        move |delta| {
+            editor.borrow_mut().select(delta);
+            show(String::new());
+        }
+    });
+    app.on_fan_edit_change({
+        let (editor, show) = (fan_editor.clone(), show_fan_editor.clone());
+        move |steps| {
+            let note = editor.borrow_mut().change(steps).err().unwrap_or_default();
+            show(note);
+        }
+    });
+    app.on_fan_edit_toggle_field({
+        let (editor, show) = (fan_editor.clone(), show_fan_editor.clone());
+        move || {
+            editor.borrow_mut().toggle_field();
+            show(String::new());
+        }
+    });
+    app.on_fan_edit_switch_fan({
+        let (link, editor, show) = (link.clone(), fan_editor.clone(), show_fan_editor.clone());
+        move || {
+            let next = editor.borrow().next_fan();
+            *editor.borrow_mut() = fancurve::FanEditor::new(next, &link.status().fan_curves);
+            show(String::new());
+        }
+    });
+    app.on_fan_edit_save({
+        let (link, editor, show) = (link.clone(), fan_editor.clone(), show_fan_editor.clone());
+        move || {
+            let (fan, curve) = {
+                let editor = editor.borrow();
+                (editor.fan, editor.curve)
+            };
+            link.send(Request::SetFanCurve { fan, curve });
+            show(String::new());
         }
     });
     app.on_set_fps_limit({

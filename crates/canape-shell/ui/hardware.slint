@@ -120,6 +120,8 @@ export component HardwarePage inherits Rectangle {
     property <string> focused-key: root.key(root.shelf, root.card);
 
     in-out property <int> fan-col: 0;
+    // The fan curve editor, a sub-page of the app.
+    callback open-fan-curves();
     in-out property <int> controller-col: 0;
     in-out property <int> charge-col: 2;
     in-out property <int> refresh-col: 0;
@@ -342,7 +344,11 @@ export component HardwarePage inherits Rectangle {
     }
     function apply() {
         if root.drawer == "fans" {
-            App.set-fan-preset(root.fan-presets[root.fan-col]);
+            if root.fan-col == 3 {
+                root.open-fan-curves();
+            } else {
+                App.set-fan-preset(root.fan-presets[root.fan-col]);
+            }
         } else if root.drawer == "controller" {
             App.set-controller(root.controllers[root.controller-col]);
         } else if root.drawer == "charge" {
@@ -372,7 +378,7 @@ export component HardwarePage inherits Rectangle {
     // Left (-1) or right (1) in the open drawer.
     function side(d: int) {
         if root.drawer == "fans" {
-            root.fan-col = clamp(root.fan-col + d, 0, 2);
+            root.fan-col = clamp(root.fan-col + d, 0, 3);
         } else if root.drawer == "fps" {
             App.set-fps-limit(root.fps-stops[clamp(root.fps-index + d, 0, 6)]);
         } else if root.drawer == "controller" {
@@ -856,7 +862,7 @@ export component HardwarePage inherits Rectangle {
         open: root.open;
         sheet-height: root.sheet-height;
         title: root.sheet == "fans" ? @tr("Fans") : root.sheet == "fps" ? @tr("Frame rate limit") : root.sheet == "controller" ? @tr("Controller") : root.sheet == "back" ? (root.paddle == 0 ? @tr("M1, right") : @tr("M2, left")) : root.sheet == "lighting" ? @tr("Stick lighting") : root.sheet == "gyro" ? @tr("Gyro aiming") : root.sheet == "screen" ? @tr("Refresh rate") : root.sheet == "resolution" ? @tr("Resolution") : root.sheet == "upscaling" ? @tr("Upscaling") : root.sheet == "framegen" ? @tr("Frame generation") : root.sheet == "radeon" ? "Radeon" : @tr("Charge limit");
-        note: root.sheet == "fans" ? (App.status.fan-preset == "custom" ? @tr("Custom curves set by another client.") : App.status.foreground != "" ? @tr("{} · game profile", App.status.foreground) : "")
+        note: root.sheet == "fans" ? (App.status.fan-preset == "custom" ? @tr("Custom curves") : App.status.foreground != "" ? @tr("{} · game profile", App.status.foreground) : "")
             : root.sheet == "back" ? root.target-names[grid.current]
             : root.sheet == "upscaling" ? (App.image-upscaling == 2 || (App.image-upscaling == 1 && App.image-amd-failed) ? @tr("Not applied yet") : "")
             : root.sheet == "framegen" ? (App.image-frame-gen == 2 || (App.image-frame-gen == 1 && App.image-amd-failed) ? @tr("Not applied yet") : "")
@@ -867,12 +873,12 @@ export component HardwarePage inherits Rectangle {
 
         if root.sheet == "fans": HorizontalLayout {
             spacing: 12px;
-            for icon[i] in ["cycle", "balanced", "wind"]: IconTile {
+            for icon[i] in ["cycle", "balanced", "wind", "sliders"]: IconTile {
                 horizontal-stretch: 1;
                 preferred-width: 10px;
                 icon: icon;
-                label: i == 0 ? @tr("Automatic") : i == 1 ? @tr("Balanced") : @tr("Maximum");
-                selected: root.fan-index == i;
+                label: i == 0 ? @tr("Automatic") : i == 1 ? @tr("Balanced") : i == 2 ? @tr("Maximum") : @tr("Custom curves");
+                selected: root.fan-index == i || (i == 3 && root.fan-index < 0);
                 focused: root.active && root.fan-col == i;
                 clicked => {
                     root.fan-col = i;

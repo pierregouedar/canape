@@ -239,9 +239,6 @@ msgstr "{} dev/dk"
 msgid "The power mode's own curve"
 msgstr "Güç modunun kendi eğrisi"
 
-msgid "Custom curves set by another client."
-msgstr "Başka bir istemcinin ayarladığı özel eğriler."
-
 msgid "Frame rate limit"
 msgstr "FPS sınırı"
 
@@ -1309,3 +1306,15 @@ msgstr "CPU boost karşılaştır"
 
 msgid "Better with the CPU boost off"
 msgstr "CPU boost kapalıyken daha iyi"
+
+msgid "Fan curves"
+msgstr "Fan eğrileri"
+
+msgid "Custom curves"
+msgstr "Özel eğriler"
+
+msgid "Point"
+msgstr "Nokta"
+
+msgid "Next fan"
+msgstr "Diğer fan"

@@ -602,3 +602,149 @@ export component BenchPage inherits Rectangle {
         }
     }
 }
+
+// The fan curves: the eight points of one fan's curve, drawn against
+// temperature (20 to 110 °C) and speed (0 to 100 %). Left and right pick a
+// point, up and down change its speed or temperature, X swaps which, Y goes
+// to the other fan and A sends the curve to the fan.
+export component FanCurvePage inherits Rectangle {
+    init => {
+        App.fan-edit-open();
+    }
+
+    fs := FocusScope {
+        init => {
+            self.focus();
+        }
+        key-pressed(event) => {
+            if event.text == Key.LeftArrow {
+                App.fan-edit-select(-1);
+                return accept;
+            }
+            if event.text == Key.RightArrow {
+                App.fan-edit-select(1);
+                return accept;
+            }
+            if event.text == Key.UpArrow {
+                App.fan-edit-change(1);
+                return accept;
+            }
+            if event.text == Key.DownArrow {
+                App.fan-edit-change(-1);
+                return accept;
+            }
+            if event.text == Key.F2 || event.text == "x" {
+                App.fan-edit-toggle-field();
+                return accept;
+            }
+            if event.text == Key.F3 || event.text == "y" {
+                App.fan-edit-switch-fan();
+                return accept;
+            }
+            if event.text == Key.Return || event.text == " " {
+                App.fan-edit-save();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    VerticalLayout {
+        x: 0;
+        width: 640px;
+        height: parent.height;
+        spacing: 8px;
+
+        SectionTitle {
+            height: 36px;
+            x: 16px;
+            text: @tr("Fan curves") + " · " + (App.fan-edit-fan == 0 ? "CPU" : "GPU");
+        }
+
+        graph := Rectangle {
+            height: 250px;
+            border-radius: 12px;
+            background: Theme.surface;
+            clip: true;
+
+            // Guides every 25 % of speed.
+            for g in [25, 50, 75]: Rectangle {
+                y: parent.height * (100 - g) / 100;
+                height: 1px;
+                background: Theme.stroke;
+            }
+            if App.fan-edit-area != "": Path {
+                width: 100%;
+                height: 100%;
+                viewbox-width: 90;
+                viewbox-height: 100;
+                fit: fill;
+                commands: App.fan-edit-area;
+                fill: Theme.accent.with-alpha(0.16);
+                stroke: transparent;
+            }
+            if App.fan-edit-line != "": Path {
+                width: 100%;
+                height: 100%;
+                viewbox-width: 90;
+                viewbox-height: 100;
+                fit: fill;
+                commands: App.fan-edit-line;
+                stroke: Theme.accent;
+                stroke-width: 2.5px;
+                stroke-line-join: round;
+            }
+            for p[i] in App.fan-edit-points: Rectangle {
+                width: i == App.fan-edit-sel ? 18px : 12px;
+                height: self.width;
+                border-radius: self.width / 2;
+                x: (p.temp - 20) / 90 * graph.width - self.width / 2;
+                y: (100 - p.duty) / 100 * graph.height - self.height / 2;
+                background: i == App.fan-edit-sel ? Theme.accent : Theme.surface-high;
+                border-width: 2px;
+                border-color: Theme.accent;
+            }
+        }
+
+        // The points' values, the one being changed highlighted.
+        HorizontalLayout {
+            spacing: 4px;
+            for p[i] in App.fan-edit-points: Rectangle {
+                horizontal-stretch: 1;
+                height: 56px;
+                border-radius: 8px;
+                background: i == App.fan-edit-sel ? Theme.surface-high : transparent;
+                VerticalLayout {
+                    alignment: center;
+                    Text {
+                        text: App.celsius(p.temp);
+                        horizontal-alignment: center;
+                        font-size: 14px;
+                        font-weight: i == App.fan-edit-sel && App.fan-edit-field == 1 ? 700 : 500;
+                        color: i == App.fan-edit-sel && App.fan-edit-field == 1 ? Theme.accent : Theme.text;
+                    }
+
+                    Text {
+                        text: p.duty + " %";
+                        horizontal-alignment: center;
+                        font-size: 14px;
+                        font-weight: i == App.fan-edit-sel && App.fan-edit-field == 0 ? 700 : 500;
+                        color: i == App.fan-edit-sel && App.fan-edit-field == 0 ? Theme.accent : Theme.dim;
+                    }
+                }
+            }
+        }
+
+        Text {
+            x: 16px;
+            text: App.fan-edit-note;
+            color: Theme.warn;
+            font-size: 13px;
+            wrap: word-wrap;
+        }
+
+        Rectangle {
+            vertical-stretch: 1;
+        }
+    }
+}

@@ -239,9 +239,6 @@ msgstr "{} rpm"
 msgid "The power mode's own curve"
 msgstr "La curva propia del modo de energía"
 
-msgid "Custom curves set by another client."
-msgstr "Curvas personalizadas fijadas por otro cliente."
-
 msgid "Frame rate limit"
 msgstr "Límite de FPS"
 
@@ -1312,3 +1309,15 @@ msgstr "Comparar el boost de la CPU"
 
 msgid "Better with the CPU boost off"
 msgstr "Mejor sin el boost de la CPU"
+
+msgid "Fan curves"
+msgstr "Curvas de ventilador"
+
+msgid "Custom curves"
+msgstr "Curvas propias"
+
+msgid "Point"
+msgstr "Punto"
+
+msgid "Next fan"
+msgstr "Otro ventilador"

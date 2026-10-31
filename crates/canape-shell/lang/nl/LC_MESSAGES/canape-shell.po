@@ -239,9 +239,6 @@ msgstr "{} tpm"
 msgid "The power mode's own curve"
 msgstr "De eigen curve van de energiemodus"
 
-msgid "Custom curves set by another client."
-msgstr "Aangepaste curves, ingesteld door een andere client."
-
 msgid "Frame rate limit"
 msgstr "FPS-limiet"
 
@@ -1312,3 +1309,15 @@ msgstr "CPU-boost vergelijken"
 
 msgid "Better with the CPU boost off"
 msgstr "Beter zonder CPU-boost"
+
+msgid "Fan curves"
+msgstr "Ventilatorcurves"
+
+msgid "Custom curves"
+msgstr "Eigen curves"
+
+msgid "Point"
+msgstr "Punt"
+
+msgid "Next fan"
+msgstr "Andere ventilator"

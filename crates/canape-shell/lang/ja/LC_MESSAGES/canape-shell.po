@@ -239,9 +239,6 @@ msgstr "{} rpm"
 msgid "The power mode's own curve"
 msgstr "電源モード固有のカーブ"
 
-msgid "Custom curves set by another client."
-msgstr "別のクライアントが設定したカスタムカーブです。"
-
 msgid "Frame rate limit"
 msgstr "フレームレート制限"
 
@@ -1309,3 +1306,15 @@ msgstr "CPU ブーストを比較"
 
 msgid "Better with the CPU boost off"
 msgstr "CPU ブーストなしの方が良い"
+
+msgid "Fan curves"
+msgstr "ファンカーブ"
+
+msgid "Custom curves"
+msgstr "カスタムカーブ"
+
+msgid "Point"
+msgstr "ポイント"
+
+msgid "Next fan"
+msgstr "別のファン"

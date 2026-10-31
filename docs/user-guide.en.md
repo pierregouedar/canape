@@ -496,7 +496,7 @@ Below, four shelves of cards, used like the [Performance](#performance) page: **
 - A preset **survives power mode changes**: the firmware puts its own curves back at every mode change, and the service writes the preset again right after.
 - **Automatic** writes the current power mode again: that is how the firmware takes its curves back. In Manual, the service then puts your TDP back.
 - **Safety**: every curve is checked before it reaches the firmware. The fan may never slow down as the temperature rises, and it must run at least at 25 % from 80 °C, 30 % from 90 °C and 40 % from 100 °C, just under ASUS's own Silent mode. A curve that would leave the fans stopped when hot is refused. The APU also throttles itself at its temperature limit, but a quiet curve makes the console hot to hold.
-- **Custom**: when the curves in use match no preset (set with `canape-ctl`, or a different preset on each fan), the Fans card reads "Custom", no tile is selected and the drawer's title is followed by "Custom curves set by another client."
+- **Custom curves**: the drawer's fourth tile opens the curve editor. It shows the fan's eight points (CPU, then GPU with **Y**) against temperature. Left and right pick a point, up and down change its speed (by 5 %) or its temperature (by 2 °C) depending on **X**, **A** sends the curve to the fan and **B** goes back. Raising a point's speed lifts the following ones and lowering it drops the previous ones, so the curve never goes down; a change that would fall under the safety floor is refused and the reason shows. When the curves in use match no preset, the card reads "Custom". *Not tried on the Ally yet.*
 
 **Radeon**
 

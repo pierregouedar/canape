@@ -239,9 +239,6 @@ msgstr "{} 转/分"
 msgid "The power mode's own curve"
 msgstr "电源模式自带的曲线"
 
-msgid "Custom curves set by another client."
-msgstr "由其他客户端设置的自定义曲线。"
-
 msgid "Frame rate limit"
 msgstr "帧率限制"
 
@@ -1309,3 +1306,15 @@ msgstr "比较 CPU 加速"
 
 msgid "Better with the CPU boost off"
 msgstr "关闭 CPU 加速更好"
+
+msgid "Fan curves"
+msgstr "风扇曲线"
+
+msgid "Custom curves"
+msgstr "自定义曲线"
+
+msgid "Point"
+msgstr "点"
+
+msgid "Next fan"
+msgstr "切换风扇"

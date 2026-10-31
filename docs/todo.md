@@ -94,7 +94,7 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 
 - [ ] **Lancement Steam sans fenêtre.** Diagnostiquer sur l'Ally quelle fenêtre apparaît (classe, titre, processus), puis la réduire automatiquement après le lancement d'un jeu, sans masquer un dialogue qui demande une action.
 - [ ] **Matériel mieux organisé.** Radeon sort de son étagère solitaire : réglages AMD dans la section Image ; batterie avec le refroidissement.
-- [ ] **Courbes de ventilateurs personnalisées.** Éditeur de courbe (points température / vitesse) pour chaque ventilateur, enregistré par profil ; le moteur et le protocole existent déjà.
+- [ ] **Courbes de ventilateurs personnalisées.** Éditeur codé le 31 octobre (page « Courbes de ventilateurs », quatrième tuile du tiroir Ventilateurs, `fancurve.rs`, vérifié par captures sous Linux). Reste : l'essayer sur l'Ally, et l'enregistrement par profil (X de la page Matériel garde déjà les courbes courantes).
 - [ ] **Ajout de jeux dans la vue « Jeux ».** Sous-menu avec tri et gestion des autres jeux (jeux ajoutés à la main, masqués), au lieu de passer par les réglages.
 - [ ] **Succès Steam pour les jeux hors Steam.** Faire correspondre un jeu Epic, Xbox ou ajouté à la main à son jeu Steam par le titre, puis afficher ses succès.
 - [ ] **Installation en un clic d'émulateurs.** À réfléchir : quels émulateurs, d'où les télécharger, vérification, dossier de jeux, intégration dans la bibliothèque. Étude à écrire avant le code.
