@@ -16,7 +16,7 @@
 use std::net::{SocketAddr, UdpSocket};
 use std::time::{Duration, Instant};
 
-use canape_hw::motion::{AngularVelocity, Gyro};
+use canape_hw::motion::{Acceleration, Accelerometer, AngularVelocity, Gyro};
 
 const VERSION: u16 = 1001;
 const SERVER_MAGIC: &[u8; 4] = b"DSUS";
@@ -198,8 +198,13 @@ impl Clients {
     }
 
     /// The data packet for one reading, `since_start` after the server
-    /// began. The accelerometer is not read: its three values are zero.
-    pub fn data(&mut self, rate: AngularVelocity, since_start: Duration) -> Vec<u8> {
+    /// began. Without an accelerometer its three values are zero.
+    pub fn data(
+        &mut self,
+        rate: AngularVelocity,
+        acceleration: Acceleration,
+        since_start: Duration,
+    ) -> Vec<u8> {
         self.counter = self.counter.wrapping_add(1);
         let mut body = Vec::with_capacity(80);
         body.extend_from_slice(&pad_info(SLOT, true));
@@ -210,7 +215,9 @@ impl Clients {
         body.extend_from_slice(&[0; 12]); // analog directions and buttons
         body.extend_from_slice(&[0; 12]); // two touch points
         body.extend_from_slice(&(since_start.as_micros() as u64).to_le_bytes());
-        body.extend_from_slice(&[0; 12]); // acceleration
+        for value in [acceleration.x, acceleration.y, acceleration.z] {
+            body.extend_from_slice(&value.to_le_bytes());
+        }
         for value in [rate.x, rate.y, rate.z] {
             body.extend_from_slice(&value.to_le_bytes());
         }
@@ -235,11 +242,14 @@ fn serve(
     socket: &UdpSocket,
     keep: impl Fn() -> bool,
     open_sensor: impl Fn() -> canape_hw::Result<Box<dyn Gyro>>,
+    open_accelerometer: impl Fn() -> canape_hw::Result<Box<dyn Accelerometer>>,
 ) -> std::io::Result<()> {
     socket.set_read_timeout(Some(TICK))?;
     let start = Instant::now();
     let mut clients = Clients::new(start_id());
     let mut sensor: Option<Box<dyn Gyro>> = None;
+    // Opened with the gyroscope; without it the acceleration reads zero.
+    let mut accelerometer: Option<Box<dyn Accelerometer>> = None;
     let mut retry_at = start;
     let mut last_send = start;
     let mut buffer = [0u8; 512];
@@ -258,13 +268,13 @@ fn serve(
             // Windows reports a client that went away as a failed read.
             Err(err) if err.kind() == std::io::ErrorKind::ConnectionReset => {}
             Err(err) => {
-                release(&mut sensor);
+                release(&mut sensor, &mut accelerometer);
                 return Err(err);
             }
         }
         let now = Instant::now();
         if !clients.any(now) {
-            release(&mut sensor);
+            release(&mut sensor, &mut accelerometer);
             continue;
         }
         if sensor.is_none() && now >= retry_at {
@@ -273,6 +283,14 @@ fn serve(
                     crate::log(&gyro.describe());
                     gyro.set_active(true);
                     sensor = Some(gyro);
+                    match open_accelerometer() {
+                        Ok(mut accel) => {
+                            crate::log(&accel.describe());
+                            accel.set_active(true);
+                            accelerometer = Some(accel);
+                        }
+                        Err(err) => crate::log(&format!("motion server: {err}")),
+                    }
                 }
                 Err(err) => {
                     crate::log(&format!("motion server: {err}"));
@@ -289,7 +307,11 @@ fn serve(
         last_send = now;
         match gyro.read() {
             Ok(Some(rate)) => {
-                let data = clients.data(rate, now - start);
+                let acceleration = accelerometer
+                    .as_mut()
+                    .and_then(|accel| accel.read().ok().flatten())
+                    .unwrap_or_default();
+                let data = clients.data(rate, acceleration, now - start);
                 for client in clients.addresses() {
                     let _ = socket.send_to(&data, client);
                 }
@@ -297,17 +319,20 @@ fn serve(
             Ok(None) => {}
             Err(err) => {
                 crate::log(&format!("motion server: {err}"));
-                release(&mut sensor);
+                release(&mut sensor, &mut accelerometer);
                 retry_at = now + SENSOR_RETRY;
             }
         }
     }
-    release(&mut sensor);
+    release(&mut sensor, &mut accelerometer);
     Ok(())
 }
 
 /// Puts the sensor back to its default rate, which saves power.
-fn release(sensor: &mut Option<Box<dyn Gyro>>) {
+fn release(sensor: &mut Option<Box<dyn Gyro>>, accelerometer: &mut Option<Box<dyn Accelerometer>>) {
+    if let Some(mut accel) = accelerometer.take() {
+        accel.set_active(false);
+    }
     if let Some(mut gyro) = sensor.take() {
         gyro.set_active(false);
         crate::log("motion server: sensor released");
@@ -375,7 +400,12 @@ mod engine {
                     Ok(socket) => {
                         refused = None;
                         crate::log(&format!("motion server: listening on 127.0.0.1:{port}"));
-                        let result = serve(&socket, || wanted() == Some(port), motion::open);
+                        let result = serve(
+                            &socket,
+                            || wanted() == Some(port),
+                            motion::open,
+                            motion::open_accelerometer,
+                        );
                         if let Err(err) = result {
                             crate::log(&format!("motion server: {err}"));
                             thread::sleep(RETRY);
@@ -538,8 +568,13 @@ mod tests {
             y: -2.0,
             z: 30.0,
         };
-        let first = clients.data(rate, Duration::from_millis(5));
-        let second = clients.data(rate, Duration::from_millis(15));
+        let gravity = Acceleration {
+            x: 0.0,
+            y: -1.0,
+            z: 0.5,
+        };
+        let first = clients.data(rate, gravity, Duration::from_millis(5));
+        let second = clients.data(rate, Acceleration::default(), Duration::from_millis(15));
         assert_eq!(first.len(), 100);
         assert_eq!(u16::from_le_bytes(first[6..8].try_into().unwrap()), 84);
         assert_eq!(&first[16..20], &MSG_DATA.to_le_bytes());
@@ -552,7 +587,17 @@ mod tests {
         assert_eq!(&first[40..44], &[128; 4]);
         // Time in microseconds, then acceleration, then rotation.
         assert_eq!(u64::from_le_bytes(first[68..76].try_into().unwrap()), 5000);
-        assert_eq!(&first[76..88], &[0; 12]);
+        let float_at =
+            |packet: &[u8], at: usize| f32::from_le_bytes(packet[at..at + 4].try_into().unwrap());
+        assert_eq!(
+            (
+                float_at(&first, 76),
+                float_at(&first, 80),
+                float_at(&first, 84)
+            ),
+            (0.0, -1.0, 0.5)
+        );
+        assert_eq!(&second[76..88], &[0; 12]);
         let float = |at: usize| f32::from_le_bytes(first[at..at + 4].try_into().unwrap());
         assert_eq!((float(88), float(92), float(96)), (1.5, -2.0, 30.0));
         let mut zeroed = first.clone();
@@ -565,7 +610,7 @@ mod tests {
 
     #[test]
     fn serving_over_loopback_streams_only_to_subscribers() {
-        use canape_hw::motion::MockGyro;
+        use canape_hw::motion::{MockAccelerometer, MockGyro};
         use std::sync::Arc;
         use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -587,6 +632,15 @@ mod tests {
                             },
                             reads: 0,
                         }) as Box<dyn Gyro>)
+                    },
+                    || {
+                        Ok(Box::new(MockAccelerometer {
+                            value: Acceleration {
+                                x: 0.0,
+                                y: -1.0,
+                                z: 0.25,
+                            },
+                        }) as Box<dyn Accelerometer>)
                     },
                 )
             })
@@ -614,6 +668,9 @@ mod tests {
         assert_eq!(&buffer[..4], SERVER_MAGIC);
         let yaw = f32::from_le_bytes(buffer[92..96].try_into().unwrap());
         assert_eq!(yaw, 12.5);
+        // And what the accelerometer reads, in g, before the rotation.
+        let accel = |at: usize| f32::from_le_bytes(buffer[at..at + 4].try_into().unwrap());
+        assert_eq!((accel(76), accel(80), accel(84)), (0.0, -1.0, 0.25));
 
         // A burst of requests does not speed the stream up.
         let request = client(MSG_DATA, &[0; 8]);

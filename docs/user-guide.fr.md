@@ -586,7 +586,7 @@ La carte **Visée au gyroscope** (étagère Manette) ouvre un tiroir de cinq lig
 Avec **Mouvement pour émulateurs** activé, Canapé répond sur le port UDP **26760** de l'adresse locale `127.0.0.1` (jamais depuis un autre appareil) et publie le gyroscope pour les programmes qui savent le lire, comme les émulateurs de consoles à commandes de mouvement. Dans le programme, choisissez ce serveur de mouvement avec cette adresse et ce port. Le capteur n'est lu que tant qu'un programme est connecté. Ce réglage est indépendant de la visée à la souris et se garde aussi par jeu avec **X**. Le port se change avec `set_gyro` (`motion_port`, 1024 à 65535).
 
 > [!WARNING]
-> **Essayé sur l'Ally avec un client de test local, pas encore avec un émulateur.** L'accéléromètre n'est pas lu : ses trois valeurs sont à zéro. Le sens des axes reste à vérifier ; la plupart des programmes permettent d'inverser un axe.
+> **Essayé sur l'Ally avec un client de test local, pas encore avec un émulateur.** L'accéléromètre est lu depuis le 31 octobre (en g, gravité comprise) mais **n'a pas été essayé sur l'Ally** ; sans lui, ses trois valeurs sont à zéro. Le sens des axes reste à vérifier ; la plupart des programmes permettent d'inverser un axe.
 
 #### Boutons arrière et éclairage
 

@@ -11,7 +11,7 @@ use std::ffi::c_void;
 use windows_sys::Win32::System::Com::{COINIT_MULTITHREADED, CoInitializeEx};
 use windows_sys::core::{GUID, HRESULT, PCWSTR};
 
-use crate::motion::{AngularVelocity, Gyro};
+use crate::motion::{Acceleration, Accelerometer, AngularVelocity, Gyro};
 use crate::{HwError, Result};
 
 type Hstring = *mut c_void;
@@ -29,6 +29,11 @@ unsafe extern "system" {
 
 const CLASS: &str = "Windows.Devices.Sensors.Gyrometer";
 const IID_GYROMETER_STATICS: GUID = GUID::from_u128(0x83b6e7c9_e49d_4b39_86e6_cd554be4c5c1);
+/// The accelerometer's class and statics have the same layouts as the
+/// gyrometer's, down to the slots of the reading (`AccelerationX` follows
+/// the timestamp like `AngularVelocityX` does).
+const ACCEL_CLASS: &str = "Windows.Devices.Sensors.Accelerometer";
+const IID_ACCELEROMETER_STATICS: GUID = GUID::from_u128(0xa5e28b74_5a87_4a2d_becc_0f906ea061dd);
 
 // Vtable slots after IInspectable's six (QueryInterface, AddRef, Release,
 // GetIids, GetRuntimeClassName, GetTrustLevel).
@@ -176,6 +181,74 @@ impl Gyro for WindowsGyro {
                 .map(|v| v as f32)
         };
         Ok(Some(AngularVelocity {
+            x: axis(0)?,
+            y: axis(1)?,
+            z: axis(2)?,
+        }))
+    }
+}
+
+/// The default accelerometer of the machine, in g (gravity included).
+pub struct WindowsAccelerometer {
+    sensor: Object,
+    minimum_ms: u32,
+}
+
+unsafe impl Send for WindowsAccelerometer {}
+
+impl WindowsAccelerometer {
+    pub fn open() -> Result<Self> {
+        unsafe { CoInitializeEx(std::ptr::null(), COINIT_MULTITHREADED as u32) };
+        let statics = activation_factory(ACCEL_CLASS, &IID_ACCELEROMETER_STATICS)?;
+        let sensor = statics
+            .get_object(GET_DEFAULT, "Accelerometer.GetDefault")?
+            .ok_or(HwError::Unsupported(
+                "no accelerometer in the Windows sensors",
+            ))?;
+        let minimum_ms = sensor
+            .get_u32(
+                MINIMUM_REPORT_INTERVAL,
+                "Accelerometer.MinimumReportInterval",
+            )
+            .unwrap_or(0);
+        Ok(Self { sensor, minimum_ms })
+    }
+}
+
+impl Accelerometer for WindowsAccelerometer {
+    fn describe(&self) -> String {
+        format!(
+            "motion: Windows accelerometer, minimum report interval {} ms",
+            self.minimum_ms
+        )
+    }
+
+    fn set_active(&mut self, active: bool) {
+        let interval = if active {
+            ACTIVE_INTERVAL_MS.max(self.minimum_ms)
+        } else {
+            0
+        };
+        let _ = self.sensor.set_u32(
+            SET_REPORT_INTERVAL,
+            interval,
+            "Accelerometer.ReportInterval",
+        );
+    }
+
+    fn read(&mut self) -> Result<Option<Acceleration>> {
+        let Some(reading) = self
+            .sensor
+            .get_object(GET_CURRENT_READING, "Accelerometer.GetCurrentReading")?
+        else {
+            return Ok(None);
+        };
+        let axis = |i: usize| {
+            reading
+                .get_f64(ANGULAR_VELOCITY_X + i, "AccelerometerReading.Acceleration")
+                .map(|v| v as f32)
+        };
+        Ok(Some(Acceleration {
             x: axis(0)?,
             y: axis(1)?,
             z: axis(2)?,

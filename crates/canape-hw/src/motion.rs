@@ -26,6 +26,53 @@ pub trait Gyro: Send {
     fn read(&mut self) -> Result<Option<AngularVelocity>>;
 }
 
+/// Acceleration in g, gravity included, in the same frame as
+/// [`AngularVelocity`].
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct Acceleration {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+
+pub trait Accelerometer: Send {
+    /// One line for the log.
+    fn describe(&self) -> String;
+    /// Readings are needed often (`true`) or not at all.
+    fn set_active(&mut self, _active: bool) {}
+    /// The latest reading, `None` before the first one.
+    fn read(&mut self) -> Result<Option<Acceleration>>;
+}
+
+/// An accelerometer holding still, for development and tests.
+#[derive(Debug, Clone, Default)]
+pub struct MockAccelerometer {
+    pub value: Acceleration,
+}
+
+impl MockAccelerometer {
+    /// `CANAPE_MOCK_ACCEL=x,y,z` (g) fakes the sensor.
+    pub fn from_env() -> Option<Self> {
+        parse_rate(&std::env::var("CANAPE_MOCK_ACCEL").ok()?).map(|r| Self {
+            value: Acceleration {
+                x: r.x,
+                y: r.y,
+                z: r.z,
+            },
+        })
+    }
+}
+
+impl Accelerometer for MockAccelerometer {
+    fn describe(&self) -> String {
+        "motion: simulated accelerometer".into()
+    }
+
+    fn read(&mut self) -> Result<Option<Acceleration>> {
+        Ok(Some(self.value))
+    }
+}
+
 /// A gyroscope turning at a constant rate, for development and tests.
 #[derive(Debug, Clone, Default)]
 pub struct MockGyro {
@@ -76,6 +123,23 @@ pub fn open() -> Result<Box<dyn Gyro>> {
     #[cfg(not(windows))]
     {
         Err(crate::HwError::Unsupported("gyroscope"))
+    }
+}
+
+/// Opens the device's accelerometer: the simulator when
+/// `CANAPE_MOCK_ACCEL` is set, the Windows sensor stack otherwise.
+pub fn open_accelerometer() -> Result<Box<dyn Accelerometer>> {
+    if let Some(mock) = MockAccelerometer::from_env() {
+        return Ok(Box::new(mock));
+    }
+    #[cfg(windows)]
+    {
+        crate::gyro::WindowsAccelerometer::open()
+            .map(|sensor| Box::new(sensor) as Box<dyn Accelerometer>)
+    }
+    #[cfg(not(windows))]
+    {
+        Err(crate::HwError::Unsupported("accelerometer"))
     }
 }
 
