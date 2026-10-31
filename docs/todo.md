@@ -1,6 +1,6 @@
 # Canapé : feuille de route
 
-État au 29 octobre 2026.
+État au 31 octobre 2026.
 
 À lire avant de commencer : `AGENTS.md` à la racine du dépôt `pierregouedar/canape` (branche `main`). Ses règles s'appliquent à chaque point.
 
@@ -16,7 +16,7 @@ Ces points ont été vérifiés comme absents des rapports d'essais (`docs/ally-
 - [ ] **4. Limite de charge de la batterie.** Réglage par l'interface vérifié le 30 octobre, mais batterie à 100 % : l'arrêt et la reprise de la charge restent à observer avec la batterie sous 60 % (il faut débrancher).
 - [x] **5. Définition d'écran par profil et écran Image.** Éprouvé le 30 octobre (720p au lancement, 1080p au retour, « Pas encore appliqué »). Reste : la fiche du jeu ne résume pas la définition.
 - [x] **6. Options d'un jeu.** Renommer, catégories, retirer et réafficher éprouvés le 30 octobre ; clavier tactile corrigé et vérifié sur `284703f`.
-- [x] **7. Ajouter d'autres jeux.** Éprouvé le 30 octobre. À revoir : A retire une entrée sans confirmation, et la liste remonte quand « Jeux masqués » disparaît.
+- [x] **7. Ajouter d'autres jeux.** Éprouvé le 30 octobre. Corrigé le 31 octobre (`8e05ec5`) : A demande une seconde pression avant de retirer, le curseur reste sur son jeu ; à revérifier sur l'Ally.
 - [ ] **8. Durées IGDB, succès Steam, images SteamGridDB, icônes.** Nécessitent les clés de Pierre.
 - [ ] **9. Éclairage par l'interface et gyroscope avec palette.** Réglages éprouvés le 30 octobre ; reste l'essai physique (palette tenue ou basculée en bougeant la console dans un jeu) et la couleur réelle des sticks.
 - [ ] **10. Widget.** Onglet Matériel, enregistrement et application au lancement éprouvés le 30 octobre. Reste : le bouton Armoury depuis un jeu (geste physique). À revoir : la limite de FPS n'agit qu'au lancement du jeu, et reste active après sa fermeture.
@@ -80,6 +80,15 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [ ] **Site `canape-site` :** bancs sur d'autres jeux et sélecteur de jeux. Il faut la liste des jeux installés sur l'Ally.
 - [ ] **Serveur de mouvement :** essai avec un vrai émulateur. Accéléromètre : lu (1,01 g à plat le 31 octobre). Le plantage du premier essai (violation d'accès 6–7 s après l'abonnement) venait de `get_object` (`then_some` construisait puis relâchait un objet nul quand le capteur n'avait pas encore de lecture) : corrigé le 31 octobre et vérifié sur l'Ally (63 paquets par seconde, aucune accélération nulle, lecture sur un fil à part). À voir avec quelqu'un qui bouge la console : la vitesse angulaire au repos reste strictement constante pendant une session (valeur retenue par Windows ?) et le sens des axes. En attente, pas d'émulateur.
 - [ ] **GOG (en pause).** Aucun compte connecté, aucun essai prévu. Retiré de l'interface le 29 octobre (réglages, visite, étagères, installation) : `GOG_ENABLED` dans `crates/canape-shell/src/library.rs` le remet quand on le reprend.
+
+## H. Petits correctifs d'ergonomie (31 octobre)
+
+- [x] « Ajouter un jeu » : confirmation avant de retirer, curseur stable (`8e05ec5`).
+- [ ] Annoncer à l'écran le repli du rendu GPU vers le rendu logiciel.
+- [ ] Options d'un jeu : confirmer « Retirer » aussi pour un jeu de boutique (masquage).
+- [ ] Libellé « Tout est appliqué » tronqué sur la page des optimisations.
+- [ ] Fiche du jeu : résumer la définition d'écran choisie.
+- [ ] Réinstallation : dire clairement que les optimisations et l'étagère Processeur ne se réappliquent pas seules (rendues à la désinstallation, par conception).
 
 ## Avant de pousser
 
