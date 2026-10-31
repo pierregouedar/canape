@@ -119,6 +119,9 @@ fn main() -> Result<(), slint::PlatformError> {
         commit => format!("{} ({commit})", env!("CARGO_PKG_VERSION")),
     };
     ui.global::<App>().set_version(version.into());
+    if renderer::fell_back() {
+        ui.global::<App>().set_notice(Notice::RendererFallback);
+    }
 
     // Translations can only be selected once a component exists.
     let settings = i18n::ShellSettings::load();

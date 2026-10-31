@@ -122,6 +122,14 @@ fn remember(renderer: Renderer) {
     }
 }
 
+static FELL_BACK: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// True when this start asked for the graphics card renderer and went back
+/// to the software one: the shell says so on screen.
+pub fn fell_back() -> bool {
+    FELL_BACK.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 /// Startup of `canape-shell.exe`: if shell.json asks for the graphics card,
 /// starts the GPU executable and waits for it to show its window.
 ///
@@ -140,6 +148,7 @@ pub fn hand_over_at_startup(args: &[String]) -> bool {
                 "gpu renderer: {reason}; back to the software renderer"
             ));
             remember(Renderer::Software);
+            FELL_BACK.store(true, std::sync::atomic::Ordering::Relaxed);
             // The lock was released for the child, or never was (the
             // executable is missing): let go of it either way, then take it
             // back, unless a later activation got it meanwhile.

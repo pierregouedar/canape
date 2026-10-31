@@ -1300,3 +1300,6 @@ msgstr "部分"
 
 msgid "Press A again to remove"
 msgstr "再按一次 A 即可移除"
+
+msgid "The graphics card renderer did not start: back to the light one."
+msgstr "显卡渲染器未能启动，已改回轻量渲染。"

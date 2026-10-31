@@ -438,7 +438,7 @@ export component AppWindow inherits Window {
                     vertical-alignment: center;
                     overflow: elide;
                     font-size: 13px;
-                    text: !App.status.connected ? @tr("Service not connected: start canape-service.") : App.notice == Notice.unreachable ? @tr("Service unreachable") : App.notice == Notice.service-error ? @tr("Service error: {}", App.notice-detail) : App.notice == Notice.saved ? @tr("Profile saved") : App.status.conflicts != "" ? @tr("Also driving the hardware: {}. Close it to avoid conflicts.", App.status.conflicts) : "";
+                    text: !App.status.connected ? @tr("Service not connected: start canape-service.") : App.notice == Notice.unreachable ? @tr("Service unreachable") : App.notice == Notice.service-error ? @tr("Service error: {}", App.notice-detail) : App.notice == Notice.saved ? @tr("Profile saved") : App.notice == Notice.renderer-fallback ? @tr("The graphics card renderer did not start: back to the light one.") : App.status.conflicts != "" ? @tr("Also driving the hardware: {}. Close it to avoid conflicts.", App.status.conflicts) : "";
                     color: App.notice == Notice.saved && App.status.connected ? Theme.good : Theme.warn;
                 }
 

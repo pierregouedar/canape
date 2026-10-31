@@ -1303,3 +1303,6 @@ msgstr "Teilweise"
 
 msgid "Press A again to remove"
 msgstr "Zum Entfernen erneut A drücken"
+
+msgid "The graphics card renderer did not start: back to the light one."
+msgstr "Der Grafikkarten-Renderer ist nicht gestartet: zurück zum leichten."

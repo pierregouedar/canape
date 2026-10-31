@@ -1300,3 +1300,6 @@ msgstr "일부"
 
 msgid "Press A again to remove"
 msgstr "제거하려면 A를 다시 누르세요"
+
+msgid "The graphics card renderer did not start: back to the light one."
+msgstr "그래픽 카드 렌더러가 시작되지 않아 가벼운 렌더러로 돌아갑니다."

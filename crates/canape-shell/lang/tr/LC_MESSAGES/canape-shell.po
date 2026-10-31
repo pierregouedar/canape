@@ -1300,3 +1300,6 @@ msgstr "Kısmen"
 
 msgid "Press A again to remove"
 msgstr "Kaldırmak için A'ya tekrar basın"
+
+msgid "The graphics card renderer did not start: back to the light one."
+msgstr "Ekran kartı oluşturucusu başlamadı: hafif olana dönüldü."
