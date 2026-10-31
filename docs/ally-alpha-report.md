@@ -397,6 +397,38 @@ Réinstallé la veille ; essais dans **un même processus du shell** (pid inchan
 - Outil de test : la fenêtre de Claude passait désormais devant Canapé, et les touches simulées (dont Échap) arrêtaient la commande en cours. Les scripts vérifient maintenant que Canapé est au premier plan avant chaque touche.
 - Vu en passant : depuis la nuit, le shell journalise `buttons: device I/O failed: … (os error 1167)` puis `buttons: not supported on this device: no Ally controller HID interface with input reports` : les boutons de l'Ally ne sont plus vus, probablement après une mise en veille.
 - Remis : profil supprimé, premier plan vide, `shell.json` inchangé, pilote identique à l'origine.
+### Boutons de l'Ally non vus depuis la veille (relevé en lecture seule)
+
+Fait avant toute réinstallation, sans rien modifier ni redémarrer, sans toucher au mode manette.
+
+- **Interfaces HID présentes** : le contrôleur `VID 0x0B05 / PID 0x1ABE` est là, tous ses nœuds en état OK dans le Gestionnaire de périphériques. `0x1B4C` n'est pas présent (normal sur ce modèle). Interface 2 (`MI_02`) :
+
+  | Collection | Page / usage | Entrée | Fonctionnalité | ID de rapport de fonctionnalité | Ouverture lecture/écriture |
+  |---|---|---|---|---|---|
+  | COL01 | 0xFF31 / 0x0076 | 6 | 64 | **0x5A** | OK |
+  | COL02 | 0x000C / 0x0001 | 5 | 0 | aucun | OK |
+  | COL03 | 0xFF31 / 0x0079 | 32 | 64 | 0x5D | OK |
+  | COL04 | 0xFF31 / 0x0080 | 6 | 64 | 0x5E | OK |
+
+  `MI_00` (clavier, page 0x0001 / usage 0x0006) et `MI_01` (souris) refusent l'ouverture (accès refusé, réservées par Windows, comme toujours). Restes de l'ancien `PID 0x0CFF` présents en fantômes (non branchés).
+- **Autre processus** : toutes les interfaces du fabricant s'ouvrent en lecture/écriture partagée, donc personne ne les tient en exclusif. La liste exacte des processus qui ont un handle ouvert n'est pas lisible ici (pas d'outil Sysinternals).
+- **Gestionnaire de périphériques** : un seul périphérique en erreur sur la machine, `ACPI\NVDA0820\NPCF`, sans rapport avec la manette.
+- **Nouvelles tentatives** : le shell ne journalise qu'une erreur **différente** de la précédente et rien en cas de succès (`buttons.rs`). Le journal montre `os error 1167` (01:09:41), `no Ally controller HID interface with input reports` 5 s après, de nouveau `1167` à 11:47 puis `not supported` à 15:48 : la boucle tournait donc bien (sinon le message n'aurait pas changé). Le rythme de 60 s lui-même ne se lit pas dans le journal. Depuis 15:48, plus rien : l'interface 0x5A est de nouveau là et ouvrable, le shell l'écoute très probablement. Après la réinstallation qui a suivi, le shell neuf n'a journalisé **aucune** erreur `buttons:`, il a trouvé les boutons du premier coup. Appui réel non essayé (geste de Pierre).
+- Suggestion : journaliser aussi la reprise (« buttons: listening ») pour qu'un retour se lise dans le journal.
+
+### Vérification de `1f9c692` (relecture après réglage, pas d'Anti-Lag avec Chill)
+
+Même méthode (même processus du shell, relevé complet des 861 valeurs du pilote). Chaque tour : même instantané au lancement, `settings given back` à la fermeture, **pilote identique à l'origine après chaque tour**, aucun plantage.
+
+| Tour | Profil | Journal | Pilote pendant le jeu |
+|---|---|---|---|
+| a | Anti-Lag + Chill 40–60 | `radeon: Anti-Lag not applied: Chill is on` | seuls `KMD_ChillEnabled` 0→1, `KMD_ChillMinFps` 120→40, `KMD_ChillMaxFps` 120→60 |
+| b | Anti-Lag seul | rien d'autre | `KMD_DeLagEnabled` 0→1 |
+| c | Netteté 50, RSR actif dans le pilote | `radeon: Image Sharpening not applied: Super Resolution is on` | aucun changement |
+
+- Tiroir du tour (c), capturé avec le jeu ouvert : « Radeon · **Pas encore appliqué** », Anti-Lag Désactivé, Netteté de l'image 50 %, Chill Désactivé. La carte Radeon affiche pourtant « Activé », ce qui peut prêter à confusion.
+- Le message « the driver kept it off » n'est pas apparu : avec la nouvelle règle, Anti-Lag n'est plus demandé à côté de Chill.
+- Remis : profil supprimé, premier plan vide, `shell.json` inchangé.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
