@@ -438,6 +438,18 @@ Réinstallé (`c8f20d7` et `f9040c3`). Au démarrage : `buttons: listening` (la 
 - **PLANTAGE du shell, reproduit deux fois** : 6 à 7 s après l'abonnement du client (17:33:03 → 17:33:09, puis 17:35:15 → 17:35:22), `canape-shell.exe` s'arrête sur une **violation d'accès `0xc0000005` dans `canape-shell.exe` lui-même, décalage `0x3f01e0`** (journal Application, événement 1000 ; WER `MoAppCrash`). Sans client, le shell tient (40 s observées). Deux vidages mémoire gardés hors dépôt (`canape-shell.exe.16172.dmp`, `canape-shell.exe.12740.dmp`), avec le `.pdb` de la même compilation (binaire installé identique à `target\release`). La fonction n'a pas pu être nommée ici (`llvm-symbolizer` sans DIA renvoie `main`, `dbghelp` ne charge pas les symboles).
 - Inclinaison de la console : **non essayée** (geste de Pierre).
 - Remis : shell relancé, serveur de mouvement laissé activé comme au départ. Tant que le correctif n'est pas là, un émulateur abonné au serveur ferait planter Canapé.
+### Plantage de l'accéléromètre : diagnostic, et `aeaeb24` (accéléromètre non lu)
+
+**Vérification de `aeaeb24`** : réinstallé, client de test abonné pendant 60 s : 3 754 paquets (63 par seconde), seule la ligne `gyro: Windows gyrometer, minimum report interval 10 ms` au journal, champs d'accélération à 0, shell vivant et réactif après coup, aucun événement 1000. Corrigé (contournement).
+
+**Diagnostic des deux vidages** de `f9040c3` (gardés hors dépôt avec l'exe et le `.pdb` de la même compilation, GUID `{63EFC49A-3984-4368-9347-BEDE73963BFD}` identique ; pas de débogueur ni de `llvm-pdbutil` sur la machine, `dbghelp` ne charge pas ce PDB : lecture faite à la main du PDB, de `.pdata`, du désassemblage `dumpbin` et des flux du minidump) :
+
+- Exception `0xC0000005`, **lecture à l'adresse 0** (pointeur nul), à `0x7FF6F4D401E0` = RVA `0x3F01E0` (base de chargement `0x7FF6F4950000`). Thread sans nom ; 28 et 27 threads au total.
+- Fonction (bornes `.pdata`) : RVA `0x3F01BA`–`0x3F0234`, plantage à +0x26 sur `mov r9, qword ptr [rax]`, juste avant `call qword ptr [r9+r8*8]` : lecture de la table virtuelle d'une interface COM/WinRT passée en deuxième argument, pour appeler une méthode qui rend un `f64`. Le PDB de version n'a pas de nom pour elle (seulement 531 procédures complètes et 1 554 symboles publics, le plus proche en dessous étant `main`, sans rapport).
+- Appelants de cette aide : six appels, en deux groupes de trois (X, Y, Z, méthode 7 puis suivantes), précédés des chaînes `Accelerometer.GetCurrentReading` / `AccelerometerReading.Acceleration` (RVA `0x3F0046`) et `Gyrometer.GetCurrentReading` / `GyrometerReading.AngularVelocity` (RVA `0x3F0625`).
+- Pile du thread fautif, **dans les deux vidages** : adresse de retour `0x3F00D1`, c'est-à-dire l'appel de **`AccelerometerReading.AccelerationX`** ; au-dessus, `0x3EFF05` (`GetCurrentReading`), puis `0x676735` et `0xFAE7D`.
+- **Conclusion** : `Accelerometer.GetCurrentReading` a rendu un succès avec une **lecture nulle** (WinRT le permet quand le capteur n'a pas de lecture disponible), et le code a lu `AccelerationX` sur ce pointeur nul. Ce n'est ni le gyromètre ni le serveur UDP. Correctif probable : tester la lecture nulle (et garder la dernière valeur) avant de lire X, Y, Z ; même précaution utile pour le gyromètre.
+- Serveur de mouvement laissé activé, comme au départ.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
