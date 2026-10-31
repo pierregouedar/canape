@@ -450,6 +450,13 @@ Réinstallé (`c8f20d7` et `f9040c3`). Au démarrage : `buttons: listening` (la 
 - Pile du thread fautif, **dans les deux vidages** : adresse de retour `0x3F00D1`, c'est-à-dire l'appel de **`AccelerometerReading.AccelerationX`** ; au-dessus, `0x3EFF05` (`GetCurrentReading`), puis `0x676735` et `0xFAE7D`.
 - **Conclusion** : `Accelerometer.GetCurrentReading` a rendu un succès avec une **lecture nulle** (WinRT le permet quand le capteur n'a pas de lecture disponible), et le code a lu `AccelerationX` sur ce pointeur nul. Ce n'est ni le gyromètre ni le serveur UDP. Correctif probable : tester la lecture nulle (et garder la dernière valeur) avant de lire X, Y, Z ; même précaution utile pour le gyromètre.
 - Serveur de mouvement laissé activé, comme au départ.
+### Vérification de `11bc812` (objet nul plus relâché, accéléromètre relu)
+
+Réinstallé ; console posée à plat, écran vers le haut ; un seul processus du shell du début à la fin, **aucun plantage** (aucun événement 1000).
+
+- **60 s d'abonnement** : premier paquet (0,04 ; 0,01 ; −1,01) g. Accélération moyenne z −0,90 : 10 paquets sur 90 ont l'accélération à 0 (pas de lecture disponible à ce moment). **Seulement 90 paquets en 60 s (2 par seconde)**, contre 63 par seconde avec l'accéléromètre coupé (`aeaeb24`) : la cadence chute nettement quand l'accéléromètre est lu.
+- **Abonnements répétés** (3 s chacun, 10 s d'écart, puis 8 s de pause et un dernier) : le journal montre à chaque fois `motion server: sensor released` puis `gyro: Windows gyrometer…` et `motion: Windows accelerometer, minimum report interval 10 ms` à la réouverture. Accélération ≈ (0,04 ; 0,00 ; −1,01) g **dès le premier paquet** à chaque fois. Paquets : 6 en 3 s, 49, 41, puis 99 en 5 s : cadence irrégulière.
+- Le plantage de la lecture nulle est corrigé. Reste à comprendre la cadence basse et les paquets à 0 quand l'accéléromètre est lu. Inclinaison toujours non essayée (geste de Pierre). Serveur de mouvement laissé activé.
 ### Remarques en passant
 
 - Visite, étape Langue : le bouton chinois affiche « 体中文 », le premier caractère de « 简体中文 » manque.
