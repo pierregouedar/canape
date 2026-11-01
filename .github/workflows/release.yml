@@ -112,4 +112,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $flag = if ("${{ github.event.inputs.prerelease }}" -eq "false") { @() } else { @("--prerelease") }
-          gh release create $env:TAG "dist\canape-$env:TAG-windows-x64.zip" --title "Canapé $env:TAG" --generate-notes @flag
+          $tag = $env:TAG
+          $zip = "dist\canape-$($tag)-windows-x64.zip"
+          if (-not (Test-Path $zip)) { throw "$zip not found" }
+          gh release create $tag $zip --title "Canapé $tag" --generate-notes @flag
