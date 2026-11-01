@@ -87,6 +87,7 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [ ] Lancer le workflow et vérifier l'archive produite.
 - [ ] Installer l'archive sur l'Ally (propre, sans les dossiers de développement) : service, shell, identité, widget, redémarrage dans l'expérience plein écran.
 - [ ] Promouvoir la pré-version en version quand l'installation est validée.
+- [x] Bibliothèques Visual C++ liées dans les exécutables (`.cargo/config.toml`, `crt-static`) pour démarrer sur un Windows neuf ; à vérifier sur une machine propre.
 - Limites connues : mode développeur obligatoire (capacité `gamingHome` de test), programmes non signés par une autorité (Smart App Control).
 
 ## H. Petits correctifs d'ergonomie (31 octobre)

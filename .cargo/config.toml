@@ -1,0 +1,4 @@
+# Windows builds carry their own C runtime: a release installed on a Windows
+# without the Visual C++ redistributable still starts.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
