@@ -106,13 +106,23 @@ jobs:
           path: dist/*.zip
           if-no-files-found: error
 
+  publish:
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: canape-release
+          path: dist
       - name: Publish the release
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          $flag = if ("${{ github.event.inputs.prerelease }}" -eq "false") { @() } else { @("--prerelease") }
-          $tag = $env:TAG
-          $zip = "dist\canape-$($tag)-windows-x64.zip"
-          if (-not (Test-Path $zip)) { throw "$zip not found" }
-          gh release create $tag $zip --title "Canapé $tag" --generate-notes @flag
+          tag="${{ github.event.inputs.tag }}"
+          if [ -z "$tag" ]; then tag="${{ github.ref_name }}"; fi
+          flag="--prerelease"
+          if [ "${{ github.event.inputs.prerelease }}" = "false" ]; then flag=""; fi
+          zip="dist/canape-${tag}-windows-x64.zip"
+          test -f "$zip" || { echo "$zip not found"; ls -R dist; exit 1; }
+          gh release create "$tag" "$zip" --title "Canapé $tag" --generate-notes $flag
