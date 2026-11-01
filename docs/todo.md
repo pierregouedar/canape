@@ -81,6 +81,14 @@ Déjà éprouvé, inutile de refaire : boutons physiques et palettes M1/M2 ; éc
 - [ ] **Serveur de mouvement :** essai avec un vrai émulateur. Accéléromètre : lu (1,01 g à plat le 31 octobre). Le plantage du premier essai (violation d'accès 6–7 s après l'abonnement) venait de `get_object` (`then_some` construisait puis relâchait un objet nul quand le capteur n'avait pas encore de lecture) : corrigé le 31 octobre et vérifié sur l'Ally (63 paquets par seconde, aucune accélération nulle, lecture sur un fil à part). À voir avec quelqu'un qui bouge la console : la vitesse angulaire au repos reste strictement constante pendant une session (valeur retenue par Windows ?) et le sens des axes. En attente, pas d'émulateur.
 - [ ] **GOG (en pause).** Aucun compte connecté, aucun essai prévu. Retiré de l'interface le 29 octobre (réglages, visite, étagères, installation) : `GOG_ENABLED` dans `crates/canape-shell/src/library.rs` le remet quand on le reprend.
 
+## R. Première version publiée (1er novembre)
+
+- [x] Workflow `release.yml` et `install-release.ps1` écrits (installation sans Rust ni SDK, empreintes, certificat par version).
+- [ ] Lancer le workflow et vérifier l'archive produite.
+- [ ] Installer l'archive sur l'Ally (propre, sans les dossiers de développement) : service, shell, identité, widget, redémarrage dans l'expérience plein écran.
+- [ ] Promouvoir la pré-version en version quand l'installation est validée.
+- Limites connues : mode développeur obligatoire (capacité `gamingHome` de test), programmes non signés par une autorité (Smart App Control).
+
 ## H. Petits correctifs d'ergonomie (31 octobre)
 
 - [x] « Ajouter un jeu » : confirmation avant de retirer, curseur stable (`8e05ec5`).

@@ -1,0 +1,115 @@
+name: Release
+
+# A release is built by hand (or from a tag): it packs the programs, the
+# identity package and the widget, signs the packages with a certificate made
+# for this run, and publishes everything as a GitHub release. Nothing here
+# needs a secret: the private key of the certificate never leaves the run.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to create, e.g. v0.1.0"
+        required: true
+      prerelease:
+        description: "Mark the release as a pre-release"
+        type: boolean
+        default: true
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  package:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+      - run: cargo build --release -p canape-shell -p canape-service -p canape-ctl
+      - run: cargo build --release -p canape-shell --no-default-features --features gpu
+
+      - name: Build the widget
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find "MSBuild\**\Bin\MSBuild.exe" | Select-Object -First 1
+          $out = Join-Path $env:GITHUB_WORKSPACE "target\widget"
+          & $msbuild widget\CanapeWidget\CanapeWidget.csproj /restore /p:Configuration=Release /p:Platform=x64 /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:AppxPackageSigningEnabled=false "/p:AppxPackageDir=$out\"
+          if ($LASTEXITCODE -ne 0) { throw "Widget build failed ($LASTEXITCODE)" }
+
+      - name: Pack and sign
+        shell: pwsh
+        run: |
+          $tag = if ("${{ github.event.inputs.tag }}") { "${{ github.event.inputs.tag }}" } else { "${{ github.ref_name }}" }
+          $stage = Join-Path $env:GITHUB_WORKSPACE "dist\canape-$tag-windows-x64"
+          New-Item -ItemType Directory -Force $stage | Out-Null
+          function Find-SdkTool([string]$name) {
+            (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\$name" | Sort-Object FullName -Descending | Select-Object -First 1).FullName
+          }
+          $makeappx = Find-SdkTool "makeappx.exe"
+          $signtool = Find-SdkTool "signtool.exe"
+
+          # A certificate made for this run: the publisher must match the
+          # manifests ("CN=Canape Dev").
+          $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=Canape Dev" -KeyUsage DigitalSignature `
+            -FriendlyName "Canape Release" -CertStoreLocation "Cert:\CurrentUser\My" `
+            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+          $pw = ConvertTo-SecureString ([guid]::NewGuid().ToString()) -AsPlainText -Force
+          $pfx = Join-Path $env:RUNNER_TEMP "release.pfx"
+          Export-PfxCertificate -Cert $cert -FilePath $pfx -Password $pw | Out-Null
+          Export-Certificate -Cert $cert -FilePath "$stage\canape-release.cer" | Out-Null
+          $plain = [System.Net.NetworkCredential]::new("", $pw).Password
+
+          foreach ($exe in "canape-shell.exe", "canape-shell-gpu.exe", "canape-service.exe", "canape-ctl.exe") {
+            Copy-Item "target\release\$exe" $stage
+          }
+          Copy-Item packaging\identity\CustomCapability.SCCD $stage
+          $msix = "$stage\Canape.Identity.msix"
+          & $makeappx pack /d packaging\identity /p $msix /nv /o
+          if ($LASTEXITCODE -ne 0) { throw "makeappx failed" }
+          & $signtool sign /fd SHA256 /f $pfx /p $plain $msix
+          if ($LASTEXITCODE -ne 0) { throw "signtool failed (identity)" }
+
+          $widgetOut = "$stage\widget"
+          Copy-Item target\widget $widgetOut -Recurse
+          Get-ChildItem $widgetOut -Recurse -Include *.appx, *.msix |
+            Where-Object { $_.FullName -notmatch '\\Dependencies\\' } | ForEach-Object {
+              & $signtool sign /fd SHA256 /f $pfx /p $plain $_.FullName
+              if ($LASTEXITCODE -ne 0) { throw "signtool failed (widget)" }
+            }
+
+          Copy-Item packaging\install-release.ps1, packaging\Install-Canape.cmd, packaging\uninstall-dev.ps1, LICENSE, README.md $stage
+          Copy-Item docs\user-guide.fr.md, docs\user-guide.en.md $stage
+          Remove-Item $pfx -Force
+
+          Push-Location $stage
+          Get-ChildItem -File | Where-Object Name -ne "SHA256SUMS.txt" | ForEach-Object {
+            "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash)  $($_.Name)"
+          } | Set-Content SHA256SUMS.txt -Encoding ascii
+          Pop-Location
+          Compress-Archive -Path "$stage\*" -DestinationPath "dist\canape-$tag-windows-x64.zip"
+          "TAG=$tag" | Out-File -Append $env:GITHUB_ENV -Encoding ascii
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canape-release
+          path: dist/*.zip
+          if-no-files-found: error
+
+      - name: Publish the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $flag = if ("${{ github.event.inputs.prerelease }}" -eq "false") { @() } else { @("--prerelease") }
+          gh release create $env:TAG "dist\canape-$env:TAG-windows-x64.zip" --title "Canapé $env:TAG" --generate-notes @flag

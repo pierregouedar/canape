@@ -40,7 +40,12 @@ L'installation Steam sans fenêtre et plusieurs réglages récents restent à es
 
 ### Installer Canapé
 
-Il n'existe pas encore d'installateur grand public. L'installation de développement nécessite :
+**Version prête à installer (pré-version)** : la page [Releases](../../releases) du dépôt propose une archive `canape-<version>-windows-x64.zip`. Décompressez-la, puis double-cliquez `Install-Canape.cmd` (il demande les droits administrateur). Il vérifie les fichiers (`SHA256SUMS.txt`), installe le service et le shell dans `C:\Program Files\Canape`, approuve le certificat de la version, enregistre le paquet d'identité et installe le widget. Il faut toujours le **mode développeur** (voir les limites ci-dessous) et il ne faut ni Rust ni le SDK Windows. Désinstallation : `uninstall-dev.ps1` dans le même dossier.
+
+> [!NOTE]
+> Ce n'est pas encore un installateur grand public : les programmes ne sont pas signés par une autorité (Smart App Control peut bloquer une archive téléchargée par le navigateur ; dans ce cas, téléchargez avec `gh release download`), et l'expérience plein écran n'accepte Canapé qu'avec le mode développeur, faute de capacité autorisée par Microsoft.
+
+**Installation de développement** (depuis les sources) : elle nécessite :
 
 - une ROG Ally sous **Windows 11 24H2 ou plus récent** et le **mode développeur** activé ;
 - les **Visual Studio Build Tools** avec le SDK Windows (`makeappx` et `signtool`), ainsi que Rust avec la toolchain MSVC pour compiler localement ;

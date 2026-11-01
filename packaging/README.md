@@ -11,6 +11,16 @@
 | `install-dev.ps1` | Compile, installe le service `CanapeService`, signe et enregistre le paquet sur la machine de dev |
 | `uninstall-dev.ps1` | L'inverse, widget compris ; remet d'abord ventilateurs, limite de FPS, manette et limite de charge au neutre. `-RemoveData`, `-RemoveCertificate` (voir le [guide d'utilisation](../docs/user-guide.fr.md#désinstaller)) |
 
+## Version publiée (GitHub Releases)
+
+| Fichier | Rôle |
+|---|---|
+| `install-release.ps1` | Installe depuis le dossier d'une version décompressée : vérifie `SHA256SUMS.txt`, copie les programmes, installe le service, approuve `canape-release.cer`, enregistre `Canape.Identity.msix` et le widget. Ni Rust ni SDK. |
+| `Install-Canape.cmd` | Lance le script en administrateur d'un double-clic |
+| `../.github/workflows/release.yml` | Construit tout sous Windows, crée un certificat pour l'occasion (la clé privée ne quitte pas la CI), signe les paquets, calcule les empreintes et publie la version (pré-version par défaut) |
+
+Publier : Actions → Release → Run workflow avec le nom de la version (par exemple `v0.1.0`), ou pousser une étiquette `v*`. Chaque version a son propre certificat : réinstaller une autre version approuve le nouveau.
+
 ## M1 : démarrer Canapé en FSE sur l'Ally
 
 Prérequis : mode développeur activé, Rust et Build Tools installés (le Windows SDK fournit `makeappx` et `signtool`).
